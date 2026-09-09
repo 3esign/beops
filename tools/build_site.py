@@ -246,6 +246,8 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 .w-en,.w-zh,.w-de{display:none}
 .what-en .w-en,.what-zh .w-zh,.what-de .w-de{display:inline}
 .what-en .w-sr,.what-zh .w-sr,.what-de .w-sr{display:none}
+.problembox{max-width:80ch;margin:calc(var(--u)*6) 0 calc(var(--u)*2);font-size:15.5px;line-height:1.6;color:var(--ink)}
+.problembox p{margin:0}
 .claimbox{border-left:2px solid var(--signal);padding:calc(var(--u)*1) 0 calc(var(--u)*1) calc(var(--u)*5);margin:calc(var(--u)*6) 0;max-width:80ch}
 .claimbox p{margin:0 0 calc(var(--u)*4);color:var(--ink70)}
 .claimbox b{color:var(--ink)}
@@ -512,6 +514,9 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
   <div class="wrap">
     <h2><span class="sr-only">Srodni radovi, standardi i projekti</span><span class="en-only">Related work, standards and projects</span></h2>
     <p class="sub" style="max-width:80ch"><span class="sr-only">Ovo nije prvi pokušaj da grad govori kroz svoje instrumente. Ovde stoji odakle je šta uzeto, sa linkom na izvor da čitalac ne mora da nam veruje — i, ispod, šta se ovde tvrdi kao novo, a šta ne. Beleška „uzima" govori šta je ovaj projekat uzeo iz tog rada; ne tvrdi da autori znaju za ovaj projekat niti da ga odobravaju.</span><span class="en-only">This is not the first attempt to let a city speak through its instruments. Here is where each idea came from, with a link so the reader need not take our word — and, below, what is claimed as new here and what is not. The "takes" note says what this project took from that work; it does not claim the authors know of this project or endorse it.</span></p>
+    <div class="problembox">
+      <p><span class="sr-only">__PROB_SR__</span><span class="en-only">__PROB_EN__</span></p>
+    </div>
     <div class="claimbox">
       <p><b><span class="sr-only">Standardno, i nimalo novo</span><span class="en-only">Standard, and in no way new</span></b><br><span class="sr-only">__STD_SR__</span><span class="en-only">__STD_EN__</span></p>
       <p><b><span class="sr-only">Ono što ovde jeste drugačije</span><span class="en-only">What is different here</span></b><br><span class="sr-only">__OURS_SR__</span><span class="en-only">__OURS_EN__</span></p>
@@ -769,7 +774,8 @@ def main() -> int:
         layers_svg = f"<!-- layers drawing unavailable: {type(e).__name__} -->"
     html = html.replace("__LAYERS_SVG__", layers_svg)
     cb = data["related"]["claim"]
-    for key, ph in (("standard_sr", "__STD_SR__"), ("standard_en", "__STD_EN__"),
+    for key, ph in (("problem_sr", "__PROB_SR__"), ("problem_en", "__PROB_EN__"),
+                    ("standard_sr", "__STD_SR__"), ("standard_en", "__STD_EN__"),
                     ("ours_sr", "__OURS_SR__"), ("ours_en", "__OURS_EN__"),
                     ("not_sr", "__NOT_SR__"), ("not_en", "__NOT_EN__")):
         html = html.replace(ph, cb.get(key, ""))   # the claim boundary is a register entry, not page copy
