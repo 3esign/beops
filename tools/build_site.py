@@ -233,6 +233,11 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 .layers svg{width:100%;height:auto;display:block}
 .layerlink{display:block;text-align:center;font-size:12px;color:var(--ink55);margin-top:calc(var(--u)*3)}
 .folded .secbody{display:none}
+/* folded-reads-as-folded: a control for a body that is not there is a broken-looking page */
+.folded .wlangs,.folded .stagelink,.folded .layerlink{display:none}
+.folded h2{opacity:.72}
+button.fold{border-radius:4px}
+.folded button.fold{color:var(--ink);border-color:var(--ink30)}
 .whatbar{border-bottom:1px solid var(--ink12);background:var(--panel);padding:calc(var(--u)*8) 0}
 .whathead{display:flex;align-items:baseline;justify-content:space-between;gap:calc(var(--u)*4);flex-wrap:wrap;margin-bottom:calc(var(--u)*5)}
 .whathead h2{margin:0}
@@ -411,7 +416,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
   <div class="wrap">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:12px">
       <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only">Podaci — šta smo izmerili, po stanici i na mapi</span><span class="en-only">Data — what was measured, per station and on the map</span></h2>
-      <a class="stagelink" style="position:static" href="podaci.html?v={stamp}"><span class="sr-only">Otvori sve podatke ↗</span><span class="en-only">Open all the data ↗</span></a>
+      
     </div>
     <div class="datastage"><iframe id="datastage" src="podaci.html?v={stamp}" title="BEOPS · Podaci" loading="lazy"></iframe></div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin:28px 0 12px">
@@ -741,12 +746,12 @@ addEventListener('message',function(ev){
     var body=document.createElement('div'); body.className='secbody';
     kids.slice(hi+1).forEach(function(k){ body.appendChild(k); });
     w.appendChild(body);
-    var b=document.createElement('button'); b.type='button'; b.className='fold'; b.textContent='–';
+    var b=document.createElement('button'); b.type='button'; b.className='fold'; b.textContent='\u25be';
     b.setAttribute('aria-expanded','true');
     b.setAttribute('aria-label','Skupi / razvij · Fold / unfold');
     function setFolded(folded){
       sec.classList.toggle('folded',folded);
-      b.textContent=folded?'+':'–';
+      b.textContent=folded?'\u25b8':'\u25be';
       b.setAttribute('aria-expanded',String(!folded));
       if(!folded){
         // A frame inside a display:none section never measured itself; a resize makes it report.
@@ -756,7 +761,14 @@ addEventListener('message',function(ev){
     }
     b.addEventListener('click',function(){ setFolded(!sec.classList.contains('folded')); });
     var head=kids[hi];
-    (head.tagName==='H2'?head.parentElement:head).appendChild(b);
+    var row=(head.tagName==='H2'?head.parentElement:head);
+    row.appendChild(b);
+    // The heading row is the door. Anything in it that is itself a control keeps its own click.
+    row.style.cursor='pointer';
+    row.addEventListener('click',function(ev){
+      if(ev.target.closest && ev.target.closest('button,a,input,select')) return;
+      setFolded(!sec.classList.contains('folded'));
+    });
     // OPEN_ON_ARRIVAL: the page opens as a list of its parts, with the live one running.
     if(OPEN_ON_ARRIVAL.indexOf(id)<0) setFolded(true);
     opener[id]=setFolded;
