@@ -262,6 +262,9 @@ h2+button.fold{margin-left:calc(var(--u)*3)}
 /* on a narrow screen the drawing keeps a readable size and scrolls inside its own box; the page itself never scrolls sideways */
 @media (max-width:760px){.layers{overflow-x:auto;-webkit-overflow-scrolling:touch}.layers svg{width:760px;max-width:none}}
 .datastage{height:min(90vh,1100px);border:1px solid var(--ink12);border-radius:6px;overflow:hidden;background:var(--field)}
+.airbar{padding:calc(var(--u)*8) 0 0}
+.airstage{height:auto}
+.barhead{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0 0 12px;font-weight:600}
 .datastage iframe{width:100%;height:100%;border:0;display:block}
 .trakastage{height:min(62vh,620px)}   /* until the frame reports its own height, a sane first size */
 .datastage.fit,.stage.fit{height:auto}   /* a frame that has reported its height is exactly that tall */
@@ -362,8 +365,14 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
   <div class="wrap">
     <div class="stage">
       <iframe id="stage" src="monolog.html?v={stamp}" title="BEOPS · Monolog + Puls" loading="eager"></iframe>
-      <a class="stagelink" href="monolog.html"><span class="sr-only">Otvori ceo monolog ↗</span><span class="en-only">Open the full monologue ↗</span></a>
     </div>
+  </div>
+</div>
+
+<div class="airbar" id="vazduhbar">
+  <div class="wrap">
+    <h2 class="barhead"><span class="sr-only">Vazduh — državna mreža, poslednji sat</span><span class="en-only">Air — the state network, the last hour</span></h2>
+    <div class="datastage airstage"><iframe id="airstage" src="podaci.html?only=vazduh&amp;v={stamp}" title="BEOPS · Vazduh" loading="eager"></iframe></div>
   </div>
 </div>
 
@@ -398,17 +407,6 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
   </div>
 </div>
 
-<div class="livebar" id="zivo">
-  <div class="wrap">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:16px">
-      <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only">Poslednji prijem po izvoru</span><span class="en-only">Last reception per source</span></h2>
-      <span class="mono" style="font-size:12px;color:var(--ink55)" id="asof"></span>
-    </div>
-    <div class="lgrid" id="lgrid"></div>
-    <p class="mono" style="font-size:11.5px;color:var(--ink55);margin:16px 0 0"><span class="sr-only">Popunjena ćelija = prijem u tom taktu; prazna = tišina. Prijem nije merenje.</span><span class="en-only">A filled cell is a reception in that slot; an empty one is silence. A reception is not a measurement.</span></p>
-  </div>
-</div>
-
 <div class="databar" id="podaci">
   <div class="wrap">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:12px">
@@ -418,7 +416,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
     <div class="datastage"><iframe id="datastage" src="podaci.html?v={stamp}" title="BEOPS · Podaci" loading="lazy"></iframe></div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin:28px 0 12px">
       <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only">Traka — vreme kao glavni predmet, jedna traka po čulu</span><span class="en-only">The ribbon — time as the primary object, one lane per sense</span></h2>
-      <a class="stagelink" style="position:static" href="traka.html?v={stamp}"><span class="sr-only">Otvori celu traku ↗</span><span class="en-only">Open the full ribbon ↗</span></a>
+      
     </div>
     <div class="datastage trakastage"><iframe id="trakastage" src="traka.html?v={stamp}" title="BEOPS · Traka" loading="lazy"></iframe></div>
     <p class="mono" style="font-size:11.5px;color:var(--ink55);margin:12px 0 0"><span class="sr-only">Oznaka postoji samo tamo gde red postoji; prazno mesto je tišina, ne nula.</span><span class="en-only">A mark exists only where a row exists; an empty place is silence, not a zero.</span></p>
@@ -430,7 +428,18 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
     <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0 0 6px;font-weight:600"><span class="sr-only">Slojevi — od čega je opservatorija napravljena</span><span class="en-only">Layers — what the observatory is made of</span></h2>
     <p class="sub" style="margin:0 0 16px;max-width:80ch"><span class="sr-only">Na dnu je zakon — srpski i evropski — i on nosi sve ostalo: sloj postoji samo ako je propušten kroz kapiju dozvole. Iznad njega: podloga grada, statični slojevi, periodični izvori, živa čula, sistem koji organizuje, sistem koji misli i govori, i izraz; znanje stoji pored njih i takođe stoji na zakonu. Brojevi u crtežu se čitaju iz registara pri svakoj objavi.</span><span class="en-only">At the bottom is the law — Serbian and European — and it carries everything else: a layer exists only if it passed the permission gate. Above it: the city's ground, static layers, periodic sources, live senses, the system that organizes, the system that thinks and speaks, and expression; the knowledge stands beside them and on the same slab. The numbers in the drawing are read from the registers at every publish.</span></p>
     <div class="layers">__LAYERS_SVG__</div>
-    <a class="layerlink" href="slojevi.svg"><span class="sr-only">Otvori ceo crtež ↗</span><span class="en-only">Open the full drawing ↗</span></a>
+    
+  </div>
+</div>
+
+<div class="livebar" id="zivo">
+  <div class="wrap">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:16px">
+      <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only">Poslednji prijem po izvoru</span><span class="en-only">Last reception per source</span></h2>
+      <span class="mono" style="font-size:12px;color:var(--ink55)" id="asof"></span>
+    </div>
+    <div class="lgrid" id="lgrid"></div>
+    <p class="mono" style="font-size:11.5px;color:var(--ink55);margin:16px 0 0"><span class="sr-only">Popunjena ćelija = prijem u tom taktu; prazna = tišina. Prijem nije merenje.</span><span class="en-only">A filled cell is a reception in that slot; an empty one is silence. A reception is not a measurement.</span></p>
   </div>
 </div>
 
@@ -720,7 +729,8 @@ addEventListener('message',function(ev){
 // Each part can be folded away: its heading gets a button, the rest of the part hides.
 (function fold(){
   var ids=['sta','zivo','podaci','slojevi','kako','izvori','srodno','dozvole','greske','kontakt','citaj'];
-  var OPEN_ON_ARRIVAL=['zivo'];      // the monologue at the top; everything else opens when asked for
+  var OPEN_ON_ARRIVAL=['slojevi'];   // the drawing that explains the rest; the live interface at the
+                                   // top of the page does not fold at all
   var opener={};
   ids.forEach(function(id){
     var sec=document.getElementById(id); if(!sec) return;

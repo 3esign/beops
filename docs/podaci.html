@@ -319,5 +319,21 @@ Promise.all([load('basemap-belgrade.json'),load('live-snapshot.json'),load('hist
   setInterval(post, 3000);
   post();
 })();
+
+// ?only=<section id> - the page lends one of its parts to the front page. Everything else is hidden
+// rather than not built, so the part behaves exactly as it does here.
+(function only(){
+  var q=new URLSearchParams(location.search).get('only'); if(!q) return;
+  document.documentElement.classList.add('lent');
+  var secs=document.querySelectorAll('main > section');
+  for(var i=0;i<secs.length;i++){ if(secs[i].id!==q) secs[i].style.display='none'; }
+  var h=document.querySelector('header'); if(h) h.style.display='none';
+  var m=document.querySelector('main'); if(m){ m.style.padding='0'; m.style.maxWidth='none'; }
+  var s=document.getElementById(q); if(s){ s.style.borderBottom='0'; s.style.paddingTop='0'; }
+  // Lent to the front page, this is a diagram and two numbers. The station table is detail, and
+  // detail belongs where the detail is - it stays on this page, one fold further down.
+  document.addEventListener('beops:rendered',trim); setTimeout(trim,300); setTimeout(trim,1500);
+  function trim(){ var t=document.querySelectorAll('#septable .twocol'); for(var i=0;i<t.length;i++) t[i].style.display='none'; }
+})();
 </script>
 </html>
