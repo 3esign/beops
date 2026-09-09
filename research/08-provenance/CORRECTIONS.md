@@ -902,3 +902,41 @@ read as "the change is good" rather than as "nothing I already knew to check has
 corrections this evening now share one shape: C-018, C-020 and C-022 were fixes written from the
 instances in front of me; this one is a fix that broke something no test was watching. Both are the
 same failure to ask what the change could break that the record does not yet check.
+
+---
+
+## C-025 — The page prints UTC and the reader's clock does not, and nobody told the reader
+
+**When** Noticed 2026-09-09 23:32 local (21:32 UTC), by the person who built it.
+
+**What it said.** The mind cards on the front page stamp each utterance `09.09 21:18 UTC`. The wall
+clock beside the screen said 23:32. Read together, that is a page whose newest thought is more than
+two hours old — a stalled instrument.
+
+**What was actually true.** Nothing was stale. Belgrade is UTC+2, so 21:18 UTC is 23:18 local:
+fourteen minutes. Checked at the same moment: the newest collected row was **12 seconds** old, the
+published snapshot 9 minutes, the watchman reading 2.4 minutes, and all five scheduled tasks had run
+within the last minute. The offset was the reader's timezone, and the reader was the author.
+
+**Why this is a defect and not a misunderstanding.** A page that requires its reader to perform a
+timezone conversion before it can be believed has failed at the one thing this project claims to be
+good at. The whole record exists to keep *when* unambiguous — measured, published, received, never
+collapsed — and then the surface that shows it collapsed the last and most obvious one: the difference
+between the clock on the page and the clock on the wall. If the author misreads it in the first week,
+every reader will.
+
+**The fix.** Every UTC stamp on the pulse frame now carries the age beside it — `21:18 UTC · pre 14
+min` — recomputed every thirty seconds, and the section heading says *all times are UTC* in both
+languages. The replay clock deliberately gets no age: during a replay the clock is not now.
+
+**And what is deliberately NOT done.** An age is printed only for an utterance or a reception — two
+instants the record knows exactly. It is never printed for a measurement whose time the source did not
+publish. 49 of 843 series are `untimed`: for those the value is exact and its age is unknown, and
+attaching a number to that unknown would be precisely the invention this whole instrument exists to
+refuse. The absent age is a statement.
+
+**Rule: the reader's context is part of the display.** Every time in this record is stored, compared
+and reasoned about in UTC, which is right. But a stored time and a shown time are different objects
+with different jobs, and the shown one has to survive being looked at by a person standing next to a
+clock. This is the same mistake as reading a reception time as a measurement time, made one layer
+further out: correct data, rendered in a frame of reference the reader does not share.

@@ -98,6 +98,7 @@ html.embedded .reading{position:static;height:auto;overflow:visible;border-left:
 .rrow .v.s{color:var(--signal)} .rrow .v.u{color:var(--signal-untimed)} .rrow .v.n{color:var(--state)}
 .rrow .sub{grid-column:1/-1;color:var(--ink60);font-size:12px;font-family:var(--mono)}
 .foot{padding:calc(var(--u)*4) calc(var(--u)*6);color:var(--ink60);font-size:13px;max-width:70ch}
+.ago{font-style:normal;color:var(--ink60);white-space:nowrap}
 .foot b{color:var(--ink);font-weight:600}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 
@@ -182,6 +183,28 @@ function buildLanes(snap){
 }
 function ORDER(p){const o={PM10:1,'PM2.5':2,P1:1,P2:2,P0:3,NO2:3,NOX:4,NO:5,O3:6,SO2:7,CO:8,temperature:1,humidity:2,pressure:3,pressure_at_sealevel:4,free_spaces:1};return o[p]||50;}
 let LANG='sr'; const S=(a,b)=>LANG==='sr'?a:b;
+/* C-025. The ribbon stamps in UTC and the reader's clock is not UTC. The age shown is the age of the
+   SNAPSHOT - a reception instant the record knows exactly - never of a measurement whose time the
+   source did not publish. */
+function agoText(t){
+  const ms=Date.now()-new Date(t).getTime();
+  if(!isFinite(ms)||ms<0) return '';
+  const m=Math.round(ms/60000);
+  if(m<1)  return S('upravo sad','just now');
+  if(m<90) return S('pre '+m+' min', m+' min ago');
+  const h=ms/3600000, hh=(h<10?h.toFixed(1):Math.round(h));
+  if(h<36) return S('pre '+hh+' h', hh+' h ago');
+  return S('pre '+Math.round(h/24)+' d', Math.round(h/24)+' d ago');
+}
+function paintAges(){
+  document.querySelectorAll('[data-ago]').forEach(function(el){
+    const t=el.getAttribute('data-ago'); if(!t) return;
+    let i=el.querySelector('i.ago');
+    if(!i){ i=document.createElement('i'); i.className='ago'; el.appendChild(i); }
+    const a=agoText(t); i.textContent=a?(' \u00b7 '+a):'';
+  });
+}
+setInterval(paintAges,30000);
 const PNAME={P1:'PM10 (građanski)',P2:'PM2.5 (građanski)',P0:'PM1 (građanski)',free_spaces:'slobodna mesta'};
 const PNAME_EN={P1:'PM10 (citizen)',P2:'PM2.5 (citizen)',P0:'PM1 (citizen)',free_spaces:'free spaces'};
 const pname=k=>(LANG==='sr'?PNAME:PNAME_EN)[k]||k;
@@ -279,11 +302,11 @@ function render(){
     }
     rib.appendChild(el);
   }
-  const foot=document.getElementById('foot');
+  const foot=document.getElementById('foot'); foot.setAttribute('data-ago',SNAP.as_of);
   const nrows=SNAP.sources.reduce((a,s)=>a+s.datastreams.reduce((b,d)=>b+d.points.length,0),0);
   const nds=SNAP.sources.reduce((a,s)=>a+s.datastreams.length,0);
   foot.innerHTML=LANG==='sr'
-    ? `<b>${nrows.toLocaleString('sr-RS')}</b> redova iz <b>${nds}</b> tokova, primljeno između ${fmtT(T0)} i ${fmtT(T1)} UTC. Snimak ${esc(SNAP.as_of)}. Takt bez prijema je tišina, ne nula. Svaka SEPA vrednost je satni prosek samog izvora označen kao <span class="mono">preliminary</span>; svaka vrednost parkinga je tačna a njena starost nepoznata, pa joj se podloga gubi ulevo do prethodnog prijema. Ništa ovde nije merenje grada; ovo je ono što su gradski instrumenti objavili, i kad smo to primili.`
+    ? `<b>${nrows.toLocaleString('sr-RS')}</b> redova iz <b>${nds}</b> tokova, primljeno između ${fmtT(T0)} i ${fmtT(T1)} UTC. Snimak ${esc(SNAP.as_of)}. Takt bez prijema je tišina, ne nula. Svaka SEPA vrednost je satni prosek samog izvora označen kao <span class="mono">preliminary</span>; paintAges(); svaka vrednost parkinga je tačna a njena starost nepoznata, pa joj se podloga gubi ulevo do prethodnog prijema. Ništa ovde nije merenje grada; ovo je ono što su gradski instrumenti objavili, i kad smo to primili.`
     : `<b>${nrows.toLocaleString('en')}</b> rows from <b>${nds}</b> datastreams, received between ${fmtT(T0)} and ${fmtT(T1)} UTC. Snapshot ${esc(SNAP.as_of)}. Cadence slots with no reception are silent, not zero. Each SEPA value is the source's own hourly mean marked <span class="mono">preliminary</span>; each parking value is exact and its age is unknown, so its ground fades left to the previous reception. Nothing here is a measurement of the city; it is what the city's instruments published, and when we received it.`;
   drawAll();
 }

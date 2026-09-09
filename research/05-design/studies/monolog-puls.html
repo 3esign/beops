@@ -51,6 +51,7 @@ main{display:grid;grid-template-columns:minmax(360px,5fr) minmax(360px,7fr);min-
 .mind .card.fresh{border-left-color:var(--signal)}
 .mind .card .who{font-size:13px;font-weight:600;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
 .mind .card .who .t{font-family:var(--mono);font-weight:400;font-size:12px;color:var(--ink60)}
+.ago{font-style:normal;color:var(--ink60);white-space:nowrap}
 .mind .card .say{font-size:16px;line-height:1.45;margin:4px 0 2px}
 .mind .card.quiet .say{color:var(--ink60);font-style:italic}
 .mind .card .hyp{font-size:13px;color:var(--ink60);margin-top:2px}
@@ -200,7 +201,7 @@ body.embedded .map .cv{min-height:0}
     <div class="lines" id="lines"></div>
   </section>
   <section class="mind" id="mind">
-  <h2><span class="sr-only">Um — šta tri entiteta upravo misle o onome što grad govori (proverene rečenice, ne merenja)</span><span class="en-only">The mind — what the three entities think right now about what the city says (checked utterances, not measurements)</span></h2>
+  <h2><span class="sr-only">Um — šta tri entiteta upravo misle o onome što grad govori (proverene rečenice, ne merenja) · sva vremena su UTC</span><span class="en-only">The mind — what the three entities think right now about what the city says (checked utterances, not measurements) · all times are UTC</span></h2>
   <div class="cards" id="mindcards"></div>
 </section>
 </main>
@@ -282,6 +283,32 @@ function build(snap){
 }
 const S=(sr,en)=>LANG==='sr'?sr:en;
 function fmtT(t){const d=new Date(t);return d.toISOString().slice(11,16);}
+/* C-025. Every time on this page is UTC, and every reader's wall clock is not. A card stamped
+   21:18 UTC beside a clock reading 23:32 looks two hours stale to anyone who does not stop to do
+   the arithmetic - including the people who built it. The age is a quantity we know exactly: we
+   know when the sentence was written and we know what time it is. Printing it next to the stamp
+   costs nothing and removes the whole class of misreading. Note what is NOT done here: this is the
+   age of an UTTERANCE or a RECEPTION, never of a measurement whose time the source did not publish
+   - an untimed value has no age, and inventing one would be the error this project exists against. */
+function agoText(t){
+  const ms=Date.now()-new Date(t).getTime();
+  if(!isFinite(ms)||ms<0) return '';
+  const m=Math.round(ms/60000);
+  if(m<1)  return LANG==='sr'?'upravo sad':'just now';
+  if(m<90) return LANG==='sr'?('pre '+m+' min'):(m+' min ago');
+  const h=ms/3600000;
+  if(h<36) return LANG==='sr'?('pre '+(h<10?h.toFixed(1):Math.round(h))+' h'):((h<10?h.toFixed(1):Math.round(h))+' h ago');
+  return LANG==='sr'?('pre '+Math.round(h/24)+' d'):(Math.round(h/24)+' d ago');
+}
+function paintAges(){
+  document.querySelectorAll('[data-ago]').forEach(function(el){
+    const t=el.getAttribute('data-ago'); if(!t) return;
+    let i=el.querySelector('i.ago');
+    if(!i){ i=document.createElement('i'); i.className='ago'; el.appendChild(i); }
+    const a=agoText(t); i.textContent=a?(' \u00b7 '+a):'';
+  });
+}
+setInterval(paintAges,30000);
 function fmtD(t){const d=new Date(t);return d.toISOString().slice(5,10).replace('-','.')+' '+fmtT(t);}
 function hourRange(isoEnd){ if(!isoEnd) return ''; const e=P(isoEnd); return fmtT(e-3600e3)+'–'+fmtT(e)+' UTC'; }
 function sentence(e){
@@ -480,7 +507,9 @@ function frame(ts){
   if(PLAY){ playT+=dt*speed(); if(playT>=T1){ playT=T1; PLAY=false; setPressed(); }
     while(cursor<EVENTS.length && EVENTS[cursor].t<=playT){ const e=EVENTS[cursor++]; addLine(e,true); pulseFor(e); } }
   const mode=PLAY?(LANG==='sr'?'ponavljanje ×':'replay ×')+speed()+' · ':(cursor>=EVENTS.length?(LANG==='sr'?'poslednje · ':'latest · '):(LANG==='sr'?'pauza · ':'paused · '));
-  document.getElementById('clock').textContent=mode+new Date(playT).toISOString().slice(0,16).replace('T',' ')+' UTC';
+  const live=!PLAY&&cursor>=EVENTS.length;
+  document.getElementById('clock').textContent=mode+new Date(playT).toISOString().slice(0,16).replace('T',' ')+' UTC'
+    +(live?(' \u00b7 '+agoText(playT)):'');   // a replay clock has no age: it is not now
   drawMap(performance.now()); requestAnimationFrame(frame);
 }
 function setPressed(){ document.getElementById('play').setAttribute('aria-pressed',PLAY); document.getElementById('live').setAttribute('aria-pressed',!PLAY&&cursor>=EVENTS.length); }
@@ -501,9 +530,10 @@ function renderMind(){
     const text=LANG==='sr'?th.sr:th.en;
     const hyp=LANG==='sr'?(th.hypotheses_sr||[]):(th.hypotheses||[]); const q=LANG==='sr'?(th.questions_sr||[]):(th.questions||[]);
     el.className='card'+(fresh?' fresh':'');
-    el.innerHTML=`<div class="who"><b>${esc(name)}</b> <span class="t">${fmtD(th.t)} UTC</span></div><div class="say">${esc(text)}</div>${hyp.length?`<div class="hyp">${LANG==='sr'?'pretpostavka':'hypothesis'}: ${esc(hyp.join(' · '))}</div>`:''}${q.length?`<div class="hyp">${LANG==='sr'?'pitanje':'question'}: ${esc(q.join(' · '))}</div>`:''}<div class="meta">${esc(th.model||'')}${th.voice_model?' · '+(LANG==='sr'?'glas ':'voice ')+esc(th.voice_model):''} · ai_generated=true · ${LANG==='sr'?'svaki broj proveren prema digestu':'every number checked against the digest'}${th.cites&&th.cites.length?' · '+esc(th.cites.join(' ')):''}</div>`;
+    el.innerHTML=`<div class="who"><b>${esc(name)}</b> <span class="t" data-ago="${th.t}">${fmtD(th.t)} UTC</span></div><div class="say">${esc(text)}</div>${hyp.length?`<div class="hyp">${LANG==='sr'?'pretpostavka':'hypothesis'}: ${esc(hyp.join(' · '))}</div>`:''}${q.length?`<div class="hyp">${LANG==='sr'?'pitanje':'question'}: ${esc(q.join(' · '))}</div>`:''}<div class="meta">${esc(th.model||'')}${th.voice_model?' · '+(LANG==='sr'?'glas ':'voice ')+esc(th.voice_model):''} · ai_generated=true · ${LANG==='sr'?'svaki broj proveren prema digestu':'every number checked against the digest'}${th.cites&&th.cites.length?' · '+esc(th.cites.join(' ')):''}</div>`;
     box.appendChild(el);
   }
+  paintAges();
 }
 function showLatest(){ PLAY=false; playT=T1; cursor=EVENTS.length; const box=document.getElementById('lines'); box.innerHTML=''; for(let i=Math.max(0,EVENTS.length-60);i<EVENTS.length;i++) addLine(EVENTS[i],false); setPressed(); }
 function startReplay(){ const first=EVENTS.find(e=>e.kind==='rx'||e.kind==='text'); playT=first?Math.max(T0,first.t-120e3):T0; cursor=0; document.getElementById('lines').innerHTML=''; PLAY=true; lastFrame=0; setPressed(); }

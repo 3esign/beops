@@ -196,6 +196,23 @@ class BuiltSiteTests(unittest.TestCase):
             self.assertRegex(css_of(body), r"canvas\s*\{[^}]*width\s*:\s*100%",
                              f"docs/{f}: its canvas is never given a CSS width")
 
+    def test_a_frame_that_stamps_times_in_utc_also_says_how_old_they_are(self):
+        """C-025. The pulse frame stamped its utterances `09.09 21:18 UTC` and the reader's wall
+        clock said 23:32. Nothing was stale - the offset is the reader's timezone - but a page cannot
+        rely on its reader doing that arithmetic, and the person who built it did not. An age is a
+        quantity the page knows exactly (when the sentence was written, and what time it is now), so
+        it is printed beside the stamp. This asserts the mechanism is still there."""
+        for f in self.frames:
+            p = DOCS / f
+            if not p.exists():
+                continue
+            body = read(p)
+            if " UTC" not in body:
+                continue
+            self.assertIn("data-ago", body,
+                          f"docs/{f} prints UTC stamps but never says how old they are")
+            self.assertIn("agoText", body, f"docs/{f} has no age helper")
+
     def test_no_element_id_is_used_twice(self):
         dupes = [i for i, n in Counter(re.findall(r'\sid="([^"]+)"', self.s)).items() if n > 1]
         self.assertEqual(dupes, [], "duplicate ids: " + ", ".join(dupes))

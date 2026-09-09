@@ -28,6 +28,7 @@ header h1 span{font-weight:400;color:var(--ink60)}
 button{font:inherit;font-size:13px;color:var(--ink);background:transparent;border:1px solid var(--ink30);padding:calc(var(--u)*1) calc(var(--u)*3);cursor:pointer;border-radius:3px}
 button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-color:var(--ink)}
 .clock{font-family:var(--mono);font-size:13px;color:var(--ink60)}
+.ago{font-style:normal;color:var(--ink60);white-space:nowrap}
 .lang-en .sr-only,.lang-sr .en-only{display:none}
 main{max-width:1400px;margin:0 auto;padding:0 calc(var(--u)*6) calc(var(--u)*10)}
 section{padding:calc(var(--u)*6) 0;border-bottom:1px solid var(--ink12)}
@@ -145,6 +146,30 @@ tr.max td{box-shadow:inset 3px 0 0 var(--signal)}
 (function(){
 let SNAP=null, LANG='sr', BASEMAP=null, PAR='PM10';
 const S=(a,b)=>LANG==='sr'?a:b;
+/* C-025. This page stamps everything in UTC and the reader's wall clock is not UTC. The age is
+   printed for the RECEPTION - the instant the snapshot was taken, which the record knows exactly.
+   It is deliberately NOT printed per measurement row: the hour in the table is the hour the SOURCE
+   labels, and for 49 of 843 series the source publishes no measurement time at all. A value whose
+   time is unknown has no age, and inventing one is the error this instrument exists to refuse. */
+function agoText(t){
+  const ms=Date.now()-new Date(t).getTime();
+  if(!isFinite(ms)||ms<0) return '';
+  const m=Math.round(ms/60000);
+  if(m<1)  return S('upravo sad','just now');
+  if(m<90) return S('pre '+m+' min', m+' min ago');
+  const h=ms/3600000, hh=(h<10?h.toFixed(1):Math.round(h));
+  if(h<36) return S('pre '+hh+' h', hh+' h ago');
+  return S('pre '+Math.round(h/24)+' d', Math.round(h/24)+' d ago');
+}
+function paintAges(){
+  document.querySelectorAll('[data-ago]').forEach(function(el){
+    const t=el.getAttribute('data-ago'); if(!t) return;
+    let i=el.querySelector('i.ago');
+    if(!i){ i=document.createElement('i'); i.className='ago'; el.appendChild(i); }
+    const a=agoText(t); i.textContent=a?(' \u00b7 '+a):'';
+  });
+}
+setInterval(paintAges,30000);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const P=t=>t?Date.parse(t):NaN;
 const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
@@ -280,7 +305,7 @@ function renderHist(){
     'History starts '+HIST.history_starts+'Z and spans '+have+' h. In the window shown, '+withData+' of '+shown+' hours had any reception'+(peak?'; the highest hour is '+peak.h+'Z at '+peak.max.toFixed(1)+' '+unit:'')+'. Values are as the source published them, preliminary, and a mean here is the mean of what arrived in that hour, not of the hour.');
 }
 
-function renderAll(){ document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); if(!SNAP) return; document.getElementById('clock').textContent=S('prozor','window')+' '+SNAP.window_hours+' h · '+SNAP.as_of.slice(0,16).replace('T',' ')+' UTC'; renderSepa(); drawMap(); renderHist(); renderSC(); renderParking(); renderNews(); renderMind(); }
+function renderAll(){ document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); if(!SNAP) return; const ck=document.getElementById('clock');ck.textContent=S('prozor','window')+' '+SNAP.window_hours+' h · '+SNAP.as_of.slice(0,16).replace('T',' ')+' UTC';ck.setAttribute('data-ago',SNAP.as_of); paintAges(); renderSepa(); drawMap(); renderHist(); renderSC(); renderParking(); renderNews(); renderMind(); }
 document.getElementById('lang').addEventListener('click',()=>{LANG=LANG==='sr'?'en':'sr'; renderAll();});
 window.addEventListener('message',ev=>{ if(ev&&ev.data&&ev.data.beopsLang&&ev.data.beopsLang!==LANG){ LANG=ev.data.beopsLang; renderAll(); } });
 window.addEventListener('resize',()=>{ if(SNAP) drawMap(); });
