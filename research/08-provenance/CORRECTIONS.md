@@ -985,3 +985,24 @@ light and in dark — but by measuring the *background* colour each resolved to,
 both. A defect present in only one theme is not caught by checking that both themes load.
 
 **Nothing observed was changed.** Presentation only.
+
+## C-031 — the one-line note did not fit on one line
+
+**2026-09-09.** C-029 fixed the note row under the NOW panel's tiles at 26 px, one line, clipped with an
+ellipsis, and wrote a short form of each note for that line. Measured live in the 7-day range: the row
+is 439 px wide and the text it was given is 549 px, because two notes are joined with a separator and
+each short form was written as if it were alone. The height is stable — that part held — but the
+ellipsis was permanent rather than exceptional.
+
+**Correction.** Both short forms are shorter. The worst case in Serbian is now
+`zapis: 30 h; pun prozor 7 dana 2026-09-15 · isprekidano = vreme merenja nepoznato` — 81 characters,
+about 400 px, inside 439. The second one is reworded to the phrase the page already uses for this state
+in its legend, `vreme nepoznato`, rather than a second phrase for the same thing. The full sentences
+remain in the row's `title`.
+
+**What this pair of corrections is really about.** A fixed row plus an ellipsis makes a layout stable
+whatever the text; it does not make the text readable. Both were needed, and the second was only
+visible by measuring `scrollWidth` against `clientWidth` on the live page — the state the record cares
+about is not "did it fit in the design" but "did it fit in the browser".
+
+**Nothing observed was changed.** Presentation and wording of a legend only.
