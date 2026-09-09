@@ -201,18 +201,28 @@ button:hover{background:var(--ink06)}
 button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-color:var(--ink)}
 
 .hero{padding:calc(var(--u)*8) 0 calc(var(--u)*6)}
-.herohead{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:calc(var(--u)*8);align-items:end;margin-bottom:calc(var(--u)*6)}
+/* The hero is three bands, not two columns with things hanging off them. Band one is the claim on
+   the left and the thesis on the right, their baselines aligned. Band two is the signature, quiet and
+   full width. Band three is the live panel, centred. Everything that spans is declared as spanning:
+   a child dropped into a two-column grid lands in the next cell, which is how the panel ended up
+   under the left-hand text with half the row empty beside it. */
+.herohead{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:0 calc(var(--u)*8);align-items:end;margin-bottom:calc(var(--u)*6)}
 .stage{position:relative;width:100%;margin:0 auto;height:min(92vh,1040px);border:1px solid var(--ink12);overflow:hidden;background:var(--field)}
 .stage iframe{width:100%;height:100%;border:0;display:block;background:var(--field)}
 .stagelink{position:absolute;right:12px;top:10px;font-size:12px;padding:4px 10px;border:1px solid var(--ink30);border-radius:3px;background:color-mix(in srgb,var(--field) 85%,transparent);backdrop-filter:blur(8px)}
-.hero .authors{margin-top:calc(var(--u)*3);margin-bottom:0}
+.hero .authors{grid-column:1 / -1;max-width:none;margin:calc(var(--u)*5) 0 0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* The signature and the venue line are each ONE line: a signature that wraps stops reading as a
+   signature and starts reading as a paragraph. Below 900 px there is no room for that, so they
+   wrap there rather than being cut. */
+.hero .kicker{grid-column:1 / -1;margin:calc(var(--u)*6) 0 0;padding-top:calc(var(--u)*4);border-top:1px solid var(--ink12);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11.5px;color:var(--ink55)}
 /* The live panel sits in the hero, under the sentence that introduces it. It reports its
    own height like every other frame; the 300px is only what the box holds until it does. */
-.nowpanel{margin-top:calc(var(--u)*5);height:300px}
+.nowpanel{grid-column:1 / -1;width:min(100%,980px);margin:calc(var(--u)*7) auto 0;height:300px}
 .nowpanel.fit{height:auto}
 .nowpanel iframe{width:100%;height:100%;border:0;display:block;background:transparent}
 @media (max-width:900px){
   .herohead{grid-template-columns:1fr;gap:calc(var(--u)*3)}
+  .hero .authors,.hero .kicker{white-space:normal;overflow:visible;text-overflow:clip}
   .hero{padding:calc(var(--u)*5) 0 calc(var(--u)*4)}
   .stage{height:min(92vh,860px);width:100%}
   .hbar{gap:calc(var(--u)*2);padding:calc(var(--u)*2) calc(var(--u)*6);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
@@ -244,7 +254,7 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 .hero .kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--signal);font-weight:600;margin-bottom:calc(var(--u)*4)}
 .hero h1{font-size:clamp(26px,3.6vw,44px);line-height:1.06;margin:0 0 calc(var(--u)*5);font-weight:600;letter-spacing:-.02em;max-width:20ch;text-wrap:balance}
 .hero h1 em{font-style:normal;color:var(--signal)}
-.hero .sub{font-size:clamp(16px,1.5vw,19px);color:var(--ink70);max-width:62ch;margin:0 0 calc(var(--u)*6)}
+.hero .sub{font-size:clamp(15px,1.35vw,17.5px);color:var(--ink70);max-width:52ch;margin:0}
 .authors{font-size:14px;color:var(--ink55);max-width:70ch}
 .authors b{color:var(--ink);font-weight:600}
 
@@ -390,12 +400,12 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
 <div id="top" class="hero">
   <div class="wrap herohead">
     <div>
-      <div class="kicker"><span class="sr-only i18n">Naučni rad za konferenciju „Creating sustainable commUNiTy“ · Univerzitet Union – Nikola Tesla, 2026</span><span class="en-only i18n">A scientific paper for the conference “Creating sustainable commUNiTy” · University Union – Nikola Tesla, 2026</span><span class="zh-only">为会议“Creating sustainable commUNiTy”撰写的科学论文 · Union – Nikola Tesla 大学，2026</span><span class="de-only">Eine wissenschaftliche Arbeit für die Konferenz „Creating sustainable commUNiTy“ · Universität Union – Nikola Tesla, 2026</span></div>
       <h1><span class="sr-only i18n">Ovo je ono što nam je Beograd rekao, kad nam je rekao, i <em>gde je zaćutao</em>.</span><span class="en-only i18n">This is what Belgrade told us, when it told us, and <em>where it went quiet</em>.</span><span class="zh-only">这是贝尔格莱德告诉我们的内容、告诉我们的时刻，以及<em>它沉默的地方</em>。</span><span class="de-only">Das ist, was Belgrad uns gesagt hat, wann es das gesagt hat, und <em>wo es verstummt ist</em>.</span></h1>
-      <p class="authors"><b>prof. dr Darinka Golubović Matić</b> · <b>doc. dr Semir Poturak</b> — autori rada; nastavnici Univerziteta Union – Nikola Tesla u Beogradu, ali rad ne nastupa u ime ustanove · <span class="sr-only i18n">sa <b>Svemirom</b>, lokalnom AI infrastrukturom autora (Claude, Anthropic) — proveren saradnik, ne autor</span><span class="en-only i18n">with <b>Svemir</b>, the authors' local AI infrastructure (Claude, Anthropic) — a verified contributor, not an author</span><span class="zh-only">与<b>Svemir</b>协作——作者本地的人工智能基础设施（Claude，Anthropic）：经过核验的贡献者，而非作者</span><span class="de-only">mit <b>Svemir</b>, der lokalen KI-Infrastruktur der Autoren (Claude, Anthropic) — ein geprüfter Mitwirkender, kein Autor</span></p>
     </div>
     <p class="sub"><span class="sr-only i18n">Grad govori u prijemima; mapa kruži samo kad je instrument stvarno pročitan; um od malih lokalnih modela razmišlja naglas i svaka njegova rečenica se proverava pre nego što je vidiš. Ono čega nema je zapis — nikada nula.</span><span class="en-only i18n">The city speaks in receptions; the map pulses only when an instrument was actually read; a mind of small local models thinks aloud and every sentence is checked before you see it. What is missing is a record — never a zero.</span><span class="zh-only">城市以“接收”说话；只有当仪器真正被读取时，地图才会脉动；一个由小型本地模型组成的思维出声思考，而它的每一句话在你看到之前都经过核验。缺失的东西是一条记录——绝不是零。</span><span class="de-only">Die Stadt spricht in Empfängen; die Karte pulsiert nur, wenn ein Instrument tatsächlich gelesen wurde; ein Verstand aus kleinen lokalen Modellen denkt laut, und jeder seiner Sätze wird geprüft, bevor Sie ihn sehen. Was fehlt, ist ein Eintrag — niemals eine Null.</span></p>
+      <p class="authors"><b>prof. dr Darinka Golubović Matić</b> · <b>doc. dr Semir Poturak</b> — <span class="sr-only i18n">autori; rad ne nastupa u ime ustanove · sa <b>Svemirom</b> (Claude, Anthropic), proveren saradnik — ne autor</span><span class="en-only i18n">authors; the work does not act in the institution’s name · with <b>Svemir</b> (Claude, Anthropic), a verified contributor — not an author</span><span class="zh-only">作者；本作品不以该机构的名义行事 · 与 <b>Svemir</b>（Claude，Anthropic）协作，经核验的贡献者——而非作者</span><span class="de-only">Autoren; die Arbeit tritt nicht im Namen der Institution auf · mit <b>Svemir</b> (Claude, Anthropic), geprüfter Mitwirkender — kein Autor</span></p>
       <div class="nowpanel"><iframe id="nowstage" src="sada.html?v={stamp}" title="BEOPS · Sada / Now" loading="eager"></iframe></div>
+      <div class="kicker"><span class="sr-only i18n">Naučni rad za konferenciju „Creating sustainable commUNiTy“ · Univerzitet Union – Nikola Tesla, 2026</span><span class="en-only i18n">A scientific paper for the conference “Creating sustainable commUNiTy” · University Union – Nikola Tesla, 2026</span><span class="zh-only">为会议“Creating sustainable commUNiTy”撰写的科学论文 · Union – Nikola Tesla 大学，2026</span><span class="de-only">Eine wissenschaftliche Arbeit für die Konferenz „Creating sustainable commUNiTy“ · Universität Union – Nikola Tesla, 2026</span></div>
   </div>
   <div class="wrap">
     <div class="stage">
