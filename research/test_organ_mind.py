@@ -177,7 +177,7 @@ class ValidatorTests(unittest.TestCase):
         self.assertTrue(any("ijekavian" in r for r in why))
 
     def test_ekavica_guard_catches_ijekavian_and_croatian_and_spares_ekavian(self):
-        bad = ["Vrijeme je lijepo.", "Provjerio sam mjesto i vrijednost.", "Gdje je stanica? Ovdje.", "Sljedeći tjedan, u ponedjeljak.",
+        bad = ["Kvalitet zraka u gradu.", "To sugerira viši uticaj.", "Na cesti je gužva.", "Milijun ljudi.", "Vrijeme je lijepo.", "Provjerio sam mjesto i vrijednost.", "Gdje je stanica? Ovdje.", "Sljedeći tjedan, u ponedjeljak.",
                "Dvije stanice su promijenile vrijednost.", "Riječ je o mjerenju.", "Kvalitet zraka: utjecaj prometa, vjerojatno.",
                "U posljednjih sat vremena", "Tisuću ljudi", "obje stanice", "Prosjek je 12", "Primjer:", "u ljeto", "sugerira viši utjecaj"]
         for b in bad:
@@ -197,6 +197,16 @@ class ValidatorTests(unittest.TestCase):
         ok2, why2 = om.validate_voice("Dve stanice [F1] su javile, najviše 41.", en, self.dg, [], ["Zašto?"], 2, 1)
         self.assertTrue(any("hypothesis count" in r for r in why2), why2)
         self.assertEqual(om.validate_voice("Dve stanice [F1] su javile, najviše 41.", en, self.dg, ["možda pada pre jutra"], ["Zašto ćuti?"], 1, 1), (True, []))
+
+    def test_stale_numbers_of_earlier_utterances_are_blanked_before_they_are_shown(self):
+        dg = {"numbers": ["32", "08", "00"]}
+        self.assertEqual(om.stale_numbers_blanked("PM10 rose from 85 to 119 [F5] at 08:00 with 32 stations [F2].", dg),
+                         "PM10 rose from [n] to [n] [F5] at 08:00 with 32 stations [F2].")
+        dg2 = {"facts": [{"id": "F1", "en": "a", "kind": "x"}, {"id": "F4", "en": "b", "kind": "x"}], "numbers": ["41"], "headlines": []}
+        prompt = om.prompt_for(om.ENTITIES[0], dg2, [], [{"entity": "skeptic", "en": "The maximum was 777 [F4], not 41."}])
+        self.assertIn("[n]", prompt)
+        self.assertNotIn("777", prompt)
+        self.assertIn("41", prompt)
 
     def test_voice_retries_once_with_the_refusal_read_back_and_shows_nothing_when_it_still_fails(self):
         calls = []

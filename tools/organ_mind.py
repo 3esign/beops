@@ -476,6 +476,18 @@ def voice(row: dict, text: str, dg: dict, voice_model: str | None, chat, rec: di
     return row
 
 
+def stale_numbers_blanked(text: str, dg: dict) -> str:
+    """An earlier utterance was validated against an earlier digest. Any number in it that today's digest
+    no longer carries is blanked before the text is shown to another entity - the model cannot copy what
+    it cannot see (the Observer was refused three times in one morning for a 119 it read from the
+    Connector). Citations stay as they are."""
+    allowed = set(dg.get("numbers") or [])
+    def rep(m):
+        return m.group(0) if m.group(0).replace(",", ".") in allowed else "[n]"
+    parts = re.split(r"(\[F\d+\])", text or "")
+    return "".join(pt if pt.startswith("[F") else re.sub(r"(?<![A-Za-z0-9])\d+(?:[.,]\d+)?(?![0-9])", rep, pt) for pt in parts)
+
+
 def prompt_for(ent: dict, dg: dict, memory: list[dict], conversation: list[dict]) -> str:
     others = " and ".join(e["en"] for e in ENTITIES if e["id"] != ent["id"])
     facts = "\n".join(f"{f['id']}: {f['en']}" for f in dg["facts"])
@@ -491,7 +503,7 @@ def prompt_for(ent: dict, dg: dict, memory: list[dict], conversation: list[dict]
             mem = "\nYour notebook (what went wrong before - do not repeat it):\n" + "\n".join(lines) + "\n"
     conv = ""
     if conversation:
-        lines = [f"- {ENT[c['entity']]['en']}: \"{c['en']}\"" for c in conversation]
+        lines = [f"- {ENT[c['entity']]['en']}: \"{stale_numbers_blanked(c['en'], dg)}\"" for c in conversation]
         conv = ("\nWhat the other entities just said (answer them - agree, dispute or refine, always with the facts). "
                 "They spoke over an EARLIER version of the facts: a number in their sentences that is not in the facts below "
                 "is stale - do not repeat it, say instead what the facts say now:\n" + "\n".join(lines) + "\n")
@@ -552,7 +564,9 @@ _JAT_STEMS = [
     "usjev", "sjekir", "sjetv", "sjenk", "sjeme", "sjemen", "zavjet", "zavjes", "sjever", "sjevern",
 ]
 # Croatian-standard lexis never used in ekavian Serbian (whole words or stems)
-_HR = ["tisuć", "sveučilišt", "kolodvor", "\\btko\\b", "\\bnitko\\b", "\\bnetko\\b", "uvjet", "kazališ", "glazb", "tvrtk",
+_HR = ["\\bzrak\\b", "\\bzraka\\b", "\\bzraku\\b", "\\bzrakom\\b", "\\bzračn(?!e?nj)", "\\bcest(?:a|e|i|u|om|ama)\\b", "milijun", "\\bplin", "\\bkruh", "ljekar", "županij",
+       "\\buopć", "tvornic", "sugerir", "organizir", "definir", "funkcionir", "registrir", "informir", "koncentrir", "realizir", "reagir",
+       "konstatir", "identificir", "komentir", "tisuć", "sveučilišt", "kolodvor", "\\btko\\b", "\\bnitko\\b", "\\bnetko\\b", "uvjet", "kazališ", "glazb", "tvrtk",
        "postotak", "postotk", "siječnj", "veljač", "ožuj", "svibnj", "lipnj", "srpnj", "rujan\\b", "rujn", "prosinc",
        "sudjelov", "zrakoplov", "\\bvlak\\b", "\\bvlakov", "uporab", "izvješć", "obitelj", "\\bopći", "općin", "tjelovj",
        "nogomet", "zemljopis", "gospodarstv", "sustav", "ozračj", "ravnatelj", "djelatnik", "ustroj", "prosvjed", "\\bglede\\b"]
