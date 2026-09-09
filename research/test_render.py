@@ -28,6 +28,12 @@ class BuiltSiteTests(unittest.TestCase):
     def setUpClass(cls):
         cls.s = read(INDEX)
         cls.frames = [f.split("?")[0] for f in re.findall(r'<iframe[^>]*src="([^"]+)"', cls.s)]
+        # The page carries its own registers inside <script id="data">: the source registry, the
+        # provenance index and the corrections ledger, rendered in the browser. That block is DATA -
+        # it quotes what publishers wrote and what this system said when it was wrong, so it may
+        # legitimately contain any string, including the exact markers a placeholder check looks for.
+        # A placeholder is a defect of the TEMPLATE. Scan the template, not the evidence.
+        cls.tpl = re.sub(r'<script id="data".*?</script>', "", cls.s, flags=re.S)
 
     def test_the_page_was_actually_built(self):
         self.assertTrue(INDEX.exists(), "docs/index.html is missing")
@@ -46,11 +52,11 @@ class BuiltSiteTests(unittest.TestCase):
         # explains the fix, contains the literal `{{` as an example - and the page renders the
         # corrections ledger. A template placeholder is `{{name}}`; two braces followed by a
         # backtick are prose about braces. The pattern says which one it is looking for.
-        self.assertNotRegex(self.s, r"\{\{\s*[\w.$]", "the built page carries an unfilled {{placeholder}}")
+        self.assertNotRegex(self.tpl, r"\{\{\s*[\w.$]", "the template carries an unfilled placeholder")
         for marker in (">None<", "[object Object]"):
-            self.assertFalse(marker in self.s, f"the built page carries {marker!r}")
+            self.assertFalse(marker in self.tpl, f"the template carries {marker!r}")
         for word in ("TODO", "FIXME", "undefined", "NaN"):
-            self.assertNotRegex(self.s, r"\b%s\b" % word, f"the built page carries {word!r}")
+            self.assertNotRegex(self.tpl, r"\b%s\b" % word, f"the template carries {word!r}")
 
     def test_every_serbian_span_has_an_english_twin(self):
         """The pairing is by exact class string: sr-only and en-only always ship together, in the same
