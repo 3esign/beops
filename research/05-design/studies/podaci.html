@@ -219,15 +219,18 @@ function renderHist(){
   wins.forEach(function(w){
     if(w[0]>have&&w[0]!==have) return;                      // a window longer than the history is not offered
     const b=document.createElement('button'); b.textContent=S(w[1],w[2]);
-    b.setAttribute('aria-pressed',String(HWIN===w[0]));
+    b.setAttribute('aria-pressed',String(Math.min(HWIN,have)===Math.min(w[0],have)));
     b.addEventListener('click',()=>{HWIN=w[0]; renderHist();});
     tabs.appendChild(b);
   });
   const ss=histSeries();
   if(!ss.length){ box.innerHTML=''; note.textContent=S('za ovaj parametar još nema satne istorije','no hourly history for this parameter yet'); return; }
+  // An hour before the record begins is not a silent hour - it is an hour we did not exist for.
+  // The window is clamped to the history so no such hour is ever drawn as a gap.
+  const span=Math.min(HWIN,have);
   const end=HIST.history_ends;
   const hours=[]; const endD=new Date(end+':00:00Z');
-  for(let i=HWIN-1;i>=0;i--) hours.push(new Date(endD.getTime()-i*3600e3).toISOString().slice(0,13));
+  for(let i=span-1;i>=0;i--) hours.push(new Date(endD.getTime()-i*3600e3).toISOString().slice(0,13));
   const per=hours.map(function(h){
     let max=null,sum=0,n=0;
     ss.forEach(function(s){ const b=s.buckets[h]; if(b&&b.max!=null){ max=max===null?b.max:Math.max(max,b.max); sum+=b.mean; n++; } });
@@ -246,10 +249,11 @@ function renderHist(){
   '<div class="cov">'+per.map(p=>'<i style="opacity:'+(p.stations?(0.15+0.65*p.stations/maxSt).toFixed(2):'0.05')+'" title="'+p.h+'Z · '+p.stations+' '+S('stanica javilo','stations reported')+'"></i>').join('')+'</div>'+
   '<div class="hax"><span>'+hours[0]+'Z</span><span>'+S('sat merenja po oznaci izvora (UTC)','measurement hour as the source labels it (UTC)')+'</span><span>'+hours[hours.length-1]+'Z</span></div>';
   const withData=per.filter(p=>p.max!=null).length;
+  const shown=span;
   const peak=per.filter(p=>p.max!=null).sort((a,b)=>b.max-a.max)[0];
   note.textContent=S(
-    'Istorija počinje '+HIST.history_starts+'Z i traje '+have+' h. U prikazanom prozoru je '+withData+' od '+HWIN+' sati imalo prijem'+(peak?'; najviši sat je '+peak.h+'Z sa '+peak.max.toFixed(1)+' '+unit:'')+'. Vrednosti su onakve kakve ih je izvor objavio, preliminarne, i nisu prosek sata nego prosek onoga što je u tom satu stiglo.',
-    'History starts '+HIST.history_starts+'Z and spans '+have+' h. In the window shown, '+withData+' of '+HWIN+' hours had any reception'+(peak?'; the highest hour is '+peak.h+'Z at '+peak.max.toFixed(1)+' '+unit:'')+'. Values are as the source published them, preliminary, and a mean here is the mean of what arrived in that hour, not of the hour.');
+    'Istorija počinje '+HIST.history_starts+'Z i traje '+have+' h. U prikazanom prozoru je '+withData+' od '+shown+' sati imalo prijem'+(peak?'; najviši sat je '+peak.h+'Z sa '+peak.max.toFixed(1)+' '+unit:'')+'. Vrednosti su onakve kakve ih je izvor objavio, preliminarne, i nisu prosek sata nego prosek onoga što je u tom satu stiglo.',
+    'History starts '+HIST.history_starts+'Z and spans '+have+' h. In the window shown, '+withData+' of '+shown+' hours had any reception'+(peak?'; the highest hour is '+peak.h+'Z at '+peak.max.toFixed(1)+' '+unit:'')+'. Values are as the source published them, preliminary, and a mean here is the mean of what arrived in that hour, not of the hour.');
 }
 
 function renderAll(){ document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); if(!SNAP) return; document.getElementById('clock').textContent=S('prozor','window')+' '+SNAP.window_hours+' h · '+SNAP.as_of.slice(0,16).replace('T',' ')+' UTC'; renderSepa(); drawMap(); renderHist(); renderSC(); renderParking(); renderNews(); renderMind(); }
