@@ -940,3 +940,25 @@ and reasoned about in UTC, which is right. But a stored time and a shown time ar
 with different jobs, and the shown one has to survive being looked at by a person standing next to a
 clock. This is the same mistake as reading a reception time as a measurement time, made one layer
 further out: correct data, rendered in a frame of reference the reader does not share.
+
+## C-029 — the note row wrapped, so the panel had two heights
+
+**2026-09-09.** C-028 fixed every tile in the NOW panel to one height and recorded that the panel no
+longer changes height with the range. Measured afterwards, it did: 345 px in `sada`, 345 px in `24 h`,
+**373 px in `7 dana`**. The tiles were fixed; the note row under them was not. Its 7-day sentence is
+longer than the row is wide, so it wrapped to a second line, and it appears only while the record is
+shorter than seven days — a note that is sometimes one line, sometimes two, and sometimes absent.
+
+**Correction.** The row is one line by construction: `height:26px`, `white-space:nowrap`,
+`text-overflow:ellipsis`. Every note that can appear there has a short form written for one line in all
+four languages; the full sentence is carried in the row's `title`, so nothing is removed from the page.
+Tiles 82 → 72 px and the sparkline 24 → 20 px, and the hero widget is now a fixed 316 px with one extra
+sentence in each text beside it, so the three columns of the hero end within a line of each other.
+
+**What was wrong with the method, not the code.** C-028 asserted an invariant — one height in every
+range — after fixing the part it had been looking at, without measuring the other two states. The
+measurement that would have caught it took one command. Nothing about the panel is verified by fixing
+the tiles; it is verified by measuring `sada`, `24 h` and `7 dana` and finding one number three times.
+
+**Nothing observed was changed.** This correction touches presentation only: no stored value, no
+provenance state, no permission record.

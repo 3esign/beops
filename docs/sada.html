@@ -37,7 +37,7 @@ body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans)
 /* One height in every range. The extremes used to sit under the label, so choosing 24 h made
    the panel grow and the page below it jump; they now sit on the value's own line, to the
    right, where there was empty space anyway. */
-.tile{padding:calc(var(--u)*2.5) calc(var(--u)*3);border-right:1px solid var(--ink12);border-bottom:1px solid var(--ink12);min-width:0;height:82px;display:flex;flex-direction:column}   /* height, not min-height: a range that draws a line must occupy exactly what a range
+.tile{padding:calc(var(--u)*2.5) calc(var(--u)*3);border-right:1px solid var(--ink12);border-bottom:1px solid var(--ink12);min-width:0;height:72px;display:flex;flex-direction:column}   /* height, not min-height: a range that draws a line must occupy exactly what a range
       that prints a provenance line occupies, or choosing 24 h moves everything below the
       panel down the page. */
 .vrow{display:flex;align-items:baseline;justify-content:space-between;gap:calc(var(--u)*2)}
@@ -53,7 +53,7 @@ body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans)
 .p{font-size:10.5px;line-height:1.3;color:var(--ink60);margin-top:4px;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .p .warn{color:var(--signal-untimed)}
 .spark{margin-top:auto}
-.spark svg{display:block;width:100%;height:24px;overflow:visible}
+.spark svg{display:block;width:100%;height:20px;overflow:visible}
 .spark .fr{stroke:var(--ink12);stroke-width:1;vector-effect:non-scaling-stroke;fill:none}
 .spark .ln{stroke:var(--signal);stroke-width:1.5;fill:none;vector-effect:non-scaling-stroke;
   stroke-linejoin:round;stroke-linecap:round}
@@ -62,7 +62,7 @@ body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans)
 .foot{padding:calc(var(--u)*1.5) calc(var(--u)*3);font-size:11px;color:var(--ink60);border-top:1px solid var(--ink12)}
 .foot b{color:var(--ink);font-weight:600}
 .foot b.warn{color:var(--signal)}
-.gapnote{padding:5px calc(var(--u)*3);font-size:10.5px;line-height:1.35;color:var(--signal-untimed);border-top:1px solid var(--ink12);background:var(--ink06);min-height:26px;display:flex;align-items:center}
+.gapnote{padding:5px calc(var(--u)*3);font-size:10.5px;line-height:1.35;color:var(--signal-untimed);border-top:1px solid var(--ink12);background:var(--ink06);height:26px;display:flex;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Always present, empty when there is nothing to say: a note that appears only sometimes
    is a note that changes the height of the page sometimes. */
 .gapnote.none{background:transparent;color:transparent}
@@ -125,10 +125,12 @@ var T={
  notcurrent:['nije tekuće','not current','项不是最新','nicht aktuell'],
  quiet:    ['izvora ćuti — i svaki od njih je pitan','sources quiet — and every one of them was asked',
             '个来源沉默——而且每一个都被询问过','Quellen schweigen — und jede von ihnen wurde gefragt'],
+ partialShort:['Zapis ima %H h — prazno je prazno; pun prozor 7 dana: %D','The record holds %H h — empty is empty; a full 7-day window: %D','记录中有 %H 小时——空白就是空白；完整 7 天窗口：%D','Bestand %H Std. — leer ist leer; volles 7-Tage-Fenster: %D'],
  partial:  ['Zapis ima %H h. Sedam dana je nacrtano kao sedam dana, a prazno je prazno — ne nula, i bez linije preko rupe. Pun prozor od 7 dana biće moguć %D.',
             'The record holds %H h. Seven days is drawn as seven days, and empty is empty — not zero, and no line across the gap. A full 7-day window becomes possible on %D.',
             '记录中有 %H 小时。七天就按七天绘制，空白就是空白——不是零，也不会跨越缺口连线。完整的 7 天窗口将于 %D 可用。',
             'Der Bestand umfasst %H Std. Sieben Tage werden als sieben Tage gezeichnet, und leer ist leer — keine Null und keine Linie über die Lücke. Ein volles 7-Tage-Fenster ist ab %D möglich.'],
+ untimedShort:['isprekidano = vreme merenja nije objavljeno','dashed = the measurement time is not published','虚线＝未发布测量时间','gestrichelt = die Messzeit wird nicht veröffentlicht'],
  untimedNote:['isprekidano = vreme merenja nije objavljeno; crta je po satu prijema',
             'dashed = the measurement time is not published; the line is by hour of reception',
             '虚线＝未发布测量时间；曲线按接收小时绘制',
@@ -281,6 +283,7 @@ function provenanceFull(tile, got){
   return tile.src+(got.d.station?' · '+got.d.station:'')+' · '+t('measured')+' '+hh(new Date(P(p.t)))+' '+t('local')+' · '+agoText(P(p.t));
 }
 
+function short(){ return (window.__short||[]).join(' · '); }
 function render(){
   if(!SNAP){ return; }
   document.documentElement.lang = LANG;
@@ -325,14 +328,18 @@ function render(){
   }).join('');
   // the honest note about what the seven-day frame is showing
   var gn=document.getElementById('gapnote'), notes=[];
+  var shortNotes=[];
   if(RANGE==='7d'&&HIST&&HIST.hours_of_history<168){
     var need=168-HIST.hours_of_history;
-    var when=new Date(Date.now()+need*3600e3);
-    notes.push(t('partial').replace('%H',HIST.hours_of_history)
-      .replace('%D',when.toISOString().slice(0,10)));
+    var when=new Date(Date.now()+need*3600e3).toISOString().slice(0,10);
+    notes.push(t('partial').replace('%H',HIST.hours_of_history).replace('%D',when));
+    shortNotes.push(t('partialShort').replace('%H',HIST.hours_of_history).replace('%D',when));
   }
-  if(hoursBack&&anyUntimedLine) notes.push(t('untimedNote'));
-  gn.innerHTML='<div class="gapnote'+(notes.length?'':' none')+'">'+(notes.join(' — ')||'&nbsp;')+'</div>';
+  if(hoursBack&&anyUntimedLine){ notes.push(t('untimedNote')); shortNotes.push(t('untimedShort')); }
+  window.__short=shortNotes;
+  var joined=notes.join(' — ');
+  gn.innerHTML='<div class="gapnote'+(notes.length?'':' none')+'" title="'+joined.replace(/"/g,'')+'">'
+    +(short()||'&nbsp;')+'</div>';
   // the closing line, from the watchman's own reading
   var f=[];
   if(WATCH&&WATCH.counts){
