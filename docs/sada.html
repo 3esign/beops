@@ -49,6 +49,7 @@ body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans)
 .spark .dot{fill:var(--signal)}
 .foot{padding:calc(var(--u)*2) calc(var(--u)*3);font-size:12px;color:var(--ink60);border-top:1px solid var(--ink12)}
 .foot b{color:var(--ink);font-weight:600}
+.foot b.warn{color:var(--signal)}
 .gapnote{padding:calc(var(--u)*2) calc(var(--u)*3);font-size:12px;color:var(--signal-untimed);
   border-top:1px solid var(--ink12);background:var(--ink06)}
 .ago{font-style:normal}
@@ -105,8 +106,9 @@ var T={
  nodata:   ['nema vrednosti','no value','无数值','kein Wert'],
  minmax:   ['najmanje','lowest','最低','Minimum'],
  maxx:     ['najviše','highest','最高','Maximum'],
- hours:    ['h u zapisu','h on record','小时的记录','Std. im Bestand'],
- current:  ['provera tekuća','checks current','项检查为最新','Prüfungen aktuell'],
+ hours:    ['sati u zapisu','hours on record','小时的记录','Std. im Bestand'],
+ current:  ['tekućih provera','checks current','项检查为最新','Prüfungen aktuell'],
+ notcurrent:['nije tekuće','not current','项不是最新','nicht aktuell'],
  quiet:    ['izvora ćuti — i svaki od njih je pitan','sources quiet — and every one of them was asked',
             '个来源沉默——而且每一个都被询问过','Quellen schweigen — und jede von ihnen wurde gefragt'],
  partial:  ['Zapis ima %H h. Sedam dana je nacrtano kao sedam dana, a prazno je prazno — ne nula, i bez linije preko rupe. Pun prozor od 7 dana biće moguć %D.',
@@ -214,7 +216,13 @@ function spark(buckets, hoursBack, untimed){
   var keys=[], vals=[];
   for(var i=0;i<hoursBack;i++){
     var ms=t0+i*3600e3, k=hourKey(ms);
-    keys.push(k); vals.push(buckets[k]===undefined?null:buckets[k]);
+    var b=buckets[k];
+    if(b===undefined||b===null){ keys.push(k); vals.push(null); continue; }
+    // A bucket is an hour folded from rows: {n,min,max,mean,last}. The line follows the hour's mean,
+    // which is what the hour actually was; `last` would make the line depend on when inside the hour
+    // the final reading happened to land. Some callers fold many stations into a plain number first.
+    var v=(typeof b==='number')?b:(b.mean!==undefined&&b.mean!==null?b.mean:(b.last!==undefined?b.last:null));
+    keys.push(k); vals.push(typeof v==='number'&&isFinite(v)?v:null);
   }
   var have=vals.filter(function(v){return v!==null;});
   if(!have.length) return {svg:'', lo:null, hi:null, n:0};
@@ -310,11 +318,11 @@ function render(){
   // the closing line, from the watchman's own reading
   var f=[];
   if(WATCH&&WATCH.counts){
-    f.push('<b>'+(WATCH.counts.ok||0)+'</b> '+t('current'));
+    f.push(t('current')+' <b>'+(WATCH.counts.ok||0)+'</b>');
+    var bad=(WATCH.counts.late||0)+(WATCH.counts.stalled||0)+(WATCH.counts.unknown||0);
+    if(bad) f.push('<b class="warn">'+t('notcurrent')+' '+bad+'</b>');
   }
-  var quiet=(SNAP.status&&SNAP.status.sources||[]).filter(function(s){ return s.captured===0; }).length;
-  if(quiet) f.push('<b>'+quiet+'</b> '+t('quiet'));
-  if(HIST) f.push('<b>'+HIST.hours_of_history+'</b> '+t('hours'));
+  if(HIST) f.push(t('hours')+' <b>'+HIST.hours_of_history+'</b>');
   document.getElementById('foot').innerHTML=f.join(' · ');
 }
 
