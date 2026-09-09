@@ -209,9 +209,13 @@ class BuiltSiteTests(unittest.TestCase):
             body = read(p)
             if " UTC" not in body:
                 continue
-            self.assertIn("data-ago", body,
-                          f"docs/{f} prints UTC stamps but never says how old they are")
-            self.assertIn("agoText", body, f"docs/{f} has no age helper")
+            self.assertIn("agoText", body,
+                          f"docs/{f} prints UTC stamps but has no age helper")
+            # Two ways of using it are allowed: mark the element with data-ago and let a repainter
+            # fill it in, or call the helper where the string is built. What is checked is that the
+            # helper is USED, not merely defined - a dead helper is the same as no helper.
+            self.assertGreater(body.count("agoText"), 1,
+                               f"docs/{f} defines an age helper and never calls it")
 
     def test_no_element_id_is_used_twice(self):
         dupes = [i for i, n in Counter(re.findall(r'\sid="([^"]+)"', self.s)).items() if n > 1]
@@ -294,13 +298,20 @@ class BuiltSiteTests(unittest.TestCase):
         self.assertRegex(self.s, r"querySelectorAll\(\s*'iframe'\s*\)|getElementsByTagName\(\s*'iframe'\s*\)",
                          "the language switch does not iterate all iframes")
 
-    def test_an_embedded_frame_carries_both_languages_itself(self):
+    def test_an_embedded_frame_carries_its_languages_itself(self):
+        """A frame must not depend on the parent to know what language it is in. Two mechanisms are
+        allowed and both are checked here: paired `sr-only` / `en-only` spans, which is how the older
+        frames do it, or a table of strings the frame switches at runtime, which is how the live panel
+        does it in four languages. What is not allowed is a frame with neither."""
         for f in self.frames:
             p = DOCS / f
-            if p.exists():
-                body = read(p)
-                self.assertIn("sr-only", body, f"docs/{f} has no Serbian half")
-                self.assertIn("en-only", body, f"docs/{f} has no English half")
+            if not p.exists():
+                continue
+            body = read(p)
+            spans = "sr-only" in body and "en-only" in body
+            table = "beopsLang" in body and ("LANG==='sr'" in body or "IDX" in body)
+            self.assertTrue(spans or table,
+                            f"docs/{f} carries neither language spans nor a language table")
 
 
 if __name__ == "__main__":

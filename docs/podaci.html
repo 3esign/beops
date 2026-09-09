@@ -37,17 +37,30 @@ section .lead{margin:0 0 calc(var(--u)*4);max-width:80ch;color:var(--ink60);font
 .grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:calc(var(--u)*6)}
 @media (max-width:900px){.grid{grid-template-columns:1fr}main{padding:0 calc(var(--u)*4)}}
 .cv{position:relative;width:100%;aspect-ratio:1.25;border:1px solid var(--ink12)}
+/* C-026. Every map here draws the same bounding box of the city, and that box is very nearly
+   square: 0.63 deg of longitude at this latitude against 0.43 deg of latitude is a ratio of
+   1.04. A map of it in a 1.95-wide box is not a wider map, it is the same map with dead space
+   on both sides - and the picture drifts whenever the box changes size. So the drawing box is
+   the shape of the thing drawn, capped and centred, and it is the SAME in every map on this
+   site. No viewport units: the height comes from the width, which layout sets and never reads
+   back (C-016). */
+.cvwrap{display:flex;justify-content:center}
+.cv.geo{width:min(100%,600px);aspect-ratio:1.04;margin:0 auto}
+.maptip{position:absolute;z-index:5;pointer-events:none;background:var(--field);border:1px solid var(--ink12);border-radius:4px;padding:6px 8px;font-size:12px;line-height:1.35;box-shadow:0 8px 24px -12px rgba(0,0,0,.5);max-width:220px}
+.maptip b{display:block;font-weight:600}
+.maptip span{display:block;color:var(--ink60)}
+.maptip span.m{font-family:var(--mono);font-size:11px}
+.mapreset{position:absolute;right:8px;top:8px;z-index:5;font-size:12px;line-height:1;padding:5px 9px;border:1px solid var(--ink12);background:var(--field);color:var(--ink60);border-radius:4px;cursor:pointer}
 /* The air panel. The map is the thing worth looking at, so it takes the full width and the
    station table sits under it in two columns. Side by side, a 5fr map beside a 32-row table left
    a column of empty paper as tall as the table: the map cannot grow to meet it and the table
    cannot shrink to it. */
 .sepa{grid-template-columns:1fr;gap:calc(var(--u)*4)}
-.sepa .cv{aspect-ratio:1.95;max-height:620px}   /* near the city's own proportions, so the drawing
-                                                   fills the box instead of being letterboxed */
+.sepa .cv{aspect-ratio:1.04;max-height:none}
 .twocol .state{white-space:nowrap;font-size:11px}
 .twocol table{font-size:13.5px}
 .twocol{display:grid;grid-template-columns:1fr 1fr;gap:0 calc(var(--u)*8);align-items:start}
-@media (max-width:900px){.sepa .cv{aspect-ratio:1.3;max-height:none}.twocol{grid-template-columns:1fr;gap:0}}
+@media (max-width:900px){.sepa .cv{aspect-ratio:1.04;max-height:none}.twocol{grid-template-columns:1fr;gap:0}}
 .cv canvas{width:100%;height:100%;display:block}
 .legend{font-family:var(--mono);font-size:11px;color:var(--ink60);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-right:4px}
@@ -108,7 +121,7 @@ tr.max td{box-shadow:inset 3px 0 0 var(--signal)}
   <p class="lead"><span class="sr-only">Svaka tačka je stanica; boja je poslednja satna vrednost izabranog parametra. Tabela: poslednja vrednost, sat merenja po oznaci izvora, kretanje u prozoru. Vrednosti su preliminarne — tako ih izvor označava.</span><span class="en-only">Each dot is a station; the colour is the latest hourly value of the chosen parameter. Table: latest value, the source's own measurement hour, movement over the window. Values are preliminary — that is the source's own label.</span></p>
   <div class="tabs" id="partabs"></div>
   <div class="grid sepa">
-    <div><div class="cv"><canvas id="map"></canvas></div><div class="legend" id="maplegend"></div></div>
+    <div><div class="cvwrap"><div class="cv geo"><canvas id="map"></canvas></div></div><div class="legend" id="maplegend"></div></div>
     <div id="septable"></div>
   </div>
 </section>
@@ -176,7 +189,10 @@ const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim
 const fmtT=t=>{const d=new Date(t);return isNaN(d)?'—':d.toISOString().slice(11,16);};
 const fmtD=t=>{const d=new Date(t);return isNaN(d)?'—':d.toISOString().slice(5,16).replace('T',' ');};
 const BB={lo0:20.17,lo1:20.80,la0:44.55,la1:44.98};
-function proj(lat,lon,w,h){ const kx=Math.cos(44.8*Math.PI/180); const sx=w/((BB.lo1-BB.lo0)*kx), sy=h/(BB.la1-BB.la0); const s=Math.min(sx,sy); const cx=(w-(BB.lo1-BB.lo0)*kx*s)/2, cy=(h-(BB.la1-BB.la0)*s)/2; return [cx+(lon-BB.lo0)*kx*s, cy+(BB.la1-lat)*s]; }
+let VIEW={k:1,tx:0,ty:0};
+function projBase(lat,lon,w,h){ const kx=Math.cos(44.8*Math.PI/180); const sx=w/((BB.lo1-BB.lo0)*kx), sy=h/(BB.la1-BB.la0); const s=Math.min(sx,sy); const cx=(w-(BB.lo1-BB.lo0)*kx*s)/2, cy=(h-(BB.la1-BB.la0)*s)/2; return [cx+(lon-BB.lo0)*kx*s, cy+(BB.la1-lat)*s]; }
+function proj(lat,lon,w,h){ const q=projBase(lat,lon,w,h); return [q[0]*VIEW.k+VIEW.tx, q[1]*VIEW.k+VIEW.ty]; }
+function metresPerPx(w,h){ const kx=Math.cos(44.8*Math.PI/180); const s=Math.min(w/((BB.lo1-BB.lo0)*kx), h/(BB.la1-BB.la0)); return 111320/(s*VIEW.k); }
 function load(u){return fetch(u,{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);}
 function latest(ds){ const pts=ds.points.filter(p=>typeof p.v==='number'); return pts.length?pts[pts.length-1]:null; }
 function spark(pts,w,h,color){ const v=pts.map(p=>p.v).filter(x=>typeof x==='number'); if(v.length<2) return ''; const mn=Math.min(...v), mx=Math.max(...v); const sc=x=>mx===mn?h/2:h-2-(x-mn)/(mx-mn)*(h-4); const step=w/(pts.length-1); let d='',i=0; for(const p of pts){ if(typeof p.v==='number'){ d+=(d?'L':'M')+(i*step).toFixed(1)+' '+sc(p.v).toFixed(1); } i++; } return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`; }
@@ -185,18 +201,66 @@ function heat(v,lo,hi){ const t=Math.max(0,Math.min(1,(v-lo)/(hi-lo))); const in
 const REF={PM10:[0,45],'PM2.5':[0,15],NO2:[0,25],O3:[0,100],SO2:[0,40],CO:[0,4]};
 function sepa(){ return (SNAP.sources||[]).find(s=>s.sid==='S146'); }
 function drawMap(){
-  const cv=document.getElementById('map'); const g=cv.getContext('2d'); const dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=cv.clientHeight;
-  cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
+  const cv=document.getElementById('map'); const g=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=cv.clientHeight;
+  if(!w||!h) return;
+  // guard on BOTH dimensions: a box that grew taller with a shorter bitmap is C-016
+  if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){ cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr); }
+  g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
+  const src=sepa(); const [lo,hi]=REF[PAR]||[0,100];
+  const rows=src?src.datastreams.filter(d=>d.parameter===PAR&&d.lat&&d.lon):[];
+
+  // 1. how far this place is from any instrument we hear. NOT an interpolation of the value - the
+  //    project refuses to draw a number nobody measured. This draws the distance to the nearest
+  //    station, which is a fact about the network, and it is the argument the whole record makes.
+  const heard=rows.filter(d=>latest(d));
+  if(heard.length){
+    const step=Math.max(14,Math.min(26,Math.round(w/26)));
+    const pts=heard.map(d=>projBase(d.lat,d.lon,w,h));
+    g.fillStyle=css('--ink');
+    for(let y=step/2;y<h;y+=step){ for(let x=(Math.round(y/step)%2?step/2:0)+step/2;x<w;x+=step){
+      const bx=(x-VIEW.tx)/VIEW.k, by=(y-VIEW.ty)/VIEW.k;
+      let best=1e9; for(let i2=0;i2<pts.length;i2++){ const dx=pts[i2][0]-bx, dy=pts[i2][1]-by; const d2=dx*dx+dy*dy; if(d2<best) best=d2; }
+      const dpx=Math.sqrt(best)*VIEW.k;
+      const t=Math.max(0,Math.min(1,(dpx-40)/(Math.min(w,h)*0.42)));
+      if(t<=0.02) continue;
+      g.globalAlpha=0.05+0.17*t; g.beginPath(); g.arc(x,y,1.1+1.5*t,0,Math.PI*2); g.fill();
+    } }
+    g.globalAlpha=1;
+  }
+
+  // 2. the city and its two rivers
   if(BASEMAP){ g.lineJoin='round'; g.lineWidth=1; g.strokeStyle=css('--ink30'); g.fillStyle=css('--ink06');
     for(const f of BASEMAP.features.filter(f=>f.layer!=='river')){ const geom=f.geometry; if(!geom||(geom.type!=='Polygon'&&geom.type!=='MultiPolygon')) continue; const polys=geom.type==='Polygon'?[geom.coordinates]:geom.coordinates;
       for(const poly of polys){ g.beginPath(); for(const ring of poly){ ring.forEach((c,i)=>{const [x,y]=proj(c[1],c[0],w,h); i?g.lineTo(x,y):g.moveTo(x,y);}); g.closePath(); } g.fill('evenodd'); g.stroke(); } }
-    g.strokeStyle=css('--water'); g.lineWidth=6; g.lineCap='round'; for(const f of BASEMAP.features.filter(f=>f.layer==='river')){ g.beginPath(); f.geometry.coordinates.forEach((c,i)=>{const [x,y]=proj(c[1],c[0],w,h); i?g.lineTo(x,y):g.moveTo(x,y);}); g.stroke(); } }
-  const src=sepa(); if(!src) return; const [lo,hi]=REF[PAR]||[0,100];
-  const rows=src.datastreams.filter(d=>d.parameter===PAR&&d.lat&&d.lon);
-  for(const d of rows){ const l=latest(d); const [x,y]=proj(d.lat,d.lon,w,h); if(!l){ g.strokeStyle=css('--ink30'); g.lineWidth=1; g.beginPath(); g.arc(x,y,5,0,Math.PI*2); g.stroke(); continue; }
-    const t=Math.max(0,Math.min(1,(l.v-lo)/(hi-lo))); g.fillStyle=t>=1?css('--signal'):css('--ink30'); g.globalAlpha=0.35+0.65*t; g.beginPath(); g.arc(x,y,4+8*t,0,Math.PI*2); g.fill(); g.globalAlpha=1;
-    g.fillStyle=css('--ink60'); g.font='10px '+css('--mono'); g.fillText(Math.round(l.v),x+8,y+3); }
-  document.getElementById('maplegend').innerHTML=`<span><i style="background:var(--ink30)"></i>${S('ispod','below')} ${hi} ${rows[0]?esc(rows[0].unit):''}</span><span><i style="background:var(--signal)"></i>${S('iznad','above')} ${hi} (${S('WHO 2021 dnevna smernica — referenca, ne presuda','WHO 2021 daily guideline — a reference, not a verdict')})</span><span><i style="background:transparent;border:1px solid var(--ink30)"></i>${S('bez vrednosti u prozoru','no value in the window')}</span>`;
+    g.strokeStyle=css('--water'); g.lineCap='round';
+    for(const f of BASEMAP.features.filter(f=>f.layer==='river')){
+      g.lineWidth=Math.max(3,6*Math.min(VIEW.k,2.2));
+      g.beginPath(); f.geometry.coordinates.forEach((c,i)=>{const [x,y]=proj(c[1],c[0],w,h); i?g.lineTo(x,y):g.moveTo(x,y);}); g.stroke(); } }
+
+  if(!src) return;
+  // 3. the stations. A hollow ring is a station with no value in the window - a record, not a zero.
+  let top=null;
+  for(const d of rows){ const l=latest(d); const [x,y]=proj(d.lat,d.lon,w,h);
+    if(!l){ g.strokeStyle=css('--ink30'); g.lineWidth=1; g.beginPath(); g.arc(x,y,5,0,Math.PI*2); g.stroke(); continue; }
+    if(!top||l.v>top.l.v) top={d:d,l:l,x:x,y:y};
+    const t=Math.max(0,Math.min(1,(l.v-lo)/(hi-lo)));
+    g.fillStyle=t>=1?css('--signal'):css('--ink30'); g.globalAlpha=0.35+0.65*t;
+    g.beginPath(); g.arc(x,y,4+8*t,0,Math.PI*2); g.fill(); g.globalAlpha=1; }
+  // only the highest station is labelled. Twenty-six numbers on one drawing is not information.
+  if(top){ g.fillStyle=css('--ink'); g.font='600 12px '+css('--sans');
+    const lab=Math.round(top.l.v)+' '+(top.d.unit||'');
+    g.fillText(lab,Math.min(w-g.measureText(lab).width-4,top.x+12),top.y+4); }
+
+  // 4. a scale bar, so a distance on this drawing is a distance in the city
+  const mpp=metresPerPx(w,h); let target=[1000,2000,5000,10000,20000].find(m=>m/mpp>60&&m/mpp<w*0.4)||5000;
+  const px=target/mpp;
+  g.strokeStyle=css('--ink30'); g.fillStyle=css('--ink60'); g.lineWidth=1;
+  g.beginPath(); g.moveTo(12,h-14); g.lineTo(12+px,h-14); g.moveTo(12,h-18); g.lineTo(12,h-10);
+  g.moveTo(12+px,h-18); g.lineTo(12+px,h-10); g.stroke();
+  g.font='10px '+css('--mono'); g.fillText((target/1000)+' km',12,h-22);
+
+  document.getElementById('maplegend').innerHTML=`<span><i style="background:var(--ink30)"></i>${S('ispod','below')} ${hi} ${rows[0]?esc(rows[0].unit):''}</span><span><i style="background:var(--signal)"></i>${S('iznad','above')} ${hi} (${S('WHO 2021 dnevna smernica — referenca, ne presuda','WHO 2021 daily guideline — a reference, not a verdict')})</span><span><i style="background:transparent;border:1px solid var(--ink30)"></i>${S('bez vrednosti u prozoru','no value in the window')}</span><span><i style="background:var(--ink30);opacity:.35"></i>${S('gušća tačkica = dalje od svake stanice koja je javila','denser dots = farther from any station that reported')}</span>`;
 }
 function renderSepa(){
   const src=sepa(); const box=document.getElementById('septable'); if(!src){ box.innerHTML=`<p class="silent">${S('SEPA ćuti u ovom prozoru.','SEPA is silent in this window.')}</p>`; return; }
@@ -307,6 +371,58 @@ function renderHist(){
 
 function renderAll(){ document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); if(!SNAP) return; const ck=document.getElementById('clock');ck.textContent=S('prozor','window')+' '+SNAP.window_hours+' h · '+SNAP.as_of.slice(0,16).replace('T',' ')+' UTC';ck.setAttribute('data-ago',SNAP.as_of); paintAges(); renderSepa(); drawMap(); renderHist(); renderSC(); renderParking(); renderNews(); renderMind(); }
 document.getElementById('lang').addEventListener('click',()=>{LANG=LANG==='sr'?'en':'sr'; renderAll();});
+
+/* The map is a thing you look at, so it is a thing you can move. Same gestures as the pulse map:
+   wheel to zoom about the cursor, drag to pan, hover for what a dot is, double-click or the control
+   to come back. Switching the parameter no longer moves anything - the projection is bound to the
+   city's bounding box, never to whichever stations happen to have a value this hour. */
+(function interactive(){
+  const cv=document.getElementById('map'); const wrap=cv&&cv.parentElement; if(!wrap) return;
+  wrap.style.touchAction='pan-y'; wrap.style.cursor='grab';
+  const tip=document.createElement('div'); tip.className='maptip'; tip.hidden=true; wrap.appendChild(tip);
+  const btn=document.createElement('button'); btn.type='button'; btn.className='mapreset'; btn.textContent='\u27f2';
+  btn.setAttribute('aria-label','Vrati pogled / Reset the view'); btn.title='Vrati pogled \u00b7 Reset the view';
+  btn.hidden=true; wrap.appendChild(btn);
+  function clamp(){ const w=cv.clientWidth,h=cv.clientHeight;
+    VIEW.k=Math.max(1,Math.min(14,VIEW.k));
+    VIEW.tx=Math.min(0,Math.max(w-w*VIEW.k,VIEW.tx));
+    VIEW.ty=Math.min(0,Math.max(h-h*VIEW.k,VIEW.ty));
+    btn.hidden=(VIEW.k===1&&VIEW.tx===0&&VIEW.ty===0);
+    if(SNAP) drawMap(); }
+  function at(e){ const r=cv.getBoundingClientRect(); return [e.clientX-r.left,e.clientY-r.top]; }
+  wrap.addEventListener('wheel',function(e){ e.preventDefault();
+    const a=at(e), k0=VIEW.k, k=Math.max(1,Math.min(14,k0*Math.exp(-e.deltaY*0.0016)));
+    VIEW.tx=a[0]-(a[0]-VIEW.tx)*(k/k0); VIEW.ty=a[1]-(a[1]-VIEW.ty)*(k/k0); VIEW.k=k; clamp(); },{passive:false});
+  let drag=null;
+  wrap.addEventListener('pointerdown',function(e){ if(e.pointerType!=='mouse') return;
+    drag={x:e.clientX,y:e.clientY,tx:VIEW.tx,ty:VIEW.ty}; try{wrap.setPointerCapture(e.pointerId);}catch(err){}
+    wrap.style.cursor='grabbing'; tip.hidden=true; });
+  function endDrag(){ drag=null; wrap.style.cursor='grab'; }
+  wrap.addEventListener('pointerup',endDrag); wrap.addEventListener('pointercancel',endDrag);
+  wrap.addEventListener('pointerleave',function(){ endDrag(); tip.hidden=true; });
+  wrap.addEventListener('pointermove',function(e){
+    if(drag){ VIEW.tx=drag.tx+(e.clientX-drag.x); VIEW.ty=drag.ty+(e.clientY-drag.y); clamp(); return; }
+    if(!SNAP) return;
+    const src=sepa(); if(!src) return;
+    const a=at(e), w=cv.clientWidth, h=cv.clientHeight;
+    const rows=src.datastreams.filter(d=>d.parameter===PAR&&d.lat&&d.lon);
+    let best=null, bd=20*20;
+    for(const d of rows){ const q=proj(d.lat,d.lon,w,h); const dx=q[0]-a[0], dy=q[1]-a[1], dd=dx*dx+dy*dy;
+      if(dd<bd){ bd=dd; best=d; } }
+    if(!best){ tip.hidden=true; return; }
+    const l=latest(best);
+    tip.innerHTML='<b>'+esc(best.station||'')+'</b>'
+      +'<span>'+esc(PAR)+': '+(l?(l.v.toFixed(1)+' '+esc(best.unit||'')):S('bez vrednosti u prozoru','no value in the window'))+'</span>'
+      +(l?('<span class="m">'+S('sat po oznaci izvora','hour as the source labels it')+' '+fmtT(l.tc||l.t)+'Z</span>'):'');
+    tip.hidden=false;
+    const tw=tip.offsetWidth||170, th=tip.offsetHeight||44;
+    tip.style.left=Math.max(6,Math.min(w-tw-6,a[0]+14))+'px';
+    tip.style.top=Math.max(6,Math.min(h-th-6,a[1]+16))+'px';
+  });
+  wrap.addEventListener('dblclick',function(){ VIEW={k:1,tx:0,ty:0}; clamp(); });
+  btn.addEventListener('click',function(){ VIEW={k:1,tx:0,ty:0}; clamp(); });
+})();
+
 window.addEventListener('message',ev=>{ if(ev&&ev.data&&ev.data.beopsLang&&ev.data.beopsLang!==LANG){ LANG=ev.data.beopsLang; renderAll(); } });
 window.addEventListener('resize',()=>{ if(SNAP) drawMap(); });
 document.body.classList.add('lang-sr');

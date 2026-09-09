@@ -88,7 +88,12 @@ main{display:grid;grid-template-columns:minmax(360px,5fr) minmax(360px,7fr);min-
    different kind of thing from a thought, so it stands on its own ground. */
 main{grid-template-columns:minmax(300px,4fr) minmax(0,8fr)}
 .map{border-bottom:1px solid var(--ink12)}
-.map .cv{flex:0 0 auto;min-height:0;height:clamp(360px,56vh,640px)}   /* flex-basis:0 from .cv above would win over height in a column flex box */
+.map .cv{flex:0 0 auto;min-height:0;height:auto;width:min(100%,600px);aspect-ratio:1.04;margin:0 auto}
+/* C-026. Same box as every other map on this site: the shape of the thing drawn (the city's
+   bounding box is 1.04 wide to tall), capped and centred, so two maps of the same city are
+   the same size and neither has dead space beside it. height:auto because flex-basis:0 from
+   .cv above would otherwise win over the aspect ratio in a column flex box, and no viewport
+   unit anywhere: the height comes from the width, which layout sets and never reads back. */
 .monolog{background:var(--panel);border-right:1px solid var(--ink12)}
 .maptip{position:absolute;z-index:5;pointer-events:none;background:var(--field);border:1px solid var(--ink12);border-radius:4px;padding:6px 8px;font-size:12px;line-height:1.35;box-shadow:0 8px 24px -16px rgba(17,19,17,.6);max-width:230px}
 .maptip b{display:block;font-weight:600}
@@ -147,7 +152,7 @@ body.embedded .map .cv{min-height:0}
      child asking for a share of the viewport is asking for a share of itself. 52vh here settled at
      H = 1873 + 0.52H = 3900px on a 412px phone - a 2000px empty box under the pulse. Width is the
      one dimension the parent sets by layout and never reads back, so the map is sized from it. */
-  body.embedded .map .cv{min-height:0;flex:0 0 auto;height:clamp(220px,72vw,420px)} }
+  body.embedded .map .cv{min-height:0;flex:0 0 auto;height:auto} }
 /* C-023. THIS is the rule that decides the phone layout, and it has to sit here, after the
    unconditional `main{grid-template-columns:minmax(300px,4fr) minmax(0,8fr)}` above. That rule
    was written later than the max-width:900px block near the top of this sheet and has the same

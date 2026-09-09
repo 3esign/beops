@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="sr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BEOPS · Sada</title>
+<meta name="description" content="What Belgrade's instruments say right now, and how old each number is.">
+<style>
+:root{
+  --u:4px;
+  --field:#FBFAF7; --ink:#111311; --ink60:rgba(17,19,17,.6); --ink30:rgba(17,19,17,.3); --ink12:rgba(17,19,17,.12); --ink06:rgba(17,19,17,.06);
+  --signal:#D93A16; --signal-untimed:#CC7A62; --water:rgba(17,19,17,.18);
+  --sans:"Source Sans 3","Segoe UI",system-ui,sans-serif; --mono:"Source Code Pro",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --field:#111311; --ink:#F2F1EC; --ink60:rgba(242,241,236,.62); --ink30:rgba(242,241,236,.32); --ink12:rgba(242,241,236,.12); --ink06:rgba(242,241,236,.06);
+  --signal:#F0532B; --signal-untimed:#D8836A; --water:rgba(242,241,236,.2); }}
+:root[data-theme="dark"]{
+  --field:#111311; --ink:#F2F1EC; --ink60:rgba(242,241,236,.62); --ink30:rgba(242,241,236,.32); --ink12:rgba(242,241,236,.12); --ink06:rgba(242,241,236,.06);
+  --signal:#F0532B; --signal-untimed:#D8836A; --water:rgba(242,241,236,.2); }
+*{box-sizing:border-box}
+body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.panel{border:1px solid var(--ink12);border-radius:2px;background:var(--field)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--u)*2);
+     padding:calc(var(--u)*2) calc(var(--u)*3);border-bottom:1px solid var(--ink12);flex-wrap:wrap}
+.tabs{display:flex;gap:calc(var(--u)*1)}
+.tabs button{font:inherit;font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  padding:3px 9px;border:1px solid var(--ink12);background:transparent;color:var(--ink60);
+  border-radius:2px;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-color:var(--ink)}
+.clock{font-family:var(--mono);font-size:12px;color:var(--ink60);white-space:nowrap}
+.clock b{color:var(--ink);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.tile{padding:calc(var(--u)*3);border-right:1px solid var(--ink12);border-bottom:1px solid var(--ink12);min-width:0}
+.tile:nth-child(3n){border-right:0}
+.tile:nth-last-child(-n+3){border-bottom:0}
+.v{font-size:26px;line-height:1.05;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.v .un{font-size:13px;font-weight:400;color:var(--ink60);margin-left:3px}
+.v.untimed{color:var(--signal-untimed)}
+.k{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink60);font-weight:600;margin-top:2px}
+.p{font-size:11.5px;line-height:1.35;color:var(--ink60);margin-top:5px;font-family:var(--mono)}
+.p .warn{color:var(--signal-untimed)}
+.spark{margin-top:6px}
+.spark svg{display:block;width:100%;height:38px;overflow:visible}
+.spark .fr{stroke:var(--ink12);stroke-width:1;vector-effect:non-scaling-stroke;fill:none}
+.spark .ln{stroke:var(--signal);stroke-width:1.5;fill:none;vector-effect:non-scaling-stroke;
+  stroke-linejoin:round;stroke-linecap:round}
+.spark .ln.untimed{stroke:var(--signal-untimed);stroke-dasharray:3 2}
+.spark .dot{fill:var(--signal)}
+.foot{padding:calc(var(--u)*2) calc(var(--u)*3);font-size:12px;color:var(--ink60);border-top:1px solid var(--ink12)}
+.foot b{color:var(--ink);font-weight:600}
+.gapnote{padding:calc(var(--u)*2) calc(var(--u)*3);font-size:12px;color:var(--signal-untimed);
+  border-top:1px solid var(--ink12);background:var(--ink06)}
+.ago{font-style:normal}
+@media (max-width:560px){
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tile:nth-child(3n){border-right:1px solid var(--ink12)}
+  .tile:nth-child(2n){border-right:0}
+  .tile:nth-last-child(-n+3){border-bottom:1px solid var(--ink12)}
+  .tile:nth-last-child(-n+2){border-bottom:0}
+  .v{font-size:23px}
+  .top{padding:calc(var(--u)*2)}
+}
+</style>
+
+<div class="panel">
+  <div class="top">
+    <div class="tabs" id="tabs" role="group"></div>
+    <div class="clock mono" id="clock">—</div>
+  </div>
+  <div class="tiles" id="tiles"></div>
+  <div id="gapnote"></div>
+  <div class="foot" id="foot">—</div>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* SADA - the one panel that answers "what is Belgrade right now", and never says more than it knows.
+   Three things it does that a normal dashboard does not:
+     - it prints LOCAL time first, because that is the clock the reader is standing next to, and UTC
+       beside it, because that is the clock the record is kept in;
+     - a value whose measurement time the source does not publish is drawn in the untimed colour and
+       gets NO age, because it has none - the value is exact and its age is unknown;
+     - the seven-day view draws a seven-day frame and leaves the part we have not lived through empty.
+       An absent hour is absent: never a zero, never a line drawn across the gap. */
+
+var LANG='sr', RANGE='now', SNAP=null, HIST=null, WATCH=null;
+
+var T={
+ now:      ['Sada','Now','此刻','Jetzt'],
+ h24:      ['24 h','24 h','24 小时','24 Std.'],
+ d7:       ['7 dana','7 days','7 天','7 Tage'],
+ local:    ['lokalno','local','当地','lokal'],
+ temp:     ['Temperatura','Temperature','气温','Temperatur'],
+ hum:      ['Vlažnost','Humidity','湿度','Luftfeuchte'],
+ wind:     ['Vetar','Wind','风速','Wind'],
+ pm10:     ['PM10 — najviša stanica','PM10 — highest station','PM10 — 最高站点','PM10 — höchste Station'],
+ sava:     ['Sava — vodostaj','Sava — water level','萨瓦河 — 水位','Save — Wasserstand'],
+ park:     ['Slobodna parking mesta','Free parking spaces','空余停车位','Freie Parkplätze'],
+ measured: ['izmereno','measured','测于','gemessen'],
+ received: ['primljeno','received','接收于','empfangen'],
+ unknown:  ['vreme merenja nepoznato','measurement time unknown','测量时间未知','Messzeit unbekannt'],
+ srchour:  ['sat po oznaci izvora','hour as the source labels it','来源标注的小时','Stunde laut Quelle'],
+ nodata:   ['nema vrednosti','no value','无数值','kein Wert'],
+ minmax:   ['najmanje','lowest','最低','Minimum'],
+ maxx:     ['najviše','highest','最高','Maximum'],
+ hours:    ['h u zapisu','h on record','小时的记录','Std. im Bestand'],
+ current:  ['provera tekuća','checks current','项检查为最新','Prüfungen aktuell'],
+ quiet:    ['izvora ćuti — i svaki od njih je pitan','sources quiet — and every one of them was asked',
+            '个来源沉默——而且每一个都被询问过','Quellen schweigen — und jede von ihnen wurde gefragt'],
+ partial:  ['Zapis ima %H h. Sedam dana je nacrtano kao sedam dana, a prazno je prazno — ne nula, i bez linije preko rupe. Pun prozor od 7 dana biće moguć %D.',
+            'The record holds %H h. Seven days is drawn as seven days, and empty is empty — not zero, and no line across the gap. A full 7-day window becomes possible on %D.',
+            '记录中有 %H 小时。七天就按七天绘制，空白就是空白——不是零，也不会跨越缺口连线。完整的 7 天窗口将于 %D 可用。',
+            'Der Bestand umfasst %H Std. Sieben Tage werden als sieben Tage gezeichnet, und leer ist leer — keine Null und keine Linie über die Lücke. Ein volles 7-Tage-Fenster ist ab %D möglich.'],
+ untimedNote:['isprekidano = vreme merenja nije objavljeno; crta je po satu prijema',
+            'dashed = the measurement time is not published; the line is by hour of reception',
+            '虚线＝未发布测量时间；曲线按接收小时绘制',
+            'gestrichelt = die Messzeit wird nicht veröffentlicht; die Linie folgt der Empfangsstunde']
+};
+var IDX={sr:0,en:1,zh:2,de:3};
+function t(k){ return T[k][IDX[LANG]!==undefined?IDX[LANG]:0]; }
+
+function P(x){ return x?new Date(x).getTime():NaN; }
+function hh(d){ return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function utc(ms){ var d=new Date(ms); return d.toISOString().slice(11,16); }
+function agoText(ms){
+  var d=Date.now()-ms; if(!isFinite(d)||d<0) return '';
+  var m=Math.round(d/60000);
+  if(m<1) return LANG==='sr'?'upravo sad':LANG==='en'?'just now':LANG==='zh'?'刚刚':'gerade eben';
+  if(m<90) return LANG==='sr'?('pre '+m+' min'):LANG==='en'?(m+' min ago'):LANG==='zh'?(m+' 分钟前'):('vor '+m+' Min.');
+  var h=d/3600000, hs=(h<10?h.toFixed(1):Math.round(h));
+  if(h<36) return LANG==='sr'?('pre '+hs+' h'):LANG==='en'?(hs+' h ago'):LANG==='zh'?(hs+' 小时前'):('vor '+hs+' Std.');
+  var dd=Math.round(h/24);
+  return LANG==='sr'?('pre '+dd+' d'):LANG==='en'?(dd+' d ago'):LANG==='zh'?(dd+' 天前'):('vor '+dd+' T.');
+}
+function num(v,dec){ return v===null||v===undefined||!isFinite(v)?'—':Number(v).toFixed(dec); }
+
+/* ---- reading the snapshot ------------------------------------------------------------------ */
+function streams(sid,par){
+  var out=[]; if(!SNAP) return out;
+  (SNAP.sources||[]).forEach(function(s){ if(s.sid!==sid) return;
+    (s.datastreams||[]).forEach(function(d){ if(d.parameter===par) out.push(d); }); });
+  return out;
+}
+function lastPoint(d){ var p=d&&d.points||[]; for(var i=p.length-1;i>=0;i--) if(p[i]&&p[i].v!==null&&p[i].v!==undefined) return p[i]; return null; }
+function one(sid,par,station){
+  var ds=streams(sid,par); if(station) ds=ds.filter(function(d){return d.station===station;});
+  if(!ds.length) return null; var p=lastPoint(ds[0]); return p?{d:ds[0],p:p}:null;
+}
+function maxOf(sid,par){
+  var best=null; streams(sid,par).forEach(function(d){ var p=lastPoint(d);
+    if(p&&(best===null||p.v>best.p.v)) best={d:d,p:p}; });
+  return best;
+}
+function sumOf(sid,par){
+  var n=0,sum=0,newest=0,any=null;
+  streams(sid,par).forEach(function(d){ var p=lastPoint(d); if(!p) return;
+    sum+=p.v; n++; var r=P(p.rx); if(r>newest){newest=r; any=p;} });
+  return n?{d:{station:null,unit:null},p:{v:sum,tu:true,rx:any?any.rx:null,t:null},n:n}:null;
+}
+
+/* ---- reading the history ------------------------------------------------------------------- */
+function series(sid,par,station){
+  if(!HIST) return null;
+  var m=(HIST.series||[]).filter(function(s){ return s.sid===sid&&s.parameter===par&&(!station||s.station===station); });
+  return m.length?m[0]:null;
+}
+function bucketsMax(sid,par){                 // one line = the highest station in each hour
+  if(!HIST) return null;
+  var all=(HIST.series||[]).filter(function(s){ return s.sid===sid&&s.parameter===par; });
+  if(!all.length) return null;
+  var out={}; all.forEach(function(s){ Object.keys(s.buckets||{}).forEach(function(h){
+    var b=s.buckets[h]; if(!b||b.max===undefined||b.max===null) return;
+    if(out[h]===undefined||b.max>out[h]) out[h]=b.max; }); });
+  return {buckets:out, unit:all[0].unit, time_basis:all[0].time_basis};
+}
+function bucketsSum(sid,par){                 // one line = the sum over all stations in each hour
+  if(!HIST) return null;
+  var all=(HIST.series||[]).filter(function(s){ return s.sid===sid&&s.parameter===par; });
+  if(!all.length) return null;
+  var out={}; all.forEach(function(s){ Object.keys(s.buckets||{}).forEach(function(h){
+    var b=s.buckets[h]; if(!b||b.last===undefined||b.last===null) return;
+    out[h]=(out[h]||0)+b.last; }); });
+  return {buckets:out, unit:all[0].unit, time_basis:all[0].time_basis};
+}
+function hourKey(ms){ return new Date(ms).toISOString().slice(0,13); }
+
+/* ---- the six things the panel shows --------------------------------------------------------- */
+var TILES=[
+ {k:'temp', dec:1, unit:'°C',
+  now:function(){ return one('S01','temperature','Beograd')||one('S03','temperature'); },
+  hist:function(){ return series('S01','temperature','Beograd'); }, src:'RHMZ'},
+ {k:'hum', dec:0, unit:'%',
+  now:function(){ return one('S01','humidity','Beograd'); },
+  hist:function(){ return series('S01','humidity','Beograd'); }, src:'RHMZ'},
+ {k:'wind', dec:1, unit:'m/s',
+  now:function(){ return one('S01','wind_speed','Beograd'); },
+  hist:function(){ return series('S01','wind_speed','Beograd'); }, src:'RHMZ'},
+ {k:'pm10', dec:1, unit:'µg/m³', sourceHour:true,
+  now:function(){ return maxOf('S146','PM10'); },
+  hist:function(){ return bucketsMax('S146','PM10'); }, src:'SEPA'},
+ {k:'sava', dec:0, unit:'cm',
+  now:function(){ return one('S52','water_level'); },
+  hist:function(){ return series('S52','water_level'); }, src:'RHMZ'},
+ {k:'park', dec:0, unit:'',
+  now:function(){ return sumOf('S10','free_spaces'); },
+  hist:function(){ return bucketsSum('S10','free_spaces'); }, src:'Parking servis'}
+];
+
+/* ---- drawing ------------------------------------------------------------------------------- */
+function spark(buckets, hoursBack, untimed){
+  var W=240,H=38,now=Date.now(), t0=now-hoursBack*3600e3;
+  var keys=[], vals=[];
+  for(var i=0;i<hoursBack;i++){
+    var ms=t0+i*3600e3, k=hourKey(ms);
+    keys.push(k); vals.push(buckets[k]===undefined?null:buckets[k]);
+  }
+  var have=vals.filter(function(v){return v!==null;});
+  if(!have.length) return {svg:'', lo:null, hi:null, n:0};
+  var lo=Math.min.apply(null,have), hi=Math.max.apply(null,have), span=(hi-lo)||1;
+  var x=function(i){ return (i/(hoursBack-1))*W; };
+  var y=function(v){ return H-2-((v-lo)/span)*(H-4); };
+  var segs=[], cur=[];
+  vals.forEach(function(v,i){
+    if(v===null){ if(cur.length>1) segs.push(cur); cur=[]; return; }
+    cur.push(x(i).toFixed(1)+','+y(v).toFixed(1));
+  });
+  if(cur.length>1) segs.push(cur);
+  var last=null;
+  for(var j=vals.length-1;j>=0;j--) if(vals[j]!==null){ last={x:x(j),y:y(vals[j])}; break; }
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true">'
+    +'<rect class="fr" x="0.5" y="0.5" width="'+(W-1)+'" height="'+(H-1)+'"></rect>'
+    +segs.map(function(s){ return '<polyline class="ln'+(untimed?' untimed':'')+'" points="'+s.join(' ')+'"></polyline>'; }).join('')
+    +(last?'<circle class="dot" cx="'+last.x.toFixed(1)+'" cy="'+last.y.toFixed(1)+'" r="2.2"></circle>':'')
+    +'</svg>';
+  return {svg:svg, lo:lo, hi:hi, n:have.length};
+}
+
+function provenance(tile, got){
+  if(!got) return '<span class="warn">'+t('nodata')+'</span>';
+  var p=got.p;
+  if(tile.sourceHour){
+    var h=p.tc||p.t;
+    return tile.src+' · '+(got.d.station?got.d.station+' · ':'')+t('srchour')+' '
+      +(h?utc(P(h)):'—')+'Z';
+  }
+  if(p.tu||!p.t){
+    return tile.src+' · <span class="warn">'+t('unknown')+'</span>'
+      +(p.rx?(' · '+t('received')+' '+hh(new Date(P(p.rx)))+' '+t('local')):'');
+  }
+  var ms=P(p.t);
+  return tile.src+(got.d.station?' · '+got.d.station:'')+' · '+t('measured')+' '+hh(new Date(ms))
+    +' '+t('local')+' · <i class="ago">'+agoText(ms)+'</i>';
+}
+
+function render(){
+  if(!SNAP){ return; }
+  document.documentElement.lang = LANG;
+  // tabs
+  var tb=document.getElementById('tabs');
+  tb.innerHTML=[['now','now'],['24h','h24'],['7d','d7']].map(function(r){
+    return '<button type="button" data-r="'+r[0]+'" aria-pressed="'+(RANGE===r[0])+'">'+t(r[1])+'</button>';
+  }).join('');
+  tb.querySelectorAll('button').forEach(function(b){
+    b.addEventListener('click',function(){ RANGE=b.getAttribute('data-r'); render(); });
+  });
+  // clock: local first, then UTC, then how old the snapshot is
+  var asOf=P(SNAP.as_of), n=new Date();
+  document.getElementById('clock').innerHTML=
+    '<b>'+hh(n)+'</b> '+t('local')+' · '+n.toISOString().slice(11,16)+' UTC · '
+    +'<i class="ago">'+agoText(asOf)+'</i>';
+  // tiles
+  var hoursBack=RANGE==='24h'?24:RANGE==='7d'?168:0;
+  var anyUntimedLine=false;
+  document.getElementById('tiles').innerHTML=TILES.map(function(tile){
+    var got=tile.now(), body;
+    if(hoursBack){
+      var h=tile.hist();
+      var bk=h?(h.buckets||{}):{};
+      var untimed=h&&h.time_basis==='received';
+      if(untimed) anyUntimedLine=true;
+      var sp=spark(bk,hoursBack,untimed);
+      body='<div class="v">'+(got?num(got.p.v,tile.dec):'—')
+        +'<span class="un">'+(tile.unit||'')+'</span></div>'
+        +'<div class="k">'+t(tile.k)+'</div>'
+        +'<div class="spark">'+(sp.svg||'')+'</div>'
+        +'<div class="p">'+(sp.n
+            ? (t('minmax')+' '+num(sp.lo,tile.dec)+' · '+t('maxx')+' '+num(sp.hi,tile.dec)
+               +' · '+sp.n+'/'+hoursBack+' h')
+            : '<span class="warn">'+t('nodata')+'</span>')+'</div>';
+    } else {
+      body='<div class="v'+(got&&(got.p.tu||!got.p.t)?' untimed':'')+'">'
+        +(got?num(got.p.v,tile.dec):'—')+'<span class="un">'+(tile.unit||'')+'</span></div>'
+        +'<div class="k">'+t(tile.k)+'</div>'
+        +'<div class="p">'+provenance(tile,got)+'</div>';
+    }
+    return '<div class="tile">'+body+'</div>';
+  }).join('');
+  // the honest note about what the seven-day frame is showing
+  var gn=document.getElementById('gapnote'), notes=[];
+  if(RANGE==='7d'&&HIST&&HIST.hours_of_history<168){
+    var need=168-HIST.hours_of_history;
+    var when=new Date(Date.now()+need*3600e3);
+    notes.push(t('partial').replace('%H',HIST.hours_of_history)
+      .replace('%D',when.toISOString().slice(0,10)));
+  }
+  if(hoursBack&&anyUntimedLine) notes.push(t('untimedNote'));
+  gn.innerHTML=notes.length?('<div class="gapnote">'+notes.join(' — ')+'</div>'):'';
+  // the closing line, from the watchman's own reading
+  var f=[];
+  if(WATCH&&WATCH.counts){
+    f.push('<b>'+(WATCH.counts.ok||0)+'</b> '+t('current'));
+  }
+  var quiet=(SNAP.status&&SNAP.status.sources||[]).filter(function(s){ return s.captured===0; }).length;
+  if(quiet) f.push('<b>'+quiet+'</b> '+t('quiet'));
+  if(HIST) f.push('<b>'+HIST.hours_of_history+'</b> '+t('hours'));
+  document.getElementById('foot').innerHTML=f.join(' · ');
+}
+
+setInterval(function(){ if(SNAP) render(); },60000);
+
+function load(n){ return fetch(n,{cache:'no-store'}).then(function(r){ return r.ok?r.json():null; }).catch(function(){ return null; }); }
+Promise.all([load('live-snapshot.json'),load('history.json'),load('watch.json')]).then(function(r){
+  SNAP=r[0]; HIST=r[1]; WATCH=r[2];
+  if(!SNAP){ document.getElementById('foot').textContent='no snapshot'; return; }
+  render();
+});
+addEventListener('message',function(ev){
+  var d=ev&&ev.data; if(!d) return;
+  var l=d.beopsLang4||d.beopsLang;
+  if(l&&IDX[l]!==undefined&&l!==LANG){ LANG=l; render(); }
+});
+})();
+</script>
+
+<script>
+// Embedded on the front page, this document reports its own height so the frame can be made exactly
+// that tall: the page then has one scrollbar instead of a scrollbar inside a scrollbar.
+(function(){
+  if (window.self === window.top) return;
+  document.documentElement.classList.add('embedded');
+  document.documentElement.style.height='auto'; if(document.body) document.body.style.height='auto';
+  var last = 0;
+  function contentHeight(){
+    // Not scrollHeight: once the frame has been made this tall, the document fills it and scrollHeight
+    // can never report a smaller number again. Measure where the content actually ends instead.
+    var kids = document.body ? document.body.children : [], bottom = 0;
+    for (var i = 0; i < kids.length; i++) {
+      var r = kids[i].getBoundingClientRect();
+      if (r.height) bottom = Math.max(bottom, r.bottom + (window.scrollY || 0));
+    }
+    return Math.ceil(bottom);
+  }
+  function post(){
+    var h = contentHeight();
+    if (!h || Math.abs(h - last) < 3) return;
+    last = h;
+    try { parent.postMessage({ beops: 'height', h: h }, '*'); } catch (e) {}
+  }
+  addEventListener('load', post);
+  addEventListener('resize', post);
+  if (window.ResizeObserver) new ResizeObserver(post).observe(document.documentElement);
+  setInterval(post, 3000);
+  post();
+})();
+</script>

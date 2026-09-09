@@ -201,6 +201,11 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 .stage iframe{width:100%;height:100%;border:0;display:block;background:var(--field)}
 .stagelink{position:absolute;right:12px;top:10px;font-size:12px;padding:4px 10px;border:1px solid var(--ink30);border-radius:3px;background:color-mix(in srgb,var(--field) 85%,transparent);backdrop-filter:blur(8px)}
 .hero .authors{margin-top:calc(var(--u)*3);margin-bottom:0}
+/* The live panel sits in the hero, under the sentence that introduces it. It reports its
+   own height like every other frame; the 300px is only what the box holds until it does. */
+.nowpanel{margin-top:calc(var(--u)*5);height:300px}
+.nowpanel.fit{height:auto}
+.nowpanel iframe{width:100%;height:100%;border:0;display:block;background:transparent}
 @media (max-width:900px){
   .herohead{grid-template-columns:1fr;gap:calc(var(--u)*3)}
   .hero{padding:calc(var(--u)*5) 0 calc(var(--u)*4)}
@@ -385,6 +390,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
       <p class="authors"><b>prof. dr Darinka Golubović Matić</b> · <b>doc. dr Semir Poturak</b> — autori rada; nastavnici Univerziteta Union – Nikola Tesla u Beogradu, ali rad ne nastupa u ime ustanove · <span class="sr-only i18n">sa <b>Svemirom</b>, lokalnom AI infrastrukturom autora (Claude, Anthropic) — proveren saradnik, ne autor</span><span class="en-only i18n">with <b>Svemir</b>, the authors' local AI infrastructure (Claude, Anthropic) — a verified contributor, not an author</span><span class="zh-only">与<b>Svemir</b>协作——作者本地的人工智能基础设施（Claude，Anthropic）：经过核验的贡献者，而非作者</span><span class="de-only">mit <b>Svemir</b>, der lokalen KI-Infrastruktur der Autoren (Claude, Anthropic) — ein geprüfter Mitwirkender, kein Autor</span></p>
     </div>
     <p class="sub"><span class="sr-only i18n">Grad govori u prijemima; mapa kruži samo kad je instrument stvarno pročitan; um od malih lokalnih modela razmišlja naglas i svaka njegova rečenica se proverava pre nego što je vidiš. Ono čega nema je zapis — nikada nula.</span><span class="en-only i18n">The city speaks in receptions; the map pulses only when an instrument was actually read; a mind of small local models thinks aloud and every sentence is checked before you see it. What is missing is a record — never a zero.</span><span class="zh-only">城市以“接收”说话；只有当仪器真正被读取时，地图才会脉动；一个由小型本地模型组成的思维出声思考，而它的每一句话在你看到之前都经过核验。缺失的东西是一条记录——绝不是零。</span><span class="de-only">Die Stadt spricht in Empfängen; die Karte pulsiert nur, wenn ein Instrument tatsächlich gelesen wurde; ein Verstand aus kleinen lokalen Modellen denkt laut, und jeder seiner Sätze wird geprüft, bevor Sie ihn sehen. Was fehlt, ist ein Eintrag — niemals eine Null.</span></p>
+      <div class="nowpanel"><iframe id="nowstage" src="sada.html?v={stamp}" title="BEOPS · Sada / Now" loading="eager"></iframe></div>
   </div>
   <div class="wrap">
     <div class="stage">
@@ -716,7 +722,7 @@ function render(){ live(); chips(); stats(); rows(); filter(); prov(); corr();
     // every embedded study, not a hand-kept list of two: the ribbon was added and stayed Serbian on
     // the English page. The frames speak two languages, so they are told the two-language answer.
     document.querySelectorAll('iframe').forEach(function(f){
-      try{ if(f.contentWindow) f.contentWindow.postMessage({beopsLang:LANG},'*'); }catch(err){}
+      try{ if(f.contentWindow) f.contentWindow.postMessage({beopsLang:LANG,beopsLang4:l},'*'); }catch(err){}
     });
   }
   btns.forEach(function(b){ b.addEventListener('click',function(){ apply(b.getAttribute('data-l')); }); });
@@ -855,6 +861,7 @@ def main() -> int:
     (DOCS / "index.html").write_text(html, encoding="utf-8")
     for src, dst in [("research/05-design/studies/monolog-puls.html", "monolog.html"),
                      ("research/05-design/studies/podaci.html", "podaci.html"),
+                     ("research/05-design/studies/sada.html", "sada.html"),
                      ("research/05-design/studies/slojevi.svg", "slojevi.svg"),
                      ("research/05-design/studies/traka-live.html", "traka.html"),
                      ("public/live-snapshot.json", "live-snapshot.json"),
