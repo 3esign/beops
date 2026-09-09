@@ -107,12 +107,12 @@ html.embedded .reading{position:static;height:auto;overflow:visible;border-left:
 
 /* ---- fina šminka / light makeup: depth on the chrome, never on the data ----------------------
    glass header, paper grain, soft panel edges, halo on the pulse; the marks keep the alphabet. */
-header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--field) 72%,transparent);backdrop-filter:saturate(1.2) blur(14px);-webkit-backdrop-filter:saturate(1.2) blur(14px);border-bottom:1px solid var(--ink12);box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 10px 30px -18px rgba(17,19,17,.25)}
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--field) 72%,transparent);backdrop-filter:saturate(1.2) blur(14px);-webkit-backdrop-filter:saturate(1.2) blur(14px);border-bottom:1px solid var(--ink12);}
 header h1{font-size:19px;letter-spacing:-.01em}
 header h1 b,header h1{font-weight:700}
 body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 main,section,.how,.foot,.legend{position:relative;z-index:1}
-.map .cv{background:radial-gradient(120% 90% at 50% 45%,transparent 55%,color-mix(in srgb,var(--ink) 5%,transparent) 100%);box-shadow:inset 0 0 0 1px var(--ink06)}
+.map .cv{background:transparent}
 .line:first-child{box-shadow:inset 3px 0 0 var(--signal-faint)}
 .line .sr{font-weight:500}
 .reading{background:color-mix(in srgb,var(--field) 85%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}

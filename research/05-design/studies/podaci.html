@@ -48,8 +48,8 @@ section .lead{margin:0 0 calc(var(--u)*4);max-width:80ch;color:var(--ink60);font
    site. No viewport units: the height comes from the width, which layout sets and never reads
    back (C-016). */
 .cvwrap{display:flex;justify-content:center}
-.cv.geo{width:min(100%,600px);aspect-ratio:1.04;margin:0 auto}
-.maptip{position:absolute;z-index:5;pointer-events:none;background:var(--field);border:1px solid var(--ink12);border-radius:4px;padding:6px 8px;font-size:12px;line-height:1.35;box-shadow:0 8px 24px -12px rgba(0,0,0,.5);max-width:220px}
+.cv.geo{width:100%;aspect-ratio:1.04;margin:0}
+.maptip{position:absolute;z-index:5;pointer-events:none;background:var(--field);border:1px solid var(--ink30);border-radius:3px;padding:6px 8px;font-size:12px;line-height:1.35;max-width:220px}
 .maptip b{display:block;font-weight:600}
 .maptip span{display:block;color:var(--ink60)}
 .maptip span.m{font-family:var(--mono);font-size:11px}
@@ -59,11 +59,11 @@ section .lead{margin:0 0 calc(var(--u)*4);max-width:80ch;color:var(--ink60);font
    a column of empty paper as tall as the table: the map cannot grow to meet it and the table
    cannot shrink to it. */
 .sepa{grid-template-columns:1fr;gap:calc(var(--u)*4)}
-.sepa .cv{aspect-ratio:1.04;max-height:none}
+.sepa .cv{max-height:none}
 .twocol .state{white-space:nowrap;font-size:11px}
 .twocol table{font-size:13.5px}
 .twocol{display:grid;grid-template-columns:1fr 1fr;gap:0 calc(var(--u)*8);align-items:start}
-@media (max-width:900px){.sepa .cv{aspect-ratio:1.04;max-height:none}.twocol{grid-template-columns:1fr;gap:0}}
+@media (max-width:900px){.sepa .cv{max-height:none}.twocol{grid-template-columns:1fr;gap:0}}
 .cv canvas{width:100%;height:100%;display:block}
 .legend{font-family:var(--mono);font-size:11px;color:var(--ink60);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-right:4px}
@@ -193,6 +193,30 @@ const fmtT=t=>{const d=new Date(t);return isNaN(d)?'—':d.toISOString().slice(1
 const fmtD=t=>{const d=new Date(t);return isNaN(d)?'—':d.toISOString().slice(5,16).replace('T',' ');};
 const BB={lo0:20.17,lo1:20.80,la0:44.55,la1:44.98};
 let VIEW={k:1,tx:0,ty:0};
+/* C-027. The map is the rectangle, not a square inside it. The drawing box now takes the whole width
+   and gets its height from the ground it draws: the basemap's own bounds, measured once, become the
+   box's aspect ratio. Nothing is cropped and no band is left empty, and because both maps measure the
+   same basemap they come out the same shape and the same size without either of them being told a
+   number. */
+function fitGround(){
+  if(!BASEMAP||!BASEMAP.features) return;
+  var lo0=1e9,lo1=-1e9,la0=1e9,la1=-1e9, seen=false;
+  function eat(c){ if(!c||typeof c[0]!=='number'||typeof c[1]!=='number') return;
+    if(c[0]<lo0)lo0=c[0]; if(c[0]>lo1)lo1=c[0]; if(c[1]<la0)la0=c[1]; if(c[1]>la1)la1=c[1]; seen=true; }
+  function walk(a){ if(!a) return; if(typeof a[0]==='number'){ eat(a); return; } for(var i=0;i<a.length;i++) walk(a[i]); }
+  BASEMAP.features.forEach(function(f){ if(f&&f.geometry) walk(f.geometry.coordinates); });
+  if(!seen) return;
+  // never wider than the frame the registry describes: a stray coordinate must not redraw the city
+  lo0=Math.max(lo0,BB.lo0); lo1=Math.min(lo1,BB.lo1); la0=Math.max(la0,BB.la0); la1=Math.min(la1,BB.la1);
+  var px=(lo1-lo0)*0.03, py=(la1-la0)*0.03;
+  BB={lo0:lo0-px,lo1:lo1+px,la0:la0-py,la1:la1+py};
+  var kx=Math.cos(44.8*Math.PI/180);
+  var ratio=((BB.lo1-BB.lo0)*kx)/(BB.la1-BB.la0);
+  if(isFinite(ratio)&&ratio>0.2&&ratio<6){
+    document.querySelectorAll('.cv.geo,.map .cv').forEach(function(el){ el.style.aspectRatio=String(ratio); });
+  }
+}
+
 function projBase(lat,lon,w,h){ const kx=Math.cos(44.8*Math.PI/180); const sx=w/((BB.lo1-BB.lo0)*kx), sy=h/(BB.la1-BB.la0); const s=Math.min(sx,sy); const cx=(w-(BB.lo1-BB.lo0)*kx*s)/2, cy=(h-(BB.la1-BB.la0)*s)/2; return [cx+(lon-BB.lo0)*kx*s, cy+(BB.la1-lat)*s]; }
 function proj(lat,lon,w,h){ const q=projBase(lat,lon,w,h); return [q[0]*VIEW.k+VIEW.tx, q[1]*VIEW.k+VIEW.ty]; }
 function metresPerPx(w,h){ const kx=Math.cos(44.8*Math.PI/180); const s=Math.min(w/((BB.lo1-BB.lo0)*kx), h/(BB.la1-BB.la0)); return 111320/(s*VIEW.k); }
@@ -436,7 +460,7 @@ window.addEventListener('message',ev=>{
  if(ev&&ev.data&&ev.data.beopsLang&&ev.data.beopsLang!==LANG){ LANG=ev.data.beopsLang; renderAll(); } });
 window.addEventListener('resize',()=>{ if(SNAP) drawMap(); });
 document.body.classList.add('lang-sr');
-Promise.all([load('basemap-belgrade.json'),load('live-snapshot.json'),load('history.json')]).then(([b,s,h])=>{ BASEMAP=b&&b.features?b:null; SNAP=s; HIST=h; if(!s){document.getElementById('clock').textContent='no snapshot';return;} renderAll(); });
+Promise.all([load('basemap-belgrade.json'),load('live-snapshot.json'),load('history.json')]).then(([b,s,h])=>{ BASEMAP=b&&b.features?b:null; SNAP=s; HIST=h; fitGround(); if(!s){document.getElementById('clock').textContent='no snapshot';return;} renderAll(); });
 })();
 </script>
 <script>
