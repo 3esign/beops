@@ -1006,3 +1006,29 @@ visible by measuring `scrollWidth` against `clientWidth` on the live page — th
 about is not "did it fit in the design" but "did it fit in the browser".
 
 **Nothing observed was changed.** Presentation and wording of a legend only.
+
+## C-032 — the three entity columns had a scrollbar and one card each
+
+**2026-09-09.** The mind section rendered the newest checked utterance per entity and nothing else,
+inside a container with `overflow:auto`. The 24-hour window held 74 utterances — observer 29, skeptic
+15, connector 30 — so the reader could see three of seventy-four, with a scrollbar suggesting
+otherwise. Asked directly why the columns cannot be scrolled back, the answer was that there was
+nothing behind them to scroll to.
+
+**Correction.** Each column is that entity's whole window, newest first, scrolling in its own stack
+whose height is the feed's height (so the existing drag handle sizes all four columns together). The
+column header states the count.
+
+**What the single-card view was hiding.** In Serbian only 29 of the 74 utterances are voiced. The other
+45 were refused by the export validator: 15 because the citations differ from the original, 26 because
+the local model produced ijekavica where the export requires ekavica (`zraka`, `utjecaj`, `provjeriti`,
+`vrijednosti`), 5 failed with an error. Showing only the newest *voiced* utterance made the skeptic
+appear silent for nine hours. It was not silent — its Serbian was refused. Each refused utterance is
+now its own row carrying the validator's own reason verbatim, because a column that renders only what
+passed reports silence where the record actually holds a refusal.
+
+**Not a layout defect.** A panel showing the freshest state of an accumulating process is a reporting
+choice, and it was the wrong one. The scrollbar was the tell and it sat there unexamined.
+
+**Nothing observed was changed.** The utterances, their states and the validator's reasons are read as
+stored; none was edited, and none is newly excluded.

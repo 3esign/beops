@@ -83,7 +83,22 @@ main{display:grid;grid-template-columns:minmax(360px,5fr) minmax(360px,7fr);min-
 .grip::after{content:'';position:absolute;left:0;right:0;top:5px;height:1px;background:var(--ink12)}
 .grip:hover::after,.grip.on::after{height:2px;top:4px;background:var(--ink30)}
 .mind .cards{align-items:start}
-.mind{overflow:auto;max-height:calc(var(--feedh,460px) + 46px);min-height:calc(var(--feedh,460px) * 0.55)}
+/* C-032: each column carries that entity's whole window, newest first, and scrolls itself.
+   The section used to scroll as one because each column held exactly one card - there was
+   nothing to scroll TO. The stack's height is the feed's height, so the drag handle between
+   the map and the text sets all four columns at once, and `flex:0 0 auto` because flex:1
+   would mean flex-basis:0 and beat it (the C-027 trap, twice already). */
+.mind{max-height:none;overflow:visible}
+.mind .ent{display:flex;flex-direction:column;min-width:0}
+.mind .entname{display:flex;justify-content:space-between;align-items:baseline;gap:calc(var(--u)*2);
+  font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  padding-bottom:calc(var(--u)*1.5);border-bottom:1px solid var(--ink12);margin-bottom:calc(var(--u)*3)}
+.mind .entname .n{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--ink60);
+  text-transform:none;letter-spacing:0;white-space:nowrap}
+.mind .stack{flex:0 0 auto;height:var(--feedh,460px);overflow:auto;
+  display:flex;flex-direction:column;gap:calc(var(--u)*4);padding-right:calc(var(--u)*3)}
+.mind .card.refused{border-left-style:dashed}
+.mind .card.refused .say{color:var(--ink60);font-style:italic;font-size:14px}
 .line{display:grid;grid-template-columns:8ch 14px 1fr;gap:calc(var(--u)*2);padding:calc(var(--u)*2) calc(var(--u)*6);border-bottom:1px solid var(--ink06);align-items:start}
 .line .t{font-family:var(--mono);font-size:12px;color:var(--ink60);padding-top:3px}
 .line .g{width:10px;height:10px;margin-top:6px;border-radius:50%;background:var(--signal)}
@@ -191,6 +206,7 @@ body.embedded .map .cv{min-height:0}
   .mind{order:1;border-bottom:1px solid var(--ink12)}
   .monolog{order:2;border-top:0}
   .mind .cards{grid-template-columns:1fr}
+  .mind .stack{height:320px}
   .monolog h2,.map h2,.line{padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*4)}
   .maplegend{padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*4)}
   .line{grid-template-columns:6ch 12px 1fr}
@@ -598,25 +614,63 @@ function frame(ts){
   drawMap(performance.now()); requestAnimationFrame(frame);
 }
 function setPressed(){ document.getElementById('play').setAttribute('aria-pressed',PLAY); document.getElementById('live').setAttribute('aria-pressed',!PLAY&&cursor>=EVENTS.length); }
-// ---- the mind at the top: the latest checked utterance of each entity -------------------
+// ---- the mind: every checked utterance of each entity, newest first --------------------
+// C-032. This rendered one card per entity, so the three columns had a scrollbar and nothing to
+// scroll: the window holds 74 utterances and the reader could see three. Each column is that
+// entity's whole window now. An utterance with no voice in the reader's language is still a row,
+// carrying the validator's own reason - dropping it would make the column say the entity was
+// quiet when what happened is that the translation was refused.
 const ENT=[['observer','Posmatrač','Observer'],['skeptic','Sumnjalo','Skeptic'],['connector','Povezivač','Connector']];
+function voicedIn(th){ return LANG==='sr' ? !!(th.sr_state==='voiced'&&th.sr) : !!th.en; }
+function mindCard(th,fresh){
+  const el=document.createElement('div');
+  const stamp='<div class="who"><span class="t" data-ago="'+esc(th.t)+'">'+esc(fmtD(th.t))+' UTC</span></div>';
+  if(!voicedIn(th)){
+    const why=String(th.sr_state||'').replace(/^refused at export: /,'').replace(/^refused: /,'').replace(/^failed: /,'');
+    el.className='card refused';
+    el.innerHTML=stamp
+      +'<div class="say">'+esc(LANG==='sr'?'Misao je izgovorena, ali nije puštena na srpskom.':'This utterance has no voice in this language.')+'</div>'
+      +'<div class="meta">'+esc(LANG==='sr'?'provera prevoda: ':'translation check: ')+esc(why)+(th.model?' · '+esc(th.model):'')+'</div>';
+    return el;
+  }
+  const text=LANG==='sr'?th.sr:th.en;
+  const hyp=LANG==='sr'?(th.hypotheses_sr||[]):(th.hypotheses||[]);
+  const q=LANG==='sr'?(th.questions_sr||[]):(th.questions||[]);
+  el.className='card'+(fresh?' fresh':'');
+  el.innerHTML=stamp
+    +'<div class="say">'+esc(text)+'</div>'
+    +(hyp.length?'<div class="hyp">'+(LANG==='sr'?'pretpostavka':'hypothesis')+': '+esc(hyp.join(' · '))+'</div>':'')
+    +(q.length?'<div class="hyp">'+(LANG==='sr'?'pitanje':'question')+': '+esc(q.join(' · '))+'</div>':'')
+    +'<div class="meta">'+esc(th.model||'')+(th.voice_model?' · '+(LANG==='sr'?'glas ':'voice ')+esc(th.voice_model):'')
+    +' · ai_generated=true · '+(LANG==='sr'?'svaki broj proveren prema digestu':'every number checked against the digest')
+    +(th.cites&&th.cites.length?' · '+esc(th.cites.join(' ')):'')+'</div>';
+  return el;
+}
 function renderMind(){
   const box=document.getElementById('mindcards'); if(!box||!SNAP) return; box.innerHTML='';
   const ths=(SNAP.thoughts||[]).filter(t=>t.state==='thought');
   const asOf=P(SNAP.as_of);
   for(const [id,nsr,nen] of ENT){
     const mine=ths.filter(t=>t.entity===id).sort((a,b)=>P(b.t)-P(a.t));
-    const th=LANG==='sr'?mine.find(t=>t.sr_state==='voiced'&&t.sr):mine[0];
-    const el=document.createElement('div'); const name=LANG==='sr'?nsr:nen;
-    if(!th){ const last=mine[0]; el.className='card quiet';
-      const why=LANG==='sr'?(last?`ćuti: poslednja misao (${fmtT(last.t)}) nije prošla proveru`:'ćuti: nijedna misao u prozoru nije prošla proveru'):(last?'silent':'silent: no utterance in the window passed the check');
-      el.innerHTML=`<div class="who"><b>${esc(name)}</b></div><div class="say">${esc(why)}. ${esc(LANG==='sr'?'Ćutanje je zapis kao i svako drugo.':'Silence is a record like any other.')}</div>`; box.appendChild(el); continue; }
-    const fresh=(asOf-P(th.t))<3600e3;
-    const text=LANG==='sr'?th.sr:th.en;
-    const hyp=LANG==='sr'?(th.hypotheses_sr||[]):(th.hypotheses||[]); const q=LANG==='sr'?(th.questions_sr||[]):(th.questions||[]);
-    el.className='card'+(fresh?' fresh':'');
-    el.innerHTML=`<div class="who"><b>${esc(name)}</b> <span class="t" data-ago="${th.t}">${fmtD(th.t)} UTC</span></div><div class="say">${esc(text)}</div>${hyp.length?`<div class="hyp">${LANG==='sr'?'pretpostavka':'hypothesis'}: ${esc(hyp.join(' · '))}</div>`:''}${q.length?`<div class="hyp">${LANG==='sr'?'pitanje':'question'}: ${esc(q.join(' · '))}</div>`:''}<div class="meta">${esc(th.model||'')}${th.voice_model?' · '+(LANG==='sr'?'glas ':'voice ')+esc(th.voice_model):''} · ai_generated=true · ${LANG==='sr'?'svaki broj proveren prema digestu':'every number checked against the digest'}${th.cites&&th.cites.length?' · '+esc(th.cites.join(' ')):''}</div>`;
-    box.appendChild(el);
+    const voiced=mine.filter(voicedIn).length;
+    const col=document.createElement('div'); col.className='ent';
+    const name=LANG==='sr'?nsr:nen;
+    const count=LANG==='sr'
+      ? (mine.length+' u prozoru · '+voiced+' na srpskom')
+      : (mine.length+' in the window');
+    col.innerHTML='<div class="entname"><b>'+esc(name)+'</b><span class="n">'+esc(count)+'</span></div>';
+    const stack=document.createElement('div'); stack.className='stack';
+    if(!mine.length){
+      const el=document.createElement('div'); el.className='card quiet';
+      el.innerHTML='<div class="say">'+esc(LANG==='sr'
+        ?'Nijedna misao u prozoru. Ćutanje je zapis kao i svako drugo.'
+        :'No utterance in the window. Silence is a record like any other.')+'</div>';
+      stack.appendChild(el);
+    } else {
+      let first=true;
+      for(const th of mine){ stack.appendChild(mindCard(th,first&&voicedIn(th)&&(asOf-P(th.t))<3600e3)); first=false; }
+    }
+    col.appendChild(stack); box.appendChild(col);
   }
   paintAges();
 }
