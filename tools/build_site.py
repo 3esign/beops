@@ -231,6 +231,7 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 @media (max-width:760px){.layers{overflow-x:auto;-webkit-overflow-scrolling:touch}.layers svg{width:760px;max-width:none}}
 .datastage{height:min(90vh,1100px);border:1px solid var(--ink12);border-radius:6px;overflow:hidden;background:var(--field)}
 .datastage iframe{width:100%;height:100%;border:0;display:block}
+.trakastage{height:min(62vh,620px)}   /* the ribbon is wide and shallow; it does not need the data view's height */
 .livebar{border-top:1px solid var(--ink12);border-bottom:1px solid var(--ink12);background:var(--panel);
   padding:calc(var(--u)*5) 0;margin:calc(var(--u)*4) 0 0}
 .lgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:calc(var(--u)*6)}
@@ -348,6 +349,12 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
       <a class="stagelink" style="position:static" href="podaci.html?v={stamp}"><span class="sr-only">Otvori sve podatke ↗</span><span class="en-only">Open all the data ↗</span></a>
     </div>
     <div class="datastage"><iframe id="datastage" src="podaci.html?v={stamp}" title="BEOPS · Podaci" loading="lazy"></iframe></div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin:28px 0 12px">
+      <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only">Traka — vreme kao glavni predmet, jedna traka po čulu</span><span class="en-only">The ribbon — time as the primary object, one lane per sense</span></h2>
+      <a class="stagelink" style="position:static" href="traka.html?v={stamp}"><span class="sr-only">Otvori celu traku ↗</span><span class="en-only">Open the full ribbon ↗</span></a>
+    </div>
+    <div class="datastage trakastage"><iframe id="trakastage" src="traka.html?v={stamp}" title="BEOPS · Traka" loading="lazy"></iframe></div>
+    <p class="mono" style="font-size:11.5px;color:var(--ink55);margin:12px 0 0"><span class="sr-only">Oznaka postoji samo tamo gde red postoji; prazno mesto je tišina, ne nula.</span><span class="en-only">A mark exists only where a row exists; an empty place is silence, not a zero.</span></p>
   </div>
 </div>
 
@@ -429,8 +436,6 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
   <div class="wrap">
     <h2><span class="sr-only">Čitaj dalje</span><span class="en-only">Read on</span></h2>
     <div class="cards">
-      <a class="card" href="monolog.html" style="border:0;padding:0"><div class="card" style="height:100%"><h3><span class="sr-only">Monolog grada + Puls</span><span class="en-only">The city's monologue + Pulse</span></h3><p><span class="sr-only">Šta je stiglo, kad, i šta ćuti — uz mapu koja kruži samo kad je instrument stvarno pročitan.</span><span class="en-only">What arrived, when, and what stayed silent — beside a map that pulses only when an instrument was actually read.</span></p><span class="mono">monolog.html</span></div></a>
-      <a class="card" href="traka.html" style="border:0;padding:0"><div class="card" style="height:100%"><h3>TRAKA</h3><p><span class="sr-only">Vreme kao glavni predmet: jedna traka po čulu, oznake samo tamo gde redovi postoje.</span><span class="en-only">Time as the primary object: one lane per sense, marks only where rows exist.</span></p><span class="mono">traka.html</span></div></a>
       <a class="card" href="https://github.com/3esign/beops" style="border:0;padding:0"><div class="card" style="height:100%"><h3>GitHub</h3><p><span class="sr-only">Kod, registri, pravila i dokaz dozvole — otvoreno. MIT za kod, CC BY 4.0 za dokumente.</span><span class="en-only">Code, registries, rules and the permission evidence — open. MIT for code, CC BY 4.0 for documents.</span></p><span class="mono">3esign/beops</span></div></a>
     </div>
   </div>
