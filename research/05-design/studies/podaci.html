@@ -52,6 +52,15 @@ tr.max td{box-shadow:inset 3px 0 0 var(--signal)}
 .tile .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink60)}
 .tile .s{font-size:12px;color:var(--ink60);font-family:var(--mono)}
 .bars{display:grid;grid-template-columns:minmax(0,1fr);gap:4px}
+.hist{display:flex;align-items:flex-end;gap:1px;height:190px;border-bottom:1px solid var(--ink30);padding-top:calc(var(--u)*2)}
+.hb{flex:1 1 0;min-width:2px;position:relative;height:100%}
+.hb i{position:absolute;left:0;right:0;bottom:0;background:var(--signal);opacity:.75;display:block}
+.hb u{position:absolute;left:0;right:0;height:1px;background:var(--ink);opacity:.55;display:block;text-decoration:none}
+.hb.gap{background:repeating-linear-gradient(180deg,transparent 0 3px,var(--ink12) 3px 4px)}
+.cov{display:flex;gap:1px;margin-top:3px}
+.cov i{flex:1 1 0;min-width:2px;height:6px;background:var(--ink);opacity:.15;display:block}
+.hax{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--ink60);margin-top:calc(var(--u)*2)}
+.hsum{display:flex;gap:calc(var(--u)*8);flex-wrap:wrap;margin:calc(var(--u)*3) 0 0}
 .bar{display:grid;grid-template-columns:22ch 1fr 6ch;gap:8px;align-items:center;font-size:13px}
 .bar .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar .b{height:10px;background:var(--ink06);position:relative}
@@ -83,6 +92,13 @@ tr.max td{box-shadow:inset 3px 0 0 var(--signal)}
     <div><div class="cv"><canvas id="map"></canvas></div><div class="legend" id="maplegend"></div></div>
     <div id="septable"></div>
   </div>
+</section>
+<section id="kroz-vreme">
+  <h2><span class="sr-only">Kroz vreme — kako se vrednosti slažu sat po sat</span><span class="en-only">Over time — how the values stack up, hour by hour</span></h2>
+  <p class="lead"><span class="sr-only">Jedan stubić je jedan sat. Visina je najviša vrednost koju je bilo koja stanica objavila za taj sat, tanja crta unutar njega je gradski prosek tog sata. Prazan sat je sat bez ijednog prijema — ostaje prazan, ne postaje nula i ne povlači se linija preko njega. Traka ispod pokazuje koliko je stanica javilo u tom satu.</span><span class="en-only">One bar is one hour. Its height is the highest value any station published for that hour; the thin line inside it is the city mean for that hour. An empty hour is an hour with no reception at all — it stays empty, does not become a zero, and no line is drawn across it. The strip beneath shows how many stations reported in that hour.</span></p>
+  <div class="tabs" id="histwin"></div>
+  <div id="histbox"></div>
+  <p class="lead" id="histnote" style="margin-top:calc(var(--u)*3)"></p>
 </section>
 <section id="senzori">
   <h2><span class="sr-only">Vazduh — građanski senzori (Sensor.Community, 25 km oko centra)</span><span class="en-only">Air — citizen sensors (Sensor.Community, 25 km around the centre)</span></h2>
@@ -184,12 +200,64 @@ function renderMind(){
     tiles.push(`<div class="tile"><div class="k">${S(name[0],name[1])}</div><div class="big">${v.accepted??v.thought??'—'}<span style="font-size:14px;color:var(--ink60)"> / ${(v.accepted??0)+(v.rejected??0)}</span></div><div class="s">${S('tvrdnje','claims')}: ${S('tačne','true')} ${v.true??v.claims_true??0} · ${S('netačne','false')} ${v.false??v.claims_false??0} · ${S('otvorene','open')} ${v.open??v.claims_open??0}</div></div>`); }
   box.innerHTML=tiles.join('');
 }
-function renderAll(){ document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); if(!SNAP) return; document.getElementById('clock').textContent=S('prozor','window')+' '+SNAP.window_hours+' h · '+SNAP.as_of.slice(0,16).replace('T',' ')+' UTC'; renderSepa(); drawMap(); renderSC(); renderParking(); renderNews(); renderMind(); }
+// --- over time -------------------------------------------------------------
+// The history file carries hourly buckets, not rows. Nothing here interpolates: an hour with no
+// bucket is drawn as a gap, because a missing hour is a fact about the city's instruments and a
+// straight line across it would be an invention.
+let HIST=null, HWIN=24;
+function histSeries(){
+  if(!HIST) return [];
+  return (HIST.series||[]).filter(s=>s.sid==='S146'&&s.parameter===PAR&&s.kind==='numeric'&&s.time_basis==='measured');
+}
+function renderHist(){
+  const box=document.getElementById('histbox'), tabs=document.getElementById('histwin'), note=document.getElementById('histnote');
+  if(!box) return;
+  if(!HIST||!HIST.hours_of_history){ box.innerHTML=''; tabs.innerHTML=''; note.textContent=S('istorija još ne postoji — prvi satni zapisi se skupljaju','no history yet — the first hourly records are still being collected'); return; }
+  const have=HIST.hours_of_history;
+  const wins=[[6,'6 h','6 h'],[24,'24 h','24 h'],[72,'3 dana','3 days'],[have,S('sve','all'),S('sve','all')]];
+  tabs.innerHTML='';
+  wins.forEach(function(w){
+    if(w[0]>have&&w[0]!==have) return;                      // a window longer than the history is not offered
+    const b=document.createElement('button'); b.textContent=S(w[1],w[2]);
+    b.setAttribute('aria-pressed',String(HWIN===w[0]));
+    b.addEventListener('click',()=>{HWIN=w[0]; renderHist();});
+    tabs.appendChild(b);
+  });
+  const ss=histSeries();
+  if(!ss.length){ box.innerHTML=''; note.textContent=S('za ovaj parametar još nema satne istorije','no hourly history for this parameter yet'); return; }
+  const end=HIST.history_ends;
+  const hours=[]; const endD=new Date(end+':00:00Z');
+  for(let i=HWIN-1;i>=0;i--) hours.push(new Date(endD.getTime()-i*3600e3).toISOString().slice(0,13));
+  const per=hours.map(function(h){
+    let max=null,sum=0,n=0;
+    ss.forEach(function(s){ const b=s.buckets[h]; if(b&&b.max!=null){ max=max===null?b.max:Math.max(max,b.max); sum+=b.mean; n++; } });
+    return {h, max, mean:n?sum/n:null, stations:n};
+  });
+  const top=Math.max.apply(null,per.filter(p=>p.max!=null).map(p=>p.max).concat([1]));
+  const maxSt=Math.max.apply(null,per.map(p=>p.stations).concat([1]));
+  const unit=ss[0].unit||'';
+  box.innerHTML='<div class="hist">'+per.map(function(p){
+    if(p.max==null) return '<div class="hb gap" title="'+p.h+'Z · '+S('nema prijema','no reception')+'"></div>';
+    const hh=Math.max(1,Math.round(p.max/top*100));
+    const mm=p.mean==null?null:Math.max(1,Math.round(p.mean/top*100));
+    return '<div class="hb" title="'+p.h+'Z · max '+p.max.toFixed(1)+' '+esc(unit)+(p.mean!=null?' · '+S('prosek','mean')+' '+p.mean.toFixed(1):'')+' · '+p.stations+' '+S('stanica','stations')+'">'+
+           '<i style="height:'+hh+'%"></i>'+(mm!==null?'<u style="bottom:'+mm+'%"></u>':'')+'</div>';
+  }).join('')+'</div>'+
+  '<div class="cov">'+per.map(p=>'<i style="opacity:'+(p.stations?(0.15+0.65*p.stations/maxSt).toFixed(2):'0.05')+'" title="'+p.h+'Z · '+p.stations+' '+S('stanica javilo','stations reported')+'"></i>').join('')+'</div>'+
+  '<div class="hax"><span>'+hours[0]+'Z</span><span>'+S('sat merenja po oznaci izvora (UTC)','measurement hour as the source labels it (UTC)')+'</span><span>'+hours[hours.length-1]+'Z</span></div>';
+  const withData=per.filter(p=>p.max!=null).length;
+  const peak=per.filter(p=>p.max!=null).sort((a,b)=>b.max-a.max)[0];
+  note.textContent=S(
+    'Istorija počinje '+HIST.history_starts+'Z i traje '+have+' h. U prikazanom prozoru je '+withData+' od '+HWIN+' sati imalo prijem'+(peak?'; najviši sat je '+peak.h+'Z sa '+peak.max.toFixed(1)+' '+unit:'')+'. Vrednosti su onakve kakve ih je izvor objavio, preliminarne, i nisu prosek sata nego prosek onoga što je u tom satu stiglo.',
+    'History starts '+HIST.history_starts+'Z and spans '+have+' h. In the window shown, '+withData+' of '+HWIN+' hours had any reception'+(peak?'; the highest hour is '+peak.h+'Z at '+peak.max.toFixed(1)+' '+unit:'')+'. Values are as the source published them, preliminary, and a mean here is the mean of what arrived in that hour, not of the hour.');
+}
+
+function renderAll(){ document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); if(!SNAP) return; document.getElementById('clock').textContent=S('prozor','window')+' '+SNAP.window_hours+' h · '+SNAP.as_of.slice(0,16).replace('T',' ')+' UTC'; renderSepa(); drawMap(); renderHist(); renderSC(); renderParking(); renderNews(); renderMind(); }
 document.getElementById('lang').addEventListener('click',()=>{LANG=LANG==='sr'?'en':'sr'; renderAll();});
 window.addEventListener('message',ev=>{ if(ev&&ev.data&&ev.data.beopsLang&&ev.data.beopsLang!==LANG){ LANG=ev.data.beopsLang; renderAll(); } });
 window.addEventListener('resize',()=>{ if(SNAP) drawMap(); });
 document.body.classList.add('lang-sr');
-Promise.all([load('basemap-belgrade.json'),load('live-snapshot.json')]).then(([b,s])=>{ BASEMAP=b&&b.features?b:null; SNAP=s; if(!s){document.getElementById('clock').textContent='no snapshot';return;} renderAll(); });
+Promise.all([load('basemap-belgrade.json'),load('live-snapshot.json'),load('history.json')]).then(([b,s,h])=>{ BASEMAP=b&&b.features?b:null; SNAP=s; HIST=h; if(!s){document.getElementById('clock').textContent='no snapshot';return;} renderAll(); });
 })();
 </script>
 <script>

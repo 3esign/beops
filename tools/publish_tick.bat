@@ -11,4 +11,5 @@ for /f "usebackq tokens=*" %%i in (`powershell -NoProfile -Command "(Get-Date).T
 echo ---- %NOWUTC% >> runtime\publish-tick.log
 call C:\Svemir\python.cmd -X utf8 -B tools\collect_daemon.py export >> runtime\publish-tick.log 2>&1
 call C:\Svemir\python.cmd -X utf8 -B tools\collect_daemon.py report >> runtime\publish-tick.log 2>&1
+call C:\Svemir\python.cmd -X utf8 -B tools\build_history.py >> runtime\publish-tick.log 2>&1
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish_github.ps1 >> runtime\publish-tick.log 2>&1
