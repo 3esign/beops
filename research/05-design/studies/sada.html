@@ -27,37 +27,37 @@ body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans)
 .top{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--u)*2);
      padding:calc(var(--u)*2) calc(var(--u)*3);border-bottom:1px solid var(--ink12);flex-wrap:wrap}
 .tabs{display:flex;gap:calc(var(--u)*1)}
-.tabs button{font:inherit;font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+.tabs button{font:inherit;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
   padding:3px 9px;border:1px solid var(--ink12);background:transparent;color:var(--ink60);
   border-radius:2px;cursor:pointer}
 .tabs button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-color:var(--ink)}
-.clock{font-family:var(--mono);font-size:12px;color:var(--ink60);white-space:nowrap}
+.clock{font-family:var(--mono);font-size:11px;color:var(--ink60);white-space:nowrap}
 .clock b{color:var(--ink);font-weight:600}
 .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
 /* One height in every range. The extremes used to sit under the label, so choosing 24 h made
    the panel grow and the page below it jump; they now sit on the value's own line, to the
    right, where there was empty space anyway. */
-.tile{padding:calc(var(--u)*3);border-right:1px solid var(--ink12);border-bottom:1px solid var(--ink12);min-width:0;min-height:104px;display:flex;flex-direction:column}
+.tile{padding:calc(var(--u)*2.5) calc(var(--u)*3);border-right:1px solid var(--ink12);border-bottom:1px solid var(--ink12);min-width:0;min-height:76px;display:flex;flex-direction:column}
 .vrow{display:flex;align-items:baseline;justify-content:space-between;gap:calc(var(--u)*2)}
-.ext{font-family:var(--mono);font-size:11px;color:var(--ink60);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ext{font-family:var(--mono);font-size:10px;color:var(--ink60);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .ext b{display:block;font-weight:400;color:var(--ink)}
 .tile .p{margin-top:auto}
 .tile:nth-child(3n){border-right:0}
 .tile:nth-last-child(-n+3){border-bottom:0}
-.v{font-size:26px;line-height:1.05;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.v .un{font-size:13px;font-weight:400;color:var(--ink60);margin-left:3px}
+.v{font-size:21px;line-height:1.05;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.v .un{font-size:11px;font-weight:400;color:var(--ink60);margin-left:3px}
 .v.untimed{color:var(--signal-untimed)}
-.k{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink60);font-weight:600;margin-top:2px}
-.p{font-size:11.5px;line-height:1.35;color:var(--ink60);margin-top:5px;font-family:var(--mono)}
+.k{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink60);font-weight:600;margin-top:1px}
+.p{font-size:10.5px;line-height:1.3;color:var(--ink60);margin-top:4px;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .p .warn{color:var(--signal-untimed)}
 .spark{margin-top:auto}
-.spark svg{display:block;width:100%;height:34px;overflow:visible}
+.spark svg{display:block;width:100%;height:26px;overflow:visible}
 .spark .fr{stroke:var(--ink12);stroke-width:1;vector-effect:non-scaling-stroke;fill:none}
 .spark .ln{stroke:var(--signal);stroke-width:1.5;fill:none;vector-effect:non-scaling-stroke;
   stroke-linejoin:round;stroke-linecap:round}
 .spark .ln.untimed{stroke:var(--signal-untimed);stroke-dasharray:3 2}
 .spark .dot{fill:var(--signal)}
-.foot{padding:calc(var(--u)*2) calc(var(--u)*3);font-size:12px;color:var(--ink60);border-top:1px solid var(--ink12)}
+.foot{padding:calc(var(--u)*1.5) calc(var(--u)*3);font-size:11px;color:var(--ink60);border-top:1px solid var(--ink12)}
 .foot b{color:var(--ink);font-weight:600}
 .foot b.warn{color:var(--signal)}
 .gapnote{padding:calc(var(--u)*2) calc(var(--u)*3);font-size:12px;color:var(--signal-untimed);
@@ -255,21 +255,26 @@ function spark(buckets, hoursBack, untimed){
   return {svg:svg, lo:lo, hi:hi, n:have.length};
 }
 
+/* One line, and it is the line that carries the evidence: which instrument, and what kind of time.
+   The words that only repeat what the header already says - "local", the station name where the
+   source name implies it - move into the tile's title, where a reader who wants them can hover. */
 function provenance(tile, got){
   if(!got) return '<span class="warn">'+t('nodata')+'</span>';
   var p=got.p;
   if(tile.sourceHour){
     var h=p.tc||p.t;
-    return tile.src+' · '+(got.d.station?got.d.station+' · ':'')+t('srchour')+' '
-      +(h?utc(P(h)):'—')+'Z';
+    return tile.src+' · '+t('srchour')+' '+(h?utc(P(h)):'—')+'Z';
   }
-  if(p.tu||!p.t){
-    return tile.src+' · <span class="warn">'+t('unknown')+'</span>'
-      +(p.rx?(' · '+t('received')+' '+hh(new Date(P(p.rx)))+' '+t('local')):'');
-  }
+  if(p.tu||!p.t) return tile.src+' · <span class="warn">'+t('unknown')+'</span>';
   var ms=P(p.t);
-  return tile.src+(got.d.station?' · '+got.d.station:'')+' · '+t('measured')+' '+hh(new Date(ms))
-    +' '+t('local')+' · <i class="ago">'+agoText(ms)+'</i>';
+  return tile.src+' · '+hh(new Date(ms))+' · <i class="ago">'+agoText(ms)+'</i>';
+}
+function provenanceFull(tile, got){
+  if(!got) return '';
+  var p=got.p;
+  if(tile.sourceHour) return tile.src+(got.d.station?' · '+got.d.station:'')+' · '+t('srchour')+' '+((p.tc||p.t)?utc(P(p.tc||p.t)):'—')+'Z';
+  if(p.tu||!p.t) return tile.src+' · '+t('unknown')+(p.rx?(' · '+t('received')+' '+hh(new Date(P(p.rx)))+' '+t('local')):'');
+  return tile.src+(got.d.station?' · '+got.d.station:'')+' · '+t('measured')+' '+hh(new Date(P(p.t)))+' '+t('local')+' · '+agoText(P(p.t));
 }
 
 function render(){
@@ -312,7 +317,7 @@ function render(){
         +'<div class="k">'+t(tile.k)+'</div>'
         +'<div class="p">'+provenance(tile,got)+'</div>';
     }
-    return '<div class="tile">'+body+'</div>';
+    return '<div class="tile" title="'+(hoursBack?'':provenanceFull(tile,got).replace(/"/g,'')) +'">'+body+'</div>';
   }).join('');
   // the honest note about what the seven-day frame is showing
   var gn=document.getElementById('gapnote'), notes=[];

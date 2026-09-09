@@ -202,7 +202,7 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
    full width. Band three is the live panel, centred. Everything that spans is declared as spanning:
    a child dropped into a two-column grid lands in the next cell, which is how the panel ended up
    under the left-hand text with half the row empty beside it. */
-.herohead{display:grid;grid-template-columns:minmax(0,1fr) minmax(460px,1.7fr) minmax(0,1fr);gap:0 calc(var(--u)*7);align-items:start;margin-bottom:calc(var(--u)*6)}   /* start, not center: three columns of different heights centred against each other read as
+.herohead{display:grid;grid-template-columns:minmax(0,1fr) minmax(430px,1.45fr) minmax(0,1fr);gap:0 calc(var(--u)*7);align-items:start;margin-bottom:calc(var(--u)*6)}   /* start, not center: three columns of different heights centred against each other read as
       ragged. One top edge, and the panel is the wide one because it is the thing with data in
       it. */
 .stage{position:relative;width:100%;margin:0 auto;height:min(92vh,1040px);border:1px solid var(--ink12);overflow:hidden;background:var(--field)}
@@ -215,7 +215,7 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 
 /* The live panel sits in the hero, under the sentence that introduces it. It reports its
    own height like every other frame; the 300px is only what the box holds until it does. */
-.nowpanel{width:100%;margin:0;height:400px}
+.nowpanel{width:100%;margin:0;height:322px}
 .nowpanel.fit{height:auto}
 .nowpanel iframe{width:100%;height:100%;border:0;display:block;background:transparent}
 @media (max-width:900px){
@@ -251,9 +251,10 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 .hero .kicker{grid-column:1 / -1;margin:calc(var(--u)*6) 0 0;padding-top:calc(var(--u)*4);border-top:1px solid var(--ink12);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink55);font-weight:600}   /* one rule, one place: two declarations for one element is C-023's shape at a smaller
       scale - the second wins silently and nothing shows you which one decided. Muted, not
       signal: at the foot of the hero this is a provenance line, not a headline. */
-.hero h1{font-size:clamp(22px,2.5vw,33px);line-height:1.1;margin:0;font-weight:600;letter-spacing:-.015em;max-width:15ch;text-wrap:balance}
+.hero h1{font-size:clamp(23px,2.65vw,35px);line-height:1.08;margin:0 0 calc(var(--u)*4);font-weight:600;letter-spacing:-.015em;max-width:15ch;text-wrap:balance}
 .hero h1 em{font-style:normal;color:var(--signal)}
-.hero .sub{font-size:clamp(13.5px,1.05vw,15px);color:var(--ink70);max-width:36ch;margin:0;line-height:1.55}
+.hero .sub{font-size:clamp(14.5px,1.2vw,16.5px);color:var(--ink70);max-width:38ch;margin:0;line-height:1.55}
+.hero .lede2{font-size:clamp(14px,1.15vw,16px);color:var(--ink70);max-width:34ch;margin:0;line-height:1.55}
 .authors{font-size:14px;color:var(--ink55);max-width:70ch}
 .authors b{color:var(--ink);font-weight:600}
 
@@ -408,9 +409,10 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
   <div class="wrap herohead">
     <div>
       <h1><span class="sr-only i18n">Ovo je ono što nam je Beograd rekao, kad nam je rekao, i <em>gde je zaćutao</em>.</span><span class="en-only i18n">This is what Belgrade told us, when it told us, and <em>where it went quiet</em>.</span><span class="zh-only">这是贝尔格莱德告诉我们的内容、告诉我们的时刻，以及<em>它沉默的地方</em>。</span><span class="de-only">Das ist, was Belgrad uns gesagt hat, wann es das gesagt hat, und <em>wo es verstummt ist</em>.</span></h1>
+      <p class="lede2"><span class="sr-only i18n">Jedan računar na svakih pet minuta pročita javne stranice i fidove beogradskih instrumenata i zapiše šta je stiglo, kad je stiglo i šta je ćutalo.</span><span class="en-only i18n">One computer reads the public pages and feeds of Belgrade's instruments every five minutes and writes down what arrived, when it arrived, and what stayed silent.</span><span class="zh-only">一台计算机每五分钟读取贝尔格莱德各仪器的公开页面与数据源，记录下什么到达了、何时到达，以及什么保持沉默。</span><span class="de-only">Ein Rechner liest alle fünf Minuten die öffentlichen Seiten und Feeds der Belgrader Instrumente und schreibt auf, was ankam, wann es ankam und was geschwiegen hat.</span></p>
     </div>
       <div class="nowpanel"><iframe id="nowstage" src="sada.html?v={stamp}" title="BEOPS · Sada / Now" loading="eager"></iframe></div>
-    <p class="sub"><span class="sr-only i18n">Grad govori u prijemima; mapa kruži samo kad je instrument stvarno pročitan; um od malih lokalnih modela razmišlja naglas i svaka njegova rečenica se proverava pre nego što je vidiš. Ono čega nema je zapis — nikada nula.</span><span class="en-only i18n">The city speaks in receptions; the map pulses only when an instrument was actually read; a mind of small local models thinks aloud and every sentence is checked before you see it. What is missing is a record — never a zero.</span><span class="zh-only">城市以“接收”说话；只有当仪器真正被读取时，地图才会脉动；一个由小型本地模型组成的思维出声思考，而它的每一句话在你看到之前都经过核验。缺失的东西是一条记录——绝不是零。</span><span class="de-only">Die Stadt spricht in Empfängen; die Karte pulsiert nur, wenn ein Instrument tatsächlich gelesen wurde; ein Verstand aus kleinen lokalen Modellen denkt laut, und jeder seiner Sätze wird geprüft, bevor Sie ihn sehen. Was fehlt, ist ein Eintrag — niemals eine Null.</span></p>
+    <p class="sub"><span class="sr-only i18n">Grad govori u prijemima; mapa kruži samo kad je instrument stvarno pročitan; um od malih lokalnih modela razmišlja naglas i svaka njegova rečenica se proverava pre nego što je vidiš. Ono čega nema je zapis — nikada nula. Ništa se ne izmišlja i ništa se ne popunjava: ako izvor ne objavi vreme merenja, ovde piše da vreme nije poznato.</span><span class="en-only i18n">The city speaks in receptions; the map pulses only when an instrument was actually read; a mind of small local models thinks aloud and every sentence is checked before you see it. What is missing is a record — never a zero. Nothing is invented and nothing is filled in: if a source publishes no measurement time, it says here that the time is unknown.</span><span class="zh-only">城市以“接收”说话；只有当仪器真正被读取时，地图才会脉动；一个由小型本地模型组成的思维出声思考，而它的每一句话在你看到之前都经过核验。缺失的东西是一条记录——绝不是零。不虚构，也不填补：如果来源没有发布测量时间，这里就写明时间未知。</span><span class="de-only">Die Stadt spricht in Empfängen; die Karte pulsiert nur, wenn ein Instrument tatsächlich gelesen wurde; ein Verstand aus kleinen lokalen Modellen denkt laut, und jeder seiner Sätze wird geprüft, bevor Sie ihn sehen. Was fehlt, ist ein Eintrag — niemals eine Null. Nichts wird erfunden und nichts aufgefüllt: Veröffentlicht eine Quelle keinen Messzeitpunkt, steht hier, dass die Zeit unbekannt ist.</span></p>
       <p class="authors"><b>prof. dr Darinka Golubović Matić</b> · <b>doc. dr Semir Poturak</b> — <span class="sr-only i18n">autori; rad ne nastupa u ime ustanove · sa <b>Svemirom</b> (Claude, Anthropic), proveren saradnik — ne autor</span><span class="en-only i18n">authors; the work does not act in the institution’s name · with <b>Svemir</b> (Claude, Anthropic), a verified contributor — not an author</span><span class="zh-only">作者；本作品不以该机构的名义行事 · 与 <b>Svemir</b>（Claude，Anthropic）协作，经核验的贡献者——而非作者</span><span class="de-only">Autoren; die Arbeit tritt nicht im Namen der Institution auf · mit <b>Svemir</b> (Claude, Anthropic), geprüfter Mitwirkender — kein Autor</span></p>
       <div class="kicker"><span class="sr-only i18n">Naučni rad za konferenciju „Creating sustainable commUNiTy“ · Univerzitet Union – Nikola Tesla, 2026</span><span class="en-only i18n">A scientific paper for the conference “Creating sustainable commUNiTy” · University Union – Nikola Tesla, 2026</span><span class="zh-only">为会议“Creating sustainable commUNiTy”撰写的科学论文 · Union – Nikola Tesla 大学，2026</span><span class="de-only">Eine wissenschaftliche Arbeit für die Konferenz „Creating sustainable commUNiTy“ · Universität Union – Nikola Tesla, 2026</span></div>
   </div>
