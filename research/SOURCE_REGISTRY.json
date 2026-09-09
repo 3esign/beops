@@ -2,7 +2,7 @@
  "schema": "beops-source-research/v1",
  "reviewed_at": "2026-09-09",
  "scope": "Belgrade; global sources are filtered or contextual, not other-city substitution",
- "review_note": "Current-products continuation2026-09-06:189 source records after S192;12 product-scoped legal reviews. Records are not device/feed counts; coverage gaps and access limits remain visible. 2026-09-08: S193 added (GeoSrbija OGC host) for the base map; 190 records. S193 measured 401 (account_required); S194 Nominatim added for the base map; 191 records. S194 refused by robots.txt (opted_out); base map via S126 ohsome. S126 extraction route measured 403 (blocked). 2026-09-09 news audit: S68 corrected (private publisher), S77 split, S74 X-Robots-Tag decision recorded, S15/S11/S175 extended with official routes, S195-S206 added (RTS, Novosti-Beograd, Euronews Srbija, B92, CINS, Cenzolovka, Masina, Istinomer, Vlada RS, MUP refused, Nova.rs, Putevi Srbije); 203 records. S207 Blic (Beograd feed, from the PC) and S208 Beoinfo listing added; 205 records. Afternoon live-layer pass: S12 (EDS outages) and S01 (RHMZ automatic stations) enabled with parsers; S209 Beograd-put and S210 Gradska cistoca refused (ClaudeBot named), S211 beg.aero bot wall, S212 Srbijavoz and S213 Infostan leads, S214 Zelenilo 403; 211 records. Live-senses pass C1: S03 (NOAA METAR LYBE) and S52 (RHMZ river gauges, Sava/Beograd and Dunav/Zemun) enabled with parsers and moved to collected - both publish their own measurement instant; still 211 records.",
+ "review_note": "Current-products continuation2026-09-06:189 source records after S192;12 product-scoped legal reviews. Records are not device/feed counts; coverage gaps and access limits remain visible. 2026-09-08: S193 added (GeoSrbija OGC host) for the base map; 190 records. S193 measured 401 (account_required); S194 Nominatim added for the base map; 191 records. S194 refused by robots.txt (opted_out); base map via S126 ohsome. S126 extraction route measured 403 (blocked). 2026-09-09 news audit: S68 corrected (private publisher), S77 split, S74 X-Robots-Tag decision recorded, S15/S11/S175 extended with official routes, S195-S206 added (RTS, Novosti-Beograd, Euronews Srbija, B92, CINS, Cenzolovka, Masina, Istinomer, Vlada RS, MUP refused, Nova.rs, Putevi Srbije); 203 records. S207 Blic (Beograd feed, from the PC) and S208 Beoinfo listing added; 205 records. Afternoon live-layer pass: S12 (EDS outages) and S01 (RHMZ automatic stations) enabled with parsers; S209 Beograd-put and S210 Gradska cistoca refused (ClaudeBot named), S211 beg.aero bot wall, S212 Srbijavoz and S213 Infostan leads, S214 Zelenilo 403; 211 records. Live-senses pass C1: S03 (NOAA METAR LYBE) and S52 (RHMZ river gauges, Sava/Beograd and Dunav/Zemun) enabled with parsers and moved to collected - both publish their own measurement instant; still 211 records. S54 enabled as the EDS Dan_2 route; S14 BG Prevoz measured as client-rendered and therefore not parseable by this collector - recorded, not worked around.",
  "status_legend": {
   "probe_ok": "bounded direct response and reconnaissance parsing succeeded; not a production or accuracy verdict",
   "probe_tls_failed": "local verified-TLS request failed; no certificate bypass",
@@ -180,7 +180,7 @@
    "access": "public HTML",
    "reuse": "not verified",
    "next": "Parse date and house-number ranges; rolling URL needs content versioning, not URL-only deduplication.",
-   "live_layer_2026_09_09": "ENABLED: collect_daemon.py `eds_outages` parses the Dan_1 table (municipality | window | streets) into dated notices keyed by content; no robots.txt on the host (404); public enterprise notice, Art. 6(2). Hourly. Dan_2 (the day after) is a second route, not yet polled."
+   "live_layer_2026_09_09": "ENABLED: collect_daemon.py `eds_outages` parses the Dan_1 table (municipality | window | streets) into dated notices keyed by content; no robots.txt on the host (404); public enterprise notice, Art. 6(2). Hourly. Dan_2 (the day after) is polled as S54 from 2026-09-09."
   },
   {
    "id": "S13",
@@ -204,8 +204,8 @@
    "rhythm": "event-driven",
    "access": "news-list probe found 10K notice; changes-list parser returned no candidates, so completeness is not established",
    "reuse": "not verified",
-   "next": "Validate canonical IDs, publication/effective dates and cancellation; repair changes-list extraction only with a bounded sample; avoid counting mirrored notices twice.",
-   "live_layer_2026_09_09": "bgprevoz.rs: /vesti, /linije/aktuelne-izmene, /linije/vanredne-izmene are HTML lists of the City's transport secretariat (Art. 6(2)); no feed; pages ~1 MB; a listing parser is the next step (the City portal's S15 already carries the same notices)."
+   "next": "Either an official data route from the Secretariat (a request under the Free Access to Information Act) or nothing: rendering the page in a browser to extract what the publisher chose not to serve as HTML is not a route this project takes. S15 carries the same notices meanwhile.",
+   "live_layer_2026_09_09": "NOT collectable by this collector, and the reason is now measured rather than assumed: the fetched HTML of /vesti and /linije/aktuelne-izmene contains the navigation and nothing else - no notice, no title, no date. The lists are assembled in the browser (Alpine.js x-data), so a listing parser has nothing to parse and this collector does not execute JavaScript. The plan's estimate that a `city_listing`-style parser would do it was wrong. The same notices reach the record through the City portal (S15), which serves them as HTML."
   },
   {
    "id": "S15",
@@ -705,14 +705,15 @@
    "id": "S54",
    "theme": "energy",
    "name": "Elektrodistribucija Srbije planned outages",
-   "url": "https://elektrodistribucija.rs/",
-   "status": "probe_ok",
+   "url": "https://www.elektrodistribucija.rs/planirana-iskljucenja-beograd/Dan_2_Iskljucenja.htm",
+   "status": "collected",
    "kind": "infrastructure_works",
    "rhythm": "rolling four days: today, tomorrow, plus two and plus three",
    "access": "public HTML, no API",
    "reuse": "utility publication",
    "next": "Per municipality, Belgrade named. A new category for the project: infrastructure stress and maintenance, dated forward rather than backward. Note: the eps.rs page often cited for this is about billing suspensions, not maintenance.",
-   "measurement_time": "yes - future window per outage"
+   "measurement_time": "no - a notice about a future window; the day and hours are in the text, the publication instant is not given",
+   "live_layer_2026_09_09": "ENABLED: the Dan_2 route of the same table S12 polls for tomorrow - the outages planned for the day after tomorrow, parsed by `eds_outages` into dated notices keyed by content. Hourly. The two days are separate records because they are separate notices; the content key keeps a re-published notice from being counted twice."
   },
   {
    "id": "S55",

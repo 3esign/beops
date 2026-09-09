@@ -681,6 +681,25 @@
    "source_clock_note": {
     "text": "the table is written once a day at 06:00 UTC; polling hourly catches the new one, it does not create new values"
    }
+  },
+  {
+   "sid": "S54",
+   "name": "Elektrodistribucija Srbije - planned outages, Belgrade (day after tomorrow)",
+   "url": "https://www.elektrodistribucija.rs/planirana-iskljucenja-beograd/Dan_2_Iskljucenja.htm",
+   "parser": "eds_outages",
+   "ext": "html",
+   "store_raw": true,
+   "cadence_seconds": 3600,
+   "timeout_seconds": 45,
+   "max_bytes": 2000000,
+   "phenomenon_time_published": "the notice names the outage day and hours; the publication instant is not given (resultTime = day)",
+   "legal": "official materials of a body exercising public function - Copyright Act Art. 6(2), outside copyright",
+   "enabled": true,
+   "why": "the same table one day further out: a street learns it will be dark a day earlier, and the two days are separate records because they are separate notices",
+   "added": "live-senses pass C1, 2026-09-09",
+   "related": {
+    "text": "S12 is the same table for tomorrow (Dan_1); both use the eds_outages parser and are keyed by content, so a notice that moves between the two pages is recorded once per page and never twice within one"
+   }
   }
  ]
 }
