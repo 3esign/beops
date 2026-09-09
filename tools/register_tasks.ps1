@@ -8,6 +8,7 @@ $tasks = @(
   @{ name='Beops_Organ';   bat='tools\organ_tick.bat';   minutes=10; limit=9;  desc='BEOPS: one bounded pass of the news-sorter organ on a local model' },
   @{ name='Beops_Publish'; bat='tools\publish_tick.bat'; minutes=10; limit=8;  desc='BEOPS: export and push the public site (github.com/3esign/beops)' },
   @{ name='Beops_Mind';    bat='tools\mind_tick.bat';    minutes=4;  limit=12; desc='BEOPS: one drop of the mind - one step of the endless conversation on local models' },
+  @{ name='Beops_Watch';   bat='tools\watch_tick.bat';   minutes=10; limit=5;  desc='BEOPS: the watchman - reads artefacts, never a task status' },
   @{ name='Beops_Legal';   bat='tools\legal_tick.bat';   minutes=10080; limit=30; desc='BEOPS: weekly re-capture of the permission evidence of every polled source (robots.txt, headers, signals)' }
 )
 foreach ($t in $tasks) {

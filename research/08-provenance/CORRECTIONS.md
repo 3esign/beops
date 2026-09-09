@@ -587,3 +587,43 @@ a browser, so it is deliberately outside `npm test`, which stays dependency-free
 **And the honest part: this was found by a person looking at a screen, again.** C-014's rule was that
 a scheduled job must be checked by its artefact rather than its own report. The same applies one level
 out: a site must be checked by what it looks like, not only by what it contains.
+
+## C-017 — Four sources were being collected while the registry still called them unverified leads
+
+**When** From the day each of them entered the collector's list until 2026-09-09 18:30 UTC, when a
+new test was written to assert the thing everyone assumed.
+
+**What it said.** `research/SOURCE_REGISTRY.json` gives every source a status, and the public page
+renders those statuses as the audit of what this project reads and on what footing. Four of the
+twenty-eight sources being polled carried a status that says the opposite of being polled: **S15**
+(City transport service notices) as `primary_page` — "publisher page inspected; actual local feed not
+validated" — and **S175** (Beogradske elektrane), **S207** (Blic RSS) and **S208** (Beoinfo, the
+City's own news listing) as `lead` — "discovery lead; not independently verified in this pass".
+
+**What was actually true.** All four were being read on a schedule and all four have rows on disk. The
+permission was never in question: each has a line in `research/08-provenance/LEDGER.jsonl` with its
+robots.txt, headers and terms captured as bytes before the first read, and the collector re-checks
+that gate on every tick. Nothing was collected without evidence. What had gone stale was the
+registry's own description of these four — they were promoted into collection and their status stayed
+where the discovery pass had left it.
+
+This is small and it is not cosmetic. The registry IS the audit; §3 of the paper reports 211 records
+each with a status and asks a reader to take that table as the state of openness in Belgrade. A
+reviewer who lays the collector list beside the registry finds four sources being read whose own
+record says they were never verified, and is right to ask what else the table is behind on.
+
+**The fix.** The four statuses now read `collected`, and each carries a dated note keeping the old
+value beside the new one — `status_change_2026_09_09` — rather than overwriting it out of existence.
+The permission evidence is untouched; this corrected the bookkeeping, not the basis.
+
+`research/test_permission_gate.py` now holds the whole claim as an invariant: every polled source has
+a line in the permission ledger, no publisher who said no is polled, no polled source sits in an
+unsettled state, every polled source is recorded as `collected`, every disabled collector says why,
+and nothing in the undocumented queue is being read. If a source is ever added to the polling list
+without evidence behind it, the suite fails before anything is collected.
+
+**Rule: a status is a claim about a thing, and it has to stay true of the thing.** An audit that is
+allowed to drift from what the system actually does is not an audit; it is a document. The same test
+also settles a wording problem in the other direction — the index's "26 undocumented" reads as
+twenty-six sources being read without paperwork, and is the opposite: they are the queue of sources
+*not* being read, which is now enforced rather than explained.

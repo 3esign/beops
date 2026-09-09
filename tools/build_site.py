@@ -788,7 +788,8 @@ def main() -> int:
                      ("public/live-snapshot.json", "live-snapshot.json"),
                      ("public/history.json", "history.json"),
                      ("public/basemap-belgrade.json", "basemap-belgrade.json"),
-                     ("public/context-population.json", "context-population.json")]:
+                     ("public/context-population.json", "context-population.json"),
+                     ("public/watch.json", "watch.json")]:
         p = ROOT / src
         if p.exists():
             shutil.copy(p, DOCS / dst)
