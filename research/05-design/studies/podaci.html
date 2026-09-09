@@ -192,4 +192,24 @@ document.body.classList.add('lang-sr');
 Promise.all([load('basemap-belgrade.json'),load('live-snapshot.json')]).then(([b,s])=>{ BASEMAP=b&&b.features?b:null; SNAP=s; if(!s){document.getElementById('clock').textContent='no snapshot';return;} renderAll(); });
 })();
 </script>
+<script>
+// Embedded on the front page, this document reports its own height so the frame can be made exactly
+// that tall: the page then has one scrollbar instead of a scrollbar inside a scrollbar.
+(function(){
+  if (window.self === window.top) return;
+  document.documentElement.classList.add('embedded');
+  var last = 0;
+  function post(){
+    var h = Math.ceil(Math.max(document.documentElement.scrollHeight, document.body ? document.body.scrollHeight : 0));
+    if (!h || Math.abs(h - last) < 2) return;
+    last = h;
+    try { parent.postMessage({ beops: 'height', h: h }, '*'); } catch (e) {}
+  }
+  addEventListener('load', post);
+  addEventListener('resize', post);
+  if (window.ResizeObserver) new ResizeObserver(post).observe(document.documentElement);
+  setInterval(post, 3000);
+  post();
+})();
+</script>
 </html>

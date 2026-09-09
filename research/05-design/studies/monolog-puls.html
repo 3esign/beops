@@ -120,6 +120,20 @@ body.embedded .ctl{justify-content:flex-start}
 body.embedded #lang{display:none}
 body.embedded main{min-height:0}
 body.embedded .how,body.embedded .foot{display:none}
+/* Embedded, the monologue fills its frame exactly: the frame itself never scrolls, and the only
+   scroll left is the feed's own, which is what a feed is. */
+body.embedded{height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column}
+body.embedded header{position:static;flex:none}
+body.embedded .mind{flex:none}
+body.embedded main{flex:1;min-height:0}
+body.embedded .monolog,body.embedded .map{min-height:0}
+body.embedded .lines{max-height:none;height:100%}
+body.embedded .map .cv{min-height:0}
+/* Narrow, the two halves stack and cannot fill one frame: the frame is then made as tall as this
+   document instead, and only the feed keeps a scroll of its own. */
+@media (max-width:900px){ body.embedded{height:auto;overflow:visible;display:block}
+  body.embedded main{min-height:0} body.embedded .lines{max-height:330px;height:auto}
+  body.embedded .map .cv{min-height:52vh} }
 </style>
 
 <header>
@@ -399,6 +413,24 @@ document.getElementById('speed').addEventListener('input',speedLabel);
 document.body.classList.add('lang-sr');
 // embedded on the landing page: the frame's brand and authors would repeat the page's own - keep the controls only
 try{ if(window.self!==window.top||location.search.includes('embed')) document.body.classList.add('embedded'); }catch(e){ document.body.classList.add('embedded'); }
+// Stacked in a narrow frame, this page reports its height so the frame is exactly as tall as it is;
+// wide, it fills the frame it was given and reports nothing.
+(function(){
+  if (window.self === window.top) return;
+  var narrow = window.matchMedia('(max-width:900px)');
+  var last = 0;
+  function post(){
+    if (!narrow.matches) return;
+    var h = Math.ceil(document.documentElement.scrollHeight);
+    if (!h || Math.abs(h - last) < 4) return;
+    last = h;
+    try { parent.postMessage({ beops: 'height', h: h }, '*'); } catch (e) {}
+  }
+  addEventListener('load', post);
+  addEventListener('resize', post);
+  setInterval(post, 3000);
+  post();
+})();
 // the landing page's language toggle reaches the frame
 window.addEventListener('message',ev=>{ if(ev&&ev.data&&ev.data.beopsLang&&ev.data.beopsLang!==LANG){ LANG=ev.data.beopsLang; relang(); } });
 Promise.all([loadBasemap(),loadPeople()]).then(()=>load()).then(snap=>{ if(!snap){document.getElementById('clock').textContent='no snapshot';return;} SNAP=snap; T1=P(snap.as_of); T0=T1-snap.window_hours*3600e3; EVENTS=build(snap); document.getElementById('mapnote').textContent=(snap.as_of.slice(0,19))+'Z'; speedLabel(); showLatest(); renderMind(); requestAnimationFrame(frame); });
