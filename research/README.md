@@ -12,6 +12,8 @@ file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ## Start here
 
+- **[PROJECT_MAP_2026-09-09.md](PROJECT_MAP_2026-09-09.md)** — the short way in: which folder holds what, which scheduled task writes where, what is public, and where the day's changes landed. Read it before this index.
+
 - **[Serbian pre-paper V2](06-paper/PRED_RAD_SR_V2_2026-09-06.md)** — current discussion entry: new literature/gap review and institutional-practice appendix; no manuscript. Final bilingual alignment is deferred.
 - **[Earlier English pre-paper](06-paper/PRE_PAPER_URBAN_INTELLIGENCE_2026-09-06.md)** — preserved earlier version, not synchronized with the Serbian additions.
 - **[All189 source records, organized](06-paper/RESEARCH_ATLAS_2026-09-06.md)** — source roles, limits and literature shelves; original registry unchanged.
@@ -131,6 +133,8 @@ benchmarks tied to a named experiment* go in the narrow one. Do not merge them.
 - **[CLOSED_LAYER_2026-09-06.md](02-senses/CLOSED_LAYER_2026-09-06.md)** — what Belgrade has that Belgrade cannot read: the 23 sources that are genuinely unavailable, sorted into the five different kinds of unavailable, and what the city would look like if they opened. Contains the finding that fell out of counting: **57 Serbian towns and municipalities publish open data; Novi Pazar publishes 67 datasets and Belgrade publishes 7.**
 
 ## 03-models
+
+- **[MIND_0.3.5_EKAVICA_AND_THE_BODY_2026-09-09.md](03-models/MIND_0.3.5_EKAVICA_AND_THE_BODY_2026-09-09.md)** — the ekavica census of the first night (18 of 18 voiced sentences carried ijekavian or Croatian words), the guard and the retry, the voice bench, the body (8 GB RAM, RX 580 4 GB) and the one-main-model decision (qwen3.5:4b, Apache-2.0).
 
 - **[KATALOG_MODELA_I_PROVAJDERA_2026-09-05.md](03-models/KATALOG_MODELA_I_PROVAJDERA_2026-09-05.md)** — 24 audited identities, 23 stored cards. Metadata, not inference, and not a quality verdict.
 - **[MODELI_I_LITERATURA.md](03-models/MODELI_I_LITERATURA.md)** — the initial ten-model review, L01–L14.
