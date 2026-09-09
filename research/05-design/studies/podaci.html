@@ -18,6 +18,9 @@
 :root[data-theme="dark"]{
   --field:#111311; --ink:#F2F1EC; --ink60:rgba(242,241,236,.62); --ink30:rgba(242,241,236,.32); --ink12:rgba(242,241,236,.12); --ink06:rgba(242,241,236,.06);
   --signal:#F0532B; --signal-untimed:#D8836A; --water:rgba(242,241,236,.2); }
+html{scrollbar-gutter:stable}   /* C-026: a frame whose own document gains or loses a scrollbar
+   changes its content width, and anything centred inside it slides sideways. Reserve the
+   gutter so the picture only moves when the data moves. */
 *{box-sizing:border-box}
 body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
