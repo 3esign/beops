@@ -82,7 +82,7 @@ SNAPSHOT = ROOT / "public" / "live-snapshot.json"
 CONTEXT_POP = ROOT / "public" / "context-population.json"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "mind"
-ORGAN_VERSION = "0.3.5"
+ORGAN_VERSION = "0.4.0"
 OUT_DIR = LIVE / "derived" / "mind"
 ORCHESTRATIONS = ("council", "relay")   # for `run`; the scheduled mode is the drip (see STEPS)
 
@@ -530,6 +530,66 @@ SR_WORDS = re.compile(r" (je|su|i|u|na|ne|se|da|od|do|za|sa|što|koji|ali|nema|i
 EN_WORDS = re.compile(r" (the|is|are|and|of|in|no|not|at|with|for|that|from|has|have|was|were|while|but|to|a|an|up|by|on|as|it|we|this|between) ")
 PROMPT_FRAGMENTS = ["You notice.", "You doubt.", "You connect.", "Rules (a program checks", "You may use only numbers", "Answer only JSON",
                     "Do not repeat these instructions", "Ti primećuješ", "Ti sumnjaš", "Ti povezuješ"]
+
+# --- semantic guards ----------------------------------------------------------------------------
+# Everything above is arithmetic: it asks whether a token appears where it should. It cannot ask
+# whether a sentence MEANS something the record does not carry, and an adversarial set showed that
+# gap costing 17 of 36 refusals (research/GATE_ADVERSARIAL_SET.json, measured by research/eval_gate.py
+# against organ version 0.3.5). These do the part of that which can honestly be done by rule; each one
+# is aimed at a failure that set caught. What survives them - a number bound to the wrong quantity
+# inside the very fact it was taken from, a citation pointing at a real fact about something else, a
+# Serbian rendering that is arithmetically identical and means the opposite - needs a reader, and is
+# reported as the residue rather than hidden.
+NOW_WORDS = re.compile(r"\b(right now|as of (this|now)|at this (minute|moment)|currently|current occupancy|live to the|up to the minute|this minute|as we speak)\b", re.I)
+ZERO_FROM_SILENCE = re.compile(r"\b(so|therefore|which means|meaning|hence)\b[^.]{0,70}\b(no|none|nothing|without|zero)\b", re.I)
+ALL_WELL = re.compile(r"\b(without incident|no (outages?|incidents?|failures?|problems?|interruptions?)|nothing (happened|is happening|went wrong)|running (normally|fine|without))\b", re.I)
+CAUSE = re.compile(r"\b(because( of)?|due to|caused by|as a result of|owing to|thanks to|driven by)\b", re.I)
+ADVICE = re.compile(r"\b(residents?|people|citizens?|the public|children|drivers?|commuters?|you)\b[^.]{0,60}\b(should|must|ought to|need to|are advised to|had better)\b", re.I)
+AUTHORITY = re.compile(r"\b(sepa|rhmz|the city|the ministry|the agency|the operator|the utility)\b\s+\w{0,12}\s*\b(reports?|says?|said|confirms?|confirmed|states?|stated|announces?|warns?)\b", re.I)
+TOTALITY = re.compile(r"\b(complete picture|full picture|entire city|the whole city|every resident|all residents|everyone in|all of belgrade|citywide coverage)\b", re.I)
+SUPERLATIVE = re.compile(r"\b(worst|best|highest|lowest|most|least|record|first time|unprecedented)\b[^.]{0,60}\b(this|the|in) (month|year|season|week|decade|ever|history)\b", re.I)
+CONFIRMED = re.compile(r"\b(confirm(ed|s)?|proves?|proven|establishes?|verified by)\b", re.I)
+SIMILARITY_HEDGE = re.compile(r"\b(similar|similarity|appears?|seems?|cosine|lexical|match(es|ing)?|possibly)\b", re.I)
+UNIT_TOKEN = re.compile(r"(?<![\w/])(\u00b5g/m\u00b3|ug/m3|mg/m\u00b3|mg/m3|g/m3|ppm|ppb|\u00b0c|hpa|mbar|km/h|m/s|dba?|cm|mm|kwh?|mw)(?![\w/])", re.I)
+# Another Slavic standard is not Serbian, and the function words the Serbian check looks for are shared
+# across all of them; these stems are not.
+FOREIGN_SLAVIC = re.compile(r"\b(gibal\w*|vendar|oziroma|tudi|lahko|prav tako|zato ker|kljub temu|namre\u010d|zdaj|hkrati|zaradi|nekaj|vpra\u0161anj\w*)\b", re.I)
+
+
+def _units(texts) -> set:
+    out = set()
+    for t in texts:
+        out |= {m.group(0).lower().replace("\u00b5g/m\u00b3", "ug/m3").replace("mg/m\u00b3", "mg/m3") for m in UNIT_TOKEN.finditer(t or "")}
+    return out
+
+
+def semantic_reasons(text: str, cited: list[dict]) -> list[str]:
+    """Refusals that must look at what the sentence claims, not only at which tokens it uses."""
+    out = []
+    kinds = {f.get("kind") for f in cited}
+    if any(f.get("untimed") for f in cited) and NOW_WORDS.search(text):
+        out.append("presents a value with no measurement time as the present state")
+    if "silence" in kinds and (ZERO_FROM_SILENCE.search(text) or ALL_WELL.search(text)):
+        out.append("reads silence as nothing having happened")
+    if CAUSE.search(text) and not HEDGE.search(text):
+        out.append("states a cause the record does not carry")
+    if ADVICE.search(text):
+        out.append("gives guidance; the observatory reports, it does not advise")
+    if AUTHORITY.search(text):
+        out.append("puts words in a source's mouth - the record holds its values, not its statements")
+    if TOTALITY.search(text):
+        out.append("claims coverage the instruments do not have")
+    if SUPERLATIVE.search(text):
+        out.append("a superlative over a period the window does not cover")
+    if "link" in kinds and CONFIRMED.search(text) and not SIMILARITY_HEDGE.search(text):
+        out.append("turns a similarity into a confirmed event")
+    known = _units([(f.get("en") or "") + " " + (f.get("sr") or "") for f in cited])
+    if known:
+        alien = sorted(_units([text]) - known)
+        if alien:
+            out.append("unit not in the cited facts: " + ", ".join(alien[:3]))
+    return out
+
 # --- ekavica guard ------------------------------------------------------------------------------
 # Every utterance the public sees must be Serbian ekavica. The guard is a LIST, not a rule: the
 # ijekavian reflex of jat (vrijeme, mjesto, gdje...) and Croatian-standard lexis (tjedan, tisuća...),
@@ -648,11 +708,20 @@ def validate(answer: dict, dg: dict, previous: list[str] | None = None) -> tuple
         reasons.append("too short")
     if len(text) > 900:
         reasons.append("too long")
+    inline = set(re.findall(r"\[(F\d+)\]", text))
+    listed = {str(c).strip("[]") for c in (answer.get("cites") or [])}
+    # A number must come from a fact the sentence actually cites, not merely from somewhere in the
+    # digest: 190 minutes of silence must not become 190 cm of river because both are in the window.
+    cited = [f for f in dg["facts"] if f["id"] in (inline | listed)]
+    textual = [f for f in cited if (f.get("en") or f.get("sr"))]
+    bound = set()
+    for f in textual:
+        bound |= _nums(f.get("en") or "") | _nums(f.get("sr") or "")
     for m in _nums(text):
         if m not in dg["numbers"]:
             reasons.append(f"number not in digest: {m}")
-    inline = set(re.findall(r"\[(F\d+)\]", text))
-    listed = {str(c).strip("[]") for c in (answer.get("cites") or [])}
+        elif textual and m not in bound:
+            reasons.append(f"number not in the cited facts: {m}")
     bad = sorted(c for c in (inline | listed) if c not in ids)
     if bad:
         reasons.append("unknown fact ids: " + ", ".join(bad)[:120])
@@ -687,6 +756,7 @@ def validate(answer: dict, dg: dict, previous: list[str] | None = None) -> tuple
                 reasons.append("claim range malformed")
             elif not isinstance(claim.get("within_minutes"), int) or not 5 <= claim["within_minutes"] <= 24 * 60:
                 reasons.append("claim horizon must be 5..1440 minutes")
+    reasons += semantic_reasons(text, cited)
     return (not reasons), reasons
 
 
@@ -698,7 +768,12 @@ def validate_voice(sr: str, en: str, dg: dict, hyp_sr: list[str] | None = None, 
     sr = (sr or "").strip()
     if len(sr) < 20:
         reasons.append("too short")
-    allowed = _nums(en) | set(dg["numbers"])
+    # The rendering stage may not ADD a number, even a true one: the Serbian must carry the numbers of
+    # the English sentence it renders and no others. Hypotheses and questions are rendered from text
+    # this function is not given, so they keep the wider digest-level check, and the asymmetry is
+    # deliberate rather than an oversight.
+    allowed = _nums(en)
+    allowed_aux = allowed | set(dg["numbers"])
     for m in _nums(sr):
         if m not in allowed:
             reasons.append(f"number not in the original: {m}")
@@ -706,6 +781,9 @@ def validate_voice(sr: str, en: str, dg: dict, hyp_sr: list[str] | None = None, 
         reasons.append("citations differ from the original")
     if not SR_WORDS.search(" " + sr.lower() + " "):
         reasons.append("not Serbian")
+    foreign = sorted({m.group(0).lower() for m in FOREIGN_SLAVIC.finditer(sr)})
+    if foreign:
+        reasons.append("another Slavic standard, not Serbian: " + ", ".join(foreign[:4]))
     if EN_WORDS.search(" " + sr.lower() + " ") and len(EN_WORDS.findall(" " + sr.lower() + " ")) >= 3:
         reasons.append("English words in the rendering")
     hits = ijekavian_hits(sr)
@@ -722,7 +800,7 @@ def validate_voice(sr: str, en: str, dg: dict, hyp_sr: list[str] | None = None, 
             reasons.append(f"{label} count {len(items)} != {n}")
         for it in items:
             for m in _nums(it):
-                if m not in allowed:
+                if m not in allowed_aux:
                     reasons.append(f"number not in the original ({label}): {m}")
             h = ijekavian_hits(it)
             if h:
