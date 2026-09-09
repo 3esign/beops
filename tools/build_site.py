@@ -188,7 +188,7 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 .stage{position:relative;width:min(1600px,calc(100% - 2*var(--u)*4));margin:0 auto;height:min(92vh,1040px);border:1px solid var(--ink12);border-radius:6px;overflow:hidden;background:var(--field);box-shadow:0 30px 60px -40px rgba(17,19,17,.5)}
 .stage iframe{width:100%;height:100%;border:0;display:block;background:var(--field)}
 .stagelink{position:absolute;right:12px;top:10px;font-size:12px;padding:4px 10px;border:1px solid var(--ink30);border-radius:3px;background:color-mix(in srgb,var(--field) 85%,transparent);backdrop-filter:blur(8px)}
-.hero .authors{margin-top:calc(var(--u)*5)}
+.hero .authors{margin-top:calc(var(--u)*3);margin-bottom:0}
 @media (max-width:900px){
   .herohead{grid-template-columns:1fr;gap:calc(var(--u)*3)}
   .hero{padding:calc(var(--u)*5) 0 calc(var(--u)*4)}
@@ -295,14 +295,14 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
     <div>
       <div class="kicker"><span class="sr-only">Opservatorija zasnovana na dokazima · Univerzitet Union – Nikola Tesla</span><span class="en-only">An evidence-first urban observatory · University Union – Nikola Tesla</span></div>
       <h1><span class="sr-only">Ovo je ono što nam je Beograd rekao, kad nam je rekao, i <em>gde je zaćutao</em>.</span><span class="en-only">This is what Belgrade told us, when it told us, and <em>where it went quiet</em>.</span></h1>
+      <p class="authors"><b>prof. dr Darinka Golubović Matić</b> · <b>doc. dr Semir Poturak</b> — Univerzitet Union – Nikola Tesla, Beograd · <span class="sr-only">sa <b>Svemirom</b>, lokalnom AI infrastrukturom autora (Claude, Anthropic) — proveren saradnik, ne autor</span><span class="en-only">with <b>Svemir</b>, the authors' local AI infrastructure (Claude, Anthropic) — a verified contributor, not an author</span></p>
     </div>
     <p class="sub"><span class="sr-only">Grad govori u prijemima; mapa kruži samo kad je instrument stvarno pročitan; um od malih lokalnih modela razmišlja naglas i svaka njegova rečenica se proverava pre nego što je vidiš. Ono čega nema je zapis — nikada nula.</span><span class="en-only">The city speaks in receptions; the map pulses only when an instrument was actually read; a mind of small local models thinks aloud and every sentence is checked before you see it. What is missing is a record — never a zero.</span></p>
   </div>
   <div class="stage">
-    <iframe id="stage" src="monolog.html" title="BEOPS · Monolog + Puls" loading="eager"></iframe>
+    <iframe id="stage" src="monolog.html?v={stamp}" title="BEOPS · Monolog + Puls" loading="eager"></iframe>
     <a class="stagelink" href="monolog.html"><span class="sr-only">Otvori ceo monolog ↗</span><span class="en-only">Open the full monologue ↗</span></a>
   </div>
-  <p class="wrap authors"><b>prof. dr Darinka Golubović Matić</b> · <b>doc. dr Semir Poturak</b> — Univerzitet Union – Nikola Tesla, Beograd · <span class="sr-only">sa <b>Svemirom</b>, lokalnom AI infrastrukturom autora (Claude, Anthropic) — proveren saradnik, ne autor</span><span class="en-only">with <b>Svemir</b>, the authors' local AI infrastructure (Claude, Anthropic) — a verified contributor, not an author</span></p>
 </div>
 
 <div class="livebar" id="zivo">
@@ -545,6 +545,7 @@ def main() -> int:
     }
     DOCS.mkdir(parents=True, exist_ok=True)
     html = TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False).replace("</script>", "<\\/script>"))
+    html = html.replace("{stamp}", data["built"].replace(" ", "T").replace(":", "").replace("-", ""))   # the stage frame: a browser that cached yesterday's monolog.html must not show it today
     (DOCS / "index.html").write_text(html, encoding="utf-8")
     for src, dst in [("research/05-design/studies/monolog-puls.html", "monolog.html"),
                      ("research/05-design/studies/traka-live.html", "traka.html"),

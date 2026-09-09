@@ -651,6 +651,8 @@ def status(now: datetime | None = None, hours: int = 24) -> dict:
     since = now - timedelta(hours=hours)
     out = []
     for src in cfg["sources"]:
+        if src.get("enabled") is False:
+            continue   # a source switched off by the editor is not silent - it was never asked (the public page showed three tabloids as "silent all day")
         rec = receipts(src["sid"], since)
         expected = int(hours * 3600 // src["cadence_seconds"])
         captured = sum(1 for r in rec if r.get("state") == "captured")

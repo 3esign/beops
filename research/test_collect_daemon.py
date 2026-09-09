@@ -286,6 +286,23 @@ SRC_CITY = {"sid": "S208", "name": "Beoinfo", "url": "https://www.beograd.rs/lat
             "cadence_seconds": 1800, "timeout_seconds": 5, "max_bytes": 1000000}
 
 
+class DisabledSourceTests(unittest.TestCase):
+    def test_a_disabled_source_is_not_reported_as_silent(self):
+        tmp = tempfile.TemporaryDirectory()
+        _cfg, _live = cd.CONFIG, cd.LIVE
+        cd.LIVE = pathlib.Path(tmp.name) / "live"
+        cfgp = cd.LIVE.parent / "COLLECTORS.json"
+        cfgp.parent.mkdir(parents=True, exist_ok=True)
+        cfgp.write_text(json.dumps({"sources": [SRC_RSS, {**SRC_RSS, "sid": "S70", "enabled": False}]}), encoding="utf-8")
+        cd.CONFIG = cfgp
+        try:
+            st = cd.status(NOW)
+        finally:
+            cd.CONFIG, cd.LIVE = _cfg, _live
+            tmp.cleanup()
+        self.assertEqual([s["sid"] for s in st["sources"]], ["S68"])
+
+
 class CityListingTests(unittest.TestCase):
     def test_city_listing_keeps_title_link_and_day_only(self):
         rows = cd.parse_city_listing(CITY_HTML, NOW, SRC_CITY)
