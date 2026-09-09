@@ -385,7 +385,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
       </div>
       <div>
         <h3><span class="w-sr">Znaju li izvori za nas</span><span class="w-en">Do the sources know about us</span><span class="w-zh">这些来源知道我们吗</span><span class="w-de">Wissen die Quellen von uns</span></h3>
-        <p><span class="w-sr">Pošten odgovor je: pojedinačno nisu obavešteni. Poštuju se pravila koja su sami javno objavili — robots.txt, uslovi korišćenja, Content-Signal — i ta pravila se sačuvaju kao bajtovi pre svakog čitanja. Predstavljamo se pod svojim imenom u svakom zahtevu, imenovano odbijanje se poštuje i ne zaobilazi, a provera se ponavlja jednom nedeljno. Ništa se ne uzima iza prijave, iza plaćanja ni iza zabrane.</span><span class="w-en">The honest answer is: they have not been individually notified. What is honoured are the rules they themselves published — robots.txt, terms of use, Content-Signal — and those rules are stored as bytes before any reading. We identify ourselves by name in every request, a named refusal is honoured and never circumvented, and the check is repeated weekly. Nothing is taken from behind a login, a paywall or a prohibition.</span><span class="w-zh">诚实的回答是：没有逐一通知它们。我们遵守的是它们自己公开发布的规则——robots.txt、使用条款、Content-Signal——并在每次读取之前将这些规则以字节形式存档。我们在每个请求中都以自己的名义表明身份；被明确拒绝的来源一律遵守，绝不规避；该检查每周重复一次。不从登录、付费墙或禁止访问的位置获取任何内容。</span><span class="w-de">Die ehrliche Antwort lautet: einzeln benachrichtigt wurden sie nicht. Beachtet werden die Regeln, die sie selbst veröffentlicht haben — robots.txt, Nutzungsbedingungen, Content-Signal — und diese Regeln werden vor jedem Lesen als Bytes gespeichert. Wir nennen in jeder Anfrage unseren Namen, eine ausdrückliche Ablehnung wird befolgt und nie umgangen, und die Prüfung wird wöchentlich wiederholt. Nichts wird hinter einem Login, einer Bezahlschranke oder einem Verbot geholt.</span></p>
+        <p><span class="w-sr">Pošten odgovor je: pojedinačno nisu obavešteni. Poštuju se pravila koja su sami javno objavili — robots.txt, uslovi korišćenja, Content-Signal — i ta pravila se sačuvaju kao bajtovi pre svakog čitanja. Predstavljamo se pod svojim imenom u svakom zahtevu, imenovano odbijanje se poštuje i ne zaobilazi, a provera se ponavlja jednom nedeljno. Ništa se ne uzima iza prijave, iza plaćanja ni iza zabrane. Ako objavljujete neki od ovih izvora i ne želite da Vas čitamo, dovoljna je jedna poruka na <a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a> — prestajemo u roku od 24 sata, a u registru ostaje zapisano ko je to tražio i kada.</span><span class="w-en">The honest answer is: they have not been individually notified. What is honoured are the rules they themselves published — robots.txt, terms of use, Content-Signal — and those rules are stored as bytes before any reading. We identify ourselves by name in every request, a named refusal is honoured and never circumvented, and the check is repeated weekly. Nothing is taken from behind a login, a paywall or a prohibition. If you publish one of these sources and would rather we did not read it, one message to <a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a> is enough — we stop within 24 hours, and the register records who asked and when.</span><span class="w-zh">诚实的回答是：没有逐一通知它们。我们遵守的是它们自己公开发布的规则——robots.txt、使用条款、Content-Signal——并在每次读取之前将这些规则以字节形式存档。我们在每个请求中都以自己的名义表明身份；被明确拒绝的来源一律遵守，绝不规避；该检查每周重复一次。不从登录、付费墙或禁止访问的位置获取任何内容。如果您是其中某个来源的发布方，且不希望我们读取，只需发一封邮件至 <a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a>——我们将在 24 小时内停止，并在登记册中记录是谁提出的以及提出的时间。</span><span class="w-de">Die ehrliche Antwort lautet: einzeln benachrichtigt wurden sie nicht. Beachtet werden die Regeln, die sie selbst veröffentlicht haben — robots.txt, Nutzungsbedingungen, Content-Signal — und diese Regeln werden vor jedem Lesen als Bytes gespeichert. Wir nennen in jeder Anfrage unseren Namen, eine ausdrückliche Ablehnung wird befolgt und nie umgangen, und die Prüfung wird wöchentlich wiederholt. Nichts wird hinter einem Login, einer Bezahlschranke oder einem Verbot geholt. Wenn Sie eine dieser Quellen veröffentlichen und nicht möchten, dass wir sie lesen, genügt eine Nachricht an <a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a> — wir hören innerhalb von 24 Stunden auf, und im Register bleibt festgehalten, wer darum gebeten hat und wann.</span></p>
       </div>
       <div>
         <h3><span class="w-sr">Šta nije</span><span class="w-en">What it is not</span><span class="w-zh">它不是什么</span><span class="w-de">Was es nicht ist</span></h3>
@@ -497,6 +497,17 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
   </div>
 </section>
 
+<section id="kontakt">
+  <div class="wrap">
+    <h2><span class="sr-only">Prigovor i uklanjanje</span><span class="en-only">Objection and removal</span></h2>
+    <div class="claimbox">
+      <p><span class="sr-only">Ako objavljujete neki od izvora sa ovog spiska i ne želite da ga čitamo, ne treba Vam ni advokat ni obrazac. Jedna poruka je dovoljna: <a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a>. Prestajemo u roku od 24 sata, bez pregovora, i izvor se više ne predlaže. U javnom registru ostaje zapisano da je zatraženo uklanjanje i kada — zapis se dopisuje, ne prepravlja, pa se vidi i šta je bilo prikupljeno pre toga.</span><span class="en-only">If you publish one of the sources on this list and would rather we did not read it, you need no lawyer and no form. One message is enough: <a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a>. We stop within 24 hours, without negotiation, and the source is never proposed again. The public register keeps a line saying that removal was requested and when — the record is appended to, never rewritten, so what was collected before that also stays visible.</span></p>
+      <p><span class="sr-only">Isto vredi i za ispravku: ako je nešto ovde netačno, javite i biće ispravljeno, a ispravka će stajati u javnom spisku grešaka sa datumom. Taj spisak se ne briše.</span><span class="en-only">The same holds for a correction: if something here is wrong, tell us and it will be corrected, and the correction will stand in the public list of failures with its date. That list is never deleted.</span></p>
+      <p><span class="sr-only">Za pitanja o metodu, pravnom okviru ili saradnji — ista adresa. Odgovaraju autori, ne program.</span><span class="en-only">For questions about the method, the legal frame or collaboration — the same address. The authors answer, not the program.</span></p>
+    </div>
+  </div>
+</section>
+
 <section id="srodno">
   <div class="wrap">
     <h2><span class="sr-only">Srodni radovi, standardi i projekti</span><span class="en-only">Related work, standards and projects</span></h2>
@@ -521,7 +532,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
 
 <footer>
   <div class="wrap fgrid">
-    <div><b><span class="sr-only">Autori</span><span class="en-only">Authors</span></b>prof. dr Darinka Golubović Matić<br>doc. dr Semir Poturak<br>Univerzitet Union – Nikola Tesla</div>
+    <div><b><span class="sr-only">Autori i kontakt</span><span class="en-only">Authors and contact</span></b>prof. dr Darinka Golubović Matić<br>doc. dr Semir Poturak<br>Univerzitet Union – Nikola Tesla<br><a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a></div>
     <div><b><span class="sr-only">Licenca</span><span class="en-only">Licence</span></b><span class="sr-only">MIT za kod, CC BY 4.0 za dokumente i registre. Vrednosti zadržavaju licencu svog izvora.</span><span class="en-only">MIT for code, CC BY 4.0 for documents and registries. Values keep their source's licence.</span></div>
     <div><b><span class="sr-only">Šta ovo nije</span><span class="en-only">What this is not</span></b><span class="sr-only">Nije digitalni blizanac, nije „pametni grad", nije nadzor. Nema podataka o pojedincima, nema kamera, nema ulica kao jedinice analize.</span><span class="en-only">Not a digital twin, not a smart city, not surveillance. No person-level data, no cameras, no street as a unit of analysis.</span></div>
     <div><b><span class="sr-only">Stanje</span><span class="en-only">State</span></b><span class="mono" id="built"></span></div>
@@ -703,7 +714,7 @@ addEventListener('message',function(ev){
 
 // Each part can be folded away: its heading gets a button, the rest of the part hides.
 (function fold(){
-  var ids=['sta','zivo','podaci','slojevi','kako','izvori','srodno','dozvole','greske','citaj'];
+  var ids=['sta','zivo','podaci','slojevi','kako','izvori','srodno','dozvole','greske','kontakt','citaj'];
   ids.forEach(function(id){
     var sec=document.getElementById(id); if(!sec) return;
     var w=sec.querySelector('.wrap'); if(!w) return;
@@ -769,7 +780,6 @@ def main() -> int:
                      ("research/05-design/studies/slojevi.svg", "slojevi.svg"),
                      ("research/05-design/studies/traka-live.html", "traka.html"),
                      ("public/live-snapshot.json", "live-snapshot.json"),
-                     ("public/history.json", "history.json"),
                      ("public/basemap-belgrade.json", "basemap-belgrade.json"),
                      ("public/context-population.json", "context-population.json")]:
         p = ROOT / src
