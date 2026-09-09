@@ -776,3 +776,39 @@ fails on correct content in the site's own second language teaches its operators
 noise, and the next real one goes past. English-only pattern matching on a bilingual artefact is the
 same category of error as reading a reception time as a measurement time: the check was written for a
 narrower world than the one it runs in.
+
+---
+
+## C-022 — The same policy answered differently depending on which door a document walked through
+
+**When** Found 2026-09-09 ~20:15 UTC, during the publish that fixed C-020. The letters file
+`BEOPS_PISMA_OBAVESTENJA_v2_2026-09-09.md` had been in the public export since it was written.
+
+**What it said.** `tools/build_site.py` treats letters as internal by name — `PISMA` and `LETTER` are
+both in `NOT_PUBLIC`, and have been since C-018. The publish notice in `tools/publish_github.ps1`
+says the same about working documents, pre-papers, trails and programme notes.
+
+**What was actually true.** The export excludes `research/06-paper` as a **folder**, which is why no
+pre-paper ever reached the public repository. `research/07-legal` is exported whole, and the letters
+live in it. So the site build refused to publish a letter while the repository export published it,
+from the same tree, on the same run. The v3 letters — which carry the send order, the reasoning for
+holding one group back, and the honest note that two of the sets have not been read by a lawyer —
+went out in the export that was fixing the previous version of exactly this mistake.
+
+**The fix.** The export now filters by filename category as well as by folder, using the same list of
+kinds. A document of an internal kind is excluded by being that kind, in both places, whichever door
+it walks through.
+
+**Rule: a policy that is implemented twice is two policies.** Both implementations were written from
+their own local view — one saw filenames, the other saw folders — and neither was wrong on its own
+terms. The failure is that "internal" had no single definition either could be checked against, so
+they could drift apart silently and did. This is the third entry in one evening about the same shape,
+and the shape is now clear enough to state plainly: **what must not happen has to be written down once,
+as a property, in a place every mechanism that could cause it reads.**
+
+**Second occurrence, one hour later.** The entry above contains the literal `{{` as an example of a
+marker, and the page renders this ledger. So the very correction that fixed the substring test tripped
+the same test on a different marker. The pattern now asks for `{{` followed by a word character — a
+template placeholder is `{{name}}`; two braces followed by a backtick are prose about braces. Twice in
+one hour, a check written against a narrower world than the one it runs in, and both times the world
+that broke it was this project's own writing about itself.

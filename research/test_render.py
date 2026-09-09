@@ -42,7 +42,12 @@ class BuiltSiteTests(unittest.TestCase):
         content is worse than no test, because the next real failure is read as noise. Word-shaped
         markers are matched as words; the bracket-shaped ones stay literal, since they cannot occur
         inside a word."""
-        for marker in ("{{", ">None<", "[object Object]"):
+        # Second occurrence of the same lesson, an hour later: the correction entry ABOVE, which
+        # explains the fix, contains the literal `{{` as an example - and the page renders the
+        # corrections ledger. A template placeholder is `{{name}}`; two braces followed by a
+        # backtick are prose about braces. The pattern says which one it is looking for.
+        self.assertNotRegex(self.s, r"\{\{\s*[\w.$]", "the built page carries an unfilled {{placeholder}}")
+        for marker in (">None<", "[object Object]"):
             self.assertFalse(marker in self.s, f"the built page carries {marker!r}")
         for word in ("TODO", "FIXME", "undefined", "NaN"):
             self.assertNotRegex(self.s, r"\b%s\b" % word, f"the built page carries {word!r}")
@@ -56,6 +61,26 @@ class BuiltSiteTests(unittest.TestCase):
                 twin = cls.replace("sr-only", "en-only")
                 self.assertEqual(classes.get(twin, 0), n,
                                  f'class "{cls}" appears {n} times but "{twin}" appears {classes.get(twin, 0)}')
+
+    def test_the_pages_own_voice_is_in_step_across_four_languages(self):
+        """The page speaks four languages in its own voice and two in the register's. The `i18n`
+        marker is what says a block belongs to the first group, and a marked block that is missing
+        its Chinese or German half would silently fall back to English - correct behaviour, but an
+        unnoticed hole. This is the count that notices."""
+        n = {k: len(re.findall(r'class="%s"' % k, self.s))
+             for k in ("sr-only i18n", "en-only i18n", "zh-only", "de-only")}
+        self.assertGreater(n["zh-only"], 40, "the four-language layer has almost nothing in it")
+        self.assertEqual(len(set(n.values())), 1,
+                         "the page's own voice is not in step across four languages: " + json.dumps(n))
+
+    def test_a_language_without_a_full_translation_still_shows_english(self):
+        """Chinese and German ride on top of English on purpose: the body carries lang-en as well, so
+        a block with no translation reads as English rather than vanishing. If that ever became an
+        exclusive class, every untranslated table header would render blank in Chinese."""
+        self.assertIn("lang-en lang-", self.s,
+                      "the third and fourth languages no longer fall back to English")
+        self.assertRegex(self.s, r"\.lang-zh \.en-only\.i18n[^}]*display:none",
+                         "the English half is no longer hidden where a translation exists")
 
     def test_the_four_language_door_has_all_four_answers(self):
         counts = {lang: len(re.findall(r'class="[^"]*\bw-%s\b' % lang, self.s)) for lang in ("sr", "en", "zh", "de")}
