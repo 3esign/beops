@@ -37,7 +37,9 @@ body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans)
 /* One height in every range. The extremes used to sit under the label, so choosing 24 h made
    the panel grow and the page below it jump; they now sit on the value's own line, to the
    right, where there was empty space anyway. */
-.tile{padding:calc(var(--u)*2.5) calc(var(--u)*3);border-right:1px solid var(--ink12);border-bottom:1px solid var(--ink12);min-width:0;min-height:76px;display:flex;flex-direction:column}
+.tile{padding:calc(var(--u)*2.5) calc(var(--u)*3);border-right:1px solid var(--ink12);border-bottom:1px solid var(--ink12);min-width:0;height:82px;display:flex;flex-direction:column}   /* height, not min-height: a range that draws a line must occupy exactly what a range
+      that prints a provenance line occupies, or choosing 24 h moves everything below the
+      panel down the page. */
 .vrow{display:flex;align-items:baseline;justify-content:space-between;gap:calc(var(--u)*2)}
 .ext{font-family:var(--mono);font-size:10px;color:var(--ink60);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .ext b{display:block;font-weight:400;color:var(--ink)}
@@ -51,7 +53,7 @@ body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans)
 .p{font-size:10.5px;line-height:1.3;color:var(--ink60);margin-top:4px;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .p .warn{color:var(--signal-untimed)}
 .spark{margin-top:auto}
-.spark svg{display:block;width:100%;height:26px;overflow:visible}
+.spark svg{display:block;width:100%;height:24px;overflow:visible}
 .spark .fr{stroke:var(--ink12);stroke-width:1;vector-effect:non-scaling-stroke;fill:none}
 .spark .ln{stroke:var(--signal);stroke-width:1.5;fill:none;vector-effect:non-scaling-stroke;
   stroke-linejoin:round;stroke-linecap:round}
@@ -60,8 +62,10 @@ body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans)
 .foot{padding:calc(var(--u)*1.5) calc(var(--u)*3);font-size:11px;color:var(--ink60);border-top:1px solid var(--ink12)}
 .foot b{color:var(--ink);font-weight:600}
 .foot b.warn{color:var(--signal)}
-.gapnote{padding:calc(var(--u)*2) calc(var(--u)*3);font-size:12px;color:var(--signal-untimed);
-  border-top:1px solid var(--ink12);background:var(--ink06)}
+.gapnote{padding:5px calc(var(--u)*3);font-size:10.5px;line-height:1.35;color:var(--signal-untimed);border-top:1px solid var(--ink12);background:var(--ink06);min-height:26px;display:flex;align-items:center}
+/* Always present, empty when there is nothing to say: a note that appears only sometimes
+   is a note that changes the height of the page sometimes. */
+.gapnote.none{background:transparent;color:transparent}
 .ago{font-style:normal}
 @media (max-width:560px){
   .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -328,7 +332,7 @@ function render(){
       .replace('%D',when.toISOString().slice(0,10)));
   }
   if(hoursBack&&anyUntimedLine) notes.push(t('untimedNote'));
-  gn.innerHTML=notes.length?('<div class="gapnote">'+notes.join(' — ')+'</div>'):'';
+  gn.innerHTML='<div class="gapnote'+(notes.length?'':' none')+'">'+(notes.join(' — ')||'&nbsp;')+'</div>';
   // the closing line, from the watchman's own reading
   var f=[];
   if(WATCH&&WATCH.counts){

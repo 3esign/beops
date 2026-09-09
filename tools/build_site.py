@@ -215,7 +215,7 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 
 /* The live panel sits in the hero, under the sentence that introduces it. It reports its
    own height like every other frame; the 300px is only what the box holds until it does. */
-.nowpanel{width:100%;margin:0;height:322px}
+.nowpanel{width:100%;margin:0;height:346px}
 .nowpanel.fit{height:auto}
 .nowpanel iframe{width:100%;height:100%;border:0;display:block;background:transparent}
 @media (max-width:900px){

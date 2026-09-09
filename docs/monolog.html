@@ -103,7 +103,7 @@ main{display:grid;grid-template-columns:minmax(360px,5fr) minmax(360px,7fr);min-
    different kind of thing from a thought, so it stands on its own ground. */
 main{grid-template-columns:minmax(300px,4fr) minmax(0,8fr)}
 .map{border-bottom:1px solid var(--ink12)}
-.map .cv{flex:0 0 auto;min-height:0;height:auto;width:100%;aspect-ratio:1.333;margin:0}
+.map .cv{flex:0 0 auto;min-height:0;height:auto;width:100%;aspect-ratio:1.85;margin:0}
 /* C-026. Same box as every other map on this site: the shape of the thing drawn (the city's
    bounding box is 1.04 wide to tall), capped and centred, so two maps of the same city are
    the same size and neither has dead space beside it. height:auto because flex-basis:0 from
@@ -433,14 +433,24 @@ function fitGround(){
   lo0=Math.max(lo0,BB.lo0); lo1=Math.min(lo1,BB.lo1); la0=Math.max(la0,BB.la0); la1=Math.min(la1,BB.la1);
   var px=(lo1-lo0)*0.03, py=(la1-la0)*0.03;
   BB={lo0:lo0-px,lo1:lo1+px,la0:la0-py,la1:la1+py};
-  var kx=Math.cos(44.8*Math.PI/180);
-  var ratio=((BB.lo1-BB.lo0)*kx)/(BB.la1-BB.la0);
-  if(isFinite(ratio)&&ratio>0.2&&ratio<6){
-    document.querySelectorAll('.cv.geo,.map .cv').forEach(function(el){ el.style.aspectRatio=String(ratio); });
-  }
 }
 
-function projBase(lat,lon,w,h){ const kx=Math.cos(44.8*Math.PI/180); const sx=w/((BB.lo1-BB.lo0)*kx), sy=h/(BB.la1-BB.la0); const s=Math.min(sx,sy); const cx=(w-(BB.lo1-BB.lo0)*kx*s)/2, cy=(h-(BB.la1-BB.la0)*s)/2; return [cx+(lon-BB.lo0)*kx*s, cy+(BB.la1-lat)*s]; }
+/* C-028. The drawing was 1108x831 and the city used the middle third of it: the frame's bounds run to
+   44.98 N, but nothing we hear is north of Zemun and nothing south of Obrenovac. So the box is a
+   1.85 rectangle now - shorter than the ground it draws - and the projection COVERS it instead of
+   fitting inside it: scale by the larger of the two axes, fill the width, and let the empty north and
+   the empty south fall outside the edge. Nothing with an instrument in it is cropped (the visible band
+   is 44.64..44.88 and the instruments run 44.65..44.87), and what is outside is one drag away, because
+   the map pans. Vertical centre is the instruments' own latitude, not the frame's midpoint - centring
+   on the frame is what put the city in the middle third in the first place. */
+const CLAT=44.762;
+function projBase(lat,lon,w,h){
+  const kx=Math.cos(44.8*Math.PI/180);
+  const sx=w/((BB.lo1-BB.lo0)*kx), sy=h/(BB.la1-BB.la0);
+  const s=Math.max(sx,sy);
+  const cx=(w-(BB.lo1-BB.lo0)*kx*s)/2;
+  return [cx+(lon-BB.lo0)*kx*s, h/2+(CLAT-lat)*s];
+}
 function proj(lat,lon,w,h){ const q=projBase(lat,lon,w,h); return [q[0]*VIEW.k+VIEW.tx, q[1]*VIEW.k+VIEW.ty]; }
 function drawMap(now){
   const dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=cv.clientHeight; if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);} g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
