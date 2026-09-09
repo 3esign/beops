@@ -179,7 +179,7 @@ function renderNews(){
 function renderMind(){
   const ms=SNAP.mind_scores||{}; const ths=(SNAP.thoughts||[]).filter(t=>t.state==='thought'); const voiced=ths.filter(t=>t.sr_state==='voiced').length;
   const ents=ms.entities||ms.by_entity||ms; const box=document.getElementById('mindtiles');
-  const tiles=[`<div class="tile"><div class="k">${S('misli u prozoru','thoughts in the window')}</div><div class="big">${ths.length}</div><div class="s">${S('izgovoreno na srpskom','voiced in Serbian')}: ${voiced}</div></div>`];
+  const tiles=[`<div class="tile"><div class="k">${S('misli u prozoru','thoughts in the window')}</div><div class="big">${ths.length}</div><div class="s">${S('izgovoreno','voiced')}: ${voiced}</div></div>`];
   for(const [k,v] of Object.entries(ents||{})){ if(!v||typeof v!=='object') continue; const name={observer:['Posmatrač','Observer'],skeptic:['Sumnjalo','Skeptic'],connector:['Povezivač','Connector']}[k]; if(!name) continue;
     tiles.push(`<div class="tile"><div class="k">${S(name[0],name[1])}</div><div class="big">${v.accepted??v.thought??'—'}<span style="font-size:14px;color:var(--ink60)"> / ${(v.accepted??0)+(v.rejected??0)}</span></div><div class="s">${S('tvrdnje','claims')}: ${S('tačne','true')} ${v.true??v.claims_true??0} · ${S('netačne','false')} ${v.false??v.claims_false??0} · ${S('otvorene','open')} ${v.open??v.claims_open??0}</div></div>`); }
   box.innerHTML=tiles.join('');

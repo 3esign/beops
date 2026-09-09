@@ -278,12 +278,12 @@ function sentence(e){
     // The Serbian page carries Serbian only: a thought whose ekavica rendering was refused is not shown in English there -
     // the program says so, in Serbian, and the English original stays on the English page (and on disk).
     const why=(th.sr_state||'').replace(/^refused: /,'').replace(/^failed: /,'');
-    const srMain=voiced?th.sr:(LANG==='sr'?`Misao nije izgovorena na srpskom: prevod na ekavicu nije prošao proveru (${why||'nema glasa'}). Ćutanje je zapis kao i svako drugo.`:th.en);
+    const srMain=voiced?th.sr:(LANG==='sr'?`Misao nije izgovorena: prevod nije prošao proveru (${why||'nema glasa'}). Ćutanje je zapis kao i svako drugo.`:th.en);
     return {cls:'estimate thought'+(voiced||LANG!=='sr'?'':' unvoiced'), name, voiced, claim,
       hyp: LANG==='sr'?(voiced?(th.hypotheses_sr||[]):[]):(th.hypotheses||[]),
       q: LANG==='sr'?(voiced?(th.questions_sr||[]):[]):(th.questions||[]),
       sr: LANG==='sr'?srMain:th.en, en: LANG==='sr'?'':(voiced?th.sr:''),
-      meta:`${LANG==='sr'?'misao':'thought'} · ${th.model}${th.voice_model?' · '+(LANG==='sr'?'glas':'voice')+' '+th.voice_model:''}${voiced?'':(LANG==='sr'?' · ekavica odbijena proverom':' · Serbian rendering refused by the check — original shown')}${rep} · ai_generated=true · ${LANG==='sr'?'svaki broj proveren prema digestu':'every number checked against the digest'}${th.cites&&th.cites.length?' · '+th.cites.join(' '):''}`};
+      meta:`${LANG==='sr'?'misao':'thought'} · ${th.model}${th.voice_model?' · '+(LANG==='sr'?'glas':'voice')+' '+th.voice_model:''}${voiced?'':(LANG==='sr'?' · glas odbijen proverom':' · Serbian rendering refused by the check — original shown')}${rep} · ai_generated=true · ${LANG==='sr'?'svaki broj proveren prema digestu':'every number checked against the digest'}${th.cites&&th.cites.length?' · '+th.cites.join(' '):''}`};
   }
   return {cls:'',sr:'',en:'',meta:''};
 }
@@ -379,7 +379,7 @@ function renderMind(){
     const th=LANG==='sr'?mine.find(t=>t.sr_state==='voiced'&&t.sr):mine[0];
     const el=document.createElement('div'); const name=LANG==='sr'?nsr:nen;
     if(!th){ const last=mine[0]; el.className='card quiet';
-      const why=LANG==='sr'?(last?`ćuti na srpskom: poslednja misao (${fmtT(last.t)}) nije prošla proveru ekavice`:'ćuti: nijedna misao u prozoru nije prošla proveru'):(last?'silent':'silent: no utterance in the window passed the check');
+      const why=LANG==='sr'?(last?`ćuti: poslednja misao (${fmtT(last.t)}) nije prošla proveru`:'ćuti: nijedna misao u prozoru nije prošla proveru'):(last?'silent':'silent: no utterance in the window passed the check');
       el.innerHTML=`<div class="who"><b>${esc(name)}</b></div><div class="say">${esc(why)}. ${esc(LANG==='sr'?'Ćutanje je zapis kao i svako drugo.':'Silence is a record like any other.')}</div>`; box.appendChild(el); continue; }
     const fresh=(asOf-P(th.t))<3600e3;
     const text=LANG==='sr'?th.sr:th.en;
