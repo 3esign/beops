@@ -506,8 +506,8 @@ def recheck_collectors(dry: bool = False) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--sid", required=True, help="source id in SOURCE_REGISTRY.json, e.g. S134")
-    ap.add_argument("--name", required=True)
+    ap.add_argument("--sid", help="source id in SOURCE_REGISTRY.json, e.g. S134")
+    ap.add_argument("--name")
     ap.add_argument("--url", action="append", default=[], help="a URL we intend to collect (repeatable)")
     ap.add_argument("--terms", action="append", default=[], help="licence / terms page (repeatable)")
     ap.add_argument("--note", default="")
@@ -530,6 +530,9 @@ def main() -> int:
     a = ap.parse_args()
     if a.recheck_collectors:
         return recheck_collectors(a.dry_run)
+    if not a.sid or not a.name:
+        print("--sid and --name are required (or --recheck-collectors)", file=sys.stderr)
+        return 2
     if not a.url:
         print("at least one --url is required", file=sys.stderr)
         return 2
