@@ -86,6 +86,19 @@ main{display:grid;grid-template-columns:minmax(360px,5fr) minmax(360px,7fr);min-
 @keyframes draw{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .map{position:relative;display:flex;flex-direction:column}
 .map .cv{flex:1;position:relative;min-height:520px}
+/* The map is the first thing on the page and the widest: a picture of where the city is heard
+   from. Under it, the feed on the left and the three entities to its right - a feed is a
+   different kind of thing from a thought, so it stands on its own ground. */
+main{grid-template-columns:minmax(300px,4fr) minmax(0,8fr)}
+.map{border-bottom:1px solid var(--ink12)}
+.map .cv{flex:0 0 auto;min-height:0;height:clamp(360px,56vh,640px)}   /* flex-basis:0 from .cv above would win over height in a column flex box */
+.monolog{background:var(--panel);border-right:1px solid var(--ink12)}
+.maptip{position:absolute;z-index:5;pointer-events:none;background:var(--field);border:1px solid var(--ink12);border-radius:4px;padding:6px 8px;font-size:12px;line-height:1.35;box-shadow:0 8px 24px -16px rgba(17,19,17,.6);max-width:230px}
+.maptip b{display:block;font-weight:600}
+.maptip span{display:block;color:var(--ink60)}
+.maptip span.m{font-family:var(--mono);font-size:11px}
+.mapreset{position:absolute;right:8px;top:8px;z-index:5;font-size:12px;line-height:1;padding:5px 9px;border:1px solid var(--ink12);background:var(--field);color:var(--ink60);border-radius:4px;cursor:pointer}
+@media (max-width:900px){.monolog{border-right:0;border-bottom:1px solid var(--ink12)}}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .maplegend{display:flex;flex-wrap:wrap;gap:calc(var(--u)*4);padding:calc(var(--u)*2) calc(var(--u)*6) calc(var(--u)*3);font-size:13px;color:var(--ink60);border-top:1px solid var(--ink12)}
 .maplegend i{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle;margin-right:6px}
@@ -153,16 +166,7 @@ body.embedded .map .cv{min-height:0}
     <span class="clock" id="clock">—</span>
   </div>
 </header>
-<section class="mind" id="mind">
-  <h2><span class="sr-only">Um — šta tri entiteta upravo misle o onome što grad govori (proverene rečenice, ne merenja)</span><span class="en-only">The mind — what the three entities think right now about what the city says (checked utterances, not measurements)</span></h2>
-  <div class="cards" id="mindcards"></div>
-</section>
-<main>
-  <section class="monolog">
-    <h2><span class="sr-only">Monolog grada — šta je stiglo, kad, i šta ćuti</span><span class="en-only">The city's monologue — what arrived, when, and what stayed silent</span></h2>
-    <div class="lines" id="lines"></div>
-  </section>
-  <section class="map">
+<section class="map">
     <h2><span class="sr-only">Puls — kruži samo kad je instrument stvarno pročitan</span><span class="en-only">Pulse — a ring only when an instrument was actually read</span></h2>
     <div class="cv"><canvas id="mapc"></canvas></div>
     <div class="maplegend">
@@ -174,12 +178,21 @@ body.embedded .map .cv{min-height:0}
       <span class="mono" id="mapnote"></span>
     </div>
   </section>
+<main>
+  <section class="monolog">
+    <h2><span class="sr-only">Monolog grada — šta je stiglo, kad, i šta ćuti</span><span class="en-only">The city's monologue — what arrived, when, and what stayed silent</span></h2>
+    <div class="lines" id="lines"></div>
+  </section>
+  <section class="mind" id="mind">
+  <h2><span class="sr-only">Um — šta tri entiteta upravo misle o onome što grad govori (proverene rečenice, ne merenja)</span><span class="en-only">The mind — what the three entities think right now about what the city says (checked utterances, not measurements)</span></h2>
+  <div class="cards" id="mindcards"></div>
+</section>
 </main>
 <section class="how" id="how">
   <div>
     <h3><span class="sr-only">Kako ovo radi</span><span class="en-only">How this works</span></h3>
     <p class="sr-only">Svakih pet minuta program na jednom računaru na univerzitetu pita izvore koji su to javno dozvolili (dozvola je sačuvana kao fajl: robots.txt, zaglavlja, licenca, sa hešom). Svaki odgovor dobija tri vremena: kad je izmereno (ako izvor to uopšte kaže), kad je objavljeno, kad je primljeno. Nedostajuća vrednost je <span class="mono">null</span>, nikad nula. Ništa se ne popunjava, ne zaglađuje, ne prognozira.</p>
-    <p class="en-only">Every five minutes a program on one of the authors' own computers asks the sources that publicly permit it (the permission is stored as bytes: robots.txt, headers, licence page, hashed). Every answer gets three times: when it was measured (if the source says at all), when it was published, when we received it. A missing value is <span class="mono">null</span>, never zero. Nothing is filled, smoothed or forecast.</p>
+    <p class="en-only">Every five minutes a program on one university computer asks the sources that publicly permit it (the permission is stored as bytes: robots.txt, headers, licence page, hashed). Every answer gets three times: when it was measured (if the source says at all), when it was published, when we received it. A missing value is <span class="mono">null</span>, never zero. Nothing is filled, smoothed or forecast.</p>
     <ul>
       <li><a href="https://github.com/3esign/beops">GitHub — <span class="sr-only">kod i sva dokumentacija</span><span class="en-only">code and all documentation</span></a></li>
       <li><a href="https://github.com/3esign/beops/blob/main/CONTRIBUTING.md">CONTRIBUTING — <span class="sr-only">pravila: šta broj sme da tvrdi</span><span class="en-only">the rules: what a number may claim</span></a></li>
@@ -223,7 +236,7 @@ function build(snap){
   for(const src of snap.sources){
     const byRx=new Map();
     for(const ds of src.datastreams){
-      if(ds.lat&&ds.lon) POINTS.push({sid:src.sid,id:ds.datastream,station:ds.station,lat:ds.lat,lon:ds.lon});
+      if(ds.lat&&ds.lon) POINTS.push({sid:src.sid,name:src.name,par:ds.parameter,unit:ds.unit,id:ds.datastream,station:ds.station,lat:ds.lat,lon:ds.lon});
       for(const p of ds.points){ const k=(p.rx||'').slice(0,19); if(!byRx.has(k)) byRx.set(k,{rx:p.rx,streams:new Set(),n:0,miss:0,untimed:0,tEnd:null,tc:null,stations:new Set()});
         const g=byRx.get(k); g.streams.add(ds.datastream); g.n++; if(p.v===null) g.miss++; if(p.tu) g.untimed++; if(p.t&&(!g.tEnd||p.t>g.tEnd)) g.tEnd=p.t; if(p.tc&&(!g.tc||p.tc>g.tc)) g.tc=p.tc; g.stations.add(ds.station); }
     }
@@ -321,7 +334,7 @@ function buildCover(w,h){
   const key=w+'x'+h+':'+POINTS.length+':'+css('--ink');
   if(COVER_KEY===key) return; COVER_KEY=key;
   const c=document.createElement('canvas'); c.width=w; c.height=h; const q=c.getContext('2d');
-  const pts=POINTS.map(p=>proj(p.lat,p.lon,w,h));
+  const pts=POINTS.map(p=>projBase(p.lat,p.lon,w,h));
   const step=9, near=26, far=140;
   const ink=css('--ink'); const rgb=(ink.trim()[0]==='#'&&ink.length>=7)?[parseInt(ink.substr(1,2),16),parseInt(ink.substr(3,2),16),parseInt(ink.substr(5,2),16)]:[17,19,17];
   for(let y=step/2;y<h;y+=step){ for(let x=step/2;x<w;x+=step){
@@ -334,7 +347,12 @@ function buildCover(w,h){
   }}
   COVER=c;
 }
-function proj(lat,lon,w,h){ const kx=Math.cos(44.8*Math.PI/180); const sx=w/((BB.lo1-BB.lo0)*kx), sy=h/(BB.la1-BB.la0); const s=Math.min(sx,sy); const cx=(w-(BB.lo1-BB.lo0)*kx*s)/2, cy=(h-(BB.la1-BB.la0)*s)/2; return [cx+(lon-BB.lo0)*kx*s, cy+(BB.la1-lat)*s]; }
+// The base projection, and the view laid over it. Zoom and pan live in VIEW so everything drawn
+// through proj() moves together and stays vector-sharp; the stipple cover is a raster of the base
+// projection, so it is blitted through the same transform rather than recomputed on every frame.
+let VIEW={k:1,tx:0,ty:0};
+function projBase(lat,lon,w,h){ const kx=Math.cos(44.8*Math.PI/180); const sx=w/((BB.lo1-BB.lo0)*kx), sy=h/(BB.la1-BB.la0); const s=Math.min(sx,sy); const cx=(w-(BB.lo1-BB.lo0)*kx*s)/2, cy=(h-(BB.la1-BB.la0)*s)/2; return [cx+(lon-BB.lo0)*kx*s, cy+(BB.la1-lat)*s]; }
+function proj(lat,lon,w,h){ const q=projBase(lat,lon,w,h); return [q[0]*VIEW.k+VIEW.tx, q[1]*VIEW.k+VIEW.ty]; }
 function drawMap(now){
   const dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=cv.clientHeight; if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);} g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
   // Base map: Natural Earth 1:10m, public domain (S98). Built-up footprint as a soft area, the two
@@ -359,7 +377,9 @@ function drawMap(now){
   // coverage field: how far this place is from the nearest instrument we can hear. Computed from
   // our own instrument coordinates - no borrowed cartography - so the ground of the map is literally
   // "where the observatory can and cannot hear the city". Dense stipple = far from every instrument.
-  if(COVER && COVER.width) g.drawImage(COVER,0,0,w,h);
+  if(COVER && COVER.width){ // the stipple is a modelled estimate; zoomed in, it should not shout
+    const a0=g.globalAlpha; g.globalAlpha=a0*Math.min(1,1/Math.sqrt(VIEW.k));
+    g.drawImage(COVER,VIEW.tx,VIEW.ty,w*VIEW.k,h*VIEW.k); g.globalAlpha=a0; }
   // instruments
   for(const p of POINTS){ const [x,y]=proj(p.lat,p.lon,w,h); g.fillStyle=css('--ink30'); g.beginPath(); g.arc(x,y,p.sid==='S146'?2.6:1.8,0,Math.PI*2); g.fill(); }
   // pulses: ring expands 900 ms after a reception; nothing else moves
@@ -383,6 +403,51 @@ function drawMap(now){
   if(g.measureText(_txt).width>w-16){ g.font='9px '+css('--mono'); }
   g.fillText(_txt,8,h-8);
 }
+// ---- the map is a thing you can look into -------------------------------------
+// Wheel to zoom about the cursor, drag to pan, hover for what a dot actually is. On a touch screen
+// the page must still scroll, so vertical gestures are left to the page and only a mouse drags.
+(function interactive(){
+  const wrap=cv.parentElement; if(!wrap) return;
+  wrap.style.touchAction='pan-y'; wrap.style.cursor='grab';
+  const tip=document.createElement('div'); tip.className='maptip'; tip.hidden=true; wrap.appendChild(tip);
+  const btn=document.createElement('button'); btn.type='button'; btn.className='mapreset'; btn.textContent='\u27f2';
+  btn.setAttribute('aria-label','Vrati pogled / Reset the view'); btn.title='Vrati pogled \u00b7 Reset the view';
+  btn.hidden=true; wrap.appendChild(btn);
+  function clamp(){ const w=cv.clientWidth,h=cv.clientHeight;
+    VIEW.k=Math.max(1,Math.min(14,VIEW.k));
+    VIEW.tx=Math.min(0,Math.max(w-w*VIEW.k,VIEW.tx));
+    VIEW.ty=Math.min(0,Math.max(h-h*VIEW.k,VIEW.ty));
+    btn.hidden=(VIEW.k===1&&VIEW.tx===0&&VIEW.ty===0); }
+  function at(e){ const r=cv.getBoundingClientRect(); return [e.clientX-r.left,e.clientY-r.top]; }
+  wrap.addEventListener('wheel',function(e){ e.preventDefault();
+    const a=at(e), k0=VIEW.k, k=Math.max(1,Math.min(14,k0*Math.exp(-e.deltaY*0.0016)));
+    VIEW.tx=a[0]-(a[0]-VIEW.tx)*(k/k0); VIEW.ty=a[1]-(a[1]-VIEW.ty)*(k/k0); VIEW.k=k; clamp(); },{passive:false});
+  let drag=null;
+  wrap.addEventListener('pointerdown',function(e){ if(e.pointerType!=='mouse') return;
+    drag={x:e.clientX,y:e.clientY,tx:VIEW.tx,ty:VIEW.ty}; try{wrap.setPointerCapture(e.pointerId);}catch(err){}
+    wrap.style.cursor='grabbing'; tip.hidden=true; });
+  function endDrag(){ drag=null; wrap.style.cursor='grab'; }
+  wrap.addEventListener('pointerup',endDrag); wrap.addEventListener('pointercancel',endDrag);
+  wrap.addEventListener('pointerleave',function(){ endDrag(); tip.hidden=true; });
+  wrap.addEventListener('pointermove',function(e){
+    if(drag){ VIEW.tx=drag.tx+(e.clientX-drag.x); VIEW.ty=drag.ty+(e.clientY-drag.y); clamp(); return; }
+    const a=at(e), w=cv.clientWidth, h=cv.clientHeight;
+    let best=null, bd=18*18;
+    for(let i=0;i<POINTS.length;i++){ const q=proj(POINTS[i].lat,POINTS[i].lon,w,h);
+      const dx=q[0]-a[0], dy=q[1]-a[1], d=dx*dx+dy*dy; if(d<bd){ bd=d; best=POINTS[i]; } }
+    if(!best){ tip.hidden=true; return; }
+    tip.innerHTML='<b>'+esc(best.station||best.sid)+'</b>'+
+      (best.name?'<span>'+esc(best.name)+'</span>':'')+
+      '<span class="m">'+esc(best.sid)+(best.par?' \u00b7 '+esc(best.par):'')+(best.unit?' '+esc(best.unit):'')+'</span>';
+    tip.hidden=false;
+    const tw=tip.offsetWidth||170, th=tip.offsetHeight||44;
+    tip.style.left=Math.max(6,Math.min(w-tw-6,a[0]+14))+'px';
+    tip.style.top=Math.max(6,Math.min(h-th-6,a[1]+16))+'px';
+  });
+  wrap.addEventListener('dblclick',function(){ VIEW={k:1,tx:0,ty:0}; clamp(); });
+  btn.addEventListener('click',function(){ VIEW={k:1,tx:0,ty:0}; clamp(); });
+})();
+
 function pulseFor(e){ const now=performance.now(); if(e.kind==='rx'){ for(const st of e.stations){ const pt=POINTS.find(p=>p.sid===e.sid&&p.station===st); if(pt) pulses.push({at:now,lat:pt.lat,lon:pt.lon,untimed:e.untimed>0}); } } }
 // pulse rings live 1400 ms now: slower, softer
 
