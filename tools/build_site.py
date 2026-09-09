@@ -792,6 +792,9 @@ def main() -> int:
         p = ROOT / src
         if p.exists():
             shutil.copy(p, DOCS / dst)
+    for folder in ("06-paper", "07-legal"):        # every published document reaches the site by existing, not by being listed
+        for p in sorted((ROOT / "research" / folder).glob("*.pdf")):
+            shutil.copy(p, DOCS / p.name)
     (DOCS / ".nojekyll").write_text("", encoding="utf-8")
     print(f"wrote {DOCS/'index.html'} ({len(html)} bytes; {len(data['registry']['rows'])} sources, "
           f"{len(data['corrections'])} corrections, {len(data['provenance']['refused'])} refusals)")

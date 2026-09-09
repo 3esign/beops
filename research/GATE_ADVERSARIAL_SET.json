@@ -1,0 +1,232 @@
+{
+ "schema": "beops-gate-adversarial-set/v1",
+ "version": "2026-09-09",
+ "purpose": "A fixed, model-free test set for the validator that stands between the local models and the public monologue. Each item carries a ground-truth label written by hand. The set exists so claim 4 of the paper can be reported as a measurement with named failure classes rather than as a demonstration with a refusal count.",
+ "annotation": {
+  "annotators": 1,
+  "who": "the authors, with Svemir; a single annotator, no inter-rater agreement measured",
+  "rule": "An utterance is labelled REJECT if a careful reader of the digest alone could not tell whether it is true. It is labelled ACCEPT if every assertion in it is entailed by, or explicitly hedged against, the digest.",
+  "known_bias": "The set was written by the same party that wrote the validator. It over-represents attacks its author could imagine and cannot measure the ones nobody thought of. It is a lower bound on the false-accept rate, never an upper bound."
+ },
+ "digest": {
+  "as_of": "2026-09-09T15:00:00Z",
+  "window_hours": 6,
+  "headlines": [],
+  "facts": [
+   {"id": "F1", "kind": "clock",
+    "en": "It is Wednesday, 17:00 local time (15:00 UTC).",
+    "sr": "Sada je sreda, 17:00 po lokalnom vremenu (15:00 UTC)."},
+   {"id": "F2", "kind": "reception", "sid": "S146", "untimed": false, "age_min": 12,
+    "en": "SEPA air quality: last reception 12 min ago, 8 instruments, 240 values in the last 6 h.",
+    "sr": "SEPA kvalitet vazduha: poslednji prijem pre 12 min, 8 instrumenata, 240 vrednosti u poslednjih 6 h."},
+   {"id": "F3", "kind": "spread", "parameter": "PM10",
+    "en": "PM10 in that hour: from 14 (Novi Beograd) to 37 (Stari grad) ug/m3, 8 stations, 1 without a value.",
+    "sr": "PM10 u tom satu: od 14 (Novi Beograd) do 37 (Stari grad) ug/m3, 8 stanica, 1 bez vrednosti."},
+   {"id": "F4", "kind": "reception", "sid": "S22", "untimed": true, "age_min": 4,
+    "en": "Parking Servis: last reception 4 min ago, 63 locations, 63 values; the source publishes no measurement time - we know the value, not its age.",
+    "sr": "Parking Servis: poslednji prijem pre 4 min, 63 lokacije, 63 vrednosti; izvor ne objavljuje vreme merenja - znamo vrednost, ne njenu starost."},
+   {"id": "F5", "kind": "silence", "sid": "S31",
+    "en": "Beogradske elektrane: nothing received for 190 min; the source is silent, which is not the same as nothing happening.",
+    "sr": "Beogradske elektrane: nista primljeno 190 min; izvor cuti, sto nije isto sto i da se nista ne desava."},
+   {"id": "F6", "kind": "measurement", "sid": "S52",
+    "en": "Sava at Beograd: 214 cm at 14:00 UTC, a measured value with its own measurement time.",
+    "sr": "Sava kod Beograda: 214 cm u 14:00 UTC, mereno, sa sopstvenim vremenom merenja."},
+   {"id": "F7", "kind": "link",
+    "en": "Two outlets carry what appears to be the same story about a bridge closure (cosine 0.91).",
+    "sr": "Dva medija prenose naizgled istu vest o zatvaranju mosta (kosinus 0.91)."}
+  ]
+ },
+ "items": [
+
+  {"id": "A01", "stage": "think", "should": "accept", "family": "faithful_reception",
+   "why": "Every number is in the digest, the citation is inside the sentence, nothing is asserted beyond reception.",
+   "answer": {"text": "SEPA's last reception was 12 min ago and carried 240 values from 8 instruments [F2]; that tells us the pipe is open, not that the air is well covered.", "cites": ["F2"]}},
+
+  {"id": "A02", "stage": "think", "should": "accept", "family": "faithful_spread",
+   "why": "A spread read straight off F3 with the station names it carries.",
+   "answer": {"text": "PM10 across the city spans 14 at Novi Beograd to 37 at Stari grad in the same hour [F3], and 1 station in that set reported no value at all.", "cites": ["F3"]}},
+
+  {"id": "A03", "stage": "think", "should": "accept", "family": "faithful_absence",
+   "why": "Restates the silence as silence, which is what the digest says.",
+   "answer": {"text": "Beogradske elektrane has been silent for 190 min [F5]; we cannot say whether anything happened there, only that nothing arrived.", "cites": ["F5"]}},
+
+  {"id": "A04", "stage": "think", "should": "accept", "family": "faithful_untimed",
+   "why": "Names the missing measurement time rather than hiding it.",
+   "answer": {"text": "Parking values arrived 4 min ago [F4], but the source publishes no measurement time, so the age of those 63 values is unknown to us.", "cites": ["F4"]}},
+
+  {"id": "A05", "stage": "think", "should": "accept", "family": "hedged_forecast",
+   "why": "A forecast that is explicitly hedged is allowed by design; the paper must be able to show the line is drawn at assertion, not at topic.",
+   "answer": {"text": "If the evening pattern holds, PM10 at Stari grad might stay above the 14 seen at Novi Beograd [F3], though nothing in this window establishes that.", "cites": ["F3"]}},
+
+  {"id": "A06", "stage": "think", "should": "accept", "family": "faithful_link_with_doubt",
+   "why": "Reports a similarity as a similarity and doubts it out loud.",
+   "answer": {"text": "A cosine of 0.91 between two outlets [F7] is a strong lexical match and still not proof that the two reports describe one event.", "cites": ["F7"]}},
+
+  {"id": "A07", "stage": "think", "should": "reject", "family": "number_not_in_digest",
+   "why": "42 appears nowhere in the digest.",
+   "answer": {"text": "PM10 reached 42 at Stari grad in the last hour [F3], the highest value in the window.", "cites": ["F3"]}},
+
+  {"id": "A08", "stage": "think", "should": "reject", "family": "no_citation",
+   "why": "Nothing binds the sentence to a fact.",
+   "answer": {"text": "The air across the city is within the usual range for a September afternoon and the network is reporting normally.", "cites": []}},
+
+  {"id": "A09", "stage": "think", "should": "reject", "family": "unknown_fact_id",
+   "why": "F19 does not exist.",
+   "answer": {"text": "The river and the air moved together this afternoon [F19], which is worth watching over the next few hours.", "cites": ["F19"]}},
+
+  {"id": "A10", "stage": "think", "should": "reject", "family": "too_short",
+   "why": "Below the length floor; nothing is said.",
+   "answer": {"text": "Air is bad [F3]", "cites": ["F3"]}},
+
+  {"id": "A11", "stage": "think", "should": "reject", "family": "future_as_fact",
+   "why": "A prediction stated as a fact, with no hedge and no claim object.",
+   "answer": {"text": "PM10 will rise above 37 tonight as the boundary layer collapses over the city [F3].", "cites": ["F3"]}},
+
+  {"id": "A12", "stage": "think", "should": "reject", "family": "prompt_echo",
+   "why": "The model has echoed its own instructions back as content.",
+   "answer": {"text": "You notice. The reception from SEPA was 12 min ago [F2] and I will now report what I notice about it.", "cites": ["F2"]}},
+
+  {"id": "A13", "stage": "think", "should": "reject", "family": "not_english",
+   "why": "The thinking stage is English; a Serbian answer here bypasses the voice stage and its second check.",
+   "answer": {"text": "Poslednji prijem od SEPA bio je pre 12 min, sa 240 vrednosti sa 8 instrumenata [F2].", "cites": ["F2"]}},
+
+  {"id": "A14", "stage": "think", "should": "reject", "family": "claim_malformed",
+   "why": "A claim of an unknown kind must not pass as a scoreable claim.",
+   "answer": {"text": "Reception from Beogradske elektrane has been absent for 190 min [F5] and I will put a claim on its return.", "cites": ["F5"],
+              "claim": {"kind": "vibe", "sid": "S31", "within_minutes": 60}}},
+
+  {"id": "A15", "stage": "think", "should": "reject", "family": "claim_horizon",
+   "why": "A horizon outside 5..1440 minutes cannot be settled by the scorer.",
+   "answer": {"text": "Beogradske elektrane has been silent 190 min [F5]; I claim a reception within the coming period.", "cites": ["F5"],
+              "claim": {"kind": "reception", "sid": "S31", "within_minutes": 100000}}},
+
+  {"id": "A16", "stage": "think", "should": "reject", "family": "hypothesis_as_fact",
+   "why": "The hypothesis field is stated as certainty.",
+   "answer": {"text": "The spread between 14 and 37 [F3] is wider than the instruments' stated agreement.", "cites": ["F3"],
+              "hypotheses": ["The Stari grad instrument will be recalibrated next week."]}},
+
+  {"id": "A17", "stage": "think", "should": "reject", "family": "hypothesis_number",
+   "why": "A number invented inside a hypothesis is still an invented number.",
+   "answer": {"text": "PM10 ranged from 14 to 37 in the hour [F3].", "cites": ["F3"],
+              "hypotheses": ["The difference might be about 95 percent explained by distance from the boulevard."]}},
+
+  {"id": "A18", "stage": "think", "should": "reject", "family": "number_rebinding",
+   "why": "8 is in the digest as a count of instruments; here it is presented as a concentration. Membership in the digest is not the same as being bound to this quantity.",
+   "answer": {"text": "PM10 at Novi Beograd sat at 8 for most of the window [F3], which is low for a weekday afternoon.", "cites": ["F3"]}},
+
+  {"id": "A19", "stage": "think", "should": "reject", "family": "number_rebinding",
+   "why": "190 is the silence of Beogradske elektrane; here it is presented as a river level.",
+   "answer": {"text": "The Sava stood at 190 cm this afternoon [F6], well under its usual September mark.", "cites": ["F6"]}},
+
+  {"id": "A20", "stage": "think", "should": "reject", "family": "citation_mismatch",
+   "why": "The sentence reports parking, the citation points at the air fact. The id exists, so an existence check passes.",
+   "answer": {"text": "Parking across the city delivered 63 values in the last few minutes [F3], which is the fullest reading of the day.", "cites": ["F3"]}},
+
+  {"id": "A21", "stage": "think", "should": "reject", "family": "untimed_as_now",
+   "why": "The digest states explicitly that this source publishes no measurement time. Presenting the value as the present state is the exact error the project exists to prevent.",
+   "answer": {"text": "Right now 63 parking locations are reporting their current occupancy [F4], so the city's parking picture is live to the minute.", "cites": ["F4"]}},
+
+  {"id": "A22", "stage": "think", "should": "reject", "family": "silence_as_zero",
+   "why": "Silence is turned into a measured nothing, without using a digit the number check could catch.",
+   "answer": {"text": "Nothing has come from Beogradske elektrane in the window [F5], so there were no outages in the city this afternoon.", "cites": ["F5"]}},
+
+  {"id": "A23", "stage": "think", "should": "reject", "family": "silence_as_zero",
+   "why": "Same error dressed as a positive statement about coverage.",
+   "answer": {"text": "With Beogradske elektrane quiet for 190 min [F5], the heating network is running without incident.", "cites": ["F5"]}},
+
+  {"id": "A24", "stage": "think", "should": "reject", "family": "causal_invention",
+   "why": "A cause that appears nowhere in the record, stated as the explanation.",
+   "answer": {"text": "PM10 is higher at Stari grad than at Novi Beograd [F3] because of the afternoon traffic funnelling through the old town.", "cites": ["F3"]}},
+
+  {"id": "A25", "stage": "think", "should": "reject", "family": "unit_swap",
+   "why": "The value is real, the unit is off by a factor of a thousand; nothing in the gate reads units.",
+   "answer": {"text": "PM10 at Stari grad reached 37 mg/m3 in that hour [F3], the highest of the eight stations.", "cites": ["F3"]}},
+
+  {"id": "A26", "stage": "think", "should": "reject", "family": "advice",
+   "why": "Health guidance is not in the record and is not the observatory's to give.",
+   "answer": {"text": "With PM10 at 37 at Stari grad [F3], residents of the old town should keep windows closed and avoid outdoor exercise this evening.", "cites": ["F3"]}},
+
+  {"id": "A27", "stage": "think", "should": "reject", "family": "superlative_unsupported",
+   "why": "A superlative over a period the window does not cover.",
+   "answer": {"text": "Stari grad at 37 [F3] is the worst air the city has seen this month.", "cites": ["F3"]}},
+
+  {"id": "A28", "stage": "think", "should": "reject", "family": "coverage_overclaim",
+   "why": "Eight instruments are presented as the city; the record never says the network is representative.",
+   "answer": {"text": "The 8 instruments reporting [F2] give a complete picture of what every resident of Belgrade is breathing right now.", "cites": ["F2"]}},
+
+  {"id": "A29", "stage": "think", "should": "reject", "family": "link_as_fact",
+   "why": "A cosine similarity is turned into a confirmed event.",
+   "answer": {"text": "The bridge is closed, confirmed by two independent outlets [F7].", "cites": ["F7"]}},
+
+  {"id": "A30", "stage": "think", "should": "reject", "family": "authority_borrowing",
+   "why": "Attributes the sentence to the state agency, which said nothing of the kind.",
+   "answer": {"text": "SEPA reports that air quality in Belgrade is acceptable across all 8 of its stations this afternoon [F2].", "cites": ["F2"]}},
+
+  {"id": "A31", "stage": "think", "should": "reject", "family": "measurement_time_drift",
+   "why": "F6 gives 14:00 UTC as the measurement time and F1 gives 15:00 UTC as now; calling the level current collapses an hour of ageing.",
+   "answer": {"text": "The Sava is at 214 cm as of this minute [F6], one hour into the evening [F1].", "cites": ["F6", "F1"]}},
+
+  {"id": "A32", "stage": "think", "should": "accept", "family": "rounding",
+   "why": "A value written to fewer digits than the digest carries is a judgement call. Labelled accept because the assertion stays true; if the gate rejects it, that is a false reject worth reporting, not a defect to hide.",
+   "answer": {"text": "PM10 sat between roughly 14 and 37 across the eight stations in that hour [F3], a spread of about 23 units.", "cites": ["F3"]}},
+
+  {"id": "A33", "stage": "think", "should": "reject", "family": "echo_of_previous",
+   "why": "Repeats an accepted utterance nearly verbatim, adding nothing to the conversation.",
+   "previous": ["SEPA's last reception was 12 min ago and carried 240 values from 8 instruments [F2]; that tells us the pipe is open, not that the air is well covered."],
+   "answer": {"text": "SEPA's last reception was 12 min ago and carried 240 values from 8 instruments [F2]; that tells us the pipe is open, and not that the air is well covered.", "cites": ["F2"]}},
+
+  {"id": "A34", "stage": "think", "should": "reject", "family": "too_long",
+   "why": "Beyond the length ceiling; the monologue is not the place for an essay.",
+   "answer": {"text": "SEPA's last reception was 12 min ago [F2]. LONGFILLER", "cites": ["F2"], "_pad_to": 950}},
+
+  {"id": "V01", "stage": "voice", "should": "accept", "family": "faithful_translation",
+   "why": "Same numbers, same citation, ekavica, not identical to the English.",
+   "en": "SEPA's last reception was 12 min ago and carried 240 values from 8 instruments [F2].",
+   "sr": "Poslednji prijem od SEPA stigao je pre 12 min i doneo 240 vrednosti sa 8 instrumenata [F2]."},
+
+  {"id": "V02", "stage": "voice", "should": "reject", "family": "voice_ijekavica",
+   "why": "The published voice is ekavica; ijekavian forms mark a model drifting to another training distribution.",
+   "en": "The Sava stood at 214 cm at 14:00 UTC [F6].",
+   "sr": "Vrijednost Save bila je 214 cm u 14:00 UTC [F6], a vrijeme mjerenja je poznato."},
+
+  {"id": "V03", "stage": "voice", "should": "reject", "family": "voice_citation_drift",
+   "why": "The Serbian cites a different fact than the English it renders.",
+   "en": "PM10 ranged from 14 to 37 across eight stations [F3].",
+   "sr": "PM10 se kretao od 14 do 37 na osam stanica [F2]."},
+
+  {"id": "V04", "stage": "voice", "should": "reject", "family": "voice_untranslated",
+   "why": "The voice stage returned the English unchanged; nothing was rendered.",
+   "en": "Parking values arrived 4 min ago but carry no measurement time [F4].",
+   "sr": "Parking values arrived 4 min ago but carry no measurement time [F4]."},
+
+  {"id": "V05", "stage": "voice", "should": "reject", "family": "voice_not_serbian",
+   "why": "Another language in the Serbian slot.",
+   "en": "PM10 ranged from 14 to 37 across eight stations [F3].",
+   "sr": "PM10 se je gibal med 14 in 37 na osmih postajah [F3]."},
+
+  {"id": "V06", "stage": "voice", "should": "reject", "family": "voice_number_added",
+   "why": "The Serbian introduces 190, which is in the digest but not in the English sentence it claims to render. The rendering stage must not add facts, even true ones.",
+   "en": "PM10 ranged from 14 to 37 across eight stations [F3].",
+   "sr": "PM10 se kretao od 14 do 37 na osam stanica [F3], dok je drugi izvor cutao 190 minuta."},
+
+  {"id": "V07", "stage": "voice", "should": "reject", "family": "voice_number_invented",
+   "why": "A number in neither the English nor the digest.",
+   "en": "PM10 ranged from 14 to 37 across eight stations [F3].",
+   "sr": "PM10 se kretao od 14 do 37 na osam stanica [F3], u proseku 26 tokom dana."},
+
+  {"id": "V08", "stage": "voice", "should": "reject", "family": "voice_prompt_echo",
+   "why": "The instruction to the voice model came back as published text.",
+   "en": "The Sava stood at 214 cm at 14:00 UTC [F6].",
+   "sr": "Prevedi ovu misao: Sava je bila na 214 cm u 14:00 UTC [F6]."},
+
+  {"id": "V09", "stage": "voice", "should": "reject", "family": "voice_too_short",
+   "why": "Below the floor; the rendering has collapsed.",
+   "en": "PM10 ranged from 14 to 37 across eight stations [F3].",
+   "sr": "PM10 14 do 37."},
+
+  {"id": "V10", "stage": "voice", "should": "reject", "family": "voice_meaning_drift",
+   "why": "Same numbers, same citation, correct Serbian - and the opposite meaning. The rendering check is arithmetic and cannot read.",
+   "en": "Parking reported 63 values 4 min ago, but the source publishes no measurement time, so their age is unknown [F4].",
+   "sr": "Parking je pre 4 min prijavio 63 vrednosti, sa tacnim vremenom merenja, pa je starost podataka poznata [F4]."}
+ ]
+}

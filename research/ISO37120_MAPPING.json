@@ -1,0 +1,81 @@
+{
+ "schema": "beops-iso37120-mapping/v1",
+ "version": "2026-09-09",
+ "standard": {
+  "id": "ISO 37120:2018",
+  "title": "Sustainable cities and communities - Indicators for city services and quality of life",
+  "themes": 19,
+  "how_we_read_it": "The standard's text is not open, so this mapping is made against the published theme list and the public indicator titles (World Council on City Data, List of ISO 37120:2018 Indicators). It maps our sources to THEMES. It does not compute any ISO indicator and does not claim conformity with the standard.",
+  "source_consulted": "https://www.iso.org/standard/68498.html and the WCCD public indicator list, read 2026-09-09"
+ },
+ "why": "Section 4.1 of the paper claims an audit of openness for one city. An audit needs a frame that is not ours, or it measures only our own appetite. ISO 37120 is the frame a city would be held to. Mapping our live record onto it answers a question the registry cannot: of the things a standard says a city should be able to report, how many can be reached at all by measurement in real time?",
+ "verdicts": {
+  "indicator_reachable": "an ISO indicator in this theme could be computed from what we already store, given enough record",
+  "adjacent": "we measure something real in this theme, but not the quantity the standard asks for",
+  "administrative_only": "the theme's indicators are annual administrative statistics that no real-time public source publishes; measurement cannot reach them",
+  "out_of_scope_by_design": "we could have looked and chose not to, for a stated reason"
+ },
+ "themes": [
+  {"theme": "Economy", "verdict": "administrative_only", "sids": [],
+   "note": "Unemployment rate, assessed property value, business creation. Annual, city- and statistics-office reported. No live public source in Belgrade publishes an input to these."},
+
+  {"theme": "Education", "verdict": "administrative_only", "sids": [],
+   "note": "Enrolment, completion, student/teacher ratio. Annual administrative returns."},
+
+  {"theme": "Energy", "verdict": "adjacent", "sids": ["S12", "S54", "S175"],
+   "note": "We hold planned electricity outages for Belgrade (EDS, same-day and day-after tables) and the district-heating operator's own notices. The ISO indicators are consumption per capita and the share from renewables. We measure interruptions of service, which the standard does not ask for and which no annual return records at this resolution."},
+
+  {"theme": "Environment and climate change", "verdict": "indicator_reachable", "sids": ["S146", "S04", "S01", "S03"],
+   "note": "The only theme where measurement reaches the indicator. ISO asks for fine particulate concentration as an annual figure; we store hourly means from the state network, citizen sensors, the state meteorological stations and the airport observation, each with its own measurement time and evidential state. After a year of record the annual figure is computable from rows we already keep - with the coverage caveats in the paper, which the ISO figure does not carry."},
+
+  {"theme": "Finance", "verdict": "administrative_only", "sids": [],
+   "note": "Debt service ratio, tax collected. Budget documents, annual."},
+
+  {"theme": "Governance", "verdict": "adjacent", "sids": ["S203", "S202", "S199", "S200"],
+   "note": "ISO asks for voter turnout and representation. We poll the government's own news feed and three accountability outlets, which is a record of what was said, not of how a city is governed. Headlines only, never bodies."},
+
+  {"theme": "Health", "verdict": "out_of_scope_by_design", "sids": [],
+   "note": "Life expectancy, mortality, hospital beds. We hold no health data of any kind and collect none: a person-level layer would change the legal basis of the whole record and is refused by design, not missing by accident."},
+
+  {"theme": "Housing", "verdict": "administrative_only", "sids": [],
+   "note": "Informal settlement share, households without registered title. Census and cadastre."},
+
+  {"theme": "Population and social conditions", "verdict": "adjacent", "sids": [],
+   "note": "We carry a modelled population grid (Kontur 2022) as a static context layer so a station's reading can be set beside how many people live near it. It is a model, labelled as one, not a census figure, and it is context rather than an indicator."},
+
+  {"theme": "Recreation", "verdict": "administrative_only", "sids": [],
+   "note": "Public recreation space per capita. Cadastral and planning data, annual."},
+
+  {"theme": "Safety", "verdict": "out_of_scope_by_design", "sids": [],
+   "note": "Police and fire response, homicide rate. The interior ministry is one of the fourteen publishers that refused, and is honoured; crime data about identifiable events is also outside what this record will hold."},
+
+  {"theme": "Solid waste", "verdict": "administrative_only", "sids": [],
+   "note": "Collection share, recycling share, disposal route. Utility annual reports."},
+
+  {"theme": "Sport and culture", "verdict": "administrative_only", "sids": [], "note": "Library and museum visits, sport facility counts per capita. Annual returns from institutions; nothing about them is published continuously."},
+
+  {"theme": "Telecommunication", "verdict": "administrative_only", "sids": [], "note": "Internet and mobile connections per 100 000. Published once a year by the electronic communications regulator, for the country rather than for the city."},
+
+  {"theme": "Transportation", "verdict": "adjacent", "sids": ["S10", "S15", "S208"],
+   "note": "ISO asks for km of public transport per capita and commercial air connectivity. We hold displayed free spaces per parking lot (with no measurement time published by the source - the state we render as smeared age) and the City's own transport service notices. The public transport operator's live arrivals proved to be rendered in the browser and is therefore not parseable without executing the site's code, which we do not do; that finding is recorded rather than worked around."},
+
+  {"theme": "Urban/local agriculture and food security", "verdict": "administrative_only", "sids": [], "note": "Share of food produced within the city boundary. An annual survey question; there is no instrument that reports it."},
+
+  {"theme": "Urban planning", "verdict": "adjacent", "sids": ["S74"],
+   "note": "ISO asks for green area per 100 000 and jobs/housing ratio. We poll one construction-sector outlet, which reports on planning decisions rather than measuring their outcome."},
+
+  {"theme": "Wastewater", "verdict": "administrative_only", "sids": [],
+   "note": "Share of collected and treated wastewater. Utility annual returns; Belgrade publishes no live treatment telemetry."},
+
+  {"theme": "Water", "verdict": "adjacent", "sids": ["S11", "S52"],
+   "note": "ISO asks for the share of the population with potable supply and for consumption per capita. We hold the water utility's own service notices and the two river gauges (Sava at Beograd, Dunav at Zemun), each publishing its own measurement time. A river level is a fact about the city that no ISO indicator records."}
+ ],
+ "finding": {
+  "themes_total": 19,
+  "indicator_reachable": 1,
+  "adjacent": 6,
+  "administrative_only": 10,
+  "out_of_scope_by_design": 2,
+  "reading": "Of the nineteen themes a city would be measured on, exactly one can be reached at indicator level by real-time measurement of public sources, and only after a year of record. Six more are touched by something real that the standard does not ask for. Ten are annual administrative statistics that no amount of sensing will produce, and two we refuse on purpose. The gap between what a city can measure continuously and what a city is asked to report is not a gap in instruments. Adding sensors does not close it; it is a gap in what is written down, by whom, and how often - which is the paper's argument, arrived at from the standard's side rather than from ours."
+ }
+}

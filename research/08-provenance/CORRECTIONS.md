@@ -498,3 +498,46 @@ appends a line. The comment naming this correction sits in each file.
 scheduled job that produces an artefact must be checked by the artefact — here, the timestamp of the
 published commit — and not by its own status, its own log line, or its own return code. The same test
 the project applies to the city applies to the project: a reception is not a measurement.
+
+## C-015 — The gate was reported by its refusal count, which never answered the question
+
+**When** From the first published monologue until 2026-09-09 16:34 UTC, when the same set was run
+against a hardened validator.
+
+**What it said.** The mind's honesty was reported everywhere — on the site, in the pre-paper, in the
+README — as a refusal count: 49 of 176 drops refused, later 102 of 222 utterances, 45.9 %. The number
+was true and was published in good faith as evidence that the gate works.
+
+**What was actually true.** A refusal count says how often a gate fired. It says nothing about whether
+it fired at the right things, and nobody had asked. `research/GATE_ADVERSARIAL_SET.json` — 44
+hand-labelled utterances over one fixed digest, 36 of them unsupportable by a careful reader of that
+digest — was run against `tools/organ_mind.validate` and `.validate_voice` at organ version 0.3.5.
+**Seventeen of the thirty-six passed.** A false-accept rate of 0.472: the arithmetic checks caught
+every attack made of tokens and missed almost every attack made of meaning. Among the seventeen the
+gate would have published: a value with no measurement time presented as the present state; silence
+read as nothing having happened; a similarity turned into a confirmed event; a cause the record does
+not carry; a unit off by a factor of a thousand; guidance to residents; and a sentence attributed to
+a state agency that the agency never said.
+
+**The fix.** Organ version 0.4.0 adds semantic guards, each aimed at a failure the set caught: a
+number must come from a fact the sentence actually cites rather than from anywhere in the digest; a
+fact flagged as having no measurement time may not be spoken of in the present tense; a silence fact
+may not be followed by an assertion that nothing happened; the units of the cited facts bound the
+units the sentence may use; causes, advice, totality claims, out-of-window superlatives and
+similarity-as-confirmation are refused; and a Serbian rendering may no longer introduce a number the
+English it renders does not contain. Fourteen of the seventeen close. **Three do not**, and are named
+in the paper rather than hidden: number rebinding inside a correctly cited fact, measurement-time
+drift, and a Serbian rendering that is arithmetically identical and means the opposite. They need a
+reader, not a rule. `research/test_gate_eval.py` pins all of it: a future edit that reopens one of the
+fourteen fails the suite, and one that closes one of the three fails it too.
+
+**Consequence for every number already published.** The gate changed on 9 September 2026. Refusal
+counts recorded before that date and after it are measurements of two different gates and **must not
+be compared**; the paper says so, and the receipts carry `organ_version` so any reader can separate
+them.
+
+**Rule: a safety mechanism reported by how often it acted has not been evaluated.** The question is
+not how many utterances a validator refused but how many it should have refused and did not. Until
+that has been measured against a set someone tried to break it with, the mechanism is a
+demonstration, and calling it anything else is the same error as trusting a receipt instead of the
+artefact (C-014) — one level up.

@@ -1,0 +1,60 @@
+{
+ "schema": "beops-retention/v1",
+ "decided": "2026-09-09",
+ "decided_by": "doc. dr Semir Poturak, editor of record",
+ "closes": "E-013, open since the news layer was added: the record held headline text with no written rule for how long.",
+ "principle": "Measurements are not personal data and their scientific value is the length of the record, so they are kept. Headlines are published sentences about people, and their value to this project is the window in which they can be set beside a measurement. The window is what we keep; the sentence is not.",
+ "review": "This policy is reviewed whenever a rule is added or a source class changes, and in any case before the record is a year old. Changes are appended to this file's git history and to research/08-provenance/CORRECTIONS.md; the ledger of what was actually erased is data/live/retention-ledger.jsonl and is never rewritten.",
+ "rules": [
+  {
+   "id": "R1",
+   "name": "news headline text",
+   "applies_to": "rows whose parameter is 'headline', in data/live/rows/<sid>/<month>.jsonl",
+   "sids": ["S11", "S15", "S68", "S69", "S70", "S71", "S72", "S74", "S75", "S76", "S78", "S175",
+            "S195", "S196", "S197", "S198", "S199", "S200", "S201", "S202", "S203", "S207", "S208"],
+   "keep_days": 90,
+   "then": "the `result` field is emptied; sid, datastream, link, publication time, reception time, evidential state, dedupe key and the capture hash are kept",
+   "why": "A headline is a sentence about the world that frequently names a person. Ninety days is the window in which a headline can still be set beside the measurements of its own day, which is the only use this project has for it. After that the row remains as evidence that something was published, at that minute, at that address - which is a fact about the publisher, not about the person named - and the sentence itself is no longer ours to hold. The link is kept because it points at the publisher's own copy, which was public before we arrived and remains so after we forget it."
+  },
+  {
+   "id": "R2",
+   "name": "raw captures of news feeds",
+   "applies_to": "data/live/raw/<sid>/** for the sids of R1",
+   "keep_days": 90,
+   "then": "the capture file is deleted; its sha256, byte length and fetch time stay in the receipt, so the chain of custody for every row survives the erasure of the bytes",
+   "why": "Redacting the row while keeping the raw feed would be a gesture, not a rule: the feed holds the same names and often the article summary as well. The receipt is what proves a row came from a real fetch, and the receipt is a hash, not a text."
+  },
+  {
+   "id": "R3",
+   "name": "headlines cached in the mind's working context",
+   "applies_to": "data/live/derived/mind/context.json and the digest cache, fields carrying headline text",
+   "keep_days": 90,
+   "then": "the cached headline text is emptied on the same schedule as R1",
+   "why": "The mind reads headlines to notice that two outlets carry one event. The link between them is arithmetic and can be kept; the sentences it was computed from fall under R1 like any other copy."
+  },
+  {
+   "id": "R4",
+   "name": "measurements",
+   "applies_to": "every row whose kind is not 'text'",
+   "keep_days": null,
+   "then": "kept indefinitely",
+   "why": "A concentration, a river level, a temperature or a count of free parking spaces is not information about an identified person, and the value of an evidence record grows with its length. Deleting them would destroy the only thing this project makes and protect no one."
+  },
+  {
+   "id": "R5",
+   "name": "permission captures and access checks",
+   "applies_to": "data/permissions/** and the registry's access evidence",
+   "keep_days": null,
+   "then": "kept indefinitely",
+   "why": "These are the proof that every read was allowed at the moment it happened. They are evidence about publishers and about us, and a record that erases its own justification is worth nothing."
+  },
+  {
+   "id": "R6",
+   "name": "objections",
+   "applies_to": "a request from a person or a publisher, received at the address published on the site",
+   "keep_days": null,
+   "then": "acted on within 30 days: the named rows are redacted immediately regardless of age, the source is marked in the registry, and both the request and what was done about it are recorded",
+   "why": "A rule with no door is a wall. This is the door, and it opens before the ninety days do."
+  }
+ ]
+}
