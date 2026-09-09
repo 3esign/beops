@@ -179,7 +179,9 @@ header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--field
   backdrop-filter:saturate(1.25) blur(16px);-webkit-backdrop-filter:saturate(1.25) blur(16px);
   border-bottom:1px solid var(--ink12)}
 [id]{scroll-margin-top:64px}   /* the header is sticky: without this, following a nav link hides the heading under it */
-.hbar{display:flex;align-items:center;gap:calc(var(--u)*4);padding:calc(var(--u)*3) 0;flex-wrap:wrap}
+.hbar{display:flex;align-items:center;gap:calc(var(--u)*4);padding:calc(var(--u)*3) calc(var(--u)*6);flex-wrap:wrap}   /* the header bar IS the .wrap element, and a `padding: y 0` shorthand here zeroes the side
+      padding .wrap gives every other block. On a wide screen the viewport is wider than --maxw so
+      nothing shows; on a 412 px phone the name sat flush against the glass. Set both axes. */
 .brand{font-weight:700;letter-spacing:-.01em;font-size:17px;border:0;white-space:nowrap;flex:none}
 .hlangs{display:flex;gap:4px;flex:none}
 .hlangs button{font-size:12px;padding:3px 8px}
@@ -203,7 +205,7 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
   .herohead{grid-template-columns:1fr;gap:calc(var(--u)*3)}
   .hero{padding:calc(var(--u)*5) 0 calc(var(--u)*4)}
   .stage{height:min(92vh,860px);width:100%}
-  .hbar{gap:calc(var(--u)*2);padding:calc(var(--u)*2) 0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .hbar{gap:calc(var(--u)*2);padding:calc(var(--u)*2) calc(var(--u)*6);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
   .hbar::-webkit-scrollbar{display:none}
   nav{flex-wrap:nowrap;gap:calc(var(--u)*3);font-size:13px;margin-left:auto}
   nav a{white-space:nowrap}
@@ -218,7 +220,7 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
    the screen, permanently. Five columns fit the nine links in two rows at a size that is still a
    tappable 26 px target, and nothing is hidden behind a sideways scroll. */
 @media (max-width:760px){
-  .hbar{flex-wrap:wrap;overflow:visible;row-gap:calc(var(--u)*1);column-gap:calc(var(--u)*2);padding:calc(var(--u)*1.5) 0}
+  .hbar{flex-wrap:wrap;overflow:visible;row-gap:calc(var(--u)*1);column-gap:calc(var(--u)*2);padding:calc(var(--u)*1.5) calc(var(--u)*4)}
   .brand{font-size:15.5px;flex:0 0 auto}
   button#lang,.hlangs{margin-left:auto;flex:none;gap:3px}
   .hlangs button{padding:2px 6px;font-size:11px;line-height:1.5}
