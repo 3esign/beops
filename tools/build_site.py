@@ -780,6 +780,7 @@ def main() -> int:
                      ("research/05-design/studies/slojevi.svg", "slojevi.svg"),
                      ("research/05-design/studies/traka-live.html", "traka.html"),
                      ("public/live-snapshot.json", "live-snapshot.json"),
+                     ("public/history.json", "history.json"),
                      ("public/basemap-belgrade.json", "basemap-belgrade.json"),
                      ("public/context-population.json", "context-population.json")]:
         p = ROOT / src
