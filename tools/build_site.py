@@ -202,7 +202,9 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
    full width. Band three is the live panel, centred. Everything that spans is declared as spanning:
    a child dropped into a two-column grid lands in the next cell, which is how the panel ended up
    under the left-hand text with half the row empty beside it. */
-.herohead{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,1.05fr) minmax(0,1fr);gap:0 calc(var(--u)*7);align-items:center;margin-bottom:calc(var(--u)*6)}
+.herohead{display:grid;grid-template-columns:minmax(0,1fr) minmax(460px,1.7fr) minmax(0,1fr);gap:0 calc(var(--u)*7);align-items:start;margin-bottom:calc(var(--u)*6)}   /* start, not center: three columns of different heights centred against each other read as
+      ragged. One top edge, and the panel is the wide one because it is the thing with data in
+      it. */
 .stage{position:relative;width:100%;margin:0 auto;height:min(92vh,1040px);border:1px solid var(--ink12);overflow:hidden;background:var(--field)}
 .stage iframe{width:100%;height:100%;border:0;display:block;background:var(--field)}
 .stagelink{position:absolute;right:12px;top:10px;font-size:12px;padding:4px 10px;border:1px solid var(--ink30);border-radius:3px;background:color-mix(in srgb,var(--field) 85%,transparent);backdrop-filter:blur(8px)}
@@ -213,7 +215,7 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 
 /* The live panel sits in the hero, under the sentence that introduces it. It reports its
    own height like every other frame; the 300px is only what the box holds until it does. */
-.nowpanel{width:100%;margin:0;height:380px}
+.nowpanel{width:100%;margin:0;height:400px}
 .nowpanel.fit{height:auto}
 .nowpanel iframe{width:100%;height:100%;border:0;display:block;background:transparent}
 @media (max-width:900px){
@@ -251,7 +253,7 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
       signal: at the foot of the hero this is a provenance line, not a headline. */
 .hero h1{font-size:clamp(22px,2.5vw,33px);line-height:1.1;margin:0;font-weight:600;letter-spacing:-.015em;max-width:15ch;text-wrap:balance}
 .hero h1 em{font-style:normal;color:var(--signal)}
-.hero .sub{font-size:clamp(13.5px,1.05vw,15px);color:var(--ink70);max-width:36ch;margin:0;line-height:1.5}
+.hero .sub{font-size:clamp(13.5px,1.05vw,15px);color:var(--ink70);max-width:36ch;margin:0;line-height:1.55}
 .authors{font-size:14px;color:var(--ink55);max-width:70ch}
 .authors b{color:var(--ink);font-weight:600}
 

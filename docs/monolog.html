@@ -101,7 +101,7 @@ main{display:grid;grid-template-columns:minmax(360px,5fr) minmax(360px,7fr);min-
    different kind of thing from a thought, so it stands on its own ground. */
 main{grid-template-columns:minmax(300px,4fr) minmax(0,8fr)}
 .map{border-bottom:1px solid var(--ink12)}
-.map .cv{flex:0 0 auto;min-height:0;height:auto;width:100%;aspect-ratio:1.04;margin:0}
+.map .cv{flex:0 0 auto;min-height:0;height:auto;width:100%;aspect-ratio:1.333;margin:0}
 /* C-026. Same box as every other map on this site: the shape of the thing drawn (the city's
    bounding box is 1.04 wide to tall), capped and centred, so two maps of the same city are
    the same size and neither has dead space beside it. height:auto because flex-basis:0 from
@@ -150,16 +150,16 @@ body.embedded main{min-height:0}
 body.embedded .how,body.embedded .foot{display:none}
 /* Embedded, the monologue fills its frame exactly: the frame itself never scrolls, and the only
    scroll left is the feed's own, which is what a feed is. */
-body.embedded{height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column}
+body.embedded{height:auto;overflow:visible;display:block}
 body.embedded header{position:static;flex:none}
-body.embedded .mind{flex:none}
-body.embedded main{flex:1;min-height:0}
+
+body.embedded main{min-height:0}
 body.embedded .monolog,body.embedded .map{min-height:0}
 body.embedded .lines{max-height:none;height:var(--feedh,460px)}
 body.embedded .map .cv{min-height:0}
 /* Narrow, the two halves stack and cannot fill one frame: the frame is then made as tall as this
    document instead, and only the feed keeps a scroll of its own. */
-@media (max-width:900px){ body.embedded{height:auto;overflow:visible;display:block}
+@media (max-width:900px){
   body.embedded main{min-height:0} body.embedded .lines{max-height:none;height:var(--feedh,380px)}
   body.embedded .mind{max-height:none;overflow:visible}
   /* Never vh INSIDE an embedded frame: the parent sizes this frame from its content height, so a
