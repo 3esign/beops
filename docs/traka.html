@@ -35,6 +35,8 @@ header h1{font-size:16px;font-weight:600;margin:0;letter-spacing:.01em}
 header h1 span{font-weight:400;color:var(--ink60)}
 .sentence{margin:calc(var(--u)*1) 0 0;color:var(--ink60);max-width:64ch}
 .asof{color:var(--ink60);text-align:right}
+.lang-en .sr-only,.lang-sr .en-only{display:none}
+#lang{font:inherit;font-size:12px;color:var(--ink);background:transparent;border:1px solid var(--ink30);padding:2px 8px;border-radius:3px;cursor:pointer;margin-left:calc(var(--u)*3)}
 .legend{display:flex;flex-wrap:wrap;gap:calc(var(--u)*4);padding:calc(var(--u)*3) calc(var(--u)*6);border-bottom:1px solid var(--ink12);color:var(--ink60);font-size:14px}
 .legend i{display:inline-block;vertical-align:middle;margin-right:calc(var(--u)*1.5)}
 .legend .obs{width:22px;height:0;border-top:2px solid var(--signal)}
@@ -100,23 +102,27 @@ button[aria-pressed="true"]:hover{background:var(--ink)}
 .clock{letter-spacing:.02em}
 </style>
 
+<body class="lang-sr">
 <header>
   <div>
-    <h1>BEOPS <span>· TRAKA · Beograd, last 24 hours</span></h1>
-    <p class="sentence">This is what Belgrade told us, when it told us, and where it went quiet. Every mark is a row the collector received; nothing is filled, smoothed, summed or forecast.</p>
+    <h1>BEOPS <span class="sr-only">· TRAKA · Beograd, poslednja 24 sata</span><span class="en-only">· TRAKA · Belgrade, last 24 hours</span></h1>
+    <p class="sentence"><span class="sr-only">Ovo je ono što nam je Beograd rekao, kad nam je rekao, i gde je zaćutao. Svaka oznaka je red koji je sakupljač primio; ništa se ne popunjava, ne izglađuje, ne sabira i ne predviđa.</span><span class="en-only">This is what Belgrade told us, when it told us, and where it went quiet. Every mark is a row the collector received; nothing is filled, smoothed, summed or forecast.</span></p>
   </div>
-  <div class="asof mono" id="asof">loading rows…</div>
+  <div>
+    <div class="asof mono" id="asof"><span class="sr-only">učitavanje redova…</span><span class="en-only">loading rows…</span></div>
+    <button id="lang" aria-pressed="false" title="Jezik / Language">SR / EN</button>
+  </div>
 </header>
 <div class="legend">
-  <span><i class="obs"></i>observed, time known — signal</span>
-  <span><i class="unt"></i>observed, time unknown — value exact, age smeared to the left</span>
-  <span><i class="nod"></i>no data — a mark about nothing</span>
-  <span><i class="q"></i>quorum — who spoke in each slot: filled · hatched (some) · hollow (none)</span>
-  <span class="mono" id="hint">move along the ribbon to read</span>
+  <span><i class="obs"></i><span class="sr-only">izmereno, vreme poznato — signal</span><span class="en-only">observed, time known — signal</span></span>
+  <span><i class="unt"></i><span class="sr-only">izmereno, vreme nepoznato — vrednost je tačna, starost je razmazana ulevo</span><span class="en-only">observed, time unknown — value exact, age smeared to the left</span></span>
+  <span><i class="nod"></i><span class="sr-only">nema podatka — oznaka o tome da ničega nema</span><span class="en-only">no data — a mark about nothing</span></span>
+  <span><i class="q"></i><span class="sr-only">kvorum — ko je govorio u kom taktu: popunjeno · šrafirano (neki) · prazno (nijedan)</span><span class="en-only">quorum — who spoke in each slot: filled · hatched (some) · hollow (none)</span></span>
+  <span class="mono" id="hint"><span class="sr-only">pređi po traci da čitaš</span><span class="en-only">move along the ribbon to read</span></span>
 </div>
 <main>
   <section class="ribbon" id="ribbon"></section>
-  <aside class="reading" id="reading"><h3>Reading</h3><div class="t mono" id="rt">—</div><div id="rr"></div></aside>
+  <aside class="reading" id="reading"><h3><span class="sr-only">Čitanje</span><span class="en-only">Reading</span></h3><div class="t mono" id="rt">—</div><div id="rr"></div></aside>
 </main>
 <p class="foot" id="foot"></p>
 
@@ -151,7 +157,10 @@ function buildLanes(snap){
   return out;
 }
 function ORDER(p){const o={PM10:1,'PM2.5':2,P1:1,P2:2,P0:3,NO2:3,NOX:4,NO:5,O3:6,SO2:7,CO:8,temperature:1,humidity:2,pressure:3,pressure_at_sealevel:4,free_spaces:1};return o[p]||50;}
-const PNAME={P1:'PM10 (citizen)',P2:'PM2.5 (citizen)',P0:'PM1 (citizen)',free_spaces:'free spaces'};
+let LANG='sr'; const S=(a,b)=>LANG==='sr'?a:b;
+const PNAME={P1:'PM10 (građanski)',P2:'PM2.5 (građanski)',P0:'PM1 (građanski)',free_spaces:'slobodna mesta'};
+const PNAME_EN={P1:'PM10 (citizen)',P2:'PM2.5 (citizen)',P0:'PM1 (citizen)',free_spaces:'free spaces'};
+const pname=k=>(LANG==='sr'?PNAME:PNAME_EN)[k]||k;
 
 // ---------- scales ----------------------------------------------------
 function x(t){const w=curW; return PAD_L+(t-T0)/(T1-T0)*(w-PAD_L-PAD_R);}
@@ -231,7 +240,7 @@ function render(){
   const axc=axl.querySelector('canvas'); lanes.push({cv:axc,draw:()=>drawAxis(axc)});
   for(const grp of lanes.groups){
     const el=document.createElement('section'); el.className='group';
-    const st=grp.st; const known=(grp.src.phenomenon_time_published||'').toUpperCase().startsWith('NO')?'source publishes no measurement time':'measurement time published by source';
+    const st=grp.st; const known=(grp.src.phenomenon_time_published||'').toUpperCase().startsWith('NO')?S('izvor ne objavljuje vreme merenja','source publishes no measurement time'):S('izvor objavljuje vreme merenja','measurement time published by source');
     el.innerHTML=`<div class="gh"><h2>${esc(grp.src.name)}<small class="mono">${esc(grp.src.sid)}</small></h2><div class="meta mono">${grp.src.cadence_seconds}s cadence · ${esc(known)}</div></div>`;
     // group quorum: receipts on disk in the window
     const q=document.createElement('div'); q.className='quorum';
@@ -248,14 +257,17 @@ function render(){
   }
   const foot=document.getElementById('foot');
   const nrows=SNAP.sources.reduce((a,s)=>a+s.datastreams.reduce((b,d)=>b+d.points.length,0),0);
-  foot.innerHTML=`<b>${nrows.toLocaleString('en')}</b> rows from <b>${SNAP.sources.reduce((a,s)=>a+s.datastreams.length,0)}</b> datastreams, received between ${fmtT(T0)} and ${fmtT(T1)} UTC. Snapshot ${esc(SNAP.as_of)}. Cadence slots with no reception are silent, not zero. Each SEPA value is the source's own hourly mean marked <span class="mono">preliminary</span>; each parking value is exact and its age is unknown, so its ground fades left to the previous reception. Nothing here is a measurement of the city; it is what the city's instruments published, and when we received it.`;
+  const nds=SNAP.sources.reduce((a,s)=>a+s.datastreams.length,0);
+  foot.innerHTML=LANG==='sr'
+    ? `<b>${nrows.toLocaleString('sr-RS')}</b> redova iz <b>${nds}</b> tokova, primljeno između ${fmtT(T0)} i ${fmtT(T1)} UTC. Snimak ${esc(SNAP.as_of)}. Takt bez prijema je tišina, ne nula. Svaka SEPA vrednost je satni prosek samog izvora označen kao <span class="mono">preliminary</span>; svaka vrednost parkinga je tačna a njena starost nepoznata, pa joj se podloga gubi ulevo do prethodnog prijema. Ništa ovde nije merenje grada; ovo je ono što su gradski instrumenti objavili, i kad smo to primili.`
+    : `<b>${nrows.toLocaleString('en')}</b> rows from <b>${nds}</b> datastreams, received between ${fmtT(T0)} and ${fmtT(T1)} UTC. Snapshot ${esc(SNAP.as_of)}. Cadence slots with no reception are silent, not zero. Each SEPA value is the source's own hourly mean marked <span class="mono">preliminary</span>; each parking value is exact and its age is unknown, so its ground fades left to the previous reception. Nothing here is a measurement of the city; it is what the city's instruments published, and when we received it.`;
   drawAll();
 }
 function mkLane(param,streams,cadence,sub,unit){
   const el=document.createElement('div'); el.className='lane'+(sub?' sub':'');
   const n=streams.length, pts=streams.reduce((a,s)=>a+s.points.length,0);
-  const label=sub?esc(streams[0].station||streams[0].datastream):esc(PNAME[param]||param);
-  el.innerHTML=`<div class="ll"><span>${label}</span><span class="num">${sub?'':n+' streams · '}${pts} rows${unit?' · '+esc(unit):''}</span></div><div class="lc"><canvas></canvas></div>`;
+  const label=sub?esc(streams[0].station||streams[0].datastream):esc(pname(param)||param);
+  el.innerHTML=`<div class="ll"><span>${label}</span><span class="num">${sub?'':n+S(' tokova · ',' streams · ')}${pts}${S(' redova',' rows')}${unit?' · '+esc(unit):''}</span></div><div class="lc"><canvas></canvas></div>`;
   const cv=el.querySelector('canvas'); const lane={el,cv,streams,cadence,param,sub,draw:()=>drawLane(cv,streams,cadence,sub)};
   lanes.push(lane); return lane;
 }
@@ -294,9 +306,9 @@ function reading(t){
       let v='—';
       if(vals.length){ const lo=Math.min(...vals), hi=Math.max(...vals); v=vals.length===1?fmt(vals[0]):fmt(lo)+'–'+fmt(hi); }
       let sub=`${have} of ${pl.streams.length} spoke`+(missing?` · ${missing} reported no value`:'');
-      if(untimed) sub+=` · age ≤ ${Math.round(Math.max(...ages)/60000)} min since reception, measurement time unknown`;
-      if(have===0) sub='no data — no reception within 1.5 cadences before this instant';
-      parts.push(`<div class="rrow"><span class="k">${esc(PNAME[pl.param]||pl.param)}${pl.unit?' <span class="mono">'+esc(pl.unit)+'</span>':''}</span><span class="v ${cls}">${v}</span><span class="sub">${sub}</span></div>`);
+      if(untimed) sub+=S(` · starost ≤ ${Math.round(Math.max(...ages)/60000)} min od prijema, vreme merenja nepoznato`,` · age ≤ ${Math.round(Math.max(...ages)/60000)} min since reception, measurement time unknown`);
+      if(have===0) sub=S('nema podatka — nijedan prijem u 1,5 takta pre ovog trenutka','no data — no reception within 1.5 cadences before this instant');
+      parts.push(`<div class="rrow"><span class="k">${esc(pname(pl.param)||pl.param)}${pl.unit?' <span class="mono">'+esc(pl.unit)+'</span>':''}</span><span class="v ${cls}">${v}</span><span class="sub">${sub}</span></div>`);
     }
   }
   rr.innerHTML=parts.join('');
@@ -306,9 +318,9 @@ function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
 
 // ---------- boot -----------------------------------------------------
 load().then(snap=>{
-  if(!snap){document.getElementById('asof').textContent='no snapshot — run: python -B tools/collect_daemon.py export';return;}
+  if(!snap){document.getElementById('asof').textContent=S('nema snimka — pokreni: python -B tools/collect_daemon.py export','no snapshot — run: python -B tools/collect_daemon.py export');return;}
   SNAP=snap; T1=P(snap.as_of); T0=T1-snap.window_hours*3600e3;
-  document.getElementById('asof').innerHTML=`snapshot ${esc(snap.as_of.slice(0,19))}Z<br>window ${snap.window_hours} h`;
+  document.getElementById('asof').innerHTML=S(`snimak ${esc(snap.as_of.slice(0,19))}Z<br>prozor ${snap.window_hours} h`,`snapshot ${esc(snap.as_of.slice(0,19))}Z<br>window ${snap.window_hours} h`);
   lanes=[]; lanes.groups=buildLanes(snap);
   render();
   const rib=document.getElementById('ribbon');
@@ -321,6 +333,19 @@ load().then(snap=>{
   reading(T1);
   let raf=null; window.addEventListener('resize',()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(drawAll);});
   if(window.matchMedia){window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',drawAll);}
+
+  // Both languages, and the front page's own switch reaches in here the way it reaches the other studies.
+  function setLang(l){
+    if(l===LANG) return;
+    LANG=l;
+    document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG);
+    document.documentElement.lang=LANG;
+    const b=document.getElementById('lang'); if(b) b.setAttribute('aria-pressed',String(LANG==='en'));
+    lanes=[]; lanes.groups=buildLanes(SNAP); render(); reading(HAIR||T1); drawAll();
+  }
+  const lb=document.getElementById('lang');
+  if(lb) lb.addEventListener('click',()=>setLang(LANG==='sr'?'en':'sr'));
+  window.addEventListener('message',ev=>{ if(ev&&ev.data&&ev.data.beopsLang) setLang(ev.data.beopsLang); });
 });
 })();
 </script>

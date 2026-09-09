@@ -110,6 +110,11 @@ def collectors() -> list:
             for s in d.get("sources", [])]
 
 
+def related() -> dict:
+    d = read_json(RES / "RELATED_WORK.json", {}) or {}
+    return {"claim": d.get("claim_boundary", {}), "entries": d.get("entries", [])}
+
+
 def organs() -> list:
     d = read_json(RES / "ORGANS.json", {}) or {}
     return [{"id": o.get("id"), "purpose": o.get("purpose", ""), "status": o.get("status", ""),
@@ -209,7 +214,7 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
   .hbar{flex-wrap:wrap;overflow:visible;row-gap:calc(var(--u)*1.5);column-gap:calc(var(--u)*3);padding:calc(var(--u)*1.5) 0}
   .brand{font-size:16px;flex:0 0 auto}
   button#lang{margin-left:auto;flex:none;padding:3px 8px}
-  nav{order:3;flex:1 0 100%;margin-left:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  nav{order:3;flex:1 0 100%;margin-left:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
       column-gap:calc(var(--u)*2);row-gap:calc(var(--u)*1.5);font-size:12.5px;text-align:center}
   nav a{white-space:nowrap;padding:3px 0;min-height:26px;display:flex;align-items:center;justify-content:center}
   [id]{scroll-margin-top:104px}
@@ -228,6 +233,15 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 .layers svg{width:100%;height:auto;display:block}
 .layerlink{display:block;text-align:center;font-size:12px;color:var(--ink55);margin-top:calc(var(--u)*3)}
 .folded .secbody{display:none}
+.claimbox{border-left:2px solid var(--signal);padding:calc(var(--u)*1) 0 calc(var(--u)*1) calc(var(--u)*5);margin:calc(var(--u)*6) 0;max-width:80ch}
+.claimbox p{margin:0 0 calc(var(--u)*4);color:var(--ink70)}
+.claimbox b{color:var(--ink)}
+.rwgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:calc(var(--u)*5);margin-top:calc(var(--u)*6)}
+.rw{border-top:1px solid var(--ink12);padding-top:calc(var(--u)*3)}
+.rw .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink55);font-weight:600}
+.rw h3{font-size:15px;margin:calc(var(--u)*1) 0 calc(var(--u)*2);font-weight:600;line-height:1.25}
+.rw p{margin:0 0 calc(var(--u)*2);font-size:13.5px;color:var(--ink70)}
+.rw .takes{color:var(--ink);border-left:1px solid var(--ink12);padding-left:calc(var(--u)*3)}
 button.fold{margin-left:auto;font-size:12px;line-height:1;padding:2px 9px;color:var(--ink55)}
 h2+button.fold{margin-left:calc(var(--u)*3)}
 /* on a narrow screen the drawing keeps a readable size and scrolls inside its own box; the page itself never scrolls sideways */
@@ -312,6 +326,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
       <a href="#slojevi"><span class="sr-only">Slojevi</span><span class="en-only">Layers</span></a>
       <a href="#kako"><span class="sr-only">Kako radi</span><span class="en-only">How it works</span></a>
       <a href="#izvori"><span class="sr-only">Izvori</span><span class="en-only">Sources</span></a>
+      <a href="#srodno"><span class="sr-only">Srodno</span><span class="en-only">Related</span></a>
       <a href="#dozvole"><span class="sr-only">Dozvole</span><span class="en-only">Permissions</span></a>
       <a href="#greske"><span class="sr-only">Greške</span><span class="en-only">Corrections</span></a>
       <a href="#citaj"><span class="sr-only">Čitaj</span><span class="en-only">Read</span></a>
@@ -435,6 +450,19 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
     <h2><span class="sr-only">Svaki put kad je ovaj sistem rekao nešto neistinito</span><span class="en-only">Every time this system said something untrue</span></h2>
     <p class="lede"><span class="sr-only">Sistem koji krije sopstvene greške ne vredi ništa, jer jedino što treba da dokaže jeste da ne govori tiho neistine. Zato je ovaj spisak javan i dopisuje se, nikad se ne briše.</span><span class="en-only">A system that hides its own failures is worth nothing, because the one thing it must prove is that it does not quietly say untrue things. So this list is public, append-only, and never edited.</span></p>
     <div class="corr" id="corr"></div>
+  </div>
+</section>
+
+<section id="srodno">
+  <div class="wrap">
+    <h2><span class="sr-only">Srodni radovi, standardi i projekti</span><span class="en-only">Related work, standards and projects</span></h2>
+    <p class="sub" style="max-width:80ch"><span class="sr-only">Ovo nije prvi pokušaj da grad govori kroz svoje instrumente. Ovde stoji odakle je šta uzeto, sa linkom na izvor da čitalac ne mora da nam veruje — i, ispod, šta se ovde tvrdi kao novo, a šta ne. Beleška „uzima" govori šta je ovaj projekat uzeo iz tog rada; ne tvrdi da autori znaju za ovaj projekat niti da ga odobravaju.</span><span class="en-only">This is not the first attempt to let a city speak through its instruments. Here is where each idea came from, with a link so the reader need not take our word — and, below, what is claimed as new here and what is not. The "takes" note says what this project took from that work; it does not claim the authors know of this project or endorse it.</span></p>
+    <div class="claimbox">
+      <p><b><span class="sr-only">Standardno, i nimalo novo</span><span class="en-only">Standard, and in no way new</span></b><br><span class="sr-only">__STD_SR__</span><span class="en-only">__STD_EN__</span></p>
+      <p><b><span class="sr-only">Ono što ovde jeste drugačije</span><span class="en-only">What is different here</span></b><br><span class="sr-only">__OURS_SR__</span><span class="en-only">__OURS_EN__</span></p>
+      <p><b><span class="sr-only">Šta se ne tvrdi</span><span class="en-only">What is not claimed</span></b><br><span class="sr-only">__NOT_SR__</span><span class="en-only">__NOT_EN__</span></p>
+    </div>
+    <div class="rwgrid" id="related"></div>
   </div>
 </section>
 
@@ -590,9 +618,24 @@ addEventListener('message',function(ev){
   }
 });
 
+// Related work: rendered from research/RELATED_WORK.json, so no citation can appear here
+// that is not in the register a reader can clone.
+(function relatedWork(){
+  var box=document.getElementById('related'); if(!box||!D.related) return;
+  var kindName={project:[ 'Srodni projekat','Related project'],standard:['Standard','Standard'],work:['Rad','Work']};
+  (D.related.entries||[]).forEach(function(e){
+    var k=kindName[e.kind]||['',''];
+    box.insertAdjacentHTML('beforeend',
+      '<div class="rw"><div class="k">'+esc(e.id)+' · '+T(k[0],k[1])+'</div>'+
+      '<h3><a href="'+esc(e.url)+'" rel="noopener">'+esc(e.name)+'</a></h3>'+
+      '<p>'+esc(T(e.what_sr,e.what_en))+'</p>'+
+      '<p class="takes">'+T('uzima','takes')+': '+esc(T(e.takes_sr,e.takes_en))+'</p></div>');
+  });
+})();
+
 // Each part can be folded away: its heading gets a button, the rest of the part hides.
 (function fold(){
-  var ids=['zivo','podaci','slojevi','kako','izvori','dozvole','greske','citaj'];
+  var ids=['zivo','podaci','slojevi','kako','izvori','srodno','dozvole','greske','citaj'];
   ids.forEach(function(id){
     var sec=document.getElementById(id); if(!sec) return;
     var w=sec.querySelector('.wrap'); if(!w) return;
@@ -633,6 +676,7 @@ def main() -> int:
         "collectors": collectors(),
         "organs": organs(),
         "live": live(),
+        "related": related(),
     }
     DOCS.mkdir(parents=True, exist_ok=True)
     html = TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False).replace("</script>", "<\\/script>"))
@@ -645,6 +689,11 @@ def main() -> int:
     except Exception as e:  # noqa: BLE001
         layers_svg = f"<!-- layers drawing unavailable: {type(e).__name__} -->"
     html = html.replace("__LAYERS_SVG__", layers_svg)
+    cb = data["related"]["claim"]
+    for key, ph in (("standard_sr", "__STD_SR__"), ("standard_en", "__STD_EN__"),
+                    ("ours_sr", "__OURS_SR__"), ("ours_en", "__OURS_EN__"),
+                    ("not_sr", "__NOT_SR__"), ("not_en", "__NOT_EN__")):
+        html = html.replace(ph, cb.get(key, ""))   # the claim boundary is a register entry, not page copy
     html = html.replace("{stamp}", data["built"].replace(" ", "T").replace(":", "").replace("-", ""))   # the stage frame: a browser that cached yesterday's monolog.html must not show it today
     (DOCS / "index.html").write_text(html, encoding="utf-8")
     for src, dst in [("research/05-design/studies/monolog-puls.html", "monolog.html"),

@@ -357,16 +357,16 @@ def build(c: dict, small: bool = False) -> str:
     lx, ly = sx - D_PLATE - 18, sy + 44
     parts.append(f'<line class="leader" x1="{lx + 5:.1f}" y1="{ly - 4:.1f}" x2="{sx - 3:.1f}" y2="{sy + 3:.1f}"/>')
     parts.append(text(lx, ly, "0 · Zakon i dozvola — temelj", "0 · Law and permission — the foundation", size=12.5, anchor="end", weight="600"))
-    parts.append(text(lx, ly + 14, f"{c['records']} zapisa · {c['polled']} se čita · {c['refused']} odbijanja",
-                      f"{c['records']} records · {c['polled']} polled · {c['refused']} refusals", size=10, anchor="end", cls="dim only-small"))
+    parts.append(text(lx, ly + 14, f"{c['records']} zapisa · {c['polled']} se čita · {c['refused']} izvora reklo ne",
+                      f"{c['records']} records · {c['polled']} polled · {c['refused']} sources said no", size=10, anchor="end", cls="dim only-small"))
     yy = ly + 14
     law_sr = (f"zahvat dozvole pre svakog čitanja · knjiga zahvata · {c['records']} zapisa u registru, "
-              f"{c['polled']} se čita, {c['refused']} imenovanih odbijanja koja se ne zaobilaze · nedeljna ponovna provera · "
+              f"{c['polled']} se čita, {c['refused']} izvora je reklo ne i to se ne zaobilazi · nedeljna ponovna provera · "
               "ivični slučajevi E-001–E-013, ispravke C-001–C-013, urednik od zapisa · "
               "prednja polovina temelja je srpsko pravo — ZASP čl. 6(2) i 49, ZZPL čl. 88 i 92, pristup informacijama, buka čl. 25, KZ čl. 143; "
               "zadnja polovina je EU horizont — 2019/790 čl. 3–4 (Content-Signal), baze 96/9, GDPR 85 i 89, AI akt čl. 50")
     law_en = (f"a permission capture before any reading · the ledger · {c['records']} registry records, "
-              f"{c['polled']} polled, {c['refused']} named refusals never circumvented · a weekly re-check · "
+              f"{c['polled']} polled, {c['refused']} sources said no and none is circumvented · a weekly re-check · "
               "edge cases E-001–E-013, corrections C-001–C-013, an editor of record · "
               "the front half of the slab is Serbian law — Copyright Act Arts. 6(2) and 49, Data Protection Act 88 and 92, Access to Information, noise Art. 25, Criminal Code 143; "
               "the back half is the EU horizon — 2019/790 Arts. 3–4 (Content-Signal), Database 96/9, GDPR 85 and 89, AI Act Art. 50")
