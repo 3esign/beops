@@ -426,7 +426,14 @@ document.getElementById('lang').addEventListener('click',()=>{LANG=LANG==='sr'?'
   btn.addEventListener('click',function(){ VIEW={k:1,tx:0,ty:0}; clamp(); });
 })();
 
-window.addEventListener('message',ev=>{ if(ev&&ev.data&&ev.data.beopsLang&&ev.data.beopsLang!==LANG){ LANG=ev.data.beopsLang; renderAll(); } });
+window.addEventListener('message',ev=>{
+  if(d.beopsTheme!==undefined){
+    if(d.beopsTheme) document.documentElement.setAttribute('data-theme',d.beopsTheme);
+    else document.documentElement.removeAttribute('data-theme');
+    // the map is painted from the palette at draw time, so it has to be painted again
+    setTimeout(function(){ try{ if(SNAP) renderAll(); }catch(e){} },0);
+  }
+ if(ev&&ev.data&&ev.data.beopsLang&&ev.data.beopsLang!==LANG){ LANG=ev.data.beopsLang; renderAll(); } });
 window.addEventListener('resize',()=>{ if(SNAP) drawMap(); });
 document.body.classList.add('lang-sr');
 Promise.all([load('basemap-belgrade.json'),load('live-snapshot.json'),load('history.json')]).then(([b,s,h])=>{ BASEMAP=b&&b.features?b:null; SNAP=s; HIST=h; if(!s){document.getElementById('clock').textContent='no snapshot';return;} renderAll(); });

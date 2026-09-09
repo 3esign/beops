@@ -395,7 +395,13 @@ load().then(snap=>{
   }
   const lb=document.getElementById('lang');
   if(lb) lb.addEventListener('click',()=>setLang(LANG==='sr'?'en':'sr'));
-  window.addEventListener('message',ev=>{ if(ev&&ev.data&&ev.data.beopsLang) setLang(ev.data.beopsLang); });
+  window.addEventListener('message',ev=>{
+  if(d.beopsTheme!==undefined){
+    if(d.beopsTheme) document.documentElement.setAttribute('data-theme',d.beopsTheme);
+    else document.documentElement.removeAttribute('data-theme');
+    setTimeout(function(){ try{ render(); }catch(e){} },0);
+  }
+ if(ev&&ev.data&&ev.data.beopsLang) setLang(ev.data.beopsLang); });
 });
 })();
 </script>

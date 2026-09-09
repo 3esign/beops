@@ -34,7 +34,14 @@ body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans)
 .clock{font-family:var(--mono);font-size:12px;color:var(--ink60);white-space:nowrap}
 .clock b{color:var(--ink);font-weight:600}
 .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
-.tile{padding:calc(var(--u)*3);border-right:1px solid var(--ink12);border-bottom:1px solid var(--ink12);min-width:0}
+/* One height in every range. The extremes used to sit under the label, so choosing 24 h made
+   the panel grow and the page below it jump; they now sit on the value's own line, to the
+   right, where there was empty space anyway. */
+.tile{padding:calc(var(--u)*3);border-right:1px solid var(--ink12);border-bottom:1px solid var(--ink12);min-width:0;min-height:104px;display:flex;flex-direction:column}
+.vrow{display:flex;align-items:baseline;justify-content:space-between;gap:calc(var(--u)*2)}
+.ext{font-family:var(--mono);font-size:11px;color:var(--ink60);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ext b{display:block;font-weight:400;color:var(--ink)}
+.tile .p{margin-top:auto}
 .tile:nth-child(3n){border-right:0}
 .tile:nth-last-child(-n+3){border-bottom:0}
 .v{font-size:26px;line-height:1.05;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
@@ -43,8 +50,8 @@ body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans)
 .k{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink60);font-weight:600;margin-top:2px}
 .p{font-size:11.5px;line-height:1.35;color:var(--ink60);margin-top:5px;font-family:var(--mono)}
 .p .warn{color:var(--signal-untimed)}
-.spark{margin-top:6px}
-.spark svg{display:block;width:100%;height:38px;overflow:visible}
+.spark{margin-top:auto}
+.spark svg{display:block;width:100%;height:34px;overflow:visible}
 .spark .fr{stroke:var(--ink12);stroke-width:1;vector-effect:non-scaling-stroke;fill:none}
 .spark .ln{stroke:var(--signal);stroke-width:1.5;fill:none;vector-effect:non-scaling-stroke;
   stroke-linejoin:round;stroke-linecap:round}
@@ -292,17 +299,16 @@ function render(){
       var untimed=h&&h.time_basis==='received';
       if(untimed) anyUntimedLine=true;
       var sp=spark(bk,hoursBack,untimed);
-      body='<div class="v">'+(got?num(got.p.v,tile.dec):'—')
+      body='<div class="vrow"><div class="v">'+(got?num(got.p.v,tile.dec):'—')
         +'<span class="un">'+(tile.unit||'')+'</span></div>'
+        +'<div class="ext">'+(sp.n
+            ? ('<b>'+num(sp.lo,tile.dec)+'–'+num(sp.hi,tile.dec)+'</b>'+sp.n+'/'+hoursBack+' h')
+            : '<span class="warn">'+t('nodata')+'</span>')+'</div></div>'
         +'<div class="k">'+t(tile.k)+'</div>'
-        +'<div class="spark">'+(sp.svg||'')+'</div>'
-        +'<div class="p">'+(sp.n
-            ? (t('minmax')+' '+num(sp.lo,tile.dec)+' · '+t('maxx')+' '+num(sp.hi,tile.dec)
-               +' · '+sp.n+'/'+hoursBack+' h')
-            : '<span class="warn">'+t('nodata')+'</span>')+'</div>';
+        +'<div class="spark">'+(sp.svg||'')+'</div>';
     } else {
-      body='<div class="v'+(got&&(got.p.tu||!got.p.t)?' untimed':'')+'">'
-        +(got?num(got.p.v,tile.dec):'—')+'<span class="un">'+(tile.unit||'')+'</span></div>'
+      body='<div class="vrow"><div class="v'+(got&&(got.p.tu||!got.p.t)?' untimed':'')+'">'
+        +(got?num(got.p.v,tile.dec):'—')+'<span class="un">'+(tile.unit||'')+'</span></div></div>'
         +'<div class="k">'+t(tile.k)+'</div>'
         +'<div class="p">'+provenance(tile,got)+'</div>';
     }
@@ -339,6 +345,11 @@ Promise.all([load('live-snapshot.json'),load('history.json'),load('watch.json')]
 });
 addEventListener('message',function(ev){
   var d=ev&&ev.data; if(!d) return;
+  if(d.beopsTheme!==undefined){
+    // A light page with dark windows in it is not a light page.
+    if(d.beopsTheme) document.documentElement.setAttribute('data-theme',d.beopsTheme);
+    else document.documentElement.removeAttribute('data-theme');
+  }
   var l=d.beopsLang4||d.beopsLang;
   if(l&&IDX[l]!==undefined&&l!==LANG){ LANG=l; render(); }
 });

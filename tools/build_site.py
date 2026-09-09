@@ -179,6 +179,11 @@ header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--field
       padding .wrap gives every other block. On a wide screen the viewport is wider than --maxw so
       nothing shows; on a 412 px phone the name sat flush against the glass. Set both axes. */
 .brand{font-weight:700;letter-spacing:-.01em;font-size:17px;border:0;white-space:nowrap;flex:none}
+/* Both palettes have always existed; what was missing was a way for the reader to choose one.
+   Three states, in this order: follow the machine, light, dark. The choice is remembered in this
+   browser only and is passed to every frame, because a page that is light with dark windows in it
+   is not a light page. */
+.themebtn{flex:none;font-size:13px;line-height:1;padding:4px 8px}
 .hlangs{display:flex;gap:4px;flex:none}
 .hlangs button{font-size:12px;padding:3px 8px}
 .hlangs button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-color:var(--ink)}
@@ -197,29 +202,29 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
    full width. Band three is the live panel, centred. Everything that spans is declared as spanning:
    a child dropped into a two-column grid lands in the next cell, which is how the panel ended up
    under the left-hand text with half the row empty beside it. */
-.herohead{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:0 calc(var(--u)*8);align-items:end;margin-bottom:calc(var(--u)*6)}
+.herohead{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,1.05fr) minmax(0,1fr);gap:0 calc(var(--u)*7);align-items:center;margin-bottom:calc(var(--u)*6)}
 .stage{position:relative;width:100%;margin:0 auto;height:min(92vh,1040px);border:1px solid var(--ink12);overflow:hidden;background:var(--field)}
 .stage iframe{width:100%;height:100%;border:0;display:block;background:var(--field)}
 .stagelink{position:absolute;right:12px;top:10px;font-size:12px;padding:4px 10px;border:1px solid var(--ink30);border-radius:3px;background:color-mix(in srgb,var(--field) 85%,transparent);backdrop-filter:blur(8px)}
-.hero .authors{grid-column:1 / -1;max-width:none;margin:calc(var(--u)*5) 0 0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero .authors{grid-column:1 / -1;max-width:none;margin:calc(var(--u)*7) 0 0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* The signature and the venue line are each ONE line: a signature that wraps stops reading as a
    signature and starts reading as a paragraph. Below 900 px there is no room for that, so they
    wrap there rather than being cut. */
 
 /* The live panel sits in the hero, under the sentence that introduces it. It reports its
    own height like every other frame; the 300px is only what the box holds until it does. */
-.nowpanel{grid-column:1 / -1;width:min(100%,980px);margin:calc(var(--u)*7) auto 0;height:300px}
+.nowpanel{width:100%;margin:0;height:380px}
 .nowpanel.fit{height:auto}
 .nowpanel iframe{width:100%;height:100%;border:0;display:block;background:transparent}
 @media (max-width:900px){
-  .herohead{grid-template-columns:1fr;gap:calc(var(--u)*3)}
+  .herohead{grid-template-columns:1fr;gap:calc(var(--u)*4)}
   .hero{padding:calc(var(--u)*5) 0 calc(var(--u)*4)}
   .stage{height:min(92vh,860px);width:100%}
   .hbar{gap:calc(var(--u)*2);padding:calc(var(--u)*2) calc(var(--u)*6);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
   .hbar::-webkit-scrollbar{display:none}
   nav{flex-wrap:nowrap;gap:calc(var(--u)*3);font-size:13px;margin-left:auto}
   nav a{white-space:nowrap}
-  button#lang,.hlangs{flex:none}
+  button#lang,.hlangs,.themebtn{flex:none}
   .brand span{display:none}
   .stagelink{top:auto;bottom:10px}
 }
@@ -244,9 +249,9 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 .hero .kicker{grid-column:1 / -1;margin:calc(var(--u)*6) 0 0;padding-top:calc(var(--u)*4);border-top:1px solid var(--ink12);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink55);font-weight:600}   /* one rule, one place: two declarations for one element is C-023's shape at a smaller
       scale - the second wins silently and nothing shows you which one decided. Muted, not
       signal: at the foot of the hero this is a provenance line, not a headline. */
-.hero h1{font-size:clamp(26px,3.6vw,44px);line-height:1.06;margin:0 0 calc(var(--u)*5);font-weight:600;letter-spacing:-.02em;max-width:20ch;text-wrap:balance}
+.hero h1{font-size:clamp(22px,2.5vw,33px);line-height:1.1;margin:0;font-weight:600;letter-spacing:-.015em;max-width:15ch;text-wrap:balance}
 .hero h1 em{font-style:normal;color:var(--signal)}
-.hero .sub{font-size:clamp(15px,1.35vw,17.5px);color:var(--ink70);max-width:52ch;margin:0}
+.hero .sub{font-size:clamp(13.5px,1.05vw,15px);color:var(--ink70);max-width:36ch;margin:0;line-height:1.5}
 .authors{font-size:14px;color:var(--ink55);max-width:70ch}
 .authors b{color:var(--ink);font-weight:600}
 
@@ -371,7 +376,10 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
    the surviving one BELOW the narrow-screen block that lets the signature and the venue line
    wrap, so on a phone they would have been clipped to one line instead. Narrowing rules live
    at the end of the sheet. */
-@media (max-width:900px){ .hero .authors,.hero .kicker{white-space:normal;overflow:visible;text-overflow:clip} }
+@media (max-width:900px){ .hero .authors,.hero .kicker{white-space:normal;overflow:visible;text-overflow:clip}
+  .hero h1{max-width:none;font-size:clamp(23px,6.6vw,31px)}
+  .hero .sub{max-width:none}
+  .nowpanel{height:520px} }
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important}}
 </style>
 </head>
@@ -390,7 +398,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
       <a href="#dozvole"><span class="sr-only i18n">Dozvole</span><span class="en-only i18n">Permissions</span><span class="zh-only">许可</span><span class="de-only">Erlaubnisse</span></a>
       <a href="#greske"><span class="sr-only i18n">Greške</span><span class="en-only i18n">Corrections</span><span class="zh-only">更正</span><span class="de-only">Korrekturen</span></a>
     </nav>
-    <div class="hlangs" id="lang" role="group" aria-label="Jezik / Language"><button type="button" data-l="sr" aria-pressed="true">SR</button><button type="button" data-l="en" aria-pressed="false">EN</button><button type="button" data-l="zh" aria-pressed="false">中文</button><button type="button" data-l="de" aria-pressed="false">DE</button></div>
+    <button type="button" id="theme" class="themebtn" title="Svetlo / tamno · Light / dark" aria-label="Svetlo / tamno · Light / dark">◐</button><div class="hlangs" id="lang" role="group" aria-label="Jezik / Language"><button type="button" data-l="sr" aria-pressed="true">SR</button><button type="button" data-l="en" aria-pressed="false">EN</button><button type="button" data-l="zh" aria-pressed="false">中文</button><button type="button" data-l="de" aria-pressed="false">DE</button></div>
   </div>
 </header>
 
@@ -399,9 +407,9 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
     <div>
       <h1><span class="sr-only i18n">Ovo je ono što nam je Beograd rekao, kad nam je rekao, i <em>gde je zaćutao</em>.</span><span class="en-only i18n">This is what Belgrade told us, when it told us, and <em>where it went quiet</em>.</span><span class="zh-only">这是贝尔格莱德告诉我们的内容、告诉我们的时刻，以及<em>它沉默的地方</em>。</span><span class="de-only">Das ist, was Belgrad uns gesagt hat, wann es das gesagt hat, und <em>wo es verstummt ist</em>.</span></h1>
     </div>
+      <div class="nowpanel"><iframe id="nowstage" src="sada.html?v={stamp}" title="BEOPS · Sada / Now" loading="eager"></iframe></div>
     <p class="sub"><span class="sr-only i18n">Grad govori u prijemima; mapa kruži samo kad je instrument stvarno pročitan; um od malih lokalnih modela razmišlja naglas i svaka njegova rečenica se proverava pre nego što je vidiš. Ono čega nema je zapis — nikada nula.</span><span class="en-only i18n">The city speaks in receptions; the map pulses only when an instrument was actually read; a mind of small local models thinks aloud and every sentence is checked before you see it. What is missing is a record — never a zero.</span><span class="zh-only">城市以“接收”说话；只有当仪器真正被读取时，地图才会脉动；一个由小型本地模型组成的思维出声思考，而它的每一句话在你看到之前都经过核验。缺失的东西是一条记录——绝不是零。</span><span class="de-only">Die Stadt spricht in Empfängen; die Karte pulsiert nur, wenn ein Instrument tatsächlich gelesen wurde; ein Verstand aus kleinen lokalen Modellen denkt laut, und jeder seiner Sätze wird geprüft, bevor Sie ihn sehen. Was fehlt, ist ein Eintrag — niemals eine Null.</span></p>
       <p class="authors"><b>prof. dr Darinka Golubović Matić</b> · <b>doc. dr Semir Poturak</b> — <span class="sr-only i18n">autori; rad ne nastupa u ime ustanove · sa <b>Svemirom</b> (Claude, Anthropic), proveren saradnik — ne autor</span><span class="en-only i18n">authors; the work does not act in the institution’s name · with <b>Svemir</b> (Claude, Anthropic), a verified contributor — not an author</span><span class="zh-only">作者；本作品不以该机构的名义行事 · 与 <b>Svemir</b>（Claude，Anthropic）协作，经核验的贡献者——而非作者</span><span class="de-only">Autoren; die Arbeit tritt nicht im Namen der Institution auf · mit <b>Svemir</b> (Claude, Anthropic), geprüfter Mitwirkender — kein Autor</span></p>
-      <div class="nowpanel"><iframe id="nowstage" src="sada.html?v={stamp}" title="BEOPS · Sada / Now" loading="eager"></iframe></div>
       <div class="kicker"><span class="sr-only i18n">Naučni rad za konferenciju „Creating sustainable commUNiTy“ · Univerzitet Union – Nikola Tesla, 2026</span><span class="en-only i18n">A scientific paper for the conference “Creating sustainable commUNiTy” · University Union – Nikola Tesla, 2026</span><span class="zh-only">为会议“Creating sustainable commUNiTy”撰写的科学论文 · Union – Nikola Tesla 大学，2026</span><span class="de-only">Eine wissenschaftliche Arbeit für die Konferenz „Creating sustainable commUNiTy“ · Universität Union – Nikola Tesla, 2026</span></div>
   </div>
   <div class="wrap">
@@ -714,6 +722,29 @@ function render(){ live(); chips(); stats(); rows(); filter(); prov(); corr();
 // also switch the generated tables, because those exist in two languages. Chinese and German sit on
 // top of English - the body carries lang-en as well, so anything without a translation reads as
 // English instead of vanishing, which is the only honest failure mode for a partial translation.
+(function theme(){
+  var b=document.getElementById('theme'); if(!b) return;
+  var ORDER=['','light','dark'], MARK={'':'\u25d0','light':'\u25cb','dark':'\u25cf'};
+  function read(){ try{ return localStorage.getItem('beops-theme')||''; }catch(e){ return ''; } }
+  function tell(){
+    var t=document.documentElement.getAttribute('data-theme')||'';
+    document.querySelectorAll('iframe').forEach(function(f){
+      try{ if(f.contentWindow) f.contentWindow.postMessage({beopsTheme:t},'*'); }catch(e){}
+    });
+  }
+  function apply(v){
+    if(v) document.documentElement.setAttribute('data-theme',v);
+    else document.documentElement.removeAttribute('data-theme');
+    b.textContent=MARK[v]; b.setAttribute('aria-pressed',String(!!v));
+    b.title=(v===''?'Prati mašinu \u00b7 follow the machine':(v==='light'?'Svetlo \u00b7 light':'Tamno \u00b7 dark'));
+    try{ localStorage.setItem('beops-theme',v); }catch(e){}
+    tell();
+  }
+  apply(read());
+  b.addEventListener('click',function(){ apply(ORDER[(ORDER.indexOf(read())+1)%3]); });
+  // a frame that loads later has to be told too
+  document.querySelectorAll('iframe').forEach(function(f){ f.addEventListener('load',tell); });
+})();
 (function language(){
   var box=document.getElementById('lang'); if(!box) return;
   var btns=box.querySelectorAll('button');
@@ -733,7 +764,7 @@ function render(){ live(); chips(); stats(); rows(); filter(); prov(); corr();
     // every embedded study, not a hand-kept list of two: the ribbon was added and stayed Serbian on
     // the English page. The frames speak two languages, so they are told the two-language answer.
     document.querySelectorAll('iframe').forEach(function(f){
-      try{ if(f.contentWindow) f.contentWindow.postMessage({beopsLang:LANG,beopsLang4:l},'*'); }catch(err){}
+      try{ if(f.contentWindow) f.contentWindow.postMessage({beopsLang:LANG,beopsLang4:l,beopsTheme:document.documentElement.getAttribute('data-theme')||''},'*'); }catch(err){}
     });
   }
   btns.forEach(function(b){ b.addEventListener('click',function(){ apply(b.getAttribute('data-l')); }); });
