@@ -460,7 +460,7 @@ window.addEventListener('message',ev=>{
  if(ev&&ev.data&&ev.data.beopsLang&&ev.data.beopsLang!==LANG){ LANG=ev.data.beopsLang; renderAll(); } });
 window.addEventListener('resize',()=>{ if(SNAP) drawMap(); });
 document.body.classList.add('lang-sr');
-Promise.all([load('basemap-belgrade.json'),load('live-snapshot.json'),load('history.json')]).then(([b,s,h])=>{ BASEMAP=b&&b.features?b:null; SNAP=s; HIST=h; fitGround(); if(!s){document.getElementById('clock').textContent='no snapshot';return;} renderAll(); });
+Promise.all([load('basemap-belgrade.json'),load('live-snapshot.json'),load('history.json')]).then(([b,s,h])=>{ BASEMAP=b&&b.features?b:null; SNAP=s; HIST=h; try{ fitGround(); }catch(e){} if(!s){document.getElementById('clock').textContent='no snapshot';return;} renderAll(); });
 })();
 </script>
 <script>

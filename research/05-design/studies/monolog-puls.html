@@ -263,11 +263,11 @@ const DUNAV=[[44.95,20.28],[44.90,20.35],[44.86,20.395],[44.84,20.42],[44.826,20
 const BB={lo0:20.17,lo1:20.80,la0:44.55,la1:44.98};
 
 function load(){return fetch('live-snapshot.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).catch(()=>{try{return JSON.parse(document.getElementById('snapshot').textContent)}catch(e){return null}});}
-let BASEMAP=null, PEOPLE=null; fitGround();
+let BASEMAP=null, PEOPLE=null;
 // Context: people per H3 hexagon (Kontur 2022, CC BY 4.0) - a modelled estimate, drawn as quiet structure
 // under the instruments so the reader sees where the city lives and where the observatory listens.
 function loadPeople(){return fetch('context-population.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).catch(()=>null).then(c=>{PEOPLE=c&&c.hexes?c:null;});}
-function loadBasemap(){return fetch('basemap-belgrade.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).catch(()=>{try{return JSON.parse(document.getElementById('basemap').textContent)}catch(e){return null}}).then(b=>{BASEMAP=b&&b.features?b:null; fitGround();});}
+function loadBasemap(){return fetch('basemap-belgrade.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).catch(()=>{try{return JSON.parse(document.getElementById('basemap').textContent)}catch(e){return null}}).then(b=>{BASEMAP=b&&b.features?b:null; try{ fitGround(); }catch(e){}});}
 
 // ---- build the event list: one line per (source, reception) -------------------
 function build(snap){
