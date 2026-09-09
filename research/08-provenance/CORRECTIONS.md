@@ -676,3 +676,78 @@ kind, automatically" is the right shape for a rule about publishing — a docume
 is not an exception to be remembered, it is a property to be stated. The university is named on this
 site as the authors' affiliation and as where the conference is held, and nowhere else: not as owner,
 not as operator, not as sender, and not as the machine this runs on.
+
+---
+
+## C-019 — I put a name on a co-author that is not her name
+
+**When** 2026-09-09, roughly 19:15–19:35 UTC. Caught before either document left the machine.
+
+**What it said.** `research/06-paper/PRE_PAPER_v3_2026-09-09.md` and
+`research/07-legal/BEOPS_PISMA_v3_2026-09-09.md`, as first written, named the authors as "Semir
+Poturak; Dara Bakoč". Every letter in the second file carried that name in its signature block, on
+letters addressed to ministries, public utilities and news publishers.
+
+**What was actually true.** The co-author is **prof. dr Darinka Golubović Matić**. The surname
+"Bakoč" appears nowhere in this project, in any file, at any date. It came from a working summary of
+an earlier part of the same conversation and I carried it forward without checking it against a single
+file, in the one kind of document where a wrong name is not a typo — a signed letter to an institution.
+
+**How it was found.** Not by re-reading what I wrote. By a search for author names across the whole
+tree, run for a different reason: `findstr` for "Golubovi" returned eight files, `findstr` for "Bako"
+returned exactly the two files I had written minutes earlier, and nothing else.
+
+**The fix.** Both documents corrected before they were used. The affiliation sentence was corrected at
+the same time and in the same direction as C-018: the authors teach at Univerzitet Union — Nikola
+Tesla, the conference is held there, and the work does not act in the institution's name — the letters
+carry only the venue sentence, because in a letter an affiliation reads as backing.
+
+**Rule: a name is a measurement.** Everything in this record that comes from a source is checked
+against the source. A person's name arrived from my own memory of a conversation, which is the one
+class of input this project has no gate for, and it went straight into a signature block. A fact about
+a person is not more reliable than a reading of the air because it feels familiar. The check that
+caught it — search the tree for it — costs one command and should have run before the first draft, not
+after.
+
+---
+
+## C-020 — The site was still publishing three internal documents, and the deny-list named instances rather than the category
+
+**When** From 2026-09-09 13:19 UTC (`PRE_PAPER_CONFERENCE_v2`) and 16:07 UTC
+(`BEOPS_ANALYSIS_instruments_and_knowledge`) and 19:15 UTC (`BEOPS_PRE_PAPER_CONFERENCE`), until this
+entry.
+
+**What it said.** C-018, written the same evening, says in its own text that "working documents,
+letters, drafts, programme notes" are internal, and that the fix gives the copy rule "an explicit deny
+for the kinds that are internal by policy". `tools/publish_github.ps1` says the same and adds
+**pre-papers** to that list by name.
+
+**What was actually true.** `NOT_PUBLIC` contained `WORKING_DOCUMENT, PISMA, LETTER, INTERNAL, DRAFT,
+PRESEK` — the two filenames that had just leaked, plus four guesses. It did not contain `PRE_PAPER`,
+which the notice names explicitly, so three documents were live on the public site:
+`BEOPS_PRE_PAPER_CONFERENCE_2026-09-09.pdf`, `PRE_PAPER_CONFERENCE_v2_2026-09-09.pdf` and
+`BEOPS_ANALYSIS_instruments_and_knowledge_2026-09-09.pdf`. The first of them carries the older
+affiliation line — "prof. dr Darinka Golubović Matić, doc. dr Semir Poturak (University Union — Nikola
+Tesla, Belgrade)" — with no statement that the work does not act in the institution's name, which is
+precisely the wording C-018 went looking for and fixed everywhere it could see.
+
+**And the second half, which is worse.** Two of the three had no source PDF left in `research/` at
+all. The build only ever copies; nothing in it can take a file back. A document therefore stays public
+after it stops being eligible — after its source is deleted, after it is renamed, after the deny-list
+is corrected. The deny-list would have kept the third file off the site from the next build; the other
+two would have stayed up forever.
+
+**The fix.** `NOT_PUBLIC` now names categories, not instances, and includes `PRE_PAPER`, `PREPAPER`,
+`ANALYSIS`, `AUDIT`, `ATLAS`, `STRUKTURA`, `METODOLOGIJA`, `SCRATCH`, `NOTES`. The build now computes
+the set of PDFs that *should* be public and withdraws every other PDF in `docs/`, printing what it
+withdrew, so that publication is a property recomputed on every build rather than a state that
+accumulates. `research/test_public_docs.py` gains the two assertions that would have failed here: no
+PDF whose name matches a deny category is in `docs/`, and no PDF is in `docs/` without an eligible
+source in `research/`.
+
+**Rule: a fix written from the instances in front of you is not a fix.** C-018 named a rule —
+"a document that must not go out is not an exception to be remembered, it is a property to be stated"
+— and then implemented it by listing the two documents that had just gone out. The category was
+already written down, in the project's own publish notice, one file away. And a rule about what is
+public has to run in both directions: a build that can only add is a build whose mistakes are
+permanent.

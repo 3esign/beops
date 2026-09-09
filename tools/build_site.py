@@ -551,7 +551,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
 
 <footer>
   <div class="wrap fgrid">
-    <div><b><span class="sr-only">Autori i kontakt</span><span class="en-only">Authors and contact</span></b>prof. dr Darinka Golubović Matić<br>doc. dr Semir Poturak<br>Univerzitet Union – Nikola Tesla<br><span class="sr-only">Naučni rad za konferenciju, ne proizvod ustanove</span><span class="en-only">A scientific paper for a conference, not a product of the institution</span><br><a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a></div>
+    <div><b><span class="sr-only">Autori i kontakt</span><span class="en-only">Authors and contact</span></b>prof. dr Darinka Golubović Matić<br>doc. dr Semir Poturak<br><span class="sr-only">Autori rada. Predaju na Univerzitetu Union – Nikola Tesla, gde se održava i konferencija kojoj se rad nudi; rad ne nastupa u ime ustanove i ustanova nije njegov nosilac ni naručilac.</span><span class="en-only">Authors of the work. They teach at University Union – Nikola Tesla, where the conference the work is offered to is also held; the work does not act in the institution’s name and the institution is neither its owner nor its commissioner.</span><br><a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a></div>
     <div><b><span class="sr-only">Licenca</span><span class="en-only">Licence</span></b><span class="sr-only">MIT za kod, CC BY 4.0 za dokumente i registre. Vrednosti zadržavaju licencu svog izvora.</span><span class="en-only">MIT for code, CC BY 4.0 for documents and registries. Values keep their source's licence.</span></div>
     <div><b><span class="sr-only">Šta ovo nije</span><span class="en-only">What this is not</span></b><span class="sr-only">Nije digitalni blizanac, nije „pametni grad", nije nadzor. Nema podataka o pojedincima, nema kamera, nema ulica kao jedinice analize.</span><span class="en-only">Not a digital twin, not a smart city, not surveillance. No person-level data, no cameras, no street as a unit of analysis.</span></div>
     <div><b><span class="sr-only">Stanje</span><span class="en-only">State</span></b><span class="mono" id="built"></span></div>
@@ -836,12 +836,26 @@ def main() -> int:
     # are internal by policy. Working documents, letters and programme notes are not published;
     # research/test_public_docs.py holds this, because the first version of this loop published
     # two working documents by accident (C-018).
-    NOT_PUBLIC = ("WORKING_DOCUMENT", "PISMA", "LETTER", "INTERNAL", "DRAFT", "PRESEK")
+    # C-018 named a rule and then implemented it by listing the two documents that had just leaked.
+    # C-020 is what that cost: three more internal PDFs were public, one of them a pre-paper, which
+    # the project's own publish notice names as internal in so many words. So the deny-list names
+    # CATEGORIES now. And publication is recomputed on every build rather than accumulated: a build
+    # that can only add is a build whose mistakes are permanent, which is how two of those three
+    # stayed up after their source files were gone.
+    NOT_PUBLIC = ("WORKING_DOCUMENT", "PISMA", "LETTER", "INTERNAL", "DRAFT", "PRESEK",
+                  "PRE_PAPER", "PREPAPER", "PRED_RAD", "ANALYSIS", "AUDIT", "ATLAS",
+                  "STRUKTURA", "METODOLOGIJA", "SCRATCH", "NOTES")
+    published = set()
     for folder in ("06-paper", "07-legal"):
         for p in sorted((ROOT / "research" / folder).glob("*.pdf")):
             if any(k in p.name.upper() for k in NOT_PUBLIC):
                 continue
             shutil.copy(p, DOCS / p.name)
+            published.add(p.name)
+    for p in sorted(DOCS.glob("*.pdf")):
+        if p.name not in published:
+            p.unlink()
+            print("withdrew docs/" + p.name + " - not eligible for publication")
     (DOCS / ".nojekyll").write_text("", encoding="utf-8")
     print(f"wrote {DOCS/'index.html'} ({len(html)} bytes; {len(data['registry']['rows'])} sources, "
           f"{len(data['corrections'])} corrections, {len(data['provenance']['refused'])} refusals)")

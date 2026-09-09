@@ -36,8 +36,16 @@ class BuiltSiteTests(unittest.TestCase):
         self.assertIn('lang="sr"', self.s[:400])
 
     def test_no_placeholder_survived_into_the_artefact(self):
-        for marker in ("{{", "TODO", "FIXME", "undefined", "NaN", ">None<", "[object Object]"):
+        """C-021. The first version of this searched for the markers as bare substrings, which is
+        wrong on a page that is half Serbian: `TODO` is inside `METODOLOGIJA`, and the test failed on
+        a correction entry that merely quoted a filename category. A test that cries wolf on correct
+        content is worse than no test, because the next real failure is read as noise. Word-shaped
+        markers are matched as words; the bracket-shaped ones stay literal, since they cannot occur
+        inside a word."""
+        for marker in ("{{", ">None<", "[object Object]"):
             self.assertFalse(marker in self.s, f"the built page carries {marker!r}")
+        for word in ("TODO", "FIXME", "undefined", "NaN"):
+            self.assertNotRegex(self.s, r"\b%s\b" % word, f"the built page carries {word!r}")
 
     def test_every_serbian_span_has_an_english_twin(self):
         """The pairing is by exact class string: sr-only and en-only always ship together, in the same
