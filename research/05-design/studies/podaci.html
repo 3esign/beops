@@ -482,16 +482,19 @@ Promise.all([load('basemap-belgrade.json'),load('live-snapshot.json'),load('hist
     }
     return Math.ceil(bottom);
   }
-  function post(){
+  function post(force){
     var h = contentHeight();
-    if (!h || Math.abs(h - last) < 3) return;
+    if (!h) return;
+    // Not an unconditional dedupe: a frame can be ready before the parent has registered its
+    // listener, and once `last` is set the same number is never sent again. The timer forces one.
+    if (!force && Math.abs(h - last) < 3) return;
     last = h;
     try { parent.postMessage({ beops: 'height', h: h }, '*'); } catch (e) {}
   }
   addEventListener('load', post);
   addEventListener('resize', post);
   if (window.ResizeObserver) new ResizeObserver(post).observe(document.documentElement);
-  setInterval(post, 3000);
+  setInterval(function(){ post(true); }, 3000);
   post();
 })();
 

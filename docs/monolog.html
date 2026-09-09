@@ -611,33 +611,39 @@ document.getElementById('speed').addEventListener('input',speedLabel);
 document.body.classList.add('lang-sr');
 // embedded on the landing page: the frame's brand and authors would repeat the page's own - keep the controls only
 try{ if(window.self!==window.top||location.search.includes('embed')) document.body.classList.add('embedded'); }catch(e){ document.body.classList.add('embedded'); }
-// Stacked in a narrow frame, this page reports its height so the frame is exactly as tall as it is;
-// wide, it fills the frame it was given and reports nothing.
+// This page reports its height so the frame is exactly as tall as it is - at EVERY width now. The
+// old rule was "narrow: report; wide: fill the frame you were given", which was right while the map
+// was capped and the whole document fitted the box. A full-width map does not: the frame sat at 846 px
+// around a document 1512 px tall, and the feed and the three minds were below the fold inside it.
+// The dedupe is also no longer unconditional. A frame can be ready before the parent has registered
+// its listener, and once `last` was set nothing ever posted that number again - so the first report,
+// the one that matters, could be lost for good. The timer forces one.
 (function(){
   if (window.self === window.top) return;
-  var narrow = window.matchMedia('(max-width:900px)');
   var last = 0;
-  function post(){
-    if (!narrow.matches) return;
+  function post(force){
     var kids = document.body ? document.body.children : [], bottom = 0;
     for (var i = 0; i < kids.length; i++) { var r = kids[i].getBoundingClientRect(); if (r.height) bottom = Math.max(bottom, r.bottom + (window.scrollY || 0)); }
     var h = Math.ceil(bottom);
-    if (!h || Math.abs(h - last) < 4) return;
+    if (!h) return;
+    if (!force && Math.abs(h - last) < 4) return;
     last = h;
     try { parent.postMessage({ beops: 'height', h: h }, '*'); } catch (e) {}
   }
-  addEventListener('load', post);
-  addEventListener('resize', post);
-  setInterval(post, 3000);
-  post();
+  addEventListener('load', function(){ post(true); });
+  addEventListener('resize', function(){ post(false); });
+  if (window.ResizeObserver) new ResizeObserver(function(){ post(false); }).observe(document.documentElement);
+  setInterval(function(){ post(true); }, 3000);
+  post(true);
 })();
 // the landing page's language toggle reaches the frame
 window.addEventListener('message',ev=>{
+  var d=ev&&ev.data; if(!d) return;
   if(d.beopsTheme!==undefined){
     if(d.beopsTheme) document.documentElement.setAttribute('data-theme',d.beopsTheme);
     else document.documentElement.removeAttribute('data-theme');
   }
- if(ev&&ev.data&&ev.data.beopsLang&&ev.data.beopsLang!==LANG){ LANG=ev.data.beopsLang; relang(); } });
+  if(d.beopsLang&&d.beopsLang!==LANG){ LANG=d.beopsLang; relang(); } });
 Promise.all([loadBasemap(),loadPeople()]).then(()=>load()).then(snap=>{ if(!snap){document.getElementById('clock').textContent='no snapshot';return;} SNAP=snap; T1=P(snap.as_of); T0=T1-snap.window_hours*3600e3; EVENTS=build(snap); document.getElementById('mapnote').textContent=(snap.as_of.slice(0,19))+'Z'; speedLabel(); showLatest(); renderMind();
   // Paint once, straight away, before the animation loop starts. requestAnimationFrame does not
   // fire while a document is hidden, so a frame that loads out of view - a background tab, a
