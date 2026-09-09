@@ -208,6 +208,9 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 .authors{font-size:14px;color:var(--ink55);max-width:70ch}
 .authors b{color:var(--ink);font-weight:600}
 
+.databar{border-bottom:1px solid var(--ink12);padding:calc(var(--u)*8) 0}
+.datastage{height:min(90vh,1100px);border:1px solid var(--ink12);border-radius:6px;overflow:hidden;background:var(--field)}
+.datastage iframe{width:100%;height:100%;border:0;display:block}
 .livebar{border-top:1px solid var(--ink12);border-bottom:1px solid var(--ink12);background:var(--panel);
   padding:calc(var(--u)*5) 0;margin:calc(var(--u)*4) 0 0}
 .lgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:calc(var(--u)*6)}
@@ -280,6 +283,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
     <a class="brand" href="#top">BEOPS <span>· Beograd</span></a>
     <nav>
       <a href="#zivo"><span class="sr-only">Uživo</span><span class="en-only">Live</span></a>
+      <a href="#podaci"><span class="sr-only">Podaci</span><span class="en-only">Data</span></a>
       <a href="#kako"><span class="sr-only">Kako radi</span><span class="en-only">How it works</span></a>
       <a href="#izvori"><span class="sr-only">Izvori</span><span class="en-only">Sources</span></a>
       <a href="#dozvole"><span class="sr-only">Dozvole</span><span class="en-only">Permissions</span></a>
@@ -313,6 +317,16 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
     </div>
     <div class="lgrid" id="lgrid"></div>
     <p class="mono" style="font-size:11.5px;color:var(--ink55);margin:16px 0 0"><span class="sr-only">Popunjena ćelija = prijem u tom taktu; prazna = tišina. Prijem nije merenje.</span><span class="en-only">A filled cell is a reception in that slot; an empty one is silence. A reception is not a measurement.</span></p>
+  </div>
+</div>
+
+<div class="databar" id="podaci">
+  <div class="wrap">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+      <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only">Podaci — šta smo izmerili, po stanici i na mapi</span><span class="en-only">Data — what was measured, per station and on the map</span></h2>
+      <a class="stagelink" style="position:static" href="podaci.html?v={stamp}"><span class="sr-only">Otvori sve podatke ↗</span><span class="en-only">Open all the data ↗</span></a>
+    </div>
+    <div class="datastage"><iframe id="datastage" src="podaci.html?v={stamp}" title="BEOPS · Podaci" loading="lazy"></iframe></div>
   </div>
 </div>
 
@@ -523,6 +537,7 @@ document.getElementById('lang').addEventListener('click',function(e){
   e.currentTarget.setAttribute('aria-pressed',String(LANG==='en'));
   render();
   try{ const f=document.getElementById('stage'); if(f&&f.contentWindow) f.contentWindow.postMessage({beopsLang:LANG},'*'); }catch(err){}
+  try{ const f2=document.getElementById('datastage'); if(f2&&f2.contentWindow) f2.contentWindow.postMessage({beopsLang:LANG},'*'); }catch(err){}
 });
 document.getElementById('q').addEventListener('input',filter);
 render();
@@ -548,6 +563,7 @@ def main() -> int:
     html = html.replace("{stamp}", data["built"].replace(" ", "T").replace(":", "").replace("-", ""))   # the stage frame: a browser that cached yesterday's monolog.html must not show it today
     (DOCS / "index.html").write_text(html, encoding="utf-8")
     for src, dst in [("research/05-design/studies/monolog-puls.html", "monolog.html"),
+                     ("research/05-design/studies/podaci.html", "podaci.html"),
                      ("research/05-design/studies/traka-live.html", "traka.html"),
                      ("public/live-snapshot.json", "live-snapshot.json"),
                      ("public/basemap-belgrade.json", "basemap-belgrade.json"),

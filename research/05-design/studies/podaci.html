@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="sr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BEOPS Podaci</title>
+<meta name="description" content="PODACI — what the Belgrade observatory actually measured in the last window: every station, every value, on the map and in numbers, with the state of each value (measured, untimed, preliminary, missing).">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap">
+<style>
+:root{
+  --u:4px;
+  --field:#FBFAF7; --ink:#111311; --ink60:rgba(17,19,17,.6); --ink30:rgba(17,19,17,.3); --ink12:rgba(17,19,17,.12); --ink06:rgba(17,19,17,.06);
+  --signal:#D93A16; --signal-untimed:#CC7A62; --water:rgba(17,19,17,.18);
+  --sans:"Source Sans 3","Segoe UI",system-ui,sans-serif; --mono:"Source Code Pro",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --field:#111311; --ink:#F2F1EC; --ink60:rgba(242,241,236,.62); --ink30:rgba(242,241,236,.32); --ink12:rgba(242,241,236,.12); --ink06:rgba(242,241,236,.06);
+  --signal:#F0532B; --signal-untimed:#D8836A; --water:rgba(242,241,236,.2); }}
+:root[data-theme="dark"]{
+  --field:#111311; --ink:#F2F1EC; --ink60:rgba(242,241,236,.62); --ink30:rgba(242,241,236,.32); --ink12:rgba(242,241,236,.12); --ink06:rgba(242,241,236,.06);
+  --signal:#F0532B; --signal-untimed:#D8836A; --water:rgba(242,241,236,.2); }
+*{box-sizing:border-box}
+body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header{display:grid;grid-template-columns:1fr auto;gap:calc(var(--u)*4);align-items:end;padding:calc(var(--u)*5) calc(var(--u)*6) calc(var(--u)*3);border-bottom:1px solid var(--ink12)}
+header h1{font-size:16px;font-weight:600;margin:0}
+header h1 span{font-weight:400;color:var(--ink60)}
+.authors{color:var(--ink60);font-size:13px;margin-top:2px}
+button{font:inherit;font-size:13px;color:var(--ink);background:transparent;border:1px solid var(--ink30);padding:calc(var(--u)*1) calc(var(--u)*3);cursor:pointer;border-radius:3px}
+button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-color:var(--ink)}
+.clock{font-family:var(--mono);font-size:13px;color:var(--ink60)}
+.lang-en .sr-only,.lang-sr .en-only{display:none}
+main{max-width:1400px;margin:0 auto;padding:0 calc(var(--u)*6) calc(var(--u)*10)}
+section{padding:calc(var(--u)*6) 0;border-bottom:1px solid var(--ink12)}
+section h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink60);font-weight:600;margin:0 0 calc(var(--u)*1)}
+section .lead{margin:0 0 calc(var(--u)*4);max-width:80ch;color:var(--ink60);font-size:14px}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:calc(var(--u)*6)}
+@media (max-width:900px){.grid{grid-template-columns:1fr}main{padding:0 calc(var(--u)*4)}}
+.cv{position:relative;width:100%;aspect-ratio:1.25;border:1px solid var(--ink12)}
+.cv canvas{width:100%;height:100%;display:block}
+.legend{font-family:var(--mono);font-size:11px;color:var(--ink60);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-right:4px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 calc(var(--u)*3)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--ink06);vertical-align:middle}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink60);font-weight:600}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+td.spark svg{display:block}
+tr.max td{box-shadow:inset 3px 0 0 var(--signal)}
+.big{font-family:var(--mono);font-size:28px;color:var(--signal);line-height:1.1}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:calc(var(--u)*4);margin-bottom:calc(var(--u)*4)}
+.tile{border-left:3px solid var(--ink12);padding-left:calc(var(--u)*3)}
+.tile .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink60)}
+.tile .s{font-size:12px;color:var(--ink60);font-family:var(--mono)}
+.bars{display:grid;grid-template-columns:minmax(0,1fr);gap:4px}
+.bar{display:grid;grid-template-columns:22ch 1fr 6ch;gap:8px;align-items:center;font-size:13px}
+.bar .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .b{height:10px;background:var(--ink06);position:relative}
+.bar .b i{position:absolute;left:0;top:0;bottom:0;background:var(--ink30)}
+.bar .b i.hot{background:var(--signal)}
+.hist{display:flex;align-items:flex-end;gap:2px;height:60px}
+.hist i{flex:1;background:var(--ink30);min-width:2px}
+.hist i.now{background:var(--signal)}
+.state{font-family:var(--mono);font-size:11px;color:var(--ink60)}
+.foot{padding:calc(var(--u)*6) 0;color:var(--ink60);font-size:13px;max-width:80ch}
+.silent{color:var(--ink60);font-style:italic}
+</style>
+<header>
+  <div>
+    <h1>BEOPS <span>· PODACI · Beograd</span></h1>
+    <div class="authors">prof. dr Darinka Golubović Matić · doc. dr Semir Poturak · Univerzitet Union – Nikola Tesla · <span class="sr-only">sa Svemirom (Claude, Anthropic) — proveren saradnik</span><span class="en-only">with Svemir (Claude, Anthropic) — verified contributor</span></div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <button id="lang" aria-pressed="false" title="Language">SR / EN</button>
+    <span class="clock" id="clock">—</span>
+  </div>
+</header>
+<main>
+<section id="vazduh">
+  <h2><span class="sr-only">Vazduh — SEPA, zvanična mreža (satne srednje vrednosti, preliminarne)</span><span class="en-only">Air — SEPA, the official network (hourly means, preliminary)</span></h2>
+  <p class="lead"><span class="sr-only">Svaka tačka je stanica; boja je poslednja satna vrednost izabranog parametra. Tabela: poslednja vrednost, sat merenja po oznaci izvora, kretanje u prozoru. Vrednosti su preliminarne — tako ih izvor označava.</span><span class="en-only">Each dot is a station; the colour is the latest hourly value of the chosen parameter. Table: latest value, the source's own measurement hour, movement over the window. Values are preliminary — that is the source's own label.</span></p>
+  <div class="tabs" id="partabs"></div>
+  <div class="grid">
+    <div><div class="cv"><canvas id="map"></canvas></div><div class="legend" id="maplegend"></div></div>
+    <div id="septable"></div>
+  </div>
+</section>
+<section id="senzori">
+  <h2><span class="sr-only">Vazduh — građanski senzori (Sensor.Community, 25 km oko centra)</span><span class="en-only">Air — citizen sensors (Sensor.Community, 25 km around the centre)</span></h2>
+  <p class="lead"><span class="sr-only">Nevalidirani senzori građana; vredi kao slika rasporeda, ne kao merenje. Prikazano: koliko senzora je javilo u prozoru, srednja i najviša poslednja vrednost PM2.5 i PM10, i raspodela.</span><span class="en-only">Unvalidated citizen sensors; a picture of distribution, not a measurement. Shown: how many sensors reported in the window, median and highest latest PM2.5 and PM10, and the distribution.</span></p>
+  <div class="tiles" id="sctiles"></div>
+  <div class="grid"><div id="schist"></div><div id="sctop"></div></div>
+</section>
+<section id="parking">
+  <h2><span class="sr-only">Parking — prikazana slobodna mesta po garaži (vreme merenja nepoznato)</span><span class="en-only">Parking — displayed free spaces per garage (measurement time unknown)</span></h2>
+  <p class="lead"><span class="sr-only">Operator ne objavljuje vreme merenja: znamo vrednost i kad smo je primili, ne koliko je stara. Traka je poslednja vrednost, brojka desno; iskra je kretanje u prozoru.</span><span class="en-only">The operator publishes no measurement time: we know the value and when we received it, not how old it is. The bar is the latest value; the sparkline its movement over the window.</span></p>
+  <div class="bars" id="parkbars"></div>
+</section>
+<section id="vesti">
+  <h2><span class="sr-only">Vesti — koliko naslova je stiglo, po izvoru i po satu</span><span class="en-only">News — how many headlines arrived, per outlet and per hour</span></h2>
+  <p class="lead"><span class="sr-only">Samo naslov, veza i vreme objave — tekst se ne čuva. Histogram: naslovi po satu u prozoru; tabela: izvor, naslova u prozoru, poslednji naslov.</span><span class="en-only">Headline, link and publication time only — no text is kept. Histogram: headlines per hour in the window; table: outlet, headlines in the window, the latest headline.</span></p>
+  <div class="hist" id="newshist"></div>
+  <div id="newstable"></div>
+</section>
+<section id="um">
+  <h2><span class="sr-only">Um — koliko rečenica je prošlo proveru, i kako su prošle tvrdnje</span><span class="en-only">The mind — how many utterances passed the check, and how the claims fared</span></h2>
+  <div class="tiles" id="mindtiles"></div>
+</section>
+<div class="foot"><span class="sr-only">Pravila čitanja: prijem nije merenje; vreme prijema nije vreme merenja; ono čega nema je zapis, nikad nula; sve vrednosti su onakve kakve ih je izvor objavio, sa stanjem koje im je izvor dao. Podloga mape: Natural Earth 1:10 mil. (javno vlasništvo), orijentacija a ne merenje.</span><span class="en-only">Reading rules: a reception is not a measurement; the time of reception is not the time of measurement; what is missing is a record, never a zero; every value is as the source published it, with the state the source gave it. Base map: Natural Earth 1:10m (public domain), orientation not measurement.</span></div>
+</main>
+<script>
+(function(){
+let SNAP=null, LANG='sr', BASEMAP=null, PAR='PM10';
+const S=(a,b)=>LANG==='sr'?a:b;
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const P=t=>t?Date.parse(t):NaN;
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmtT=t=>{const d=new Date(t);return isNaN(d)?'—':d.toISOString().slice(11,16);};
+const fmtD=t=>{const d=new Date(t);return isNaN(d)?'—':d.toISOString().slice(5,16).replace('T',' ');};
+const BB={lo0:20.17,lo1:20.80,la0:44.55,la1:44.98};
+function proj(lat,lon,w,h){ const kx=Math.cos(44.8*Math.PI/180); const sx=w/((BB.lo1-BB.lo0)*kx), sy=h/(BB.la1-BB.la0); const s=Math.min(sx,sy); const cx=(w-(BB.lo1-BB.lo0)*kx*s)/2, cy=(h-(BB.la1-BB.la0)*s)/2; return [cx+(lon-BB.lo0)*kx*s, cy+(BB.la1-lat)*s]; }
+function load(u){return fetch(u,{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);}
+function latest(ds){ const pts=ds.points.filter(p=>typeof p.v==='number'); return pts.length?pts[pts.length-1]:null; }
+function spark(pts,w,h,color){ const v=pts.map(p=>p.v).filter(x=>typeof x==='number'); if(v.length<2) return ''; const mn=Math.min(...v), mx=Math.max(...v); const sc=x=>mx===mn?h/2:h-2-(x-mn)/(mx-mn)*(h-4); const step=w/(pts.length-1); let d='',i=0; for(const p of pts){ if(typeof p.v==='number'){ d+=(d?'L':'M')+(i*step).toFixed(1)+' '+sc(p.v).toFixed(1); } i++; } return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`; }
+function heat(v,lo,hi){ const t=Math.max(0,Math.min(1,(v-lo)/(hi-lo))); const ink=css('--ink'); const sig=css('--signal'); return t<0.5?css('--ink30'):sig; }
+// scale reference values: WHO 2021 24-h guideline as the "hot" threshold - a reference, not a verdict
+const REF={PM10:[0,45],'PM2.5':[0,15],NO2:[0,25],O3:[0,100],SO2:[0,40],CO:[0,4]};
+function sepa(){ return (SNAP.sources||[]).find(s=>s.sid==='S146'); }
+function drawMap(){
+  const cv=document.getElementById('map'); const g=cv.getContext('2d'); const dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=cv.clientHeight;
+  cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
+  if(BASEMAP){ g.lineJoin='round'; g.lineWidth=1; g.strokeStyle=css('--ink30'); g.fillStyle=css('--ink06');
+    for(const f of BASEMAP.features.filter(f=>f.layer!=='river')){ const geom=f.geometry; if(!geom||(geom.type!=='Polygon'&&geom.type!=='MultiPolygon')) continue; const polys=geom.type==='Polygon'?[geom.coordinates]:geom.coordinates;
+      for(const poly of polys){ g.beginPath(); for(const ring of poly){ ring.forEach((c,i)=>{const [x,y]=proj(c[1],c[0],w,h); i?g.lineTo(x,y):g.moveTo(x,y);}); g.closePath(); } g.fill('evenodd'); g.stroke(); } }
+    g.strokeStyle=css('--water'); g.lineWidth=6; g.lineCap='round'; for(const f of BASEMAP.features.filter(f=>f.layer==='river')){ g.beginPath(); f.geometry.coordinates.forEach((c,i)=>{const [x,y]=proj(c[1],c[0],w,h); i?g.lineTo(x,y):g.moveTo(x,y);}); g.stroke(); } }
+  const src=sepa(); if(!src) return; const [lo,hi]=REF[PAR]||[0,100];
+  const rows=src.datastreams.filter(d=>d.parameter===PAR&&d.lat&&d.lon);
+  for(const d of rows){ const l=latest(d); const [x,y]=proj(d.lat,d.lon,w,h); if(!l){ g.strokeStyle=css('--ink30'); g.lineWidth=1; g.beginPath(); g.arc(x,y,5,0,Math.PI*2); g.stroke(); continue; }
+    const t=Math.max(0,Math.min(1,(l.v-lo)/(hi-lo))); g.fillStyle=t>=1?css('--signal'):css('--ink30'); g.globalAlpha=0.35+0.65*t; g.beginPath(); g.arc(x,y,4+8*t,0,Math.PI*2); g.fill(); g.globalAlpha=1;
+    g.fillStyle=css('--ink60'); g.font='10px '+css('--mono'); g.fillText(Math.round(l.v),x+8,y+3); }
+  document.getElementById('maplegend').innerHTML=`<span><i style="background:var(--ink30)"></i>${S('ispod','below')} ${hi} ${rows[0]?esc(rows[0].unit):''}</span><span><i style="background:var(--signal)"></i>${S('iznad','above')} ${hi} (${S('WHO 2021 dnevna smernica — referenca, ne presuda','WHO 2021 daily guideline — a reference, not a verdict')})</span><span><i style="background:transparent;border:1px solid var(--ink30)"></i>${S('bez vrednosti u prozoru','no value in the window')}</span>`;
+}
+function renderSepa(){
+  const src=sepa(); const box=document.getElementById('septable'); if(!src){ box.innerHTML=`<p class="silent">${S('SEPA ćuti u ovom prozoru.','SEPA is silent in this window.')}</p>`; return; }
+  const pars=[...new Set(src.datastreams.map(d=>d.parameter))].filter(p=>REF[p]).sort();
+  document.getElementById('partabs').innerHTML=pars.map(p=>`<button data-p="${esc(p)}" aria-pressed="${p===PAR}">${esc(p)}</button>`).join('');
+  document.querySelectorAll('#partabs button').forEach(b=>b.addEventListener('click',()=>{PAR=b.dataset.p; renderSepa(); drawMap();}));
+  const rows=src.datastreams.filter(d=>d.parameter===PAR).map(d=>({d,l:latest(d)})).sort((a,b)=>((b.l&&b.l.v)??-1)-((a.l&&a.l.v)??-1));
+  const mx=rows.find(r=>r.l); const unit=rows[0]?rows[0].d.unit:'';
+  const miss=rows.filter(r=>!r.l).length;
+  box.innerHTML=`<div class="tiles"><div class="tile"><div class="k">${S('gradski maksimum','city maximum')} ${esc(PAR)}</div><div class="big">${mx?mx.l.v.toFixed(1):'—'}</div><div class="s">${mx?esc(mx.d.station)+' · '+S('sat merenja','measurement hour')+' '+fmtT(mx.l.t)+'Z':''}</div></div><div class="tile"><div class="k">${S('stanica sa vrednošću','stations with a value')}</div><div class="big">${rows.length-miss}<span style="font-size:14px;color:var(--ink60)"> / ${rows.length}</span></div><div class="s">${miss?S('nedostaje','missing')+': '+miss+' — '+S('zapis, ne nula','a record, not a zero'):''}</div></div></div>
+  <table><thead><tr><th>${S('stanica','station')}</th><th class="num">${S('poslednje','latest')} ${esc(unit)}</th><th>${S('sat (izvor)','hour (source)')}</th><th>${S('prozor','window')}</th><th>${S('stanje','state')}</th></tr></thead><tbody>`+
+  rows.map((r,i)=>`<tr class="${i===0&&r.l?'max':''}"><td>${esc(r.d.station)}</td><td class="num">${r.l?r.l.v.toFixed(1):'—'}</td><td class="mono">${r.l?fmtT(r.l.t)+'Z':'—'}</td><td class="spark">${spark(r.d.points,90,22,css('--ink60'))}</td><td class="state">${r.l?esc(r.l.q||''):S('nedostaje','missing')}</td></tr>`).join('')+`</tbody></table>`;
+}
+function renderSC(){
+  const src=(SNAP.sources||[]).find(s=>s.sid==='S04'); const tiles=document.getElementById('sctiles'); if(!src){ tiles.innerHTML=`<p class="silent">${S('Sensor.Community ćuti u ovom prozoru.','Sensor.Community is silent in this window.')}</p>`; return; }
+  const by={P1:[],P2:[]}; for(const d of src.datastreams){ const l=latest(d); if(l&&by[d.parameter]) by[d.parameter].push({station:d.station,v:l.v,t:l.t}); }
+  const med=a=>{ if(!a.length) return null; const s=[...a].sort((x,y)=>x-y); return s[Math.floor(s.length/2)]; };
+  const ids=new Set(src.datastreams.map(d=>d.station));
+  tiles.innerHTML=[['P2','PM2.5'],['P1','PM10']].map(([k,n])=>{const vs=by[k].map(x=>x.v); const m=med(vs); const top=by[k].sort((a,b)=>b.v-a.v)[0]; return `<div class="tile"><div class="k">${n} ${S('medijana poslednjih','median of latest')}</div><div class="big">${m==null?'—':m.toFixed(1)}</div><div class="s">${S('najviše','highest')}: ${top?top.v.toFixed(1)+' ('+S('senzor','sensor')+' '+esc(top.station)+')':'—'} · ${vs.length} ${S('senzora','sensors')}</div></div>`;}).join('')+`<div class="tile"><div class="k">${S('senzora u prozoru','sensors in the window')}</div><div class="big">${ids.size}</div><div class="s">${S('nevalidirano · građanski','unvalidated · citizen')}</div></div>`;
+  // histogram of latest PM2.5
+  const vs=by.P2.map(x=>x.v); const bins=[0,5,10,15,20,30,40,60,100,1e9]; const cnt=bins.slice(0,-1).map((b,i)=>vs.filter(v=>v>=b&&v<bins[i+1]).length); const cm=Math.max(1,...cnt);
+  document.getElementById('schist').innerHTML=`<div class="k" style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink60)">${S('raspodela poslednjih PM2.5 vrednosti (µg/m³)','distribution of latest PM2.5 values (µg/m³)')}</div><div class="hist">${cnt.map((c,i)=>`<i title="${bins[i]}–${bins[i+1]===1e9?'…':bins[i+1]}: ${c}" style="height:${Math.round(c/cm*100)}%" class="${bins[i]>=15?'now':''}"></i>`).join('')}</div><div class="legend">${bins.slice(0,-1).map((b,i)=>`<span>${b}–${bins[i+1]===1e9?'…':bins[i+1]}: ${cnt[i]}</span>`).join('')}</div>`;
+  const top=by.P2.slice(0,8);
+  document.getElementById('sctop').innerHTML=`<table><thead><tr><th>${S('senzor','sensor')}</th><th class="num">PM2.5</th><th>${S('vreme (senzor)','time (sensor)')}</th></tr></thead><tbody>${top.map(x=>`<tr><td class="mono">${esc(x.station)}</td><td class="num">${x.v.toFixed(1)}</td><td class="mono">${fmtT(x.t)}Z</td></tr>`).join('')}</tbody></table>`;
+}
+function renderParking(){
+  const src=(SNAP.sources||[]).find(s=>s.sid==='S10'); const box=document.getElementById('parkbars'); if(!src){ box.innerHTML=`<p class="silent">${S('Parking servis ćuti u ovom prozoru.','Parking servis is silent in this window.')}</p>`; return; }
+  const rows=src.datastreams.map(d=>({d,l:latest(d)})).filter(r=>r.l).sort((a,b)=>b.l.v-a.l.v); const mx=Math.max(1,...rows.map(r=>r.l.v));
+  box.innerHTML=rows.map(r=>`<div class="bar"><span class="n" title="${esc(r.d.station)}">${esc(r.d.station)}</span><span class="b"><i style="width:${Math.round(r.l.v/mx*100)}%" class="${r.l.v===0?'hot':''}"></i></span><span class="num mono">${r.l.v}</span></div>`).join('')+`<div class="legend"><span>${S('primljeno','received')} ${rows[0]?fmtT(rows[0].l.rx)+'Z':''} · ${S('vreme merenja nepoznato — stanje „bez vremena"','measurement time unknown — the untimed state')}</span></div>`;
+}
+function renderNews(){
+  const srcs=(SNAP.sources||[]).filter(s=>s.events&&s.events.length); const T1=P(SNAP.as_of), H=SNAP.window_hours||6; const cnt=new Array(H).fill(0);
+  const rows=[]; for(const s of srcs){ let latest=null; for(const e of s.events){ const t=P(e.t||e.rx); if(isFinite(t)){ const k=Math.floor((T1-t)/3600e3); if(k>=0&&k<H) cnt[H-1-k]++; } if(e.title&&(!latest||(e.t||'')>(latest.t||''))) latest=e; } rows.push({name:s.name,sid:s.sid,n:s.events.length,latest}); }
+  const cm=Math.max(1,...cnt);
+  document.getElementById('newshist').innerHTML=cnt.map((c,i)=>`<i title="${c}" style="height:${Math.round(c/cm*100)}%" class="${i===H-1?'now':''}"></i>`).join('');
+  rows.sort((a,b)=>b.n-a.n);
+  document.getElementById('newstable').innerHTML=`<table><thead><tr><th>${S('izvor','outlet')}</th><th class="num">${S('naslova','headlines')}</th><th>${S('poslednji naslov','latest headline')}</th><th>${S('objavljeno','published')}</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.name.replace(/ RSS.*$/,''))} <span class="state">${esc(r.sid)}</span></td><td class="num">${r.n}</td><td>${r.latest?`<a href="${esc(r.latest.link||'#')}" rel="noopener" style="color:inherit">${esc(r.latest.title)}</a>`:'—'}</td><td class="mono">${r.latest?fmtD(r.latest.t):'—'}</td></tr>`).join('')}</tbody></table>`;
+}
+function renderMind(){
+  const ms=SNAP.mind_scores||{}; const ths=(SNAP.thoughts||[]).filter(t=>t.state==='thought'); const voiced=ths.filter(t=>t.sr_state==='voiced').length;
+  const ents=ms.entities||ms.by_entity||ms; const box=document.getElementById('mindtiles');
+  const tiles=[`<div class="tile"><div class="k">${S('misli u prozoru','thoughts in the window')}</div><div class="big">${ths.length}</div><div class="s">${S('izgovoreno na srpskom','voiced in Serbian')}: ${voiced}</div></div>`];
+  for(const [k,v] of Object.entries(ents||{})){ if(!v||typeof v!=='object') continue; const name={observer:['Posmatrač','Observer'],skeptic:['Sumnjalo','Skeptic'],connector:['Povezivač','Connector']}[k]; if(!name) continue;
+    tiles.push(`<div class="tile"><div class="k">${S(name[0],name[1])}</div><div class="big">${v.accepted??v.thought??'—'}<span style="font-size:14px;color:var(--ink60)"> / ${(v.accepted??0)+(v.rejected??0)}</span></div><div class="s">${S('tvrdnje','claims')}: ${S('tačne','true')} ${v.true??v.claims_true??0} · ${S('netačne','false')} ${v.false??v.claims_false??0} · ${S('otvorene','open')} ${v.open??v.claims_open??0}</div></div>`); }
+  box.innerHTML=tiles.join('');
+}
+function renderAll(){ document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); if(!SNAP) return; document.getElementById('clock').textContent=S('prozor','window')+' '+SNAP.window_hours+' h · '+SNAP.as_of.slice(0,16).replace('T',' ')+' UTC'; renderSepa(); drawMap(); renderSC(); renderParking(); renderNews(); renderMind(); }
+document.getElementById('lang').addEventListener('click',()=>{LANG=LANG==='sr'?'en':'sr'; renderAll();});
+window.addEventListener('message',ev=>{ if(ev&&ev.data&&ev.data.beopsLang&&ev.data.beopsLang!==LANG){ LANG=ev.data.beopsLang; renderAll(); } });
+window.addEventListener('resize',()=>{ if(SNAP) drawMap(); });
+document.body.classList.add('lang-sr');
+Promise.all([load('basemap-belgrade.json'),load('live-snapshot.json')]).then(([b,s])=>{ BASEMAP=b&&b.features?b:null; SNAP=s; if(!s){document.getElementById('clock').textContent='no snapshot';return;} renderAll(); });
+})();
+</script>
+</html>
