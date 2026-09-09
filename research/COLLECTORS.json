@@ -608,6 +608,41 @@
    "why": "a second Belgrade-only feed of a national daily",
    "added": "news audit 2026-09-09; enters only through the gate (capture of the same day)",
    "why_cadence": "15 min from 2026-09-09 afternoon: the editor asked for a fresher page; one request per quarter hour per publisher is still polite"
+  },
+  {
+   "sid": "S12",
+   "name": "Elektrodistribucija Srbije - planned outages, Belgrade (next day)",
+   "url": "https://www.elektrodistribucija.rs/planirana-iskljucenja-beograd/Dan_1_Iskljucenja.htm",
+   "parser": "eds_outages",
+   "ext": "html",
+   "store_raw": true,
+   "cadence_seconds": 3600,
+   "timeout_seconds": 45,
+   "max_bytes": 2000000,
+   "phenomenon_time_published": "the notice names the outage day and hours; the publication instant is not given (resultTime = day)",
+   "legal": "official materials of a body exercising public function - Copyright Act Art. 6(2), outside copyright",
+   "enabled": true,
+   "why": "planned power outages per municipality, window and street - the city's own body announcing where it will go dark",
+   "added": "live-layer pass 2026-09-09"
+  },
+  {
+   "sid": "S01",
+   "name": "RHMZ automatic stations - Belgrade (Beograd, Košutnjak)",
+   "url": "https://www.hidmet.gov.rs/latin/osmotreni/automatske.php",
+   "parser": "rhmz_auto",
+   "ext": "html",
+   "store_raw": true,
+   "cadence_seconds": 900,
+   "timeout_seconds": 45,
+   "max_bytes": 2000000,
+   "phenomenon_time_published": "YES - the page prints the 'termin' (local time); converted to UTC by the project's DST rule and marked on every row",
+   "legal": "official materials of a body exercising public function - Copyright Act Art. 6(2), outside copyright; the row keeps the value as printed",
+   "enabled": true,
+   "why": "temperature, pressure, humidity, wind at the two RHMZ stations inside the city - the first instrument with a stated measurement time besides SEPA",
+   "added": "live-layer pass 2026-09-09",
+   "source_clock_note": {
+    "text": "RHMZ prints local time (CET/CEST) without an offset; phenomenonTime is our conversion and says so in phenomenonTimeSource"
+   }
   }
  ]
 }

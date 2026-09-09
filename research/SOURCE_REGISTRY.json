@@ -2,7 +2,7 @@
  "schema": "beops-source-research/v1",
  "reviewed_at": "2026-09-09",
  "scope": "Belgrade; global sources are filtered or contextual, not other-city substitution",
- "review_note": "Current-products continuation2026-09-06:189 source records after S192;12 product-scoped legal reviews. Records are not device/feed counts; coverage gaps and access limits remain visible. 2026-09-08: S193 added (GeoSrbija OGC host) for the base map; 190 records. S193 measured 401 (account_required); S194 Nominatim added for the base map; 191 records. S194 refused by robots.txt (opted_out); base map via S126 ohsome. S126 extraction route measured 403 (blocked). 2026-09-09 news audit: S68 corrected (private publisher), S77 split, S74 X-Robots-Tag decision recorded, S15/S11/S175 extended with official routes, S195-S206 added (RTS, Novosti-Beograd, Euronews Srbija, B92, CINS, Cenzolovka, Masina, Istinomer, Vlada RS, MUP refused, Nova.rs, Putevi Srbije); 203 records. S207 Blic (Beograd feed, from the PC) and S208 Beoinfo listing added; 205 records.",
+ "review_note": "Current-products continuation2026-09-06:189 source records after S192;12 product-scoped legal reviews. Records are not device/feed counts; coverage gaps and access limits remain visible. 2026-09-08: S193 added (GeoSrbija OGC host) for the base map; 190 records. S193 measured 401 (account_required); S194 Nominatim added for the base map; 191 records. S194 refused by robots.txt (opted_out); base map via S126 ohsome. S126 extraction route measured 403 (blocked). 2026-09-09 news audit: S68 corrected (private publisher), S77 split, S74 X-Robots-Tag decision recorded, S15/S11/S175 extended with official routes, S195-S206 added (RTS, Novosti-Beograd, Euronews Srbija, B92, CINS, Cenzolovka, Masina, Istinomer, Vlada RS, MUP refused, Nova.rs, Putevi Srbije); 203 records. S207 Blic (Beograd feed, from the PC) and S208 Beoinfo listing added; 205 records. Afternoon live-layer pass: S12 (EDS outages) and S01 (RHMZ automatic stations) enabled with parsers; S209 Beograd-put and S210 Gradska cistoca refused (ClaudeBot named), S211 beg.aero bot wall, S212 Srbijavoz and S213 Infostan leads, S214 Zelenilo 403; 211 records.",
  "status_legend": {
   "probe_ok": "bounded direct response and reconnaissance parsing succeeded; not a production or accuracy verdict",
   "probe_tls_failed": "local verified-TLS request failed; no certificate bypass",
@@ -29,12 +29,14 @@
    "theme": "weather",
    "name": "RHMZ automatic stations",
    "url": "https://www.hidmet.gov.rs/latin/osmotreni/automatske.php",
-   "status": "probe_ok",
+   "status": "collected",
    "kind": "station_observation",
    "rhythm": "minute-stamped observations; exact per-station cadence to establish",
    "access": "public, no key in probe",
    "reuse": "not verified",
-   "next": "Resolve stable station identity, source timezone, units and missing markers; preserve each station separately."
+   "next": "Resolve stable station identity, source timezone, units and missing markers; preserve each station separately.",
+   "live_layer_2026_09_09": "ENABLED: collect_daemon.py `rhmz_auto` keeps the Belgrade stations (Beograd, Košutnjak) with temperature, pressure, humidity, wind; the page's 'termin' (local time) converted to UTC by the project's DST rule and marked; robots.txt 'Disallow:' (empty). Coordinates approximate until the official station list is read (S188 route). Every 15 min.",
+   "coordinates_note": "Beograd 44.800N 20.467E and Košutnjak 44.766N 20.421E are approximate (RHMZ station descriptions) and are labelled so on every row"
   },
   {
    "id": "S02",
@@ -168,12 +170,13 @@
    "name": "EDS Belgrade planned interruption table",
    "url": "https://www.elektrodistribucija.rs/planirana-iskljucenja-beograd/Dan_1_Iskljucenja.htm",
    "documentation": "https://elektrodistribucija.rs/planirana-iskljucenja/planirana-bgd",
-   "status": "probe_ok",
+   "status": "collected",
    "kind": "planned_service_notice",
    "rhythm": "daily/current plus upcoming days",
    "access": "public HTML",
    "reuse": "not verified",
-   "next": "Parse date and house-number ranges; rolling URL needs content versioning, not URL-only deduplication."
+   "next": "Parse date and house-number ranges; rolling URL needs content versioning, not URL-only deduplication.",
+   "live_layer_2026_09_09": "ENABLED: collect_daemon.py `eds_outages` parses the Dan_1 table (municipality | window | streets) into dated notices keyed by content; no robots.txt on the host (404); public enterprise notice, Art. 6(2). Hourly. Dan_2 (the day after) is a second route, not yet polled."
   },
   {
    "id": "S13",
@@ -197,7 +200,8 @@
    "rhythm": "event-driven",
    "access": "news-list probe found 10K notice; changes-list parser returned no candidates, so completeness is not established",
    "reuse": "not verified",
-   "next": "Validate canonical IDs, publication/effective dates and cancellation; repair changes-list extraction only with a bounded sample; avoid counting mirrored notices twice."
+   "next": "Validate canonical IDs, publication/effective dates and cancellation; repair changes-list extraction only with a bounded sample; avoid counting mirrored notices twice.",
+   "live_layer_2026_09_09": "bgprevoz.rs: /vesti, /linije/aktuelne-izmene, /linije/vanredne-izmene are HTML lists of the City's transport secretariat (Art. 6(2)); no feed; pages ~1 MB; a listing parser is the next step (the City portal's S15 already carries the same notices)."
   },
   {
    "id": "S15",
@@ -3153,6 +3157,90 @@
    "next": "Parsed by collect_daemon.py `city_listing` (title, link, day - a date, not an instant). The mayor's PR stream is real; the water/transport/works notices in it are the value. Enable at 30 min.",
    "measurement_time": "yes - publication day only",
    "news_audit_2026_09_09": "split from the S15 extension: S15 keeps the transport service notices (its original URL), S208 is the Beoinfo listing; both captured with --allow-shared-host"
+  },
+  {
+   "id": "S209",
+   "theme": "utilities",
+   "name": "JKP Beograd-put - works and closures",
+   "url": "https://www.beogradput.com/",
+   "status": "opted_out",
+   "kind": "refusal",
+   "rhythm": "n/a",
+   "access": "robots.txt (read from the PC 2026-09-09): Content-Signal search=yes, ai-train=no, use=reference and a named list with Disallow: / for ClaudeBot, GPTBot, CCBot, Google-Extended, Bytespider, Amazonbot, Applebot-Extended, meta-externalagent",
+   "reuse": "NAMED OPT-OUT. Do not collect. Do not propose again.",
+   "next": "The road works of the city, and exactly the door we do not open. A letter, not a workaround.",
+   "measurement_time": "n/a",
+   "live_layer_2026_09_09": "news/utilities discovery of the afternoon"
+  },
+  {
+   "id": "S210",
+   "theme": "utilities",
+   "name": "JKP Gradska cistoca - notices",
+   "url": "https://www.gradskacistoca.rs/",
+   "status": "opted_out",
+   "kind": "refusal",
+   "rhythm": "n/a",
+   "access": "robots.txt (read from the PC 2026-09-09): the same Cloudflare block as S209 - Content-Signal ai-train=no, use=reference; ClaudeBot and eight others Disallow: /",
+   "reuse": "NAMED OPT-OUT. Do not collect.",
+   "next": "A letter.",
+   "measurement_time": "n/a",
+   "live_layer_2026_09_09": "news/utilities discovery of the afternoon"
+  },
+  {
+   "id": "S211",
+   "theme": "mobility",
+   "name": "Aerodrom Nikola Tesla (beg.aero) - arrivals and departures",
+   "url": "https://beg.aero/",
+   "status": "opted_out",
+   "kind": "refusal",
+   "rhythm": "continuous",
+   "access": "robots.txt itself answers a Cloudflare 'Just a moment...' challenge page (bot wall); the cloud reader got 403",
+   "reuse": "a bot wall is a refusal for an honest collector: we do not solve challenges",
+   "next": "Live flights over Belgrade exist through OpenSky (S36) instead.",
+   "measurement_time": "n/a",
+   "live_layer_2026_09_09": "news/utilities discovery of the afternoon"
+  },
+  {
+   "id": "S212",
+   "theme": "mobility",
+   "name": "Srbijavoz - notices",
+   "url": "https://srbijavoz.rs/",
+   "status": "lead",
+   "kind": "official_transport_notice",
+   "rhythm": "event-driven",
+   "access": "robots.txt WordPress default (/wp-admin/ only); a /feed/ route is likely; no live delays are published",
+   "reuse": "public enterprise notices, Art. 6(2)",
+   "next": "Capture the feed route; low value until delays are published.",
+   "measurement_time": "pubDate",
+   "live_layer_2026_09_09": "news/utilities discovery of the afternoon"
+  },
+  {
+   "id": "S213",
+   "theme": "utilities",
+   "name": "JKP Infostan Tehnologije - notices",
+   "url": "https://infostan.rs/",
+   "status": "lead",
+   "kind": "municipal_feed",
+   "rhythm": "weekly",
+   "access": "robots.txt 'Disallow:' (empty), sitemap_index.xml (WordPress)",
+   "reuse": "public enterprise notices, Art. 6(2)",
+   "next": "Billing and utility-fee notices; low rhythm; capture the feed route when the utilities layer grows.",
+   "measurement_time": "pubDate",
+   "live_layer_2026_09_09": "news/utilities discovery of the afternoon"
+  },
+  {
+   "id": "S214",
+   "theme": "utilities",
+   "name": "JKP Zelenilo Beograd",
+   "url": "https://www.zelenilo.rs/",
+   "status": "probe_tls_failed",
+   "kind": "negative_finding",
+   "rhythm": "n/a",
+   "access": "robots.txt answered 403 Forbidden from the PC on 2026-09-09",
+   "reuse": "n/a",
+   "next": "Re-probe in a week; a 403 to an honest agent is not permission.",
+   "measurement_time": "n/a",
+   "live_layer_2026_09_09": "news/utilities discovery of the afternoon"
   }
  ]
 }

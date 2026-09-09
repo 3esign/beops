@@ -303,6 +303,44 @@ class DisabledSourceTests(unittest.TestCase):
         self.assertEqual([s["sid"] for s in st["sources"]], ["S68"])
 
 
+EDS_HTML = """<HTML><BODY><TABLE><TR><TD>БЕОГРАД - Планирана искључења за датум: 2026-09-10</TD></TR>
+<TR><TD>Општина</TD><TD>Време</TD><TD>Улице</TD></TR>
+<TR><TD>Звездара</TD><TD>02:00 - 07:00</TD><TD>ВОЈИСЛАВА ИЛИЋА: 139,</TD></TR>
+<TR><TD>Вождовац</TD><TD>10:00 - 14:00</TD><TD>УСТАНИЧКА: 170,</TD></TR></TABLE></BODY></HTML>""".encode("utf-8")
+RHMZ_HTML = """<html><body><p>09.09.2026.&nbsp;&nbsp;termin:&nbsp;13:30</p><table>
+<tr><th>Stanica</th><th>Temp.(°C)</th><th>Prit.(hPa)</th><th>Vlažnost(%)</th><th>Vetarpravac</th><th>Vetarbrzina(m/s)</th><th>Detaljnije</th></tr>
+<tr><td>Palić</td><td>31.6</td><td>998.3</td><td>21</td><td>ESE</td><td>3.6</td><td>Detaljnije</td></tr>
+<tr><td>Beograd</td><td>33.5</td><td>995.0</td><td>18</td><td>SE</td><td>2.6</td><td>Detaljnije</td></tr>
+<tr><td>Košutnjak</td><td>13:25</td><td>32.0</td><td>986.8</td><td>20</td><td>181</td><td>2.8</td><td>Detaljnije</td></tr>
+</table></body></html>""".encode("utf-8")
+
+
+class UtilityAndWeatherParserTests(unittest.TestCase):
+    def test_eds_outages_become_dated_notices_keyed_by_content(self):
+        src = {"sid": "S12", "url": "https://www.elektrodistribucija.rs/x/Dan_1_Iskljucenja.htm"}
+        rows = cd.parse_eds_outages(EDS_HTML, NOW, src)
+        self.assertEqual(len(rows), 2)
+        self.assertIn("Звездара", rows[0]["result"]); self.assertIn("02:00 - 07:00", rows[0]["result"])
+        self.assertEqual((rows[0]["resultTime"], rows[0]["resultTimeResolution"], rows[0]["outage_day"]), ("2026-09-10", "day", "2026-09-10"))
+        self.assertTrue(rows[0]["phenomenonTimeUnknown"])
+        self.assertEqual(rows[0]["dedupe_key"], cd.parse_eds_outages(EDS_HTML, NOW, src)[0]["dedupe_key"])
+        self.assertNotEqual(rows[0]["dedupe_key"], rows[1]["dedupe_key"])
+
+    def test_rhmz_belgrade_stations_get_utc_phenomenon_time_and_text_wind_is_not_a_number(self):
+        rows = cd.parse_rhmz_auto(RHMZ_HTML, NOW, {"sid": "S01", "url": "x"})
+        by = {r["datastream"]: r for r in rows}
+        self.assertEqual(len(rows), 10)                       # two Belgrade stations x five parameters; Palić dropped
+        self.assertEqual(by["Beograd|temperature"]["result"], 33.5)
+        self.assertEqual(by["Beograd|temperature"]["phenomenonTime"], "2026-09-09T11:30:00Z")   # 13:30 CEST
+        self.assertEqual(by["Košutnjak|pressure"]["phenomenonTime"], "2026-09-09T11:25:00Z")     # its own 13:25
+        self.assertEqual((by["Beograd|wind_direction"]["result"], by["Beograd|wind_direction"]["result_text"], by["Beograd|wind_direction"]["unit"]), (None, "SE", "compass"))
+        self.assertEqual((by["Košutnjak|wind_direction"]["result"], by["Košutnjak|wind_direction"]["unit"]), (181.0, "deg"))
+        self.assertFalse(by["Beograd|humidity"]["phenomenonTimeUnknown"])
+        self.assertEqual(cd.parse_rhmz_auto(b"<html>no termin here</html>", NOW, {"sid": "S01"}), [])
+        self.assertEqual(cd._belgrade_local_offset(datetime(2026, 1, 15, tzinfo=timezone.utc)), 1)
+        self.assertEqual(cd._belgrade_local_offset(datetime(2026, 7, 15, tzinfo=timezone.utc)), 2)
+
+
 class CityListingTests(unittest.TestCase):
     def test_city_listing_keeps_title_link_and_day_only(self):
         rows = cd.parse_city_listing(CITY_HTML, NOW, SRC_CITY)

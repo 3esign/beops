@@ -417,8 +417,114 @@ def parse_city_listing(body: bytes, received: datetime, src: dict) -> list[dict]
     return rows
 
 
+def _cells(row_html: str) -> list[str]:
+    import html as _html
+    return [" ".join(_html.unescape(re.sub(r"<[^>]+>", " ", c)).split()) for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", row_html, re.S | re.I)]
+
+
+def parse_eds_outages(body: bytes, received: datetime, src: dict) -> list[dict]:
+    """Elektrodistribucija Srbije - planned power outages for Belgrade, one HTML table per day
+    (Dan_1 = the next day). Rows: municipality | time window | streets with house numbers. Each row
+    becomes one text row (a notice, like a headline): the day comes from the table title, the row is
+    dedupe-keyed by its content, so a notice is recorded once even though the page is polled hourly.
+    A public enterprise's notice is an official material of a body exercising public function
+    (Copyright Act Art. 6(2)); the text is kept as served (Cyrillic)."""
+    text = body.decode("utf-8", "replace")
+    m = re.search(r"(\d{4}-\d{2}-\d{2})", text)
+    day = m.group(1) if m else None
+    rows = []
+    for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", text, re.S | re.I):
+        c = _cells(tr)
+        if len(c) != 3 or not re.match(r"\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}", c[1] or ""):
+            continue
+        muni, when, streets = c[0], " ".join(c[1].split()), c[2].rstrip(", ").strip()
+        title = f"Планирано искључење струје {day or ''} · {muni} · {when} · {streets}"[:200]
+        key = f"{day}|{muni}|{when}|{streets}"
+        rows.append({
+            "schema": SCHEMA_ROW, "sid": src["sid"], "kind": "text",
+            "datastream": f"{src['sid']}|notice", "station_id": muni, "parameter": "planned_outage",
+            "result": title, "unit": None, "link": src.get("url"),
+            "phenomenonTime": None, "phenomenonTimeUnknown": True,
+            "phenomenonTimeReason": "a planned outage is a notice about a future window; the day and hours are in the text, the publication instant is not given",
+            "resultTime": day, "resultTimeResolution": "day" if day else None, "receivedTime": iso(received),
+            "resultQuality": "unvalidated", "outage_day": day, "outage_window": when, "municipality": muni,
+            "dedupe_key": f"{src['sid']}|{hashlib.sha256(key.encode('utf-8')).hexdigest()[:24]}",
+        })
+    return rows
+
+
+RHMZ_BELGRADE = {  # coordinates: approximate, from the RHMZ station descriptions; to be replaced by the official list (S188 route)
+    "Beograd": (44.800, 20.467), "Košutnjak": (44.766, 20.421), "Beograd-Opservatorija": (44.800, 20.467),
+}
+
+
+def _belgrade_local_offset(d: datetime) -> int:
+    """Europe/Belgrade without tzdata: CEST (+2) from the last Sunday of March 01:00 UTC to the last Sunday of October 01:00 UTC, else CET (+1)."""
+    def last_sunday(y, mth):
+        x = datetime(y, mth + 1, 1, tzinfo=timezone.utc) - timedelta(days=1) if mth < 12 else datetime(y, 12, 31, tzinfo=timezone.utc)
+        return x - timedelta(days=(x.weekday() + 1) % 7)
+    y = d.year
+    start = last_sunday(y, 3).replace(hour=1)
+    end = last_sunday(y, 10).replace(hour=1)
+    return 2 if start <= d.astimezone(timezone.utc) < end else 1
+
+
+def parse_rhmz_auto(body: bytes, received: datetime, src: dict) -> list[dict]:
+    """RHMZ automatic stations (hidmet.gov.rs/latin/osmotreni/automatske.php): the state network with one
+    shared 'termin' (date + HH:MM, local time) and the supplementary network with a time per row.
+    Only the Belgrade stations are kept (RHMZ_BELGRADE). Local time is converted to UTC with the
+    project's own DST rule and marked so. Units and columns as served: temperature °C, pressure hPa,
+    humidity %, wind direction (compass text or degrees), wind speed m/s."""
+    text = body.decode("utf-8", "replace")
+    m = re.search(r"(\d{2})\.(\d{2})\.(\d{4})\.?(?:&nbsp;|\s)*termin:(?:&nbsp;|\s)*(\d{1,2}):(\d{2})", text)
+    if not m:
+        return []
+    dd, mm, yy, hh, mi = (int(x) for x in m.groups())
+    base_local = datetime(yy, mm, dd, hh, mi)
+    rows = []
+    for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", text, re.S | re.I):
+        c = _cells(tr)
+        if len(c) < 7 or c[0] not in RHMZ_BELGRADE:
+            continue
+        if len(c) >= 8 and re.match(r"\d{1,2}:\d{2}$", c[1] or ""):
+            th, tm = (int(x) for x in c[1].split(":"))
+            local = base_local.replace(hour=th, minute=tm)
+            vals = c[2:7]
+        else:
+            local = base_local
+            vals = c[1:6]
+        off = _belgrade_local_offset(datetime(yy, mm, dd, 12, tzinfo=timezone.utc))
+        pt = (local - timedelta(hours=off)).replace(tzinfo=timezone.utc)
+        lat, lon = RHMZ_BELGRADE[c[0]]
+        for name, unit, raw in (("temperature", "Cel", vals[0]), ("pressure", "hPa", vals[1]), ("humidity", "%", vals[2]),
+                                ("wind_direction", "compass", vals[3]), ("wind_speed", "m/s", vals[4])):
+            text_val = None
+            if name == "wind_direction":
+                try:
+                    val = float(raw)          # degrees on the supplementary network
+                except (TypeError, ValueError):
+                    val, text_val = None, (raw or None)   # a compass word on the state network: kept as text, never as a number
+            else:
+                try:
+                    val = float(raw.replace(",", "."))
+                except (TypeError, ValueError):
+                    val = None
+            rows.append({
+                "schema": SCHEMA_ROW, "sid": src["sid"],
+                "datastream": f"{c[0]}|{name}", "station_id": c[0], "station_name": c[0], "parameter": name,
+                "result": val, "result_text": text_val, "unit": unit if name != "wind_direction" else ("deg" if val is not None else "compass"),
+                "phenomenonTime": iso(pt), "phenomenonTimeUnknown": False,
+                "phenomenonTimeSource": f"'termin' {local.strftime('%H:%M')} local (UTC+{off}, project DST rule) as printed on the page",
+                "resultTime": None, "receivedTime": iso(received),
+                "resultQuality": "unvalidated" if (val is not None or text_val) else "missing",
+                "lat": lat, "lon": lon, "spatial_binding": "station coordinates approximate (RHMZ description), not from an official list",
+                "dedupe_key": f"{src['sid']}|{c[0]}|{name}|{iso(pt)}",
+            })
+    return rows
+
+
 PARSERS = {"sepa_hvd": parse_sepa_hvd, "sensor_community": parse_sensor_community, "parking": parse_parking, "rss": parse_rss,
-           "city_listing": parse_city_listing}
+           "city_listing": parse_city_listing, "eds_outages": parse_eds_outages, "rhmz_auto": parse_rhmz_auto}
 
 
 # ------------------------------------------------------------------ storage
