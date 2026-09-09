@@ -371,7 +371,54 @@ def parse_rss(body: bytes, received: datetime, src: dict) -> list[dict]:
     return rows
 
 
-PARSERS = {"sepa_hvd": parse_sepa_hvd, "sensor_community": parse_sensor_community, "parking": parse_parking, "rss": parse_rss}
+def parse_city_listing(body: bytes, received: datetime, src: dict) -> list[dict]:
+    """beograd.rs listing pages (Beoinfo vesti, servisne informacije) -> one text row per card: title, link,
+    publication date. The City's own notices are official materials of a body exercising public function
+    (Copyright Act Art. 6(2)); the collector still keeps only what it keeps for every feed - a headline, the
+    link and the date - by the same rule. robots.txt disallows the portal's /feed/, so this is the listing
+    route (NEWS_AUDIT_2026-09-09). The page gives a day, not a time: resultTime is that day at 00:00 in the
+    source's local calendar, marked as a date-only publication."""
+    import html as _html
+    text = body.decode("utf-8", "replace")
+    rows = []
+    cards = re.findall(r'<div class="simple-news-card">(.*?)</div>\s*</a>\s*</div>', text, re.S)
+    if not cards:   # the card markup changed: fall back to any article link with a title and a nearby time
+        cards = re.findall(r'(<a href="/(?:lat|cir)/[^"]*/a\d+/[^"]*"[^>]*title="[^"]*"[^>]*>.*?news-card__time">[^<]*<)', text, re.S)
+    base = re.match(r"https?://[^/]+", src.get("url") or "https://www.beograd.rs").group(0)
+    for c in cards:
+        m_href = re.search(r'href="([^"]+)"', c)
+        m_title = re.search(r'title="([^"]*)"', c) or re.search(r'simple-news-card__title">([^<]*)<', c)
+        m_time = re.search(r'news-card__time">\s*([0-9.]+)\s*<', c)
+        if not m_href or not m_title:
+            continue
+        link = m_href.group(1)
+        if link.startswith("/"):
+            link = base + link
+        title = " ".join(_html.unescape(m_title.group(1)).split())[:200]
+        rt = None
+        if m_time:
+            try:
+                d = datetime.strptime(m_time.group(1).strip("."), "%d.%m.%Y")
+                rt = d.strftime("%Y-%m-%d")   # a date, not an instant - kept as the page gives it
+            except ValueError:
+                rt = None
+        m_id = re.search(r"/a(\d+)/", link)
+        guid = m_id.group(1) if m_id else link
+        rows.append({
+            "schema": SCHEMA_ROW, "sid": src["sid"], "kind": "text",
+            "datastream": f"{src['sid']}|headline", "station_id": src["sid"], "parameter": "headline",
+            "result": title or None, "unit": None, "link": link or None,
+            "phenomenonTime": None, "phenomenonTimeUnknown": True,
+            "phenomenonTimeReason": "a notice carries its publication day, not the time of what it announces",
+            "resultTime": rt, "resultTimeResolution": "day" if rt else None, "receivedTime": iso(received),
+            "resultQuality": "unvalidated" if title else "missing",
+            "dedupe_key": f"{src['sid']}|{hashlib.sha256(guid.encode('utf-8')).hexdigest()[:24]}",
+        })
+    return rows
+
+
+PARSERS = {"sepa_hvd": parse_sepa_hvd, "sensor_community": parse_sensor_community, "parking": parse_parking, "rss": parse_rss,
+           "city_listing": parse_city_listing}
 
 
 # ------------------------------------------------------------------ storage

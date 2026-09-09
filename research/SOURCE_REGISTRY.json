@@ -2,7 +2,7 @@
  "schema": "beops-source-research/v1",
  "reviewed_at": "2026-09-09",
  "scope": "Belgrade; global sources are filtered or contextual, not other-city substitution",
- "review_note": "Current-products continuation2026-09-06:189 source records after S192;12 product-scoped legal reviews. Records are not device/feed counts; coverage gaps and access limits remain visible. 2026-09-08: S193 added (GeoSrbija OGC host) for the base map; 190 records. S193 measured 401 (account_required); S194 Nominatim added for the base map; 191 records. S194 refused by robots.txt (opted_out); base map via S126 ohsome. S126 extraction route measured 403 (blocked). 2026-09-09 news audit: S68 corrected (private publisher), S77 split, S74 X-Robots-Tag decision recorded, S15/S11/S175 extended with official routes, S195-S206 added (RTS, Novosti-Beograd, Euronews Srbija, B92, CINS, Cenzolovka, Masina, Istinomer, Vlada RS, MUP refused, Nova.rs, Putevi Srbije); 203 records.",
+ "review_note": "Current-products continuation2026-09-06:189 source records after S192;12 product-scoped legal reviews. Records are not device/feed counts; coverage gaps and access limits remain visible. 2026-09-08: S193 added (GeoSrbija OGC host) for the base map; 190 records. S193 measured 401 (account_required); S194 Nominatim added for the base map; 191 records. S194 refused by robots.txt (opted_out); base map via S126 ohsome. S126 extraction route measured 403 (blocked). 2026-09-09 news audit: S68 corrected (private publisher), S77 split, S74 X-Robots-Tag decision recorded, S15/S11/S175 extended with official routes, S195-S206 added (RTS, Novosti-Beograd, Euronews Srbija, B92, CINS, Cenzolovka, Masina, Istinomer, Vlada RS, MUP refused, Nova.rs, Putevi Srbije); 203 records. S207 Blic (Beograd feed, from the PC) and S208 Beoinfo listing added; 205 records.",
  "status_legend": {
   "probe_ok": "bounded direct response and reconnaissance parsing succeeded; not a production or accuracy verdict",
   "probe_tls_failed": "local verified-TLS request failed; no certificate bypass",
@@ -209,7 +209,7 @@
    "rhythm": "event-driven",
    "access": "public HTML",
    "reuse": "not verified",
-   "next": "Sample changed routes/stops and link notice facts to the static GTFS graph with uncertainty.",
+   "next": "Parsed by collect_daemon.py `city_listing` from 2026-09-09 (title, link, day); the transport notices of the City - the official counterpart of BG Prevoz (S14).",
    "news_audit_2026_09_09": "beograd.rs is the City's own portal: its news (Beoinfo vesti, /lat/beoinfo-vesti) and service notices (/lat/servisne-informacije) are official materials of a body exercising public function - Copyright Act Art. 6(2), not copyright works. Terms (/lat/uslovi-koriscenja, read 2026-09-09): source documents may be downloaded without restriction with attribution and a link to www.beograd.rs; the design, logos, photographs and content carried from other sources are excluded. robots.txt DISALLOWS /feed/ (so the RSS route is refused) and permits the listing pages. Route for v1: poll the listing pages, keep title + link + date. Needs an HTML listing parser (not RSS). Political framing of the Beoinfo stream is real; service notices are the value.",
    "documentation": "https://www.beograd.rs/lat/uslovi-koriscenja",
    "measured_2026_09_09": "captured with --allow-shared-host (S31/S64 share the portal host): listing pages 200, terms captured; the /feed/ route is disallowed in the stored robots.txt and stays refused"
@@ -3123,6 +3123,36 @@
    "measurement_time": "notice date",
    "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
    "measured_2026_09_09": "capture from the PC: no robots.txt (404), site 200; lead, needs a listing parser"
+  },
+  {
+   "id": "S207",
+   "theme": "media",
+   "name": "Blic - Vesti/Beograd RSS",
+   "url": "https://www.blic.rs/rss/Vesti/Beograd",
+   "documentation": "https://www.blic.rs/rss",
+   "status": "lead",
+   "kind": "news_feed",
+   "rhythm": "multiple per hour",
+   "access": "robots.txt (read from the PC 2026-09-09): 'Allow: /' for *, only /*?strana=komentari disallowed, no AI-bot names; RSS index at /rss lists a Beograd feed (Vesti/Beograd) among ~20 category feeds",
+   "reuse": "Ringier; no reuse statement found; headline+link only",
+   "next": "A second Belgrade-only feed of a national daily (with Novosti S196). Enable at 30 min if the capture measures the feed.",
+   "measurement_time": "yes - pubDate",
+   "news_audit_2026_09_09": "the cloud reader is not allowed to read this host; fetched and captured from the PC"
+  },
+  {
+   "id": "S208",
+   "theme": "documentary",
+   "name": "Beoinfo vesti - the City of Belgrade's own news listing",
+   "url": "https://www.beograd.rs/lat/beoinfo-vesti",
+   "documentation": "https://www.beograd.rs/lat/uslovi-koriscenja",
+   "status": "lead",
+   "kind": "municipal_feed",
+   "rhythm": "several per day",
+   "access": "HTML listing (simple-news-card: title, link, day); the portal's /feed/ is disallowed by robots.txt, listing pages are permitted; host shared with S15/S31/S64",
+   "reuse": "official materials of a body exercising public function - Copyright Act Art. 6(2); terms permit downloading source documents with attribution and a link",
+   "next": "Parsed by collect_daemon.py `city_listing` (title, link, day - a date, not an instant). The mayor's PR stream is real; the water/transport/works notices in it are the value. Enable at 30 min.",
+   "measurement_time": "yes - publication day only",
+   "news_audit_2026_09_09": "split from the S15 extension: S15 keeps the transport service notices (its original URL), S208 is the Beoinfo listing; both captured with --allow-shared-host"
   }
  ]
 }

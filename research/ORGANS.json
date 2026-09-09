@@ -12,6 +12,7 @@
    "outputs": "data/live/derived/news/<YYYY-MM>.jsonl - rows of state 'estimated' with category, belgrade, zones[], event_time_text, model, prompt_sha256",
    "runs_where": "on the PC body only (local model daemon at 127.0.0.1:11434); no headline leaves the machine",
    "models_preferred": [
+    "qwen3.5:4b",
     "qwen2.5:3b",
     "qwen3.5:0.8b",
     "lfm2.5:1.2b",
@@ -23,7 +24,7 @@
    "human_review": "a weekly sample of 30 derived rows is read by the editor of record and disagreements are appended to research/08-provenance/CORRECTIONS.md",
    "ai_act_art_50": "outputs are machine-marked ai_generated=true; any sentence shown to the public is labelled as model-derived; the editor of record holds editorial responsibility (Art. 50(4) exception path)",
    "editor_of_record": "Semir Poturak (Union Nikola Tesla University)",
-   "status": "built 2026-09-08; first run against a local model on 2026-09-09 (see receipts) ; 0.1.1 binds by echoed headline (C-013)",
+   "status": "built 2026-09-08; first run against a local model on 2026-09-09 (see receipts) ; 0.1.1 binds by echoed headline (C-013); 2026-09-09: moved to the same main model as the mind (qwen3.5:4b, Apache-2.0) - the body (8 GB RAM, 4 GB GPU) cannot hold two models, and the 500s of 10:19 UTC on the public page were the two organs evicting each other during the voice bench",
    "allow_cloud": false,
    "why_local_only": "names ending in ':cloud' are Ollama-hosted; a headline sent there leaves the machine, which this entry forbids. Measured on the PC 2026-09-08: local qwen2.5:3b (2.0 GB), qwen3.5:0.8b, lfm2.5:1.2b, llama3.2:1b present"
   },

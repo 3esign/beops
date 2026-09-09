@@ -40,6 +40,7 @@ import json
 import os
 import re
 import sys
+import time
 import ssl
 import urllib.error
 import urllib.parse
@@ -490,10 +491,17 @@ def recheck_collectors(dry: bool = False) -> int:
         if "{" in url:   # a templated collector URL: capture the registry URL instead
             url = reg[sid].get("url") or url.split("{")[0]
         name = reg[sid].get("name") or src.get("name") or sid
-        try:
-            e = capture(sid, name, [url], [], "weekly re-check of a polled source", dry)
-        except Exception as ex:  # noqa: BLE001
-            print(f"{sid}: capture failed: {type(ex).__name__}: {str(ex)[:120]}")
+        e = None
+        for attempt in (1, 2):   # an unreadable robots.txt is 'unknown', and unknown stops the source: one retry before that happens
+            try:
+                e = capture(sid, name, [url], [], "weekly re-check of a polled source" + (" (retry)" if attempt == 2 else ""), dry)
+            except Exception as ex:  # noqa: BLE001
+                print(f"{sid}: capture failed: {type(ex).__name__}: {str(ex)[:120]}")
+                e = None
+            if e is not None and e.get("allowed_for_us") is not None:
+                break
+            time.sleep(20)
+        if e is None:
             continue
         flag = "" if e.get("allowed_for_us") else "  <-- NOT PERMITTED NOW: the collector stops this source at its next tick"
         if flag:

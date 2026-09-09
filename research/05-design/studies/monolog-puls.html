@@ -48,6 +48,18 @@ main{display:grid;grid-template-columns:minmax(360px,5fr) minmax(360px,7fr);min-
   .line{grid-template-columns:6ch 12px 1fr;padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*4)}
   .how{padding:calc(var(--u)*4)}
 }
+.mind{border-bottom:1px solid var(--ink12);padding:calc(var(--u)*3) calc(var(--u)*6) calc(var(--u)*4)}
+.mind h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink60);font-weight:600;margin:0 0 calc(var(--u)*2)}
+.mind .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--u)*4)}
+.mind .card{border-left:3px solid var(--ink12);padding:0 0 0 calc(var(--u)*3);min-width:0}
+.mind .card.fresh{border-left-color:var(--signal)}
+.mind .card .who{font-size:13px;font-weight:600;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.mind .card .who .t{font-family:var(--mono);font-weight:400;font-size:12px;color:var(--ink60)}
+.mind .card .say{font-size:16px;line-height:1.45;margin:4px 0 2px}
+.mind .card.quiet .say{color:var(--ink60);font-style:italic}
+.mind .card .hyp{font-size:13px;color:var(--ink60);margin-top:2px}
+.mind .card .meta{font-family:var(--mono);font-size:11px;color:var(--ink60);margin-top:4px;word-break:break-word}
+@media (max-width:900px){.mind{padding:calc(var(--u)*3) calc(var(--u)*4)}.mind .cards{grid-template-columns:1fr}}
 .monolog{border-right:1px solid var(--ink12);display:flex;flex-direction:column;min-height:60vh}
 .monolog h2,.map h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink60);font-weight:600;margin:0;padding:calc(var(--u)*3) calc(var(--u)*6);border-bottom:1px solid var(--ink12)}
 .lines{flex:1;overflow:auto;padding:calc(var(--u)*2) 0;max-height:calc(100vh - 140px)}
@@ -123,6 +135,10 @@ body.embedded .how,body.embedded .foot{display:none}
     <span class="clock" id="clock">—</span>
   </div>
 </header>
+<section class="mind" id="mind">
+  <h2><span class="sr-only">Um — šta tri entiteta upravo misle o onome što grad govori (proverene rečenice, ne merenja)</span><span class="en-only">The mind — what the three entities think right now about what the city says (checked utterances, not measurements)</span></h2>
+  <div class="cards" id="mindcards"></div>
+</section>
 <main>
   <section class="monolog">
     <h2><span class="sr-only">Monolog grada — šta je stiglo, kad, i šta ćuti</span><span class="en-only">The city's monologue — what arrived, when, and what stayed silent</span></h2>
@@ -352,9 +368,30 @@ function frame(ts){
   drawMap(performance.now()); requestAnimationFrame(frame);
 }
 function setPressed(){ document.getElementById('play').setAttribute('aria-pressed',PLAY); document.getElementById('live').setAttribute('aria-pressed',!PLAY&&cursor>=EVENTS.length); }
+// ---- the mind at the top: the latest checked utterance of each entity -------------------
+const ENT=[['observer','Posmatrač','Observer'],['skeptic','Sumnjalo','Skeptic'],['connector','Povezivač','Connector']];
+function renderMind(){
+  const box=document.getElementById('mindcards'); if(!box||!SNAP) return; box.innerHTML='';
+  const ths=(SNAP.thoughts||[]).filter(t=>t.state==='thought');
+  const asOf=P(SNAP.as_of);
+  for(const [id,nsr,nen] of ENT){
+    const mine=ths.filter(t=>t.entity===id).sort((a,b)=>P(b.t)-P(a.t));
+    const th=LANG==='sr'?mine.find(t=>t.sr_state==='voiced'&&t.sr):mine[0];
+    const el=document.createElement('div'); const name=LANG==='sr'?nsr:nen;
+    if(!th){ const last=mine[0]; el.className='card quiet';
+      const why=LANG==='sr'?(last?`ćuti na srpskom: poslednja misao (${fmtT(last.t)}) nije prošla proveru ekavice`:'ćuti: nijedna misao u prozoru nije prošla proveru'):(last?'silent':'silent: no utterance in the window passed the check');
+      el.innerHTML=`<div class="who"><b>${esc(name)}</b></div><div class="say">${esc(why)}. ${esc(LANG==='sr'?'Ćutanje je zapis kao i svako drugo.':'Silence is a record like any other.')}</div>`; box.appendChild(el); continue; }
+    const fresh=(asOf-P(th.t))<3600e3;
+    const text=LANG==='sr'?th.sr:th.en;
+    const hyp=LANG==='sr'?(th.hypotheses_sr||[]):(th.hypotheses||[]); const q=LANG==='sr'?(th.questions_sr||[]):(th.questions||[]);
+    el.className='card'+(fresh?' fresh':'');
+    el.innerHTML=`<div class="who"><b>${esc(name)}</b> <span class="t">${fmtD(th.t)} UTC</span></div><div class="say">${esc(text)}</div>${hyp.length?`<div class="hyp">${LANG==='sr'?'pretpostavka':'hypothesis'}: ${esc(hyp.join(' · '))}</div>`:''}${q.length?`<div class="hyp">${LANG==='sr'?'pitanje':'question'}: ${esc(q.join(' · '))}</div>`:''}<div class="meta">${esc(th.model||'')}${th.voice_model?' · '+(LANG==='sr'?'glas ':'voice ')+esc(th.voice_model):''} · ai_generated=true · ${LANG==='sr'?'svaki broj proveren prema digestu':'every number checked against the digest'}${th.cites&&th.cites.length?' · '+esc(th.cites.join(' ')):''}</div>`;
+    box.appendChild(el);
+  }
+}
 function showLatest(){ PLAY=false; playT=T1; cursor=EVENTS.length; const box=document.getElementById('lines'); box.innerHTML=''; for(let i=Math.max(0,EVENTS.length-60);i<EVENTS.length;i++) addLine(EVENTS[i],false); setPressed(); }
 function startReplay(){ const first=EVENTS.find(e=>e.kind==='rx'||e.kind==='text'); playT=first?Math.max(T0,first.t-120e3):T0; cursor=0; document.getElementById('lines').innerHTML=''; PLAY=true; lastFrame=0; setPressed(); }
-function relang(){ document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); const box=document.getElementById('lines'); box.innerHTML=''; for(let i=Math.max(0,cursor-60);i<cursor;i++) addLine(EVENTS[i],false); speedLabel(); }
+function relang(){ document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); const box=document.getElementById('lines'); box.innerHTML=''; for(let i=Math.max(0,cursor-60);i<cursor;i++) addLine(EVENTS[i],false); speedLabel(); renderMind(); }
 document.getElementById('lang').addEventListener('click',()=>{LANG=LANG==='sr'?'en':'sr'; relang();});
 document.getElementById('play').addEventListener('click',()=>{ if(PLAY){ PLAY=false; setPressed(); } else startReplay(); });
 document.getElementById('live').addEventListener('click',showLatest);
@@ -364,6 +401,6 @@ document.body.classList.add('lang-sr');
 try{ if(window.self!==window.top||location.search.includes('embed')) document.body.classList.add('embedded'); }catch(e){ document.body.classList.add('embedded'); }
 // the landing page's language toggle reaches the frame
 window.addEventListener('message',ev=>{ if(ev&&ev.data&&ev.data.beopsLang&&ev.data.beopsLang!==LANG){ LANG=ev.data.beopsLang; relang(); } });
-Promise.all([loadBasemap(),loadPeople()]).then(()=>load()).then(snap=>{ if(!snap){document.getElementById('clock').textContent='no snapshot';return;} SNAP=snap; T1=P(snap.as_of); T0=T1-snap.window_hours*3600e3; EVENTS=build(snap); document.getElementById('mapnote').textContent=(snap.as_of.slice(0,19))+'Z'; speedLabel(); showLatest(); requestAnimationFrame(frame); });
+Promise.all([loadBasemap(),loadPeople()]).then(()=>load()).then(snap=>{ if(!snap){document.getElementById('clock').textContent='no snapshot';return;} SNAP=snap; T1=P(snap.as_of); T0=T1-snap.window_hours*3600e3; EVENTS=build(snap); document.getElementById('mapnote').textContent=(snap.as_of.slice(0,19))+'Z'; speedLabel(); showLatest(); renderMind(); requestAnimationFrame(frame); });
 })();
 </script>

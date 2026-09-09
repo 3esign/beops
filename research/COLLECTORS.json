@@ -547,6 +547,54 @@
    "enabled": true,
    "why": "national official materials; the sorter filters for Belgrade",
    "added": "news audit 2026-09-09 (07-legal/NEWS_AUDIT_2026-09-09.md); permission capture of the same day in the ledger"
+  },
+  {
+   "sid": "S15",
+   "name": "City of Belgrade - transport service notices (listing)",
+   "url": "https://www.beograd.rs/lat/servisne-informacije/saobracaj-i-prevoz",
+   "parser": "city_listing",
+   "ext": "html",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - the page gives a publication day (resultTime, resolution day); the event's own time is unknown",
+   "legal": "official materials of a body exercising public function - Copyright Act Art. 6(2), outside copyright; still only headline, link and day are kept, by the same collector rule",
+   "enabled": true,
+   "why": "the City's own transport notices; robots.txt disallows the portal's /feed/, the listing page is permitted",
+   "added": "news audit 2026-09-09"
+  },
+  {
+   "sid": "S208",
+   "name": "Beoinfo vesti - the City's news listing",
+   "url": "https://www.beograd.rs/lat/beoinfo-vesti",
+   "parser": "city_listing",
+   "ext": "html",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - the page gives a publication day (resultTime, resolution day); the event's own time is unknown",
+   "legal": "official materials of a body exercising public function - Copyright Act Art. 6(2), outside copyright; still only headline, link and day are kept, by the same collector rule",
+   "enabled": true,
+   "why": "the City's own news: works, water, schools, transport - and the mayor's PR, which the sorter must weigh",
+   "added": "news audit 2026-09-09"
+  },
+  {
+   "sid": "S207",
+   "name": "Blic - Vesti/Beograd RSS",
+   "url": "https://www.blic.rs/rss/Vesti/Beograd",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": true,
+   "why": "a second Belgrade-only feed of a national daily",
+   "added": "news audit 2026-09-09; enters only through the gate (capture of the same day)"
   }
  ]
 }

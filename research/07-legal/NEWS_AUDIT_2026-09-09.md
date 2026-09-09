@@ -1,7 +1,7 @@
 # BEOPS — the news layer re-combed: what we have, what was wrong, what else is lawful
 
-Status: measured — 27 permission captures from the PC on 2026-09-09 (12 re-captures, 3 extended
-records, 12 new records; one manual refusal). Where a line says "pre-screen", the robots.txt and
+Status: measured — 31 permission captures from the PC on 2026-09-09 (12 re-captures, 3 extended
+records, 14 new records; one manual refusal). Where a line says "pre-screen", the robots.txt and
 the feed were also read from the cloud the same day; the ledger line is what counts.
 Date: 2026-09-09
 Author: claude-cowork, for the editor of record
@@ -49,7 +49,7 @@ Three sorts, in the order the frame itself ranks them.
 
 | SID | Source | Route | Verdict |
 |---|---|---|---|
-| **S15** (extended) | **beograd.rs** — Beoinfo vesti and Servisne informacije | robots.txt **disallows `/feed/`** (the RSS route is therefore refused) and permits the listing pages; terms permit downloading source documents without restriction with attribution and a link. | Listing pages, title + link + date. Needs an HTML listing parser (not RSS) — the one engineering item this audit leaves open. Political framing of Beoinfo is real; the service notices are the value. |
+| **S15** (extended) + **S208** | **beograd.rs** — transport service notices (S15) and Beoinfo vesti (S208) | robots.txt **disallows `/feed/`** (the RSS route is therefore refused) and permits the listing pages; terms permit downloading source documents without restriction with attribution and a link. | Listing pages parsed by `collect_daemon.py city_listing`: title, link, **day** (the page gives no time — `resultTimeResolution: day`). Both enabled, 30 min. Political framing of Beoinfo is real; the service notices are the value. |
 | **S11** (extended) | **BVK** (water utility) RSS `bvk.rs/feed/` | robots.txt clean; the feed answers `X-Robots-Tag: noindex, follow` (E-011); ~10 items; outages, works, deratisation per street. | Enable, 30 min. |
 | **S175** (extended) | **Beogradske elektrane** RSS `beoelektrane.co.rs/feed/` | robots.txt clean; "Radovi na toplovodnoj mreži", a daily **"Stanje sistema"** line, outage reports. | Enable, 30 min. The daily status line is the closest thing to an instrument the heating operator publishes. |
 | **S203** | **Vlada Republike Srbije** RSS (`srbija.gov.rs/rss/?change_lang=cr`) | robots.txt harmless; the feed works only with the language parameter; the feed lagged the page by three weeks when read. | Enable, 60 min; national, the sorter filters. |
@@ -73,8 +73,9 @@ Three sorts, in the order the frame itself ranks them.
 
 ### 3c. Looked at and left
 
-- **Blic** (Ringier): the cloud tool used for the pre-screen is not allowed to read that host, so
-  nothing was concluded; a capture from the PC is the only honest route and was not run today.
+- **Blic** (Ringier): the cloud tool used for the pre-screen is not allowed to read that host. Read
+  from the PC instead: robots.txt `Allow: /` (only the comments query is disallowed), an RSS index
+  with a **Vesti/Beograd** feed — registered as **S207**, captured, enabled at 30 min.
 - **Mondo**: robots.txt disallows `/feed/` — the same CMS as beograd.rs; no other feed route found.
 - **GSP Beograd** (`gsp.rs`): answered 500 from `gsp.co.rs` when read; the S14 BG Prevoz route
   already carries the transport notices.
@@ -114,5 +115,5 @@ other products on the same host (S31/S64, S63/S175) — the identity check doing
   the City portal, the water utility, the heating operator — and the discipline of a **weekly
   re-capture**. Eight more headline streams make the digest louder, not wiser; the sorter and the
   embedding organelle exist to fold them.
-- What is still open: the beograd.rs listing parser; the retention rule (E-013); Blic from the
-  PC; and the six lawyer's questions of the frame, unchanged.
+- What is still open: the retention rule (E-013) and the six lawyer's questions of the frame,
+  unchanged. The listing parser and Blic were closed the same afternoon (S207, S208).

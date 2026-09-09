@@ -277,6 +277,29 @@ class DedupeAndExportTests(LiveDirCase):
         self.assertEqual((th[2]["sr_state"], th[2]["hypotheses_sr"], th[2]["questions_sr"]), ("voiced", ["možda pada pre jutra"], ["Zašto?"]))
 
 
+CITY_HTML = """<html><body><div class="general-news-list"><h1 class="general-news-list__title">Beoinfo vesti</h1>
+<div class="general-news-list__content">
+<div class="simple-news-card"><a href="/lat/beoinfo-vesti/a115575/Delovi-Zvezdare-i-Cukarice-sutra-bez-vode.html" title="Delovi Zvezdare i &#268;ukarice sutra bez vode" class="simple-news-card__link"><div class="simple-news-card__image"><figure><img src="x"></figure></div> <div class="simple-news-card__content"><h2 class="simple-news-card__title">Delovi Zvezdare i Čukarice sutra bez vode</h2> <!----> <div class="news-card__time">09.09.2026.</div></div></a></div>
+<div class="simple-news-card"><a href="/lat/beoinfo-vesti/a115568/Materijal.html" title="Materijal za crtanje" class="simple-news-card__link"><div class="simple-news-card__content"><h2 class="simple-news-card__title">Materijal za crtanje</h2> <div class="news-card__time">08.09.2026.</div></div></a></div>
+</div></div></body></html>""".encode("utf-8")
+SRC_CITY = {"sid": "S208", "name": "Beoinfo", "url": "https://www.beograd.rs/lat/beoinfo-vesti", "parser": "city_listing", "ext": "html", "store_raw": False,
+            "cadence_seconds": 1800, "timeout_seconds": 5, "max_bytes": 1000000}
+
+
+class CityListingTests(unittest.TestCase):
+    def test_city_listing_keeps_title_link_and_day_only(self):
+        rows = cd.parse_city_listing(CITY_HTML, NOW, SRC_CITY)
+        self.assertEqual(len(rows), 2)
+        r = rows[0]
+        self.assertEqual(r["result"], "Delovi Zvezdare i Čukarice sutra bez vode")
+        self.assertEqual(r["link"], "https://www.beograd.rs/lat/beoinfo-vesti/a115575/Delovi-Zvezdare-i-Cukarice-sutra-bez-vode.html")
+        self.assertEqual((r["resultTime"], r["resultTimeResolution"]), ("2026-09-09", "day"))
+        self.assertTrue(r["phenomenonTimeUnknown"])
+        self.assertNotEqual(rows[0]["dedupe_key"], rows[1]["dedupe_key"])
+        self.assertEqual(cd.parse_city_listing(CITY_HTML, NOW, SRC_CITY)[1]["dedupe_key"], rows[1]["dedupe_key"])
+        self.assertEqual(cd.parse_city_listing(b"<html><body>nothing here</body></html>", NOW, SRC_CITY), [])
+
+
 RSS_BODY = b"""<?xml version="1.0"?><rss version="2.0"><channel><title>x</title>
 <item><title>  Radovi na Brankovom mostu   od ponedeljka</title><link>https://ex/1</link><guid>g1</guid><pubDate>Tue, 08 Sep 2026 20:10:00 +0200</pubDate><description>LONG BODY THAT MUST NOT BE KEPT</description></item>
 <item><title>Bez naslova</title><link>https://ex/2</link><guid>g2</guid></item>
