@@ -355,10 +355,22 @@ load().then(snap=>{
 (function(){
   if (window.self === window.top) return;
   document.documentElement.classList.add('embedded');
+  document.documentElement.style.height='auto'; if(document.body) document.body.style.height='auto';
   var last = 0;
+  function contentHeight(){
+    // Not scrollHeight: once the frame has been made this tall, the document fills it and scrollHeight
+    // can never report a smaller number again - the frame would keep an empty tail forever. Measure
+    // where the content actually ends instead.
+    var kids = document.body ? document.body.children : [], bottom = 0;
+    for (var i = 0; i < kids.length; i++) {
+      var r = kids[i].getBoundingClientRect();
+      if (r.height) bottom = Math.max(bottom, r.bottom + (window.scrollY || 0));
+    }
+    return Math.ceil(bottom);
+  }
   function post(){
-    var h = Math.ceil(Math.max(document.documentElement.scrollHeight, document.body ? document.body.scrollHeight : 0));
-    if (!h || Math.abs(h - last) < 2) return;
+    var h = contentHeight();
+    if (!h || Math.abs(h - last) < 3) return;
     last = h;
     try { parent.postMessage({ beops: 'height', h: h }, '*'); } catch (e) {}
   }

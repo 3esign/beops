@@ -422,7 +422,9 @@ try{ if(window.self!==window.top||location.search.includes('embed')) document.bo
   var last = 0;
   function post(){
     if (!narrow.matches) return;
-    var h = Math.ceil(document.documentElement.scrollHeight);
+    var kids = document.body ? document.body.children : [], bottom = 0;
+    for (var i = 0; i < kids.length; i++) { var r = kids[i].getBoundingClientRect(); if (r.height) bottom = Math.max(bottom, r.bottom + (window.scrollY || 0)); }
+    var h = Math.ceil(bottom);
     if (!h || Math.abs(h - last) < 4) return;
     last = h;
     try { parent.postMessage({ beops: 'height', h: h }, '*'); } catch (e) {}

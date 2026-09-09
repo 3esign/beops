@@ -233,6 +233,19 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 .layers svg{width:100%;height:auto;display:block}
 .layerlink{display:block;text-align:center;font-size:12px;color:var(--ink55);margin-top:calc(var(--u)*3)}
 .folded .secbody{display:none}
+.whatbar{border-bottom:1px solid var(--ink12);background:var(--panel);padding:calc(var(--u)*8) 0}
+.whathead{display:flex;align-items:baseline;justify-content:space-between;gap:calc(var(--u)*4);flex-wrap:wrap;margin-bottom:calc(var(--u)*5)}
+.whathead h2{margin:0}
+.wlangs{display:flex;gap:calc(var(--u)*1)}
+.wlangs button{font-size:12px;padding:2px 9px}
+.wlangs button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-color:var(--ink)}
+.whatgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:calc(var(--u)*6)}
+.whatgrid h3{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0 0 calc(var(--u)*2);font-weight:600}
+.whatgrid p{margin:0;font-size:14.5px;color:var(--ink70);line-height:1.55}
+.wnote{margin:calc(var(--u)*6) 0 0;font-size:12.5px;color:var(--ink55);max-width:80ch}
+.w-en,.w-zh,.w-de{display:none}
+.what-en .w-en,.what-zh .w-zh,.what-de .w-de{display:inline}
+.what-en .w-sr,.what-zh .w-sr,.what-de .w-sr{display:none}
 .claimbox{border-left:2px solid var(--signal);padding:calc(var(--u)*1) 0 calc(var(--u)*1) calc(var(--u)*5);margin:calc(var(--u)*6) 0;max-width:80ch}
 .claimbox p{margin:0 0 calc(var(--u)*4);color:var(--ink70)}
 .claimbox b{color:var(--ink)}
@@ -321,6 +334,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
   <div class="wrap hbar">
     <a class="brand" href="#top">BEOPS <span>· Beograd</span></a>
     <nav>
+      <a href="#sta"><span class="sr-only">Šta je ovo</span><span class="en-only">What this is</span></a>
       <a href="#zivo"><span class="sr-only">Uživo</span><span class="en-only">Live</span></a>
       <a href="#podaci"><span class="sr-only">Podaci</span><span class="en-only">Data</span></a>
       <a href="#slojevi"><span class="sr-only">Slojevi</span><span class="en-only">Layers</span></a>
@@ -329,7 +343,6 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
       <a href="#srodno"><span class="sr-only">Srodno</span><span class="en-only">Related</span></a>
       <a href="#dozvole"><span class="sr-only">Dozvole</span><span class="en-only">Permissions</span></a>
       <a href="#greske"><span class="sr-only">Greške</span><span class="en-only">Corrections</span></a>
-      <a href="#citaj"><span class="sr-only">Čitaj</span><span class="en-only">Read</span></a>
     </nav>
     <button id="lang" aria-pressed="false" title="Jezik / Language">SR / EN</button>
   </div>
@@ -349,6 +362,37 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
       <iframe id="stage" src="monolog.html?v={stamp}" title="BEOPS · Monolog + Puls" loading="eager"></iframe>
       <a class="stagelink" href="monolog.html"><span class="sr-only">Otvori ceo monolog ↗</span><span class="en-only">Open the full monologue ↗</span></a>
     </div>
+  </div>
+</div>
+
+
+<div class="whatbar" id="sta">
+  <div class="wrap">
+    <div class="whathead">
+      <h2><span class="w-sr">Šta je ovo, tačno</span><span class="w-en">What this is, exactly</span><span class="w-zh">这到底是什么</span><span class="w-de">Was das genau ist</span></h2>
+      <div class="wlangs" role="group" aria-label="Jezik / Language">
+        <button type="button" data-w="sr" aria-pressed="true">SR</button><button type="button" data-w="en" aria-pressed="false">EN</button><button type="button" data-w="zh" aria-pressed="false">中文</button><button type="button" data-w="de" aria-pressed="false">DE</button>
+      </div>
+    </div>
+    <div class="whatgrid">
+      <div>
+        <h3><span class="w-sr">Šta je</span><span class="w-en">What it is</span><span class="w-zh">它是什么</span><span class="w-de">Was es ist</span></h3>
+        <p><span class="w-sr">Istraživački instrument Univerziteta Union – Nikola Tesla, ne servis i ne proizvod. Jedan računar na svakih pet minuta pročita javne stranice i fidove beogradskih instrumenata i ustanova, i zapiše šta je stiglo, kad je stiglo i šta je ćutalo. Nijedna vrednost se ne izmišlja, ne popunjava i ne izglađuje.</span><span class="w-en">A research instrument of Union – Nikola Tesla University, not a service and not a product. One computer reads the public pages and feeds of Belgrade's instruments and institutions every five minutes and records what arrived, when it arrived, and what stayed silent. No value is invented, filled in or smoothed.</span><span class="w-zh">这是联合大学—尼古拉·特斯拉大学的一项研究工具，不是服务，也不是产品。一台计算机每五分钟读取贝尔格莱德各类仪器与机构的公开页面和数据源，记录收到了什么、何时收到、以及什么保持沉默。任何数值都不会被编造、填补或平滑处理。</span><span class="w-de">Ein Forschungsinstrument der Universität Union – Nikola Tesla, kein Dienst und kein Produkt. Ein Rechner liest alle fünf Minuten die öffentlichen Seiten und Feeds der Belgrader Messgeräte und Institutionen und hält fest, was eingegangen ist, wann es eingegangen ist und was geschwiegen hat. Kein Wert wird erfunden, ergänzt oder geglättet.</span></p>
+      </div>
+      <div>
+        <h3><span class="w-sr">Sa čim je povezan</span><span class="w-en">What it is connected to</span><span class="w-zh">它连接到什么</span><span class="w-de">Womit es verbunden ist</span></h3>
+        <p><span class="w-sr">Sa javnim izvorima, i to samo onima koji su upisani u registar: državna mreža za kvalitet vazduha, meteorološke i hidrološke stanice, aerodromska osmatranja, gradska i komunalna obaveštenja, planirana isključenja struje, parking, građanski senzori i tokovi vesti. Ceo popis, sa stanjem svakog izvora, stoji niže na ovoj stranici.</span><span class="w-en">To public sources, and only those written into the register: the state air-quality network, meteorological and hydrological stations, airport observations, city and utility notices, planned power outages, parking, citizen sensors and news feeds. The full audit, with the state of every source, is further down this page.</span><span class="w-zh">只连接公开来源，且仅限已登记在册的来源：国家空气质量监测网、气象与水文站、机场观测、市政与公用事业公告、计划停电、停车场、公民传感器与新闻源。完整清单及每个来源的状态见本页下方。</span><span class="w-de">Mit öffentlichen Quellen, und nur mit jenen, die im Register eingetragen sind: das staatliche Luftqualitätsnetz, meteorologische und hydrologische Stationen, Flughafenbeobachtungen, städtische und kommunale Mitteilungen, geplante Stromabschaltungen, Parkhäuser, Bürgersensoren und Nachrichten-Feeds. Die vollständige Übersicht mit dem Status jeder Quelle steht weiter unten auf dieser Seite.</span></p>
+      </div>
+      <div>
+        <h3><span class="w-sr">Znaju li izvori za nas</span><span class="w-en">Do the sources know about us</span><span class="w-zh">这些来源知道我们吗</span><span class="w-de">Wissen die Quellen von uns</span></h3>
+        <p><span class="w-sr">Pošten odgovor je: pojedinačno nisu obavešteni. Poštuju se pravila koja su sami javno objavili — robots.txt, uslovi korišćenja, Content-Signal — i ta pravila se sačuvaju kao bajtovi pre svakog čitanja. Predstavljamo se pod svojim imenom u svakom zahtevu, imenovano odbijanje se poštuje i ne zaobilazi, a provera se ponavlja jednom nedeljno. Ništa se ne uzima iza prijave, iza plaćanja ni iza zabrane.</span><span class="w-en">The honest answer is: they have not been individually notified. What is honoured are the rules they themselves published — robots.txt, terms of use, Content-Signal — and those rules are stored as bytes before any reading. We identify ourselves by name in every request, a named refusal is honoured and never circumvented, and the check is repeated weekly. Nothing is taken from behind a login, a paywall or a prohibition.</span><span class="w-zh">诚实的回答是：没有逐一通知它们。我们遵守的是它们自己公开发布的规则——robots.txt、使用条款、Content-Signal——并在每次读取之前将这些规则以字节形式存档。我们在每个请求中都以自己的名义表明身份；被明确拒绝的来源一律遵守，绝不规避；该检查每周重复一次。不从登录、付费墙或禁止访问的位置获取任何内容。</span><span class="w-de">Die ehrliche Antwort lautet: einzeln benachrichtigt wurden sie nicht. Beachtet werden die Regeln, die sie selbst veröffentlicht haben — robots.txt, Nutzungsbedingungen, Content-Signal — und diese Regeln werden vor jedem Lesen als Bytes gespeichert. Wir nennen in jeder Anfrage unseren Namen, eine ausdrückliche Ablehnung wird befolgt und nie umgangen, und die Prüfung wird wöchentlich wiederholt. Nichts wird hinter einem Login, einer Bezahlschranke oder einem Verbot geholt.</span></p>
+      </div>
+      <div>
+        <h3><span class="w-sr">Šta nije</span><span class="w-en">What it is not</span><span class="w-zh">它不是什么</span><span class="w-de">Was es nicht ist</span></h3>
+        <p><span class="w-sr">Nije nadzor, nije „pametni grad" i nije digitalni blizanac. Nema podataka o pojedincima, nema kamera, nema praćenja ljudi. I nije merenje grada: ovo je ono što su instrumenti objavili i kad smo to primili — prijem nije merenje, a ono čega nema je zapis, nikada nula.</span><span class="w-en">Not surveillance, not a "smart city", not a digital twin. No person-level data, no cameras, no tracking of people. And not a measurement of the city: this is what the instruments published, and when we received it — a reception is not a measurement, and what is missing is a record, never a zero.</span><span class="w-zh">这不是监控，不是"智慧城市"，也不是数字孪生。没有个人层面的数据，没有摄像头，不追踪任何人。它也不是对城市的测量：这是仪器所发布的内容以及我们接收到的时间——接收不等于测量，缺失之处是一条记录，而绝非零。</span><span class="w-de">Keine Überwachung, keine „Smart City", kein digitaler Zwilling. Keine personenbezogenen Daten, keine Kameras, keine Verfolgung von Menschen. Und keine Messung der Stadt: Dies ist, was die Instrumente veröffentlicht haben und wann wir es empfangen haben — ein Empfang ist keine Messung, und was fehlt, ist ein Eintrag, niemals eine Null.</span></p>
+      </div>
+    </div>
+    <p class="wnote"><span class="w-sr">Ova četiri odgovora postoje na srpskom, engleskom, kineskom i nemačkom. Ostatak stranice je dvojezičan, srpski i engleski, jer se generiše iz registara koji se menjaju svakih nekoliko minuta.</span><span class="w-en">These four answers exist in Serbian, English, Chinese and German. The rest of the page is bilingual, Serbian and English, because it is generated from registers that change every few minutes.</span><span class="w-zh">以上四个回答提供塞尔维亚语、英语、中文和德语版本。本页其余部分为塞尔维亚语和英语双语，因为它由每隔几分钟变动一次的登记册生成。</span><span class="w-de">Diese vier Antworten gibt es auf Serbisch, Englisch, Chinesisch und Deutsch. Der übrige Teil der Seite ist zweisprachig, Serbisch und Englisch, weil er aus Registern erzeugt wird, die sich alle paar Minuten ändern.</span></p>
   </div>
 </div>
 
@@ -605,8 +649,15 @@ document.getElementById('lang').addEventListener('click',function(e){
   document.documentElement.lang=LANG;
   e.currentTarget.setAttribute('aria-pressed',String(LANG==='en'));
   render();
-  try{ const f=document.getElementById('stage'); if(f&&f.contentWindow) f.contentWindow.postMessage({beopsLang:LANG},'*'); }catch(err){}
-  try{ const f2=document.getElementById('datastage'); if(f2&&f2.contentWindow) f2.contentWindow.postMessage({beopsLang:LANG},'*'); }catch(err){}
+  // every embedded study, not a hand-kept list of two: the ribbon was added and stayed Serbian on the English page
+  var bar=document.getElementById('sta');
+  if(bar && (LANG==='sr'||LANG==='en') && !bar.classList.contains('what-zh') && !bar.classList.contains('what-de')){
+    bar.classList.remove('what-sr','what-en'); bar.classList.add('what-'+LANG);
+    bar.querySelectorAll('.wlangs button').forEach(function(o){ o.setAttribute('aria-pressed', String(o.getAttribute('data-w')===LANG)); });
+  }
+  document.querySelectorAll('iframe').forEach(function(f){
+    try{ if(f.contentWindow) f.contentWindow.postMessage({beopsLang:LANG},'*'); }catch(err){}
+  });
 });
 // A frame that carries a document (the data view, the ribbon) reports its height and is made exactly
 // that tall, so the page has one scrollbar instead of three. The monologue is a feed and keeps its own.
@@ -617,6 +668,23 @@ addEventListener('message',function(ev){
     var box=fr[i].parentElement; box.classList.add('fit'); box.style.height=(d.h+2)+'px';
   }
 });
+
+// The four front-door answers carry their own language switch: Serbian, English, Chinese and German.
+// It is separate from the page's SR/EN switch on purpose - the generated tables below exist in two
+// languages only, and pretending otherwise would be the kind of claim this page is against.
+(function whatIsThis(){
+  var bar=document.getElementById('sta'); if(!bar) return;
+  var btns=bar.querySelectorAll('.wlangs button');
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){
+      var w=b.getAttribute('data-w');
+      bar.classList.remove('what-sr','what-en','what-zh','what-de');
+      bar.classList.add('what-'+w);
+      btns.forEach(function(o){ o.setAttribute('aria-pressed', String(o===b)); });
+    });
+  });
+  bar.classList.add('what-sr');
+})();
 
 // Related work: rendered from research/RELATED_WORK.json, so no citation can appear here
 // that is not in the register a reader can clone.
@@ -635,7 +703,7 @@ addEventListener('message',function(ev){
 
 // Each part can be folded away: its heading gets a button, the rest of the part hides.
 (function fold(){
-  var ids=['zivo','podaci','slojevi','kako','izvori','srodno','dozvole','greske','citaj'];
+  var ids=['sta','zivo','podaci','slojevi','kako','izvori','srodno','dozvole','greske','citaj'];
   ids.forEach(function(id){
     var sec=document.getElementById(id); if(!sec) return;
     var w=sec.querySelector('.wrap'); if(!w) return;
