@@ -213,7 +213,6 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 .nowpanel iframe{width:100%;height:100%;border:0;display:block;background:transparent}
 @media (max-width:900px){
   .herohead{grid-template-columns:1fr;gap:calc(var(--u)*3)}
-  .hero .authors,.hero .kicker{white-space:normal;overflow:visible;text-overflow:clip}
   .hero{padding:calc(var(--u)*5) 0 calc(var(--u)*4)}
   .stage{height:min(92vh,860px);width:100%}
   .hbar{gap:calc(var(--u)*2);padding:calc(var(--u)*2) calc(var(--u)*6);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
@@ -368,6 +367,11 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
 .zh-only,.de-only{display:none}
 .lang-zh .zh-only,.lang-de .de-only{display:inline}
 .lang-zh .en-only.i18n,.lang-de .en-only.i18n{display:none}
+/* C-023, enforced by its own test one commit later: merging the two .hero .kicker rules moved
+   the surviving one BELOW the narrow-screen block that lets the signature and the venue line
+   wrap, so on a phone they would have been clipped to one line instead. Narrowing rules live
+   at the end of the sheet. */
+@media (max-width:900px){ .hero .authors,.hero .kicker{white-space:normal;overflow:visible;text-overflow:clip} }
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important}}
 </style>
 </head>
