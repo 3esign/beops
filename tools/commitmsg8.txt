@@ -1,0 +1,67 @@
+Collect what we may, clear our own backlog, and scan the instruments that exist
+
+The question was whether everything permitted had actually been collected. It
+had not: thirty-two sources carried a permission capture and exactly one had
+been collected; the rest were samples in a scratch folder, which is not
+collection.
+
+collect_permitted.py closes that and gates itself. Before any request it reads
+the provenance ledger, takes the newest capture per source, and collects only
+where that capture says allowed and complete. Refused, undecided, incomplete
+and never-captured are skipped with the reason printed, and there is no flag to
+override it. 218 files are now stored across thirteen sources with manifests
+and hashes.
+
+The largest category in the registry turned out not to be a wall at all. A
+hundred and twenty-two sources were neither refused nor absent; they simply had
+no capture, and our own rule forbids collecting without one. One polite pass
+cleared 121 of them. The provenance index went from 31 permitted and 137
+undocumented to 143 permitted and 18 undocumented. The backlog was the wall,
+and it was ours.
+
+Four genuine refusals surfaced and one of them is a pattern rather than a case:
+OpenStreetMap's own API disallows /api/, exactly as Wikidata disallows /sparql
+and Overpass disallows /api/. Three major open services refuse the path that is
+their API.
+
+Two corrections, both about our instruments rather than any source. Taking the
+stricter of two robots engines turned urllib's failure to implement the dollar
+anchor into a refusal of a site that permits us; a disagreement now yields
+unknown in both directions and goes to a person, because a safety rule that
+always resolves ambiguity the same way is not conservative, it is biased. And
+the source of the parking pilot was reported unverifiable when its certificate
+is valid and chains to a Sectigo root that this machine trusts and our shipped
+CA bundle does not carry; the machine's own 121 roots are now exported to a PEM
+in the repository, so the project's trust decision is a file that can be hashed
+and diffed.
+
+The discovery protocol writes down how the finds were actually made, so a census
+can be repeated by someone else. Seven proven rules, eight new methods, and the
+strongest is procurement as a sensor census: a city cannot install an instrument
+without buying it, nor buy it without publishing a tender, so the procurement
+record is an inventory of the instruments that exist including every one whose
+data is never published. The registry gains the statuses a census needs and a
+working project does not - paid, request_required, exists_unpublished,
+exists_via_literature, and sought_not_found, the last always carrying what was
+searched and when, because it is a claim about our method and must be
+falsifiable.
+
+Scanning for instruments that exist anywhere and then asking whether they exist
+here found four new senses with Belgrade coverage. GBIF holds 512,241 dated,
+geolocated records of living things in the city bounding box, twenty years deep.
+iNaturalist holds 58,797 more, with the observer's own confidence attached.
+Panoramax has Belgrade street imagery and declares CC-BY-SA-4.0 in the response
+body, which matters because all three camera networks refused us. And adsb.lol
+returns live aircraft over the city carrying outside air temperature, wind
+direction and wind speed, so every aircraft above Belgrade is a free
+atmospheric sonde.
+
+One more absence of the now-familiar shape, checkable in a single file: of
+1,535 GBFS bikeshare systems worldwide, Serbia has none, against Croatia's 22,
+Romania's 11, Hungary's 10 and Bosnia's 3.
+
+Evidence compressed from 1.5 GB to 332 MB. The sha256 in every manifest still
+describes the original bytes as served, verifiable with gunzip.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01L8NfE9kz5DBpWDL6cYpeKP

@@ -1,0 +1,14 @@
+# Evidence is stored so that its sha256 can be checked against the manifest.
+# Git's line-ending normalisation would defeat that: a file committed with LF
+# and checked out on Windows as CRLF is no longer the bytes that were served,
+# and every hash in every MANIFEST.json would fail for anyone who cloned the
+# repository on a different platform. Evidence is therefore binary to git.
+research/evidence/**   -text -diff
+research/observations/**  -text
+*.gz      binary
+*.xls     binary
+*.xlsx    binary
+*.zip     binary
+*.gpkg    binary
+*.pdf     binary
+data/ca-bundle-windows.pem  -text

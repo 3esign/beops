@@ -1,0 +1,41 @@
+Content into place, as a hypothesis that keeps its losers
+
+Geoparsing is written up as a derived binding method, inferred_from_content,
+and never a state and never a measurement. It is the only method in the table
+where nobody asserted the location at all - not the publisher, not a register,
+not a person - so it is a hypothesis wearing the shape of a fact, and a
+coordinate is the most seductive kind of wrong answer this system can produce.
+
+The derivation chain keeps every candidate considered, not only the winner,
+because a wrong answer then shows whether the right place was never a candidate
+- a gazetteer gap - or was a candidate and lost - a disambiguation failure. The
+two need opposite fixes. It also records the margin over the runner-up, which
+is a better confidence signal than any model's own score, since a near-tie
+between two places named Zemun is exactly where a person must be asked.
+
+Serbian specifics are written down rather than discovered later: two scripts in
+one corpus, inflection where both words of a two-word name decline, settlement
+names that are also common nouns, many settlements sharing a name, streets that
+are personal names competing with person extraction, and Beograd being a city,
+a district and a container of seventeen municipalities at once, so resolution
+must return the level as well as the place. The gate is a gazetteer first,
+rules before models, a hand-built held-out set, and precision, recall and
+resolution accuracy reported separately because they fail differently.
+
+The walk found building permits open by robots, which is the largest missing
+layer of a changing city; the official gazette explicitly allowing its ELI
+paths, which is at once the cleanest legal corpus and the best geoparser
+material because gazette decisions name parcels and streets in words; and
+data.europa.eu answering keyless with 8154 Serbia results, which is the
+legitimate route to the CORDIS data that CORDIS itself disallows.
+
+One defect fixed in place. A site serving its own HTML at /robots.txt with
+HTTP 200 looks to both verdict engines exactly like a robots.txt with no rules,
+so both answer allowed and the record says robots.txt served, which is false.
+abs.gov.rs does this with 82 KB of analytics page. The tool now detects HTML
+and records the path as returning HTML, treated as absent rather than as
+permissive, and stores the body with a note at the top. Verified against the
+live case.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01L8NfE9kz5DBpWDL6cYpeKP

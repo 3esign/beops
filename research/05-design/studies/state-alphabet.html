@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BEOPS — state alphabet, study 01</title>
+<style>
+  /* ---------------------------------------------------------------
+     BEOPS study 01 — the state alphabet, drawn with real samples.
+     One file. No build, no network, no dependencies, no storage.
+     Grammar: strokes on a baseline. Hatching means one thing only.
+     Colour presence == observation presence.
+     --------------------------------------------------------------- */
+  :root{
+    --u: 4px;
+    --field:  #FBFAF7;
+    --ink:    #111311;
+    --ink-60: rgba(17,19,17,.60);
+    --ink-30: rgba(17,19,17,.30);
+    --ink-12: rgba(17,19,17,.12);
+    --signal: #D93A16;
+    --signal-untimed: #C4785F;
+    --state:  #8A8F8A;
+    --state-12: rgba(138,143,138,.16);
+    --sans: ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --field:#0E100E; --ink:#F2F1EC;
+      --ink-60:rgba(242,241,236,.60); --ink-30:rgba(242,241,236,.30); --ink-12:rgba(242,241,236,.14);
+      --signal:#FF6A3D; --signal-untimed:#C98266; --state:#7E837E; --state-12:rgba(126,131,126,.20);
+    }
+  }
+  :root[data-theme="dark"]{
+    --field:#0E100E; --ink:#F2F1EC;
+    --ink-60:rgba(242,241,236,.60); --ink-30:rgba(242,241,236,.30); --ink-12:rgba(242,241,236,.14);
+    --signal:#FF6A3D; --signal-untimed:#C98266; --state:#7E837E; --state-12:rgba(126,131,126,.20);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--field); color:var(--ink);
+    font-family:var(--sans); font-size:15px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:calc(var(--u) * 260); margin:0 auto; padding:calc(var(--u)*10) calc(var(--u)*6) calc(var(--u)*24)}
+  .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+
+  /* ---- masthead ---- */
+  header{border-bottom:1px solid var(--ink); padding-bottom:calc(var(--u)*3); margin-bottom:calc(var(--u)*8)}
+  .kicker{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-60)}
+  h1{font-size:clamp(22px,3.2vw,30px); font-weight:600; letter-spacing:-.015em; margin:calc(var(--u)*2) 0 calc(var(--u)*1.5)}
+  .sentence{font-size:clamp(15px,1.6vw,17px); color:var(--ink-60); max-width:58ch; margin:0}
+  .sentence em{color:var(--ink); font-style:normal}
+
+  .bar{display:flex; flex-wrap:wrap; gap:calc(var(--u)*2); align-items:center; margin-top:calc(var(--u)*4)}
+  button{
+    font:inherit; font-size:12px; font-family:var(--mono); letter-spacing:.04em;
+    background:transparent; color:var(--ink); border:1px solid var(--ink-30);
+    padding:calc(var(--u)*1.5) calc(var(--u)*3); cursor:pointer; border-radius:0;
+  }
+  button:hover{border-color:var(--ink)}
+  button:focus-visible{outline:2px solid var(--signal); outline-offset:2px}
+  button[aria-pressed="true"]{background:var(--ink); color:var(--field); border-color:var(--ink)}
+
+  h2{font-size:13px; font-family:var(--mono); letter-spacing:.1em; text-transform:uppercase;
+     color:var(--ink-60); font-weight:500; margin:calc(var(--u)*12) 0 calc(var(--u)*4);
+     border-top:1px solid var(--ink-12); padding-top:calc(var(--u)*3)}
+  p{max-width:70ch; color:var(--ink-60)}
+  p strong{color:var(--ink); font-weight:600}
+
+  /* ---- the alphabet ---- */
+  .alphabet{display:grid; grid-template-columns:repeat(auto-fit,minmax(calc(var(--u)*50),1fr)); gap:calc(var(--u)*6)}
+  .glyph-card{border-top:1px solid var(--ink-12); padding-top:calc(var(--u)*3)}
+  .glyph-name{font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase}
+  .glyph-desc{font-size:13px; color:var(--ink-60); margin:calc(var(--u)*1.5) 0 0; max-width:36ch}
+  svg{display:block; overflow:visible}
+
+  /* ---- ribbon ---- */
+  .ribbon-frame{position:relative; margin-top:calc(var(--u)*2)}
+  .axis-note{display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px;
+             color:var(--ink-60); margin-top:calc(var(--u)*2)}
+  .readout{
+    margin-top:calc(var(--u)*5); border-top:1px solid var(--ink); padding-top:calc(var(--u)*3);
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(calc(var(--u)*44),1fr)); gap:calc(var(--u)*4) calc(var(--u)*8);
+  }
+  .field-label{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-60)}
+  .field-value{font-family:var(--mono); font-size:14px; margin-top:calc(var(--u)*.5); word-break:break-word}
+  .field-value.none{color:var(--state)}
+
+  /* ---- quorum ---- */
+  .quorum-row{display:flex; gap:calc(var(--u)*4); align-items:baseline; flex-wrap:wrap;
+              padding:calc(var(--u)*3) 0; border-bottom:1px solid var(--ink-12)}
+  .quorum-name{min-width:22ch; font-size:14px}
+  .quorum-num{font-family:var(--mono); font-size:18px; min-width:5ch; text-align:right; color:var(--signal-untimed)}
+  .quorum-delta{font-family:var(--mono); font-size:12px; color:var(--ink-60); min-width:5ch}
+  .quorum-note{font-family:var(--mono); font-size:11px; color:var(--ink-60)}
+
+  /* ---- ignorance mode: known values drop to structure grey ---- */
+  body.ignorance .known{opacity:.16}
+  body.ignorance .unknown{opacity:1}
+  .unknown{}
+
+  footer{margin-top:calc(var(--u)*16); border-top:1px solid var(--ink); padding-top:calc(var(--u)*4);
+          font-size:13px; color:var(--ink-60); max-width:74ch}
+  code{font-family:var(--mono); font-size:.92em; background:var(--ink-12); padding:0 4px}
+
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">BEOPS · study 01 · 2026-09-05</div>
+  <h1>The state alphabet</h1>
+  <p class="sentence">This is what Belgrade told us, <em>when it told us</em>, and <em>where it went quiet</em>.</p>
+  <div class="bar">
+    <button id="ign" aria-pressed="false">ignorance view</button>
+    <button id="thm" aria-pressed="false">invert light</button>
+    <span class="mono" style="font-size:11px;color:var(--ink-60)">
+      real samples · parking-servis.co.rs · 27 locations · <span id="hint">← → to step the hairline</span>
+    </span>
+  </div>
+</header>
+
+<h2>1 — the five marks</h2>
+<p>A <strong>stroke</strong> says where the value came from. A <strong>ground</strong> says how well we know its
+time. Nothing else changes. Colour is redundant: every mark differs in stroke and ground before hue is
+applied, so the set survives greyscale, colour blindness and a bad monitor.</p>
+
+<div class="alphabet" id="alphabet"></div>
+
+<h2>2 — the ribbon: thirteen slots of one day</h2>
+<p>Time is the axis, because time is our actual problem. Three morning slots were missed and are drawn as
+missed — <strong>a hollow tick is a mark about nothing, not the absence of a mark</strong>. Two slots are real
+observations, each carrying an age band that fades away to the left because the source publishes no
+measurement time, so the band has no left edge to claim. Eight slots have not happened yet.</p>
+
+<div class="ribbon-frame">
+  <svg id="ribbon" role="img" aria-label="Thirteen hourly slots: three missed, two observed, eight pending"></svg>
+  <div class="axis-note"><span>12:30 local</span><span>18:00 · announced start</span><span>00:30 next day</span></div>
+</div>
+
+<div class="readout" id="readout"></div>
+
+<h2>3 — the quorum bar: absence where there is no pixel to grey</h2>
+<p>A zone of forty sensors with three dead ones has no single pixel to grey out — the trick every good map
+interface relies on dies exactly at the resolution BEOPS chose. So we stop drawing the missing thing and
+draw <strong>how much of what should have spoken did speak</strong>. Counting, not estimating. Here the same
+bar is used over the 27 locations of one response, and over five hypothetical zone sources to show the
+three cell states: filled, hollow, hatched.</p>
+
+<div id="quorum"></div>
+
+<h2>4 — the values, both real samples</h2>
+<p>Magnitude is length, never colour. Observed-but-untimed values carry the reduced-chroma signal; the
+delta column is structure, not signal, because a delta is something <strong>we</strong> computed, not
+something the city said.</p>
+
+<div id="rows"></div>
+
+<footer>
+  <p>Everything drawn here is from <code>sample-20260905T133000Z.json</code> and
+  <code>sample-20260905T143000Z.json</code> — real HTTP 200 responses, 47&nbsp;313 and 47&nbsp;314 bytes,
+  hashes <code>e6e8d451b1dcee89…</code> and <code>4fd153cd0c1c5611…</code>. The three missed slots are real
+  misses. Nothing on this page is filled in, interpolated, smoothed or invented, and no value on it is a
+  forecast — the forecast glyph in section 1 is shown as a specimen of the alphabet, labelled as such, and
+  is not attached to any BEOPS number.</p>
+  <p>This is a legibility study by one designer, not a comprehension test. Two marks here — the unbounded
+  age band and the quorum bar — have no published research behind them, mine or anyone's. If the age band
+  reads as a rendering error rather than as “we don't know when”, the invention has failed and that is the
+  finding.</p>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var U = 4;
+
+  /* ---- real data, transcribed from the two sample files ---- */
+  var SLOTS = [
+    {t:"10:30Z", local:"12:30", state:"missing"},
+    {t:"11:30Z", local:"13:30", state:"missing"},
+    {t:"12:30Z", local:"14:30", state:"missing"},
+    {t:"13:30Z", local:"15:30", state:"observed", http:200, bytes:47313, ms:754,
+     attempted:"2026-09-05T13:30:02.187415+00:00", completed:"2026-09-05T13:30:03.790240+00:00",
+     sha:"e6e8d451b1dcee89", n:27},
+    {t:"14:30Z", local:"16:30", state:"observed", http:200, bytes:47314, ms:219,
+     attempted:"2026-09-05T14:30:01.088159+00:00", completed:"2026-09-05T14:30:02.910251+00:00",
+     sha:"4fd153cd0c1c5611", n:27},
+    {t:"15:30Z", local:"17:30", state:"pending"},
+    {t:"16:30Z", local:"18:30", state:"pending"},
+    {t:"17:30Z", local:"19:30", state:"pending"},
+    {t:"18:30Z", local:"20:30", state:"pending"},
+    {t:"19:30Z", local:"21:30", state:"pending"},
+    {t:"20:30Z", local:"22:30", state:"pending"},
+    {t:"21:30Z", local:"23:30", state:"pending"},
+    {t:"22:30Z", local:"00:30", state:"pending"}
+  ];
+
+  var A = {"Baba Višnjina":233,"Botanička bašta":74,"Dr Aleksandra Kostića":37,"Masarikova":346,
+    "Obilićev venac":29,"Pinki":93,"Pionirski park":275,"Vukov spomenik":26,"Zeleni venac":89,
+    "Ada":440,"Belvil":397,"Bežanijska kosa":70,"Blok 43":144,"Čukarica":58,"Cvetkova pijaca":35,
+    "Donji grad":254,"Kalemegdan":0,"Kamenička":0,"Ljermontova":62,"Međunarodni carinski terminal":222,
+    "Milan Gale Muškatirović":60,"Opština NBGD":114,"Politika":2,"Slavija":82,"Vidin kapija":3,
+    "Viška":16,"VMA":518};
+  var B = {"Baba Višnjina":245,"Botanička bašta":73,"Dr Aleksandra Kostića":39,"Masarikova":361,
+    "Obilićev venac":41,"Pinki":95,"Pionirski park":315,"Vukov spomenik":47,"Zeleni venac":104,
+    "Ada":443,"Belvil":398,"Bežanijska kosa":70,"Blok 43":146,"Čukarica":57,"Cvetkova pijaca":35,
+    "Donji grad":254,"Kalemegdan":0,"Kamenička":0,"Ljermontova":63,"Međunarodni carinski terminal":220,
+    "Milan Gale Muškatirović":73,"Opština NBGD":117,"Politika":2,"Slavija":80,"Vidin kapija":8,
+    "Viška":29,"VMA":338};
+
+  var NS = "http://www.w3.org/2000/svg";
+  function el(n, a){ var e = document.createElementNS(NS, n);
+    for (var k in a) if (a[k] !== null && a[k] !== undefined) e.setAttribute(k, a[k]); return e; }
+
+  /* one hatch pattern and one fade gradient, defined once, reused everywhere */
+  function defs(svg, idp){
+    var d = el("defs");
+    var p = el("pattern",{id:idp+"-hatch",width:6,height:6,patternUnits:"userSpaceOnUse",patternTransform:"rotate(45)"});
+    p.appendChild(el("line",{x1:0,y1:0,x2:0,y2:6,stroke:"var(--state)","stroke-width":2.1}));
+    d.appendChild(p);
+    var g = el("linearGradient",{id:idp+"-fade",x1:"0",x2:"1",y1:"0",y2:"0"});
+    g.appendChild(el("stop",{offset:"0","stop-color":"var(--signal-untimed)","stop-opacity":"0"}));
+    g.appendChild(el("stop",{offset:".55","stop-color":"var(--signal-untimed)","stop-opacity":".45"}));
+    g.appendChild(el("stop",{offset:"1","stop-color":"var(--signal-untimed)","stop-opacity":"1"}));
+    d.appendChild(g);
+    svg.appendChild(d);
+  }
+
+  /* ---------- 1. the alphabet ---------- */
+  var GLYPHS = [
+    {k:"observed",  name:"observed",  txt:"A source reported this value, and said when. Solid stroke, clean ground, full signal colour."},
+    {k:"untimed",   name:"untimed",   txt:"The value is exact; its age is not. Solid stroke — the number is real — over a band that fades away to the left, because there is no lower bound on when it was measured. This is our daily state: observed_at is null."},
+    {k:"estimated", name:"estimated", txt:"A model produced it from other values. Dashed: derived, not reported. Structure colour, never signal — colour on this page means measurement."},
+    {k:"forecast",  name:"forecast",  txt:"A statement about the future, drawn as discrete outcomes with no outer edge. A bounded shape gets read as a physical limit; a column of dots cannot be."},
+    {k:"absent",    name:"unavailable",txt:"Nothing came. A hollow tick on the baseline plus a hatched cell — a mark about nothing, never a zero, never a gap in a line."}
+  ];
+
+  function drawGlyph(kind){
+    var w = 190, h = 64, base = 44;
+    var svg = el("svg",{width:w,height:h,viewBox:"0 0 "+w+" "+h}); defs(svg,"g"+kind);
+    svg.appendChild(el("line",{x1:0,y1:base+.5,x2:w,y2:base+.5,stroke:"var(--ink-12)","stroke-width":1}));
+    var x = 30, top = 12;
+    if (kind === "observed"){
+      svg.appendChild(el("line",{x1:x,y1:base,x2:x,y2:top,stroke:"var(--signal)","stroke-width":2.5,"stroke-linecap":"square"}));
+      svg.appendChild(el("circle",{cx:x,cy:top,r:3,fill:"var(--signal)"}));
+      var l = el("line",{x1:x,y1:top,x2:x+120,y2:top+6,stroke:"var(--signal)","stroke-width":2.5}); svg.appendChild(l);
+      svg.appendChild(el("circle",{cx:x+120,cy:top+6,r:3,fill:"var(--signal)"}));
+    }
+    if (kind === "untimed"){
+      svg.appendChild(el("rect",{x:x-96,y:base+5,width:96,height:10,fill:"url(#guntimed-fade)"}));
+      svg.appendChild(el("line",{x1:x,y1:base,x2:x,y2:top,stroke:"var(--signal-untimed)","stroke-width":2.5}));
+      svg.appendChild(el("circle",{cx:x,cy:top,r:3,fill:"var(--signal-untimed)"}));
+      svg.appendChild(el("line",{x1:x,y1:base+3,x2:x,y2:base+17,stroke:"var(--signal-untimed)","stroke-width":2.5}));
+      var t = el("text",{x:x+28,y:base+16,fill:"var(--ink-60)","font-size":10,"font-family":"var(--mono)"});
+      t.textContent = "age ≤ 61 min, no lower bound"; svg.appendChild(t);
+    }
+    if (kind === "estimated"){
+      svg.appendChild(el("line",{x1:x,y1:base,x2:x,y2:top+10,stroke:"var(--ink-30)","stroke-width":2.5,"stroke-dasharray":"4 4"}));
+      svg.appendChild(el("line",{x1:x,y1:top+10,x2:x+120,y2:top+2,stroke:"var(--ink-60)","stroke-width":2.5,"stroke-dasharray":"6 5"}));
+      svg.appendChild(el("circle",{cx:x+120,cy:top+2,r:3,fill:"none",stroke:"var(--ink-60)","stroke-width":2}));
+    }
+    if (kind === "forecast"){
+      var counts = [1,2,4,6,5,3,1], cx = x + 10;
+      for (var c=0;c<counts.length;c++){
+        for (var r=0;r<counts[c];r++){
+          svg.appendChild(el("circle",{cx:cx + c*17, cy: base-6-r*6, r:2.1, fill:"var(--ink-60)"}));
+        }
+      }
+    }
+    if (kind === "absent"){
+      for (var q=0;q<3;q++){ var qx = x + q*44;
+        svg.appendChild(el("rect",{x:qx-16,y:top,width:32,height:base-top,fill:"url(#gabsent-hatch)",opacity:".9"}));
+        svg.appendChild(el("rect",{x:qx-16.5,y:top-.5,width:33,height:base-top+1,fill:"none",stroke:"var(--state)","stroke-width":1}));
+        svg.appendChild(el("line",{x1:qx,y1:base-14,x2:qx,y2:base,stroke:"var(--state)","stroke-width":3}));
+        svg.appendChild(el("circle",{cx:qx,cy:base-20,r:5.5,fill:"var(--field)",stroke:"var(--state)","stroke-width":2.5}));
+      }
+      var t2 = el("text",{x:x-16,y:base+16,fill:"var(--state)","font-size":10,"font-family":"var(--mono)"});
+      t2.textContent = "three slots, no data — source never asked"; svg.appendChild(t2);
+    }
+    return svg;
+  }
+
+  var alph = document.getElementById("alphabet");
+  GLYPHS.forEach(function(g){
+    var card = document.createElement("div"); card.className = "glyph-card";
+    var nm = document.createElement("div"); nm.className = "glyph-name"; nm.textContent = g.name;
+    card.appendChild(nm); card.appendChild(drawGlyph(g.k));
+    var d = document.createElement("p"); d.className = "glyph-desc"; d.textContent = g.txt;
+    card.appendChild(d); alph.appendChild(card);
+  });
+
+  /* ---------- 2. the ribbon ---------- */
+  var RW = 0, RH = 156, PAD = 10, BASE = 104;
+  var ribbon = document.getElementById("ribbon");
+  var readout = document.getElementById("readout");
+  var cursor = 4; /* start on the second real sample */
+
+  function layout(){
+    RW = Math.max(560, ribbon.parentNode.clientWidth);
+    ribbon.setAttribute("width", RW); ribbon.setAttribute("height", RH);
+    ribbon.setAttribute("viewBox", "0 0 " + RW + " " + RH);
+    draw();
+  }
+  function slotX(i){ var inner = RW - PAD*2; return PAD + inner * (i + .5) / SLOTS.length; }
+
+  function draw(){
+    while (ribbon.firstChild) ribbon.removeChild(ribbon.firstChild);
+    defs(ribbon, "rb");
+
+    /* baseline — the one heavy line the composition hangs from */
+    ribbon.appendChild(el("line",{x1:PAD,y1:BASE+.5,x2:RW-PAD,y2:BASE+.5,stroke:"var(--ink)","stroke-width":1.5}));
+
+    /* announced start of the race: a plain annotation, not a value */
+    var sx = (slotX(5) + slotX(6)) / 2;
+    ribbon.appendChild(el("line",{x1:sx,y1:16,x2:sx,y2:BASE,stroke:"var(--ink-12)","stroke-width":1,"stroke-dasharray":"2 4"}));
+    var an = el("text",{x:sx+5,y:20,"font-size":10,"font-family":"var(--mono)",fill:"var(--ink-30)"});
+    an.textContent = "18:00 announced start"; ribbon.appendChild(an);
+
+    var step = (RW - PAD*2) / SLOTS.length;
+
+    SLOTS.forEach(function(s, i){
+      var x = slotX(i);
+      var g = el("g", {"class": s.state === "observed" ? "known" : "unknown"});
+
+      if (s.state === "observed"){
+        /* age band: fades to the left, no left edge — we have no lower bound */
+        var bw = Math.min(step*2.4, 210);
+        g.appendChild(el("rect",{x:x-bw, y:BASE+5, width:bw, height:10, fill:"url(#rb-fade)"}));
+        g.appendChild(el("line",{x1:x,y1:BASE+3,x2:x,y2:BASE+19,stroke:"var(--signal-untimed)","stroke-width":2.5}));
+        /* the value: length from the baseline. total free spaces in that sample. */
+        var vals = (i===3?A:B), total = 0; for (var k in vals) total += vals[k];
+        var hmax = BASE - 22, h = Math.round(hmax * (total / 3900));
+        g.appendChild(el("line",{x1:x,y1:BASE,x2:x,y2:BASE-h,stroke:"var(--signal-untimed)","stroke-width":3,"stroke-linecap":"butt"}));
+        g.appendChild(el("circle",{cx:x,cy:BASE-h,r:3.2,fill:"var(--signal-untimed)"}));
+        var tv = el("text",{x:x,y:BASE-h-10,"text-anchor":"middle","font-size":11,"font-family":"var(--mono)",fill:"var(--ink)"});
+        tv.textContent = total.toLocaleString("en-US"); g.appendChild(tv);
+      } else if (s.state === "missing"){
+        g.appendChild(el("rect",{x:x-13,y:20,width:26,height:BASE-20,fill:"url(#rb-hatch)",opacity:".85"}));
+        g.appendChild(el("rect",{x:x-13.5,y:19.5,width:27,height:BASE-19.5,fill:"none",stroke:"var(--state)","stroke-width":1}));
+        g.appendChild(el("line",{x1:x,y1:BASE-16,x2:x,y2:BASE,stroke:"var(--state)","stroke-width":3}));
+        g.appendChild(el("circle",{cx:x,cy:BASE-22,r:5.5,fill:"var(--field)",stroke:"var(--state)","stroke-width":2.5}));
+      } else {
+        g.appendChild(el("circle",{cx:x,cy:BASE-6,r:2,fill:"none",stroke:"var(--ink-30)","stroke-width":1.4}));
+      }
+
+      /* tick label */
+      var tl = el("text",{x:x,y:BASE+34,"text-anchor":"middle","font-size":10,"font-family":"var(--mono)",
+                          fill: i===cursor ? "var(--ink)" : "var(--ink-30)"});
+      tl.textContent = s.local; g.appendChild(tl);
+      ribbon.appendChild(g);
+    });
+
+    /* the hairline — one physical pixel, the measuring instrument */
+    var hx = Math.round(slotX(cursor)) + .5;
+    ribbon.appendChild(el("line",{x1:hx,y1:8,x2:hx,y2:BASE+22,stroke:"var(--ink)","stroke-width":1}));
+    ribbon.appendChild(el("line",{x1:hx,y1:BASE+38,x2:hx,y2:BASE+44,stroke:"var(--ink)","stroke-width":1}));
+
+    renderReadout();
+  }
+
+  function fieldBlock(label, value, none){
+    var d = document.createElement("div");
+    var l = document.createElement("div"); l.className = "field-label"; l.textContent = label;
+    var v = document.createElement("div"); v.className = "field-value" + (none ? " none" : ""); v.textContent = value;
+    d.appendChild(l); d.appendChild(v); return d;
+  }
+
+  function renderReadout(){
+    var s = SLOTS[cursor];
+    while (readout.firstChild) readout.removeChild(readout.firstChild);
+    readout.appendChild(fieldBlock("slot", s.t + "  ·  " + s.local + " local"));
+    readout.appendChild(fieldBlock("state", s.state === "observed" ? "observed · untimed"
+                                   : s.state === "missing" ? "unavailable — window closed"
+                                   : "not yet due", s.state !== "observed"));
+    if (s.state === "observed"){
+      readout.appendChild(fieldBlock("phenomenonTime", "unknown", true));
+      readout.appendChild(fieldBlock("resultTime", s.completed.slice(11,23) + "Z"));
+      readout.appendChild(fieldBlock("http · bytes · ms", s.http + " · " + s.bytes.toLocaleString("en-US") + " · " + s.ms));
+      readout.appendChild(fieldBlock("sha256", s.sha + "…"));
+      readout.appendChild(fieldBlock("locations in response", String(s.n)));
+      readout.appendChild(fieldBlock("source", "parking-servis.co.rs/lat/garaze-i-parkiralista"));
+    } else if (s.state === "missing"){
+      readout.appendChild(fieldBlock("reason", "no durable scheduler existed until 13:17Z", true));
+      readout.appendChild(fieldBlock("grace window", "20 min — closed", true));
+      readout.appendChild(fieldBlock("backfilled", "never. a gap is not a zero.", true));
+    } else {
+      readout.appendChild(fieldBlock("recorder", "Beops_OBS001 · hourly at :30"));
+      readout.appendChild(fieldBlock("caveat", "scheduled is not executed", true));
+    }
+  }
+
+  /* keyboard: step the hairline */
+  document.addEventListener("keydown", function(e){
+    if (e.key === "ArrowRight"){ cursor = Math.min(SLOTS.length-1, cursor+1); draw(); e.preventDefault(); }
+    if (e.key === "ArrowLeft"){ cursor = Math.max(0, cursor-1); draw(); e.preventDefault(); }
+  });
+  ribbon.addEventListener("pointermove", function(e){
+    var r = ribbon.getBoundingClientRect();
+    var i = Math.round(((e.clientX - r.left) - PAD) / ((RW-PAD*2)/SLOTS.length) - .5);
+    i = Math.max(0, Math.min(SLOTS.length-1, i));
+    if (i !== cursor){ cursor = i; draw(); }
+  });
+
+  /* ---------- 3. quorum ---------- */
+  function quorumBar(states, w){
+    var n = states.length, cw = Math.floor(w/n) - 2, h = 10;
+    var svg = el("svg",{width:w,height:h+2,viewBox:"0 0 "+w+" "+(h+2)}); defs(svg,"q"+Math.random().toString(36).slice(2,7));
+    var pid = svg.querySelector("pattern").getAttribute("id");
+    states.forEach(function(st,i){
+      var x = i*(cw+2);
+      if (st === "filled") svg.appendChild(el("rect",{x:x,y:0,width:cw,height:h,fill:"var(--ink)"}));
+      else if (st === "hatched") svg.appendChild(el("rect",{x:x,y:0,width:cw,height:h,fill:"url(#"+pid+")",stroke:"var(--state)","stroke-width":1}));
+      else svg.appendChild(el("rect",{x:x+.5,y:.5,width:cw-1,height:h-1,fill:"none",stroke:"var(--state)","stroke-width":1}));
+    });
+    return svg;
+  }
+
+  var qwrap = document.getElementById("quorum");
+  [
+    {name:"Parking, whole city — 15:30", st:Array(27).fill("filled"), note:"27 expected · 27 reported · 0 silent"},
+    {name:"Parking, whole city — 16:30", st:Array(27).fill("filled"), note:"27 expected · 27 reported · 0 silent"},
+    {name:"Zone specimen — mixed", st:["filled","filled","filled","hollow","hatched"], note:"5 expected · 3 reported · 1 silent · 1 insufficient"},
+    {name:"Zone specimen — silent", st:["hollow","hollow","hollow","hollow","hollow"], note:"5 expected · 0 reported · 5 silent"}
+  ].forEach(function(q){
+    var row = document.createElement("div"); row.className = "quorum-row";
+    var n = document.createElement("div"); n.className = "quorum-name"; n.textContent = q.name;
+    var bar = document.createElement("div");
+    bar.appendChild(quorumBar(q.st, Math.min(320, q.st.length * 11)));
+    var note = document.createElement("div"); note.className = "quorum-note"; note.textContent = q.note;
+    row.className += q.st.indexOf("hollow") === -1 ? " known" : " unknown";
+    row.appendChild(n); row.appendChild(bar); row.appendChild(note); qwrap.appendChild(row);
+  });
+
+  /* ---------- 4. values ---------- */
+  var rows = document.getElementById("rows");
+  var names = Object.keys(A).sort(function(a,b){ return B[b]-B[a]; });
+  var max = 0; names.forEach(function(k){ if (B[k] > max) max = B[k]; });
+  names.forEach(function(k){
+    var row = document.createElement("div"); row.className = "quorum-row known";
+    var n = document.createElement("div"); n.className = "quorum-name"; n.textContent = k;
+    var v = document.createElement("div"); v.className = "quorum-num mono"; v.textContent = B[k];
+    var d = B[k] - A[k];
+    var dd = document.createElement("div"); dd.className = "quorum-delta";
+    dd.textContent = (d > 0 ? "+" : "") + d;
+    /* magnitude as length, never colour */
+    var w = 280, h = 10;
+    var svg = el("svg",{width:w,height:h,viewBox:"0 0 "+w+" "+h});
+    var len = Math.max(1, Math.round(w * B[k]/max));
+    svg.appendChild(el("line",{x1:0,y1:h/2,x2:len,y2:h/2,stroke:"var(--signal-untimed)","stroke-width":3}));
+    if (B[k] === 0){
+      svg.appendChild(el("circle",{cx:3,cy:h/2,r:3.5,fill:"none",stroke:"var(--ink-30)","stroke-width":1.4}));
+    }
+    var bar = document.createElement("div"); bar.appendChild(svg);
+    row.appendChild(n); row.appendChild(v); row.appendChild(bar); row.appendChild(dd);
+    rows.appendChild(row);
+  });
+  var zeroNote = document.createElement("p");
+  zeroNote.style.marginTop = "16px";
+  zeroNote.textContent = "Kalemegdan, Kamenička: the source reported the number zero. That is an observation, and it is drawn as a value of zero with a small open ring — deliberately unlike the hollow tick of section 1, because a reported zero and a silent source must never look alike. This distinction is the whole project in one detail.";
+  rows.appendChild(zeroNote);
+
+  /* ---------- controls ---------- */
+  var ign = document.getElementById("ign"), thm = document.getElementById("thm");
+  ign.addEventListener("click", function(){
+    var on = document.body.classList.toggle("ignorance");
+    ign.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  thm.addEventListener("click", function(){
+    var cur = document.documentElement.getAttribute("data-theme");
+    var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var next = cur ? (cur === "dark" ? "light" : "dark") : (dark ? "light" : "dark");
+    document.documentElement.setAttribute("data-theme", next);
+    thm.setAttribute("aria-pressed", "true");
+  });
+
+  window.addEventListener("resize", layout);
+  layout();
+})();
+</script>
+</body>
+</html>

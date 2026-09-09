@@ -1,0 +1,108 @@
+# Beops — Knowledge Base
+
+# Greske
+- [2026-09-05T22:35] OBS-001 generator je u novobeogradskoj grupi imao Babu Visnjinu umesto Opstine NBGD, prikazivao attempted_at kao prijem i mogao prepisati izvestaj u trci procesa. Uzrok: neproverene pretpostavke generatora. Lek: grupe iz protokola, transport.retrieved_at, testovi i atomski neprepisiv izlaz. — izvor: research/write_izvestaj.py
+- [2026-09-05T19:38] U OBS dnevniku je Kalemegdan pogresno opisan kao nula u svih pet uzoraka; sirovi 15:30 UTC zapis ima 1, a kasniji 18:30/19:30 imaju 15/20. Uzrok: zakljucak bez provere svakog izvornog reda. Lek: append-only ispravka i tabela direktno iz immutable uzoraka; ponovljena nula nije dokaz kvara. — izvor: research/observations/10k-2026-09-05/OPAZANJA.md
+- [2026-09-05T18:03] Rad je u jednom trenutku prijavljivao VMA -180 kao najveci izmereni pad. Taj pad se nije desio: 518-338-505-558-560, vratio se za +167 u sledecem terminu. Serija od dva uzorka je proizvela naslovni rezultat koji je artefakt izvora. Pravilo minimalne postojanosti: u seriji bez vremena merenja iskok je dokaz tek ako traje kroz najmanje dva uzastopna uzorka. Popravljeno u rad_draft.md, ostavljeno i u OPAZANJA i INTERIM_ANALYSIS da prezivi prepisivanje drafta. — izvor: research/observations/10k-2026-09-05/INTERIM_ANALYSIS.md
+- [2026-09-05T14:15] Repozitorijum sa nula commitova izgleda spolja isto kao repozitorijum koji radi. 24 MB istrazivanja stajalo je untracked ceo dan, uz zaostao index.lock. Pravilo: prvi commit ide pre prvog istrazivackog izlaza, ne posle. — izvor: LOG.md
+- [2026-09-05T14:15] Konfigurisana automatizacija nije domacin. beops-obs-001-trka-10k je bila kreirana ACTIVE u Codex sesiji, ali schtasks na PC-u nije imao nijedan Beops zadatak - kad je sesija prestala, raspored je prestao s njom. Posledica: 0/13 snimljeno na dan pilota, tri termina nepovratno propustena. Pravilo: raspored koji nije u trajnom domacinu ne postoji, bez obzira sto ga je alat prijavio kao ACTIVE. — izvor: research/observations/10k-2026-09-05/OPAZANJA.md
+
+# Iskustva
+- [2026-09-05T19:33] Razlicit HTML hash ne dokazuje svezinu merenja, a ponovljena nula ne dokazuje mrtav brojac. Sacuvati izvorne vrednosti i oznaciti neizvesnost; persistence je posebno prijavljena analiza osetljivosti, ne razlog za brisanje izuzetka. — izvor: research/01-programme/PLAN_CULA_MODELI_2026-09-05.md
+- [2026-09-05T19:02] Najbogatija zila nije bila u globalnim mrezama nego u srpskim institucijama. Dve runde su trazile po svetskim otvorenim podacima i nalazile da slavne mreze staju na granici EEA38; instrumenti su ovde - RHMZ radar u gradu, SEPA 17 stanica, seizmoloska stanica BEO od 1918, deset brojaca saobracaja na imenovanim ulicama. Pravilo: za grad van EU prvo pretrazi domace institucije pa tek onda globalne platforme. — izvor: research/02-senses/NOVA_CULA_RUNDA3_2026-09-05.md
+- [2026-09-05T18:03] Unapred izabrana prostorna grupa je oborena: NBGD/Belvil/Pinki, imenovani u protokolu kao okruzenje trke, daju najravnije linije u skupu (-5, +1, +8), a sve kretanje je u grupama koje je protokol zvao kontekstom. Oborena pre-registracija se prijavljuje kao rezultat; naknadno nadjen obrazac u 27 serija sa 5 tacaka je skoro besplatan pa skoro bezvredan. — izvor: research/observations/10k-2026-09-05/INTERIM_ANALYSIS.md
+- [2026-09-05T15:02] Sivo-tackasti trik za mrtav senzor umire tacno na rezoluciji koju smo izabrali. EEA viewer moze da posivi stanicu na njenom pikselu; zona od cetrdeset senzora sa tri mrtva nema piksel. Odgovor je prestati crtati ono sto nedostaje i poceti brojati sta je progovorilo - kvorum traka sa tri stanja celije: popunjena, prazna, srafirana. Brojanje, ne procena. — izvor: research/UI_CONCEPTS_AND_COMPOSITION.md
+- [2026-09-05T15:02] Za peto stanje - vrednost tacna, vreme neizvesno - ne postoji nijedno objavljeno istrazivanje prikaza. Model podataka postoji (SensorThings phenomenonTime vs resultTime, isto i GTFS-Realtime), ali kako se to CRTA nije objavljeno niti testirano. Sve sto BEOPS napravi za to stanje je originalan doprinos, ne primena tudjeg obrasca - i tako mora biti receno u radu. — izvor: research/UI_CONCEPTS_AND_COMPOSITION.md
+- [2026-09-05T14:15] Evropski otvoreni podaci ne stizu do Beograda po pravilu. EEA NOISE i Copernicus Urban Atlas oba staju na EEA38 granici i Srbija je van oba. Negativan nalaz se upisuje u registar kao zapis sa statusom, ne izostavlja. — izvor: research/NOVA_CULA_RUNDA2_2026-09-05.md
+- [2026-09-05T14:15] Slavni gradski sistemi nemaju nezavisnu evaluaciju. Najcitiraniji izgradjen digitalni blizanac nudi anketu o percepciji umesto promenjene odluke; najbogatiji navodi broj preuzimanja otvorenih podataka kao glavni ishod; za najpoznatiji gradski mozak nije nadjeno nijedno nezavisno ponovno merenje njegovih tvrdnji o ucinku. Odsustvo evaluacije je nalaz koji se citira, ne rupa koja se precutkuje. — izvor: research/BIBLIOGRAPHY_2026-09-05.md
+- [2026-09-05T14:15] Standard vec nosi tvrda pravila BEOPS-a. SOSA/SSN razlikuje phenomenonTime od resultTime - to je doslovno primljeno sada nije izmereno sada; PROV-O nosi poreklo; QUDT jedinice; O-and-M trazi da opazanje ima navedenu proceduru i predmet. Tri od cetiri tvrda pravila mogu postati masinski proverljiva polja umesto kucne discipline. — izvor: research/BIBLIOGRAPHY_2026-09-05.md
+- [2026-09-05T04:17] Keep explicit byte limits and canonical model identity checks during discovery. E5 required selective metadata fields; oversized card remains uncollected. UsefulSensors/moonshine redirected to moonshine-ai/moonshine and was only accepted after separate identity verification. Never silently accept redirects as unchanged provenance. — izvor: research/KATALOG_MODELA_I_PROVAJDERA_2026-09-05.md
+- [2026-09-05T04:17] Model distributor, author, runtime and hosted inference provider are separate roles. HF metadata mapping is time-stamped evidence of advertised service, not a successful inference or quality verdict. E5/MiniLM/SegFormer have a listed HF route in this audit; other empty mappings are not proof no global provider exists. — izvor: research/KATALOG_MODELA_I_PROVAJDERA_2026-09-05.md
+- [2026-09-05T03:48] Parking HTTP 200 i vreme prijema nisu vreme merenja. observed_at ostaje null; neto promena slobodnih mesta ne meri dolaske, ucesnike ili uzrok promene. — izvor: research/VISE_DOMENA_2026-09-05.md
+- [2026-09-05T03:48] Dva probna Photon upita pokazala su da prvi rezultat moze imati pogresan kucni broj. Rezultat nije potvrda trazene adrese; za puls zadrzati samo opravdan siri prostor. — izvor: research/ZONE_I_POVEZIVANJE.md
+
+2026-09-05T12:55 Gradjanske IoT mreze se preklapaju: openSenseMap i Sensor.Community mogu nositi istu fizicku kutiju; dve platforme nisu dva nezavisna cula. Pre brojanja pokrivenosti obavezno shared_origin_group provera. — izvor: research/NOVA_CULA_I_USPAVANA_TEHNOLOGIJA_2026-09-05.md
+
+2026-09-05T12:55 GDELT rate limit je agresivniji od dokumentacije: dva od tri pokusaja vracena poruka o limitu i pored pauza. Koristiti samo kao otkrivaca izdavaca, nikad kao ritmicno culo. — izvor: research/evidence/newsenses-2026-09-05T125146343Z.json
+
+2026-09-05T12:55 "Uspavana tehnologija" grada je lista kandidata za zahtev, ne nalaz da feed postoji: svaki sistem (ticketing, GPS, rasveta, vodomeri) loguje, ali nijedan ne objavljuje javno poznato; traziti samo agregate, nikad redove sa licnim podacima. — izvor: research/NOVA_CULA_I_USPAVANA_TEHNOLOGIJA_2026-09-05.md
+
+2026-09-05T12:55 OSM changesets su javno zapisana paznja gradjana o promenama mesta; to je signal izmena mape, ne merenje fizicke promene grada. Autor izmene je samo poreklo, ne subjekat analize. — izvor: research/SOURCE_REGISTRY.json (S35)
+
+# Izvori
+- [2026-09-05T19:02] SEPA vazduh.sepa.gov.rs objavljuje CAS MERENJA - dakle zvanicna mreza za vazduh NEMA nas peti problem, za razliku od parkinga. To je referentni sloj kojim se gradjanske mreze konacno mogu proveriti. Uz to beoeko.com nosi 31 stanicu istog grada iz druge institucije - to nije duplikat nego jedini nacin da se uhvati pokvaren senzor, ali se mora uporediti stanica po stanica pre nego sto se dve mreze proglase nezavisnim. — izvor: research/02-senses/NOVA_CULA_RUNDA3_2026-09-05.md
+- [2026-09-05T18:03] Revizija izvora parking-servis.co.rs (jedan zahtev van OBS-001): stranica NIGDE ne objavljuje vreme merenja niti ritam osvezavanja, a zaglavlja ne daju gornju granicu - Cache-Control no-cache private, bez Last-Modified, bez ETag, bez Age. Ukupan kapacitet po lokaciji nije objavljen. Prozni podatak oko 2.800 mesta opisuje drugi skup od zivog brojaca ciji zbir SLOBODNIH ide do 3931 - ne kombinovati. — izvor: research/observations/10k-2026-09-05/INTERIM_ANALYSIS.md
+
+# Vestine
+
+# Odluke
+- [2026-09-05T19:02] Potvrdjeno odsustvo je zapis u registru, ne izostavljanje. Upisano pet no_coverage i dva dead sa datumima: EEA NOISE i Copernicus Urban Atlas staju na EEA38; bvk.rs/kvalitet-vode nikad nije nosio merenje; Grad Beograd nikad nije imao jedinstven portal; GZZJZ PDF arhiva mrtva od 25.08.2021; ambasadna PM2.5 mreza ugasena globalno 04.03.2025; e-Callisto nema stanicu u Srbiji. Razlog: sledeci um ne sme da potrosi isto popodne. — izvor: research/SOURCE_REGISTRY.json
+- [2026-09-05T15:02] Samo opazanje sme da bude hromatsko. Procena i prognoza su boje strukture, odsustvo je neutralno sivo. Posledica: kolicina boje na ekranu JESTE kolicina stvarnog merenja u slici, pa los dan izgleda siv bez ijedne recenice o kvalitetu podataka. Ovo takodje ubija ideju znacke poverenja - neodredjen signal kvaliteta je izmereno ono sto rusi poverenje, dok precizan raspon ne rusi. — izvor: research/UI_CONCEPTS_AND_COMPOSITION.md
+- [2026-09-05T14:15] Rok za pun rukopis 20.08.2026 je prosao, skup je 25.09.2026 online. Rad se pise kao rad dok ne stigne odgovor organizatora; ne pretpostavljati prihvatanje; cutanje do 10.09. tretirati kao ne za planiranje. Tri teksta pitanja su pripremljena i nista nije poslato - slanje je Semirova odluka. — izvor: research/conference/LATE_SUBMISSION_EMAIL.md
+- [2026-09-05T03:48] OBS-001 upisuje neprepisiv claim pre zahteva i sample posle njega. Prekid ostavlja neizvesnost; nema automatskog retry-ja istog termina. 403/429 pauzira izvor. Raspored nije dokaz izvrsenja. — izvor: research/observations/10k-2026-09-05/PROTOKOL.md
+- [2026-09-05T03:48] Mobilnost i javne promene, dogadjaji i dokumentovane cene, atmosfera i voda istrazuju se paralelno. Vremenske stanice nisu preduslov za druge domene. — izvor: research/RADNI_PROGRAM.md
+- [2026-09-05T03:48] Beops pokriva Beograd: ceo grad, vece celine, sire zone. Jedan prostorni filter kroz domene; ne gradimo sopstveni geokoder, indeks grada ili UI. Pazarac ostaje zaseban projekat i izvor lekcija. — izvor: research/ZONE_I_POVEZIVANJE.md
+
+## Device discovery wave — 2026-09-06T10:39:34.4931295Z
+- Greske: CONTRIBUTING references D:\Svemir\tools\project_kit.js, but the file is absent and rg found no replacement in Svemir. Cause: stale helper path. Remedy in this wave: preserve learning/log entries directly; report project-kit check unavailable rather than claiming it passed.
+- Iskustva: Native sub-agent assignments can use a prose board, but tools/room_work.js expects JSON. The Markdown board for this wave must be read directly; do not feed it to that helper.
+- Odluke: A procurement plan proves intent; an award proves purchase; a commissioning or operational report supports deployment. None alone establishes an open measurement feed.
+
+## Device discovery integration - 2026-09-06T11:14:04.1888965Z
+- Izvori: RATEL national catalogue links exact fixed21/BG November2024 resources; portal licence/default grant is product-scoped. ACTRIS CC BY4 policy distinguishes levels0/1/2 from legacy/level3; generic station metadata still needs scope matching. Source: research/07-legal/DEVICE_DATA_LEGAL_SORT_2026-09-06.md.
+- Iskustva: An HTTP200 .json/.csv/.xml can be HTML; a source-ID gate can hide a wrong-host fetch. C-007 preserves the historical error and canonical EMF association without rewriting evidence. Exact-route enforcement and schema validation remain follow-ups.
+- Iskustva: Fixed21 returned225410096 bytes in one response. Six-minute nominal data contains duplicates, gaps and unknown99999.99 values; byte caps must fit discovery and a whole archive must not be polled as a current sample.
+- Odluke: Legal sorting is separate from access signals. Unlicensed originals remain local evidence under E-003 project practice, without blanket raw redistribution or continuing extraction clearance. Eight reviews do not clear the other178 records.
+- Odluke: Preserve immutable attribution metadata error in an additive correction. Adopt the pre-existing .gitattributes unchanged in the local checkpoint because evidence bytes must survive Git line-ending conversion.
+
+## Device follow-up lessons — 2026-09-06T11:57:12.873356+00:00
+- Iskustva: Device metadata pages can embed actual timeseries. Parse retained literals without executing scripts; keep derived/reference curves distinct and do not infer timezone. Source: DEVICE_FOLLOWUP_EMF_2026-09-06.md.
+- Izvori: ACTRIS now yields39 actual BGD Level1/2 product metadata objects on a WADL-grounded route. Product101626 is identified, but its legacy raw-file licence remains unresolved.
+- Odluke: Licence, record access, file access and embargo are independent fields. Ada Marina DTT declares CC BY4, public metadata, restricted files and no active embargo simultaneously. Its36.6kB statistic is not file size.
+- Greske: Robots4xx absence handling does not make an article403 usable. S190 held through an additive offline decision; original evidence preserved, no alternate downloader.
+- Odluke: User asks broader senses/devices/data and explicitly prioritizes live pieces of reality. Next discovery records physical phenomenon, transducer, local place, source observation time, cadence/latency and legal/access scope; historical evidence stays labelled.
+
+### 2026-09-06 — Literature reveals different sensing timescales
+
+Iskustva: A paper can expose an instrument, retained sample, historical API or deposited accession missing from portal search. Device capability, actual campaign and current public stream require separate evidence.
+Odluke: Added32 distinct works without inflating188 source records; bridge DOI counted once across two lanes. BARLI telecover example27April2020 is test-specific, while regular automation remained future work in the2023 conclusion.
+Vestine: Publisher/institution/author-source reading levels are retained per entry; metadata-only verification is not full-text review. Opaque printed access components remain redacted and untested.
+
+### 2026-09-06 — A resource name and its measurement are distinct
+
+Iskustva: The eBC catalogue DOI is registered as aerosol absorption coefficient. A public CC BY record may have restricted files; CC0 metadata rights do not apply to those files. The Borca chart full dates resolve its visible yearless table but reveal105 duplicate surplus rows and62 missing days.
+Odluke: Added S192 and corrected S102 coverage using the explicit operator country list. Retain RHMZ Article36 citation and state-fund transfer scope separately.
+Vestine: Static literal parsing and date/value joins can resolve published-date ambiguity without executing scripts or guessing routes.
+
+### 2026-09-06 — Urban intelligence before manuscript drafting
+
+Decisions: Semir places urban design/planning, information and interpretation at the centre; IoT is one input layer. The eventual paper is English, but the current deliverable is a pre-paper discussion pack. Preserve the manuscript unchanged.
+Lessons: Explicit189-record source-role coding does not establish a device census. Receipt-file hashes and HTTP payload hashes differ; neither supplies missing source observation time. SSN resultTime is not HTTP retrieval time. Complete original search yields cannot be reconstructed from search seeds.
+Sources: PAPER_METHODS_AUDIT, PAPER_LEGAL_SCOPE and PAPER_VENUE_COMPARATORS dated2026-09-06 provide the current qualifications. Adopted legislation, commencement, transition deadlines and actual implementation remain different facts.
+
+###2026-09-06 — Established practice and source identity
+
+Sources: Planning-support science and local planning literature require actor, decision, alternative and usefulness evaluation, beyond data availability. User adds an introductory institutional-practice comparison.
+Lessons: A search-indexed scholarly PDF URL on igbp.net currently returns a domain-sale HTML page. The presumed document was excluded; a plausible URL or historical indexed text does not verify current source identity.
+Decisions: Current Serbian artifacts are explicitly authorized; final bilingual parity is deferred. Primary indexed excerpts remain distinct from directly opened full text.
+
+### 2026-09-06 — Serbian pre-paper integration
+
+Lessons: London AMR21 §0.1–0.2 directly names the Planning London Datahub inputs and variable database quality: this verifies a performed planning-monitoring workflow, not a causal improvement in the city. A published standard, available platform, observed institutional use and demonstrated planning outcome are separate evidence levels.
+Decisions: The Serbian V2 discussion pack adds24 selected publications and7 practice examples. Exact-identifier/title checks found no matches in8 prior bibliography Markdown files; this is not global deduplication. All189 atlas records retain every original field. Final bilingual alignment is deferred by user; original English pack and manuscript preserved.
+Errors: Python's default Windows stdout encoding rejected Serbian characters in a read-only inspection. The inspection was rerun with -X utf8; no source or document was lost. project_kit.js remains unavailable; notes were appended directly without claiming helper counters.
+Sources: The system dossier's C15 reinspection requires calibration outcomes and appropriate assumptions for conformal prediction; it supersedes the earlier overly broad shorthand, without silently editing the historical bibliography.
+
+
+Errors: The first wave7 local-link check misclassified an s3:// URI as a local path; the scheme filter was corrected while preserving the original source URL. Bundled Node has no npm.cmd; the required44-test suite passed via the installed C:/Program Files/nodejs/npm.cmd. A blank EOF line in the new knowledge append was normalized before final diff checking.
+
+Errors: A temporary git diff check with core.autocrlf=false reinterpreted historical mixed-line-ending CLAIMS text as new whitespace. The override was removed; the normal repository diff check passed. Historical claim content was preserved.
+
+## Spoljni pregled — 2026-09-08T20:09:27+00:00
+- Greske: `INDEX.md` je tri dozvoljena izvora (S120 Kontur, S169 keep.eu, S74 Gradnja.rs) vodio pod „said no" zato sto je generator svako prisustvo `X-Robots-Tag` zaglavlja tretirao kao odbijanje; `index, follow` i `noindex` su uputstva pretrazivacu, ne rezervacija prava citanja. Ispravljeno u `tools/build_provenance_index.py` (`header_refusals`), indeks regenerisan 153/7/4/3/25, zapisano kao C-010. Pravilo: sacuvan signal i presuda o signalu su dve razlicite stvari; svaki klasifikator nad dokazima mora imati test sa DOZVOLJAVAJUCIM zaglavljem, ne samo sa zabranama.
+- Greske: `Beops_OBS001` se nije sam obrisao — `cmd IF ... GTR` sa dvanaestocifrenim brojem saturira na 32 bita i nikad nije istinit; zadatak je radio 69 praznih otkucaja posle zatvaranja pilota (0 mreznih zahteva zahvaljujuci cutoff-u u recorderu). Obrisan 08.09. kroz ruke tela, potvrdjeno `schtasks /query`. Zapisano kao C-011. Pravilo: kraj rasporeda se proverava kod planera, ne u skripti koja je trebalo da ga okonca.
+- Izvori: Repozitorijum ima 26 commitova i NEMA remote — jedini primerak je disk D:. Prati 1782 fajla, 249 MB u pack-u, i jedan blob od 141 MB (`research/evidence/S154/.../2eff14_v1.zip.gz`) koji je iznad GitHub granice od 100 MB — push na GitHub bez LFS-a ili izmestanja dokaza NIJE moguc. Odluka je Semirova (LFS, ili dokazi van repoa uz manifest hash-eve koji vec postoje).
+
+- Greske (2026-09-08T21:17Z): organ „news-sorter" je na prvom pokretanju uzeo `qwen3.5:cloud` (10 poziva, svi 429) iako je registar minut ranije dobio `allow_cloud:false` — fajl na telu je bio stara verzija, prenos je prijavio „written" a sadržaj se nije promenio (md5 04f9b225 ≠ 49cdde04), i test koji je to hvatao PAO je na telu a naredna komanda je svejedno pokrenuta. Zapisano kao C-012. Pravilo: posle svakog prenosa iz oblaka na telo uporedi heš na telu pre prve komande koja od njega zavisi; `&&` a ne `&` posle testa.
+
+- Izvori (2026-09-08T22:10Z): PODLOGA MAPE — tri vrata isprobana iste noći, sva zapisana: GeoSrbija OGC (S193) vraća 401 bez naloga; Nominatim (S194) robots.txt zabranjuje /search — odbijeno i zapisano, nikad zaobiđeno; ohsome API (S126) vraća 403 našem agentu (blocked). Beogradske opštine kao otvorena geometrija za jednog agenta: nijedan od tri „otvorena" puta nije prošao. Sledeći zakoniti putevi: Overture Maps divisions (S95, GeoParquet kroz DuckDB CLI) ili Geofabrik PBF (S127) sa parserom. Ovo je nalaz za rad (otvorenost osnovne geometrije), ne samo prepreka.

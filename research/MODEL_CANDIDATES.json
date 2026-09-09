@@ -1,0 +1,38 @@
+{
+  "schema": "beops-model-candidates/v1",
+  "scope": "Research shortlist, not approved installs or verified inference. Download only metadata/cards in this phase.",
+  "models": [
+    {"id":"amazon/chronos-bolt-tiny","organ":"forecast","priority":"P0","test":"seasonal persistence vs rolling-origin quantile forecasts"},
+    {"id":"amazon/chronos-bolt-mini","organ":"forecast","priority":"P1","test":"incremental benefit over tiny on identical windows"},
+    {"id":"ibm-granite/granite-timeseries-ttm-r2","organ":"forecast","priority":"P0","test":"pin context/horizon branch; no synthetic padding of short history"},
+    {"id":"ibm-granite/granite-timeseries-tspulse-r1","organ":"anomaly_similarity","priority":"P0","test":"false alerts per day and event delay vs robust thresholds; imputation never replaces raw observations"},
+    {"id":"intfloat/multilingual-e5-small","organ":"retrieval","priority":"P0","test":"Serbian scripts and source-level held-out retrieval vs BM25"},
+    {"id":"sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2","organ":"retrieval","priority":"P1","test":"short-text retrieval and paraphrase dedup, model-specific pooling/truncation"},
+    {"id":"classla/bcms-bertic-ner","organ":"notice_entities","priority":"P0","test":"location and organization spans; dates need separate extraction"},
+    {"id":"urchade/gliner_small-v2.1","organ":"notice_entities","priority":"P1","test":"language mismatch control; small does not imply Serbian support"},
+    {"id":"urchade/gliner_multi-v2.1","organ":"notice_entities","priority":"P0","test":"schema-driven entity spans, abstention and script holdout"},
+    {"id":"PaddlePaddle/PP-OCRv6_tiny_det_safetensors","organ":"document_detection","priority":"P1","test":"printed document text boxes; must pair with a language-appropriate recognizer"},
+    {"id":"PaddlePaddle/PP-OCRv6_tiny_rec_safetensors","organ":"document_recognition","priority":"P1","test":"Serbian diacritics and Cyrillic, versioned character dictionary"},
+    {"id":"PaddlePaddle/latin_PP-OCRv5_mobile_rec_safetensors","organ":"document_recognition","priority":"P1","test":"Latin Serbian CER and exact numbers/dates vs native PDF extraction"},
+    {"id":"PaddlePaddle/cyrillic_PP-OCRv5_mobile_rec_safetensors","organ":"document_recognition","priority":"P1","test":"Cyrillic Serbian CER and unsupported letters; no assumed language coverage"},
+    {"id":"ibm-granite/granite-docling-258M","organ":"document_structure","priority":"P1","test":"table cell and reading-order fidelity; no invented cells"},
+    {"id":"timm/mobilenetv3_small_100.lamb_in1k","organ":"visual_quality","priority":"P2","test":"ImageNet backbone needs task head/training for blocked or wet camera state"},
+    {"id":"facebook/dinov2-small","organ":"visual_change","priority":"P2","test":"embedding shift vs lighting and camera motion, no semantic claim without labels"},
+    {"id":"nvidia/segformer-b0-finetuned-ade-512-512","organ":"scene_segmentation","priority":"P2","test":"mIoU on licensed local frames; RGB ADE is not multispectral satellite input"},
+    {"id":"HuggingFaceTB/SmolVLM-256M-Instruct","organ":"visual_description","priority":"P2","test":"evidence-grounded qualitative tags, not exact counting"},
+    {"id":"google/siglip2-base-patch16-224","organ":"visual_retrieval","priority":"P2","test":"larger comparator; count entire model, not just vision tower"},
+    {"id":"ibm-nasa-geospatial/Prithvi-EO-2.0-100M-TL","organ":"earth_observation","priority":"P2","test":"bands, scaling and spatial/temporal metadata; requires appropriate downstream head"},
+    {"id":"openai/whisper-tiny","organ":"permitted_speech","priority":"P2","test":"consented or licensed speech only; not general soundscape classification"},
+    {"id":"moonshine-ai/moonshine","previous_id":"UsefulSensors/moonshine","identity_note":"HF API redirect and canonical id checked 2026-09-05T04:00:04Z; not silently accepted by audit","organ":"permitted_speech","priority":"P2","test":"multi-artifact repository; select exact language/size variant, not whole repo"},
+    {"id":"onnx-community/silero-vad","organ":"speech_presence_guard","priority":"P1","test":"conversion provenance vs original Silero; VAD is not guaranteed anonymization"},
+    {"id":"LiquidAI/LFM2.5-1.2B-Instruct-GGUF","organ":"evidence_synthesis","priority":"P2","test":"larger control only; structured evidence citation and Serbian accuracy"}
+  ],
+  "non_hf": [
+    {"id":"google/yamnet","url":"https://www.kaggle.com/models/google/yamnet/tfLite/tflite","organ":"sound_events","status":"publisher_page_read","test":"multi-label sound events, device shift; no calibrated dBA or raw speech publication"},
+    {"id":"fschmid56/EfficientAT","url":"https://github.com/fschmid56/EfficientAT","organ":"sound_events","status":"author_repo_read","test":"pin GitHub release mn/dymn variant and compare to YAMNet at matched input rate"},
+    {"id":"seisbench/PhaseNet","url":"https://seisbench.readthedocs.io/en/stable/pages/models/pretrained_models.html","organ":"seismic_picking","status":"documentation_read","test":"exact trained weights and channels; expert-reviewed arrival picks, not autonomous public alarm"},
+    {"id":"seisbench/EQTransformer","url":"https://github.com/seisbench/seisbench","organ":"seismic_picking","status":"author_repo_read","test":"same waveform split and instrument response as PhaseNet"},
+    {"id":"snakers4/silero-vad","url":"https://github.com/snakers4/silero-vad","organ":"speech_presence_guard","status":"author_repo_read","test":"compare selected upstream artifact with HF conversion; speech can leak despite VAD"},
+    {"id":"DCASE/low-complexity","url":"https://dcase.community/challenge2024/task-data-efficient-low-complexity-acoustic-scene-classification-results","organ":"sound_scene","status":"challenge_page_read","test":"choose released checkpoint with exact input/task; do not count every paper as downloadable model"}
+  ]
+}

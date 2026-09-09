@@ -1,0 +1,323 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BEOPS Traka</title>
+<meta name="description" content="TRAKA — the ribbon: what Belgrade told us in the last 24 hours, when it told us, and where it went quiet. Drawn from the live collector's rows, nothing added.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap">
+<style>
+/* ------------------------------------------------------------------
+   BEOPS · TRAKA study, drawn from real rows (public/live-snapshot.json).
+   Grammar: research/05-design/UI_CONCEPTS_AND_COMPOSITION.md
+   stroke = where the value came from · ground = how well we know its time
+   only observation is chromatic · absence is a positive mark · no line across a gap
+   ------------------------------------------------------------------ */
+:root{
+  --u:4px;
+  --field:#FBFAF7; --ink:#111311; --ink60:rgba(17,19,17,.6); --ink30:rgba(17,19,17,.3); --ink12:rgba(17,19,17,.12);
+  --signal:#D93A16; --signal-untimed:#CC7A62; --signal-faint:rgba(217,58,22,.35);
+  --state:#8A8F8A; --state-faint:rgba(138,143,138,.35);
+  --hair:#111311;
+  --sans:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --mono:"Source Code Pro",Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --field:#111311; --ink:#F2F1EC; --ink60:rgba(242,241,236,.62); --ink30:rgba(242,241,236,.32); --ink12:rgba(242,241,236,.12);
+  --signal:#F0532B; --signal-untimed:#D8836A; --signal-faint:rgba(240,83,43,.38);
+  --state:#8A8F8A; --state-faint:rgba(138,143,138,.35); --hair:#F2F1EC; }}
+:root[data-theme="dark"]{
+  --field:#111311; --ink:#F2F1EC; --ink60:rgba(242,241,236,.62); --ink30:rgba(242,241,236,.32); --ink12:rgba(242,241,236,.12);
+  --signal:#F0532B; --signal-untimed:#D8836A; --signal-faint:rgba(240,83,43,.38);
+  --state:#8A8F8A; --state-faint:rgba(138,143,138,.35); --hair:#F2F1EC; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+.num,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px}
+header{padding:calc(var(--u)*6) calc(var(--u)*6) calc(var(--u)*3);display:grid;grid-template-columns:1fr auto;gap:calc(var(--u)*4);align-items:end;border-bottom:1px solid var(--ink12)}
+header h1{font-size:16px;font-weight:600;margin:0;letter-spacing:.01em}
+header h1 span{font-weight:400;color:var(--ink60)}
+.sentence{margin:calc(var(--u)*1) 0 0;color:var(--ink60);max-width:64ch}
+.asof{color:var(--ink60);text-align:right}
+.legend{display:flex;flex-wrap:wrap;gap:calc(var(--u)*4);padding:calc(var(--u)*3) calc(var(--u)*6);border-bottom:1px solid var(--ink12);color:var(--ink60);font-size:14px}
+.legend i{display:inline-block;vertical-align:middle;margin-right:calc(var(--u)*1.5)}
+.legend .obs{width:22px;height:0;border-top:2px solid var(--signal)}
+.legend .unt{width:22px;height:8px;background:linear-gradient(90deg,transparent,var(--signal-faint));border-bottom:2px solid var(--signal-untimed)}
+.legend .nod{width:2px;height:10px;border:1px solid var(--state);background:transparent}
+.legend .q{width:22px;height:4px;background:repeating-linear-gradient(90deg,var(--ink) 0 4px,transparent 4px 6px)}
+main{display:grid;grid-template-columns:minmax(0,1fr) 300px}
+@media (max-width:900px){main{grid-template-columns:1fr}.reading{position:static;border-left:0;border-top:1px solid var(--ink12)}}
+.ribbon{padding:0 0 calc(var(--u)*8) 0;min-width:0}
+.axis{position:sticky;top:0;background:var(--field);z-index:2;border-bottom:1px solid var(--ink12)}
+.group{border-bottom:1px solid var(--ink12)}
+.gh{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:calc(var(--u)*4);padding:calc(var(--u)*4) calc(var(--u)*6) calc(var(--u)*2);align-items:baseline}
+.gh h2{font-size:15px;font-weight:600;margin:0}
+.gh h2 small{font-weight:400;color:var(--ink60);margin-left:calc(var(--u)*2)}
+.gh .meta{color:var(--ink60);font-size:13px}
+.quorum{display:flex;gap:2px;align-items:center;padding:0 calc(var(--u)*6) calc(var(--u)*2)}
+.quorum .cells{display:flex;gap:1px;flex:1}
+.quorum .cells i{flex:1;height:var(--u);display:block;border:1px solid var(--ink30);background:transparent}
+.quorum .cells i.f{background:var(--ink);border-color:var(--ink)}
+.quorum .cells i.h{background:repeating-linear-gradient(135deg,var(--state) 0 1px,transparent 1px 3px);border-color:var(--state)}
+.quorum .cells i.x{border-color:var(--state);background:var(--state-faint)}
+.quorum .ql{color:var(--ink60);font-size:12px;margin-left:calc(var(--u)*3);white-space:nowrap}
+.lane{display:grid;grid-template-columns:200px minmax(0,1fr);align-items:stretch;cursor:pointer}
+.lane:hover .ll{color:var(--ink)}
+.lane.open .ll{font-weight:600}
+.ll{padding:calc(var(--u)*2) calc(var(--u)*6);color:var(--ink60);font-size:14px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.ll .num{color:var(--ink60)}
+.lc{position:relative;height:calc(var(--u)*10)}
+.lane.sub .lc{height:calc(var(--u)*7)}
+.lane.sub .ll{padding-left:calc(var(--u)*10);font-size:13px}
+canvas{display:block;width:100%;height:100%}
+.reading{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;border-left:1px solid var(--ink12);padding:calc(var(--u)*5) calc(var(--u)*5)}
+.reading h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink60);margin:0 0 calc(var(--u)*2);font-weight:600}
+.reading .t{font-family:var(--mono);font-size:20px;font-variant-numeric:tabular-nums;margin-bottom:calc(var(--u)*4)}
+.rrow{display:grid;grid-template-columns:1fr auto;gap:calc(var(--u)*2);padding:calc(var(--u)*1.5) 0;border-top:1px solid var(--ink12);font-size:13px;align-items:baseline}
+.rrow .k{color:var(--ink60)}
+.rrow .v{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.rrow .v.s{color:var(--signal)} .rrow .v.u{color:var(--signal-untimed)} .rrow .v.n{color:var(--state)}
+.rrow .sub{grid-column:1/-1;color:var(--ink60);font-size:12px;font-family:var(--mono)}
+.foot{padding:calc(var(--u)*4) calc(var(--u)*6);color:var(--ink60);font-size:13px;max-width:70ch}
+.foot b{color:var(--ink);font-weight:600}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+
+/* ---- fina šminka / light makeup: depth on the chrome, never on the data ----------------------
+   glass header, paper grain, soft panel edges, halo on the pulse; the marks keep the alphabet. */
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--field) 72%,transparent);backdrop-filter:saturate(1.2) blur(14px);-webkit-backdrop-filter:saturate(1.2) blur(14px);border-bottom:1px solid var(--ink12);box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 10px 30px -18px rgba(17,19,17,.25)}
+header h1{font-size:19px;letter-spacing:-.01em}
+header h1 b,header h1{font-weight:700}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+main,section,.how,.foot,.legend{position:relative;z-index:1}
+.map .cv{background:radial-gradient(120% 90% at 50% 45%,transparent 55%,color-mix(in srgb,var(--ink) 5%,transparent) 100%);box-shadow:inset 0 0 0 1px var(--ink06)}
+.line:first-child{box-shadow:inset 3px 0 0 var(--signal-faint)}
+.line .sr{font-weight:500}
+.reading{background:color-mix(in srgb,var(--field) 85%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.gh h2{font-size:16px}
+.axis{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:color-mix(in srgb,var(--field) 80%,transparent)}
+button{border-radius:3px;transition:background .15s,color .15s}
+button:hover{background:var(--ink06)}
+button[aria-pressed="true"]:hover{background:var(--ink)}
+.clock{letter-spacing:.02em}
+</style>
+
+<header>
+  <div>
+    <h1>BEOPS <span>· TRAKA · Beograd, last 24 hours</span></h1>
+    <p class="sentence">This is what Belgrade told us, when it told us, and where it went quiet. Every mark is a row the collector received; nothing is filled, smoothed, summed or forecast.</p>
+  </div>
+  <div class="asof mono" id="asof">loading rows…</div>
+</header>
+<div class="legend">
+  <span><i class="obs"></i>observed, time known — signal</span>
+  <span><i class="unt"></i>observed, time unknown — value exact, age smeared to the left</span>
+  <span><i class="nod"></i>no data — a mark about nothing</span>
+  <span><i class="q"></i>quorum — who spoke in each slot: filled · hatched (some) · hollow (none)</span>
+  <span class="mono" id="hint">move along the ribbon to read</span>
+</div>
+<main>
+  <section class="ribbon" id="ribbon"></section>
+  <aside class="reading" id="reading"><h3>Reading</h3><div class="t mono" id="rt">—</div><div id="rr"></div></aside>
+</main>
+<p class="foot" id="foot"></p>
+
+<script id="snapshot" type="application/json">__SNAPSHOT__</script>
+<script>
+(function(){
+'use strict';
+const U=4, LANE_H=U*10, SUB_H=U*7, PAD_L=8, PAD_R=8;
+const css=k=>getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+let SNAP=null, T0=0, T1=0, HAIR=null, lanes=[];
+
+// ---------- data ------------------------------------------------------
+function load(){
+  return fetch('live-snapshot.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).catch(()=>{
+    const el=document.getElementById('snapshot'); try{return JSON.parse(el.textContent);}catch(e){return null;}
+  });
+}
+const P=s=>s?Date.parse(s):NaN;
+
+// A lane is one sense: many datastreams (stations/sensors/lots) share a y-scale and a quorum row.
+function buildLanes(snap){
+  const out=[];
+  for(const src of snap.sources){
+    const byParam=new Map();
+    for(const ds of src.datastreams){
+      const k=ds.parameter||'?'; if(!byParam.has(k)) byParam.set(k,[]); byParam.get(k).push(ds);
+    }
+    const params=[...byParam.keys()].sort((a,b)=>ORDER(a)-ORDER(b)||a.localeCompare(b));
+    const st=snap.status.sources.find(s=>s.sid===src.sid)||{};
+    out.push({kind:'group',src,st,params:params.map(p=>({param:p,streams:byParam.get(p),unit:(byParam.get(p)[0]||{}).unit}))});
+  }
+  return out;
+}
+function ORDER(p){const o={PM10:1,'PM2.5':2,P1:1,P2:2,P0:3,NO2:3,NOX:4,NO:5,O3:6,SO2:7,CO:8,temperature:1,humidity:2,pressure:3,pressure_at_sealevel:4,free_spaces:1};return o[p]||50;}
+const PNAME={P1:'PM10 (citizen)',P2:'PM2.5 (citizen)',P0:'PM1 (citizen)',free_spaces:'free spaces'};
+
+// ---------- scales ----------------------------------------------------
+function x(t){const w=curW; return PAD_L+(t-T0)/(T1-T0)*(w-PAD_L-PAD_R);}
+let curW=800;
+function yScale(streams,h){
+  let lo=Infinity,hi=-Infinity;
+  for(const s of streams) for(const p of s.points){ if(typeof p.v==='number'){lo=Math.min(lo,p.v);hi=Math.max(hi,p.v);} }
+  if(!isFinite(lo)){lo=0;hi=1;} if(hi===lo){hi=lo+1;}
+  const pad=(hi-lo)*.12; lo-=pad; hi+=pad;
+  return {lo,hi,y:v=>h-U-((v-lo)/(hi-lo))*(h-2*U)};
+}
+
+// ---------- drawing ---------------------------------------------------
+function drawLane(cv,streams,cadence,sub){
+  const dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=cv.clientHeight;
+  cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr); curW=w;
+  const g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
+  const sig=css('--signal'), sigU=css('--signal-untimed'), faint=css('--signal-faint'), state=css('--state'), ink12=css('--ink12');
+  // hour grid, structural
+  g.strokeStyle=ink12; g.lineWidth=1;
+  for(let t=Math.ceil(T0/3600e3)*3600e3;t<=T1;t+=3600e3){const xx=Math.round(x(t))+.5; g.beginPath(); g.moveTo(xx,0); g.lineTo(xx,h); g.stroke();}
+  const ys=yScale(streams,h);
+  const many=streams.length>1;
+  for(const s of streams){
+    const pts=s.points.slice().sort((a,b)=>(P(a.t||a.rx))-(P(b.t||b.rx)));
+    let prev=null;
+    for(const p of pts){
+      const tm= p.tu ? P(p.rx) : P(p.t);
+      if(!isFinite(tm)||tm<T0||tm>T1){prev=null;continue;}
+      const xx=x(tm);
+      if(p.v===null||p.v===undefined){ // absence: a positive mark, hollow at the centre
+        g.strokeStyle=state; g.lineWidth=1; g.strokeRect(Math.round(xx)-1.5,h-U*2.5,3,U*2);
+        prev=null; continue;
+      }
+      const yy=ys.y(p.v);
+      if(p.tu){ // fifth state: exact value, age unknown -> band fading to the left, no left edge
+        const left=prev?x(prev.tm):PAD_L;
+        const grd=g.createLinearGradient(left,0,xx,0); grd.addColorStop(0,'rgba(0,0,0,0)'); grd.addColorStop(1,faint);
+        g.fillStyle=grd; g.fillRect(left,yy-2,xx-left,5);
+        g.fillStyle=sigU; g.beginPath(); g.arc(xx,yy,many?1.6:2.4,0,Math.PI*2); g.fill();
+        prev={tm,yy,gap:false};
+        continue;
+      }
+      // observed, timed: solid stroke; never connect across a gap larger than 1.5 cadences
+      g.fillStyle=sig; g.beginPath(); g.arc(xx,yy,many?1.1:1.8,0,Math.PI*2); g.fill();
+      if(prev && (tm-prev.tm)<=cadence*1000*1.5){
+        g.strokeStyle=sig; g.globalAlpha=many?.45:1; g.lineWidth=many?1:1.5;
+        g.beginPath(); g.moveTo(x(prev.tm),prev.yy); g.lineTo(xx,yy); g.stroke(); g.globalAlpha=1;
+      }
+      prev={tm,yy};
+    }
+  }
+  // scale labels, structural, mono
+  g.fillStyle=css('--ink60'); g.font='11px '+css('--mono'); g.textBaseline='top';
+  g.fillText(fmt(ys.hi-(ys.hi-ys.lo)*.12),w-PAD_R-2-g.measureText(fmt(ys.hi-(ys.hi-ys.lo)*.12)).width,2);
+  g.textBaseline='bottom'; const lo=fmt(ys.lo+(ys.hi-ys.lo)*.12); g.fillText(lo,w-PAD_R-2-g.measureText(lo).width,h-2);
+  // hairline
+  if(HAIR!==null){const xx=Math.round(x(HAIR))+.5; g.strokeStyle=css('--hair'); g.lineWidth=1; g.beginPath(); g.moveTo(xx,0); g.lineTo(xx,h); g.stroke();}
+}
+function fmt(v){ if(Math.abs(v)>=100) return Math.round(v).toString(); if(Math.abs(v)>=10) return v.toFixed(1); return v.toFixed(2); }
+
+// quorum per cadence slot for a group: how many of the streams that exist spoke in each slot
+function quorumCells(streams,cadence){
+  const n=Math.floor((T1-T0)/(cadence*1000)); const cells=new Array(n).fill(0);
+  const expected=streams.length;
+  for(const s of streams){ const seen=new Set();
+    for(const p of s.points){ const tm=p.tu?P(p.rx):P(p.t); if(!isFinite(tm)) continue; const i=Math.floor((tm-T0)/(cadence*1000)); if(i>=0&&i<n&&!seen.has(i)){seen.add(i);cells[i]++;} }
+  }
+  return {cells,expected,n};
+}
+
+// ---------- render ---------------------------------------------------
+function render(){
+  const rib=document.getElementById('ribbon'); rib.innerHTML='';
+  const ax=document.createElement('div'); ax.className='axis'; const axl=document.createElement('div'); axl.className='lane'; axl.style.cursor='default';
+  axl.innerHTML='<div class="ll mono">UTC</div><div class="lc" style="height:24px"><canvas></canvas></div>'; ax.appendChild(axl); rib.appendChild(ax);
+  const axc=axl.querySelector('canvas'); lanes.push({cv:axc,draw:()=>drawAxis(axc)});
+  for(const grp of lanes.groups){
+    const el=document.createElement('section'); el.className='group';
+    const st=grp.st; const known=(grp.src.phenomenon_time_published||'').toUpperCase().startsWith('NO')?'source publishes no measurement time':'measurement time published by source';
+    el.innerHTML=`<div class="gh"><h2>${esc(grp.src.name)}<small class="mono">${esc(grp.src.sid)}</small></h2><div class="meta mono">${grp.src.cadence_seconds}s cadence · ${esc(known)}</div></div>`;
+    // group quorum: receipts on disk in the window
+    const q=document.createElement('div'); q.className='quorum';
+    const cellsEl=document.createElement('div'); cellsEl.className='cells';
+    const qs=(st.quorum||''); for(const ch of qs){const i=document.createElement('i'); i.className=ch==='#'?'f':ch==='x'?'x':''; cellsEl.appendChild(i);}
+    const ql=document.createElement('span'); ql.className='ql'; ql.textContent=`${st.captured||0} of ${st.expected_slots||qs.length} receptions · ${st.missing||0} slots silent${st.paused?' · PAUSED':''}`;
+    q.appendChild(cellsEl); q.appendChild(ql); el.appendChild(q);
+    for(const pl of grp.params){
+      const lane=mkLane(pl.param,pl.streams,grp.src.cadence_seconds,false,pl.unit);
+      el.appendChild(lane.el);
+      lane.el.addEventListener('click',()=>toggle(lane,pl,grp,el));
+    }
+    rib.appendChild(el);
+  }
+  const foot=document.getElementById('foot');
+  const nrows=SNAP.sources.reduce((a,s)=>a+s.datastreams.reduce((b,d)=>b+d.points.length,0),0);
+  foot.innerHTML=`<b>${nrows.toLocaleString('en')}</b> rows from <b>${SNAP.sources.reduce((a,s)=>a+s.datastreams.length,0)}</b> datastreams, received between ${fmtT(T0)} and ${fmtT(T1)} UTC. Snapshot ${esc(SNAP.as_of)}. Cadence slots with no reception are silent, not zero. Each SEPA value is the source's own hourly mean marked <span class="mono">preliminary</span>; each parking value is exact and its age is unknown, so its ground fades left to the previous reception. Nothing here is a measurement of the city; it is what the city's instruments published, and when we received it.`;
+  drawAll();
+}
+function mkLane(param,streams,cadence,sub,unit){
+  const el=document.createElement('div'); el.className='lane'+(sub?' sub':'');
+  const n=streams.length, pts=streams.reduce((a,s)=>a+s.points.length,0);
+  const label=sub?esc(streams[0].station||streams[0].datastream):esc(PNAME[param]||param);
+  el.innerHTML=`<div class="ll"><span>${label}</span><span class="num">${sub?'':n+' streams · '}${pts} rows${unit?' · '+esc(unit):''}</span></div><div class="lc"><canvas></canvas></div>`;
+  const cv=el.querySelector('canvas'); const lane={el,cv,streams,cadence,param,sub,draw:()=>drawLane(cv,streams,cadence,sub)};
+  lanes.push(lane); return lane;
+}
+function toggle(lane,pl,grp,groupEl){
+  if(lane.open){ for(const s of lane.subs) {s.el.remove(); lanes.splice(lanes.indexOf(s),1);} lane.subs=[]; lane.open=false; lane.el.classList.remove('open'); return; }
+  lane.open=true; lane.el.classList.add('open'); lane.subs=[];
+  let after=lane.el;
+  for(const s of pl.streams.slice().sort((a,b)=>String(a.station).localeCompare(String(b.station)))){
+    const sl=mkLane(pl.param,[s],grp.src.cadence_seconds,true,pl.unit); sl.el.style.cursor='default';
+    after.insertAdjacentElement('afterend',sl.el); after=sl.el; lane.subs.push(sl); sl.draw();
+  }
+}
+function drawAxis(cv){
+  const dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=cv.clientHeight; cv.width=w*dpr; cv.height=h*dpr; curW=w;
+  const g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
+  g.fillStyle=css('--ink60'); g.font='11px '+css('--mono'); g.textBaseline='middle';
+  for(let t=Math.ceil(T0/3600e3)*3600e3;t<=T1;t+=3600e3){const d=new Date(t); const hh=d.getUTCHours(); if(hh%2) continue; const s=String(hh).padStart(2,'0')+':00'; g.fillText(s,x(t)-g.measureText(s).width/2,h/2);}
+  if(HAIR!==null){const xx=Math.round(x(HAIR))+.5; g.strokeStyle=css('--hair'); g.beginPath(); g.moveTo(xx,0); g.lineTo(xx,h); g.stroke();}
+}
+function drawAll(){ for(const l of lanes) l.draw(); }
+
+// ---------- reading column -------------------------------------------
+function reading(t){
+  document.getElementById('rt').textContent=fmtT(t)+' UTC';
+  const rr=document.getElementById('rr'); const parts=[];
+  for(const grp of lanes.groups){
+    parts.push(`<div class="rrow"><span class="k" style="font-weight:600;color:var(--ink)">${esc(grp.src.sid)}</span><span class="v"></span></div>`);
+    for(const pl of grp.params){
+      // nearest reception at or before t within one cadence; count how many streams have one
+      let have=0, vals=[], untimed=0, missing=0, ages=[];
+      for(const s of pl.streams){ let best=null;
+        for(const p of s.points){ const tm=p.tu?P(p.rx):P(p.t); if(!isFinite(tm)) continue; if(tm<=t && t-tm<=grp.src.cadence_seconds*1000*1.5 && (!best||tm>best.tm)) best={tm,p}; }
+        if(best){ have++; if(best.p.v===null){missing++;} else {vals.push(best.p.v); if(best.p.tu){untimed++; ages.push(t-best.tm);}} }
+      }
+      const cls=have===0?'n':(untimed?'u':'s');
+      let v='—';
+      if(vals.length){ const lo=Math.min(...vals), hi=Math.max(...vals); v=vals.length===1?fmt(vals[0]):fmt(lo)+'–'+fmt(hi); }
+      let sub=`${have} of ${pl.streams.length} spoke`+(missing?` · ${missing} reported no value`:'');
+      if(untimed) sub+=` · age ≤ ${Math.round(Math.max(...ages)/60000)} min since reception, measurement time unknown`;
+      if(have===0) sub='no data — no reception within 1.5 cadences before this instant';
+      parts.push(`<div class="rrow"><span class="k">${esc(PNAME[pl.param]||pl.param)}${pl.unit?' <span class="mono">'+esc(pl.unit)+'</span>':''}</span><span class="v ${cls}">${v}</span><span class="sub">${sub}</span></div>`);
+    }
+  }
+  rr.innerHTML=parts.join('');
+}
+function fmtT(t){const d=new Date(t);return d.toISOString().slice(5,16).replace('T',' ');}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+// ---------- boot -----------------------------------------------------
+load().then(snap=>{
+  if(!snap){document.getElementById('asof').textContent='no snapshot — run: python -B tools/collect_daemon.py export';return;}
+  SNAP=snap; T1=P(snap.as_of); T0=T1-snap.window_hours*3600e3;
+  document.getElementById('asof').innerHTML=`snapshot ${esc(snap.as_of.slice(0,19))}Z<br>window ${snap.window_hours} h`;
+  lanes=[]; lanes.groups=buildLanes(snap);
+  render();
+  const rib=document.getElementById('ribbon');
+  rib.addEventListener('pointermove',e=>{
+    const lc=e.target.closest('.lc'); if(!lc) return;
+    const r=lc.getBoundingClientRect(); const fx=(e.clientX-r.left-PAD_L)/(r.width-PAD_L-PAD_R);
+    HAIR=T0+Math.max(0,Math.min(1,fx))*(T1-T0); drawAll(); reading(HAIR);
+  });
+  rib.addEventListener('pointerleave',()=>{HAIR=null;drawAll();});
+  reading(T1);
+  let raf=null; window.addEventListener('resize',()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(drawAll);});
+  if(window.matchMedia){window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',drawAll);}
+});
+})();
+</script>

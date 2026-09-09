@@ -1,0 +1,468 @@
+# Corrections
+
+*Every time this system produced a false statement, what it said, and why.*
+
+This file is append-only. Nothing is removed from it, including the entries
+that are embarrassing. A provenance system that hides its own failures is
+worth nothing, because the one thing it is supposed to prove is that it does
+not quietly say things that are untrue.
+
+---
+
+## C-001 — `legal_capture.py` reported a total failure as a permission
+
+**When** 2026-09-06, 00:21 UTC — the very first run of the tool.
+
+**What it said.** Seven captures (`S134`–`S140`) each wrote:
+
+```json
+"allowed_for_us": true
+```
+
+**What was actually true.** Every single HTTP request in all seven captures had
+failed. The Python interpreter in use had no usable CA bundle, so every
+`https://` fetch raised:
+
+```
+URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED]
+certificate verify failed: unable to get local issuer certificate>
+```
+
+Zero bytes were retrieved. Every `status_by_url` value was `null`. Every
+`robots.txt` was unreadable. The captures contained no evidence whatsoever.
+
+**The defect.** The verdict was computed as:
+
+```python
+"allowed_for_us": all(
+    (p["allowed_for_us"] is not False)
+    for v in verdicts.values() for p in v["paths"].values()
+)
+```
+
+When `robots.txt` cannot be read, `robotparser` yields `None`, not `False`.
+`None is not False` evaluates to `True`. So the boolean collapsed two very
+different states — *permitted* and *unknown* — into one, and chose the
+flattering one. An empty set of paths would also have returned `True`, since
+`all([])` is `True`: a source with no paths checked at all would have been
+reported as permitted.
+
+**Why it matters more than an ordinary bug.** This tool exists for exactly one
+purpose: to make it impossible for the project to claim a permission it does
+not have. On its first run it manufactured seven such claims. Had this gone
+unnoticed for a week, seven sources would have been collected, published, and
+cited — with a stored "proof" file that contained nothing but failures.
+
+**The fix**, in `tools/legal_capture.py`:
+
+1. The verdict is now three-state — `True` / `False` / `None` — computed as:
+   `False` if any path is explicitly disallowed; `None` if any `robots.txt` was
+   unreadable, any URL unreachable, any path verdict unknown, or no paths were
+   checked at all; `True` only otherwise.
+2. Each capture now records `capture_ok`, `fetch_failed_urls`,
+   `robots_unreadable_origins`, and `tls_trust` — the provenance of the
+   *capture's own* trust decision.
+3. TLS is built from `truststore` (OS store) or `certifi`, and there is no
+   unverified mode. A capture that cannot verify who it is talking to fails.
+4. `tools/build_provenance_index.py` renders `None` under **Evidence
+   incomplete**, a section that did not exist before, and which states plainly
+   that an unknown is not a permission.
+
+**The seven bad captures are not deleted.** They remain at
+`research/evidence/legal/S13*/20260906T0021*Z/`, and their ledger lines remain
+in `LEDGER.jsonl`. They are honest records of a failed capture; only the
+verdict was wrong, and the verdict is now overridden by the later, successful
+capture of the same source. The generator uses the newest capture per source,
+so the index shows the truth — but the wrong line stays visible in the ledger,
+which is the point.
+
+**Generalisation, now a rule in `README.md` and `CONTRIBUTING.md`.** In this
+project, *unknown* and *permitted* are never the same value. Wherever a check
+can fail to run, its failure must be representable, and the representation must
+not be the permissive one. Any boolean that answers a question of the form
+"may we?" is suspect: if it cannot also say "I could not tell", it will
+eventually say yes when it means nothing at all.
+
+
+---
+
+## C-002 — Ids allocated to sources that were already registered
+
+**When** 2026-09-06, within the hour of writing the rule that ids are permanent
+and one source has exactly one id.
+
+**What happened.** `S134`, `S136` and `S137` were allocated to JP Putevi
+Srbije, Overture Maps and Sensor.Community, which were already registered as
+`S57`, `S95` and `S04`. The registry was not consulted before the numbers were
+handed out. Left standing, the project would have carried two records of the
+same source, each with its own permission evidence, and no way to tell which
+was current.
+
+**The fix.** Not a note in a document — a check in the tool.
+`tools/legal_capture.py` now loads `SOURCE_REGISTRY.json` before doing
+anything, refuses an id that is not registered unless `--new-source` is passed,
+and refuses a URL whose host already belongs to another source, printing that
+source's id and name. Both refusals were verified against the real registry.
+
+The three wrong captures remain on disk and in the ledger. The correct captures
+were made under `S57`, `S95` and `S04`.
+
+---
+
+## C-003 — Data taken before the permission was captured
+
+**When** 2026-09-06.
+
+**What happened.** Queries were run against `query.wikidata.org/sparql` and
+`overpass-api.de/api/interpreter` and their results reported — 219 Belgrade
+monuments with coordinates, 1 409 bridge ways, 9 named bridges, 9 stadiums with
+capacities, 137 venues, the Singidunum record — **before** `legal_capture.py`
+was run on either. When it was run, both were found to disallow the queried
+path for `User-agent: *`.
+
+**Why it matters.** Rule 1 of `README.md` in this folder is *evidence before
+collector*, written earlier the same day. It was inverted within hours by its
+author. Had the capture come first, the `Disallow` would have been seen before
+a single query was sent, and the decision in `EDGE_CASES.md` E-009 would have
+been taken in advance instead of after the fact.
+
+**What was done.** Both sources moved to **Decision required** in `INDEX.md`;
+no collector was built on either; the figures are marked in
+`SOURCE_REGISTRY.json` and in E-009 as obtained before permission was checked.
+They are not deleted — deleting them would hide the failure, and the numbers
+themselves are true. They are simply not clean, and they say so.
+
+**Generalisation.** The order of operations is not a preference. Running the
+capture takes twenty seconds and answers a question that cannot be answered
+afterwards.
+
+---
+
+## C-004 — The verdict engine over-permitted, by standard
+
+**When** 2026-09-06, found while capturing transit.land.
+
+**What it said.** `allowed_for_us: true` for
+`https://www.transit.land/feeds/f-sry-cityofbelgradesecretariatforpublictransport`.
+
+**What is true.** That path is disallowed. transit.land publishes:
+
+```
+User-agent: *
+Allow: /feeds
+Disallow: /feeds/
+```
+
+**The defect.** `urllib.robotparser` returns the **first** matching rule.
+RFC 9309 §2.2.2 requires the **most specific** — the longest — match to win,
+with `Allow` winning only a tie. `Allow: /feeds` is shorter than
+`Disallow: /feeds/` and comes first, so the standard library answered
+"allowed" where the standard says "disallowed".
+
+This affects every site that writes an `Allow` before a longer `Disallow`, and
+it fails in the one direction this tool must never fail in: it clears us when
+we are not clear.
+
+**The fix.** `tools/legal_capture.py` now implements RFC 9309 matching itself —
+longest match, `*` and `$` wildcards, `Allow` wins ties, most specific
+user-agent group selected — runs **both** engines, and takes **the stricter of
+the two, always**. Each path records `urllib_robotparser`,
+`rfc9309_longest_match`, the `matched_rule`, and an `engines_disagree` flag, so
+a disagreement is visible rather than resolved silently. Re-capturing
+transit.land now returns `allowed_for_us: false` with the disagreement flagged
+on exactly that URL.
+
+**Also found in the same pass.** `Content-Signal` was being read only from HTTP
+response headers. It is published **inside `robots.txt`**, which is where
+Cloudflare puts it and where UNESCO and transit.land both carry it. The parser
+now reads it from the robots body, per user-agent group, and the index applies
+it by purpose rather than as a blanket yes or no — see `EDGE_CASES.md` E-010.
+
+**Generalisation.** A dependency that answers a safety question is not
+therefore correct. Where the standard is short enough to implement, implement
+it, run both, and take the stricter. Where it is not, at least know which
+reading your library implements.
+
+---
+
+## C-005 — "Take the stricter" turned one tool's bug into a refusal
+
+**When** 2026-09-06, found while clearing the capture backlog.
+
+**What it said.** `S42`, the Serbian Public Procurement Portal
+(`jnportal.ujn.gov.rs`), was recorded as **refused**.
+
+**What is true.** That site's `robots.txt` contains
+
+```
+Allow: /$
+```
+
+RFC 9309 reads `$` as an end-of-path anchor, so `Allow: /$` matches exactly the
+root and, at two characters, beats a bare `Disallow: /` at one. The correct
+verdict is **permitted**. Our own RFC 9309 engine got it right and reported
+`matched_rule: allow: /$`.
+
+**The defect.** `urllib.robotparser` does not implement the `$` anchor, so it
+answered *disallowed*. The verdict then ran through the rule introduced in
+C-004 — *take the stricter of the two engines, always* — which took urllib's
+error and published it as a refusal.
+
+**Why the earlier rule was wrong.** C-004 found urllib **over-permitting**
+(transit.land, where it ignores longest-match) and concluded "always be
+stricter". That was the wrong generalisation of a right observation. The
+correct lesson was **urllib is unreliable**, and it is unreliable in *both*
+directions: it over-permits where it ignores longest-match, and under-permits
+where it ignores `$`. A rule that always leans one way converts one class of
+its errors into silent refusals — losing sources that are open, and doing it
+invisibly, which is the same failure mode as C-001 pointed the other way.
+
+**The fix.** When the two engines disagree, **neither is trusted and the
+verdict is `unknown`** — in both directions. Unknown never renders as a
+permission, and it surfaces for a human decision instead of being resolved
+silently by a heuristic. A disagreement between two implementations of the same
+standard is not a fact about the site; it is a fact about the tools, and it
+belongs in front of a person.
+
+**Generalisation.** A safety rule that always resolves ambiguity the same way
+is not conservative, it is just biased. Where two independent checks disagree,
+the honest output is *we do not know*, and the disagreement itself must be
+visible.
+
+---
+
+## C-006 — A valid certificate reported as unverifiable, and the pilot it touched
+
+**When** 2026-09-06, found when the backlog capture returned `unknown` for
+`S10`, `parking-servis.co.rs` — **the source of the OBS-001 parking pilot that
+this project ran the day before.**
+
+**What it said.** `robots.txt unavailable ... CERTIFICATE_VERIFY_FAILED:
+unable to get local issuer certificate`, so the verdict was `unknown`, and the
+collector's gate would have refused it.
+
+**What is true.** The site's certificate is fine. Read directly:
+
+```
+SUBJECT   CN=*.parking-servis.co.rs, O=JKP Parking servis Beograd, C=RS
+ISSUER    CN=Sectigo Public Server Authentication CA OV R36
+VALID     2026-02-26 .. 2027-02-27
+CHAIN     builds, 3 elements, to Sectigo Public Server Authentication Root R46
+```
+
+The machine's own trust store accepts it. The **`certifi` bundle shipped with
+the Python this project runs on does not carry that Sectigo root**, so
+verification failed for a chain that is valid.
+
+**Why it matters beyond one source.** The failure was in the safe direction —
+under-trusting, never over-trusting — but it silently excludes open sources on
+a criterion that has nothing to do with permission, and it did so for the very
+source of the project's flagship observation. Three further hosts were
+affected: `registar.ratel.rs`, `www.putevi-srbije.rs`, `opendata.stat.gov.rs`.
+
+**And the honest part about OBS-001.** The pilot collected thirteen hours of
+parking occupancy from this source on 2026-09-05, **before** the rule "evidence
+before collector" existed, and the source's permission capture has only now
+been made. It came back clean once the trust problem was fixed. But the order
+was wrong, as in C-003, and it is recorded rather than tidied away: the
+observation stands, the sequence does not.
+
+**The fix.** `tools/export_ca_bundle.ps1` exports this machine's own trusted
+roots to `data/ca-bundle-windows.pem` (121 certificates), and
+`legal_capture.py` prefers that bundle over `certifi`. Verified: all four
+previously failing hosts now verify, at TLS 1.2 and 1.3.
+
+**Why a file and not a library.** The trust decision is now something we can
+hash, commit, diff and point at. "Whatever certifi happened to ship" is not an
+auditable statement about what the project trusts; a PEM in the repository is.
+
+**Generalisation.** A verification failure is not evidence about the thing
+being verified until the verifier itself has been checked. Every "unknown" in
+this system should be read twice: once as a statement about the source, and
+once as a possible statement about our own instruments.
+
+## C-007 — An EMF file was associated with a NetTest capture
+
+Date: 2026-09-06. Discovered during the device/data wave.
+
+The immutable file `research/evidence/S155/20260906T025246Z/9314c9_open-data-2-2.json`
+contains the Belgrade EMF drive campaign (7,780 measurement rows). Its original
+manifest says S155 and cites a NetTest-host capture. The actual resource is
+`https://emf.ratel.rs/drive-test-open-data/open-data-2-2.json`, belonging to S158.
+An ID-level gate did not establish that every collected URL was covered by the
+capture's exact hosts/paths. The original evidence and manifest remain unchanged.
+
+Today's exact-route captures under S158 record access evidence prospectively;
+they do not retroactively validate the old sequence. The canonical association
+and independent hash/count check are in
+`research/evidence/device-discovery-20260906/DRIVE_BG_QA.json`.
+Also, S155's NetTest files named JSON/CSV/XML were HTML responses, so their
+extensions do not establish measured speed data. No failed payload is promoted.
+
+Open engineering follow-up: make collection eligibility bind the exact URL and
+validate expected media/schema, not only a source ID. No collector behavior was
+changed in this wave. Every new batch was checked against its exact capture.
+
+## C-008 — Access-check wording overstated legal clearance
+
+Date: 2026-09-06. User steering: preserve sorting under the existing legal frame.
+
+The generated index called successful robot/header checks "permitted" and the
+captured signals "the permission". Those checks do not resolve retention,
+cumulative extraction, database rights or redistribution, as E-002 through E-004
+already state. The generator now labels them **access checks passed**, links the
+existing frame and renders source-specific legal-review categories separately.
+The access-decision algorithm and historical captures were not rewritten.
+
+The fixed EMF endpoint returned its whole 225,410,096-byte archive in one request;
+the existing collector's 250 MiB cap was technically bounded but much larger than
+a discovery sample. Its receipt, source labels, duplicate rows and unexplained
+values are preserved. Future discovery needs a predeclared byte budget and a
+documented narrower route; do not poll this archive as a current sample. The exact
+resource's licence and public-release conditions are reviewed in
+`research/07-legal/DEVICE_DATA_LEGAL_SORT_2026-09-06.md`.
+
+
+## C-009 — A captured 403 is not successful access or licence text
+
+Date:2026-09-06. S190 identified article and robots requests returned403. Existing capture logic treated the robots4xx as no stated restrictions and returned an allowed access-check result. Stored terms_1.html is a401-byte error response, not the article or its licence. An offline supplemental manual review at research/evidence/legal/S190/20260906T113853Z holds collection, references the original capture and makes zero new network requests. Original bytes and earlier ledger entry remain unchanged. General HTTP/schema eligibility needs a separate engineering change; it was not silently fixed in this research wave.
+
+Also, the page168 request planned as device metadata included actual chart literals. Its1681 timestamped field values are now recorded as received data, with exact-page reuse scope unresolved. The dataset516 metadata response exceeded2MiB and was not saved or retried. For S191, CC BY4.0 and no active embargo coexist with restricted file access; download-stat volume is not file size. See the follow-up legal review.
+
+
+## C-010 — The index called three permitted sources refusals, on the strength of a search-engine header
+
+**When** 2026-09-06 (first generation of `INDEX.md`), found 2026-09-08 during an external review.
+
+**What it said.** `INDEX.md` listed under *Do not collect — these said no*:
+
+| id | source | "what said no" |
+|---|---|---|
+| S120 | Kontur Population Dataset (H3) | `x-robots-tag: index, follow` |
+| S169 | keep.eu Interreg projects | `x-robots-tag: noindex` |
+| S74 | Gradnja.rs RSS | `x-robots-tag: noindex, follow` |
+
+**What was actually true.** All three captures record `allowed_for_us: true`
+in `LEDGER.jsonl`: `robots.txt` was served and permitted our agent on every
+path, every URL answered 200, and no `Content-Signal` was present. Kontur's
+dataset is CC BY 4.0 and its own page says commercial use is allowed
+(`02-senses/HISTORY_AND_SPATIAL_BASE_2026-09-05.md`). `index, follow` is the
+most permissive value the header can carry. `noindex` tells a search engine not
+to list a page; it says nothing about whether the page may be read, and it is
+not a machine-readable reservation under Article 4 of Directive 2019/790 (the
+machine-readable forms in use are TDMRep `TDM-Reservation: 1`, the IETF
+`Content-Usage` / AI-preferences vocabulary, and `X-Robots-Tag: noai`).
+
+**The defect.** `legal_capture.py` stores *every* value of the five signal
+headers under `opt_out_signals_seen`, which is right — the record must be
+complete. `build_provenance_index.py` then tested only whether that dict was
+non-empty:
+
+```python
+elif (last.get("allowed_for_us") is False) or last.get("opt_out_signals_seen") or signal_no:
+    forbidden.append((sid, caps))
+```
+
+Presence of a header was treated as the content of a refusal. The tool that
+exists so the project never claims a permission it does not have also claimed
+three refusals that were never made — and `CLOSED_LAYER_2026-09-06.md` counted
+them in its "10 refused".
+
+**Why it matters.** Conservative is not the same as true. A false refusal is a
+false statement about a publisher — Kontur was recorded as having "said no" to a
+project it explicitly welcomes — and it silently removes the only open
+population layer in H3 from v1. A provenance record is worth exactly as much as
+its false positives and false negatives together.
+
+**The fix**, in `tools/build_provenance_index.py`: a function
+`header_refusals()` keeps only signals that refuse *reading or mining*
+(`X-Robots-Tag` containing `noai`/`noimageai`; `TDM-Reservation: 1`;
+`Content-Usage` denying `ai` or `tdm`). Everything else stays in the capture
+and in the ledger untouched. Regenerated index: 153 access checks passed,
+7 refused, 4 awaiting decision, 3 incomplete, 25 undocumented — exactly the
+three rows moved and nothing else. The captures and ledger lines are unchanged.
+
+**Generalisation.** A stored signal and a verdict on that signal are two
+different things. Storing everything is correct; deciding on "anything stored"
+is not. Every classifier over evidence needs a test with a permissive header in
+it, not only tests with refusals.
+
+
+## C-011 — The pilot's scheduled task did not delete itself, and ran hourly for three days after the pilot closed
+
+**When** 2026-09-05 22:55 UTC (the intended self-delete moment) to 2026-09-08 19:30 UTC; found 2026-09-08 during an external review.
+
+**What it said.** `tools/obs001_tick.bat` was described in OPAZANJA/LOG and in
+project memory as "self-deleting after the last permitted slot". OBS-001 was
+closed at 10 of 13 on 2026-09-05 and the log recorded "Windows task disable
+denied; no privilege bypass".
+
+**What was actually true.** `schtasks /query /tn Beops_OBS001` on 2026-09-08
+showed the task *Enabled*, *Ready*, repeating every hour, last run 21:30 local
+the same day. `runtime/obs001-tick.log` holds 79 ticks; the 69 after the pilot
+each report `"state": "closed", "network_requests": 0`. The recorder's own
+cutoff held — not one request left the machine — but the schedule did not.
+
+**The defect.** The self-delete line is
+`if %NOWUTC% GTR 202609052255 schtasks /delete ...`. `cmd.exe` compares `IF`
+operands as 32-bit signed integers when both parse as numbers; a twelve-digit
+UTC stamp overflows and saturates on both sides, so the two values compare as
+equal and `GTR` is never true. The line never executed, which is why the log
+never showed either SUCCESS or an error.
+
+**The fix.** The task was deleted on 2026-09-08 (`schtasks /delete /tn
+Beops_OBS001 /f` → SUCCESS, query afterwards → no such task). The batch file is
+kept unchanged as evidence. Rule: a schedule that is meant to end has its end
+verified by `schtasks /query`, not by the script that was meant to end it — the
+same rule as 2026-09-05, from the other side: *configuration is not execution,
+and a self-delete is not a deletion until the scheduler says the task is gone.*
+
+
+## C-012 — The first organ run used a cloud-hosted model, against the register it had just been given
+
+**When** 2026-09-08 21:17 UTC.
+
+**What happened.** `tools/organ_news.py run` picked `qwen3.5:cloud` from the local daemon's model
+list and made ten calls (all answered HTTP 429, nothing derived). The register entry written minutes
+earlier said `allow_cloud: false` — "no headline leaves the machine" — and the code that enforces it
+(`pick_model` skipping names ending in `:cloud`) was written in the same hour. The file on the body was
+still the previous version: the cloud copy and the body copy differed (md5 `04f9b225` vs `49cdde04`)
+although the transfer had reported success.
+
+**What left the machine.** Ten prompts containing up to 200 public news headlines (title, no body),
+rejected with 429 by the hosted endpoint. No observation row, no personal record. Public headlines
+are the least sensitive text the project holds; the rule still says they must not leave, and it was
+broken.
+
+**The defect.** Two: (1) a model whose name marks it as hosted was eligible at all — a rule that lived
+in the register but not yet in the code on the body; (2) the deployment path (cloud → body over a
+mounted transfer) could report "written" for a file whose content did not change, and nothing
+compared hashes before running. The organ's own test suite failed on the body for exactly this
+reason (`test_cloud_models_are_skipped_unless_allowed`) — and the run was started anyway, in the same
+command, after the failing test. **A failing test that does not stop the next command is decoration.**
+
+**The fix.** Code and register redeployed under fresh paths and verified by hash on the body before
+any further run; the run command now stops when `npm test` fails (`&&` instead of `&`);
+`tests/test_organ_news.py` covers the cloud skip. Rule for every deployment from the cloud to a body:
+**compare the hash on the body with the hash you meant to send, before the first command that
+depends on it** — the same rule as C-011 from the other side: a transfer report is not a transfer.
+
+
+## C-013 — The first local organ run bound answers to the wrong headlines
+
+**When** 2026-09-08 21:35 UTC, the first run of `news-sorter` on a local model (qwen2.5:3b, batch of 5).
+
+**What it said.** "Direktorka OŠ Isidora Sekulić: Ovo je najmodernija škola u Srbiji" was filed as
+`saobracaj`, zone Vračar (score 1.0), event time "sutra" — the answer that belongs to the next
+headline, "Deo Vračara sutra bez vode od 8.30 do 18.00". Every item in the batch was shifted by one;
+the first headline got "no item".
+
+**What was true.** The model numbered items from 1 while the prompt numbered from 0, and the binding
+used the index alone. A 3-billion-parameter model cannot be trusted to keep an index; it can be
+trusted to copy a string.
+
+**The fix** (organ 0.1.1): the schema requires the model to echo the headline; binding is by the echo
+first and by the index only as a fallback, and each derived row says which (`bound_by`). The ten
+wrong rows stay in `data/live/derived/news/2026-09.jsonl` as organ 0.1.0 output — derived rows are
+append-only like everything else — and the organ's version in every row is what tells them apart.
+Rule: **a model's answer is bound to its input by content, never by position.**

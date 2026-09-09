@@ -1,0 +1,77 @@
+{
+ "schema": "beops-static-layers/v1",
+ "note": "The static and semi-static context of the city: what the mind may know about the SHAPE of Belgrade while it thinks about what the instruments say. One layer per question the mind will actually ask; not everything that exists. Every layer is a registered source (SOURCE_REGISTRY.json) with a permission capture, taken once with its hash by tools/fetch_static.py, reduced to a small public context file, and shown as a quiet layer on the map. Values keep their licence; the attribution the licence asks for travels in the derived file.",
+ "rule": "A context layer is never a measurement. It answers 'what is here' (people, built-up, roads, hazard, decisions), not 'what is happening'. The digest quotes it with its source and its nature (modelled estimate, survey, register) and the interface draws it in structure colour only.",
+ "layers": [
+  {
+   "id": "kontur-population",
+   "question": "How many people live around this instrument / in this zone?",
+   "sid": "S120",
+   "name": "Kontur Population Dataset - Serbia (H3 resolution 8)",
+   "api_url": "https://data.humdata.org/api/3/action/package_show?id=kontur-population-serbia",
+   "kind": "static",
+   "cadence": "yearly release; re-fetched only when the publisher publishes a new file",
+   "resolution": "H3 res 8, hexagon about 0.74 km2 (~460 m across)",
+   "licence": "CC BY 4.0",
+   "attribution": "Kontur Population: Global Population Density for 400m H3 Hexagons (Kontur, 2023), CC BY 4.0",
+   "nature": "modelled estimate (built-up area from satellite x census totals), not a count",
+   "derived": "public/context-population.json",
+   "used_by": ["organ_mind digest: people within 1 km of the stations named in a SEPA spread; people in the map window", "monolog-puls map: quiet hexagon layer", "make_maps: Map 4 (people) when present"],
+   "status": "tool built 2026-09-09; first capture pending"
+  },
+  {
+   "id": "roads-data-gov-rs",
+   "question": "Is this instrument on a main road? Where does the city move?",
+   "sid": null,
+   "name": "Putna infrastruktura Srbije - nodes and edges (GeoJSON) on data.gov.rs",
+   "url": "https://data.gov.rs/",
+   "kind": "static",
+   "licence": "to be captured (data.gov.rs default is the Serbian open data licence; the dataset page must say)",
+   "nature": "register",
+   "status": "found 2026-09-09 by a data.gov.rs API search ('geojson'); needs a registry id and a permission capture before any fetch"
+  },
+  {
+   "id": "elektrodistribucija-outages",
+   "question": "Which municipalities are scheduled to lose power today?",
+   "sid": "S54",
+   "name": "Elektrodistribucija Srbije - planned outages per municipality",
+   "url": "https://elektrodistribucija.rs/",
+   "kind": "semi-static",
+   "cadence": "daily, rolling four days",
+   "licence": "utility publication; reuse to be confirmed at capture",
+   "nature": "schedule (a plan, not an observation) - the digest must say 'planned', never 'without power'",
+   "status": "registered as S54 probe_ok; collector not built"
+  },
+  {
+   "id": "ghsl-builtup",
+   "question": "How built-up is this zone, and since when?",
+   "sid": "S94",
+   "name": "JRC GHSL built-up surface / population grid",
+   "kind": "static",
+   "licence": "CC BY 4.0",
+   "nature": "satellite-derived raster",
+   "status": "registered probe_ok; raster parsing (GeoTIFF) is more than a stdlib evening - deferred; Kontur carries the density question for v1"
+  },
+  {
+   "id": "jrc-flood",
+   "question": "Does this zone flood, and how often?",
+   "sid": "S117",
+   "name": "JRC Global River Flood Hazard Maps",
+   "kind": "static",
+   "licence": "CC BY 4.0",
+   "nature": "modelled hazard raster, six return periods",
+   "status": "registered probe_ok; deferred with GHSL (raster)"
+  },
+  {
+   "id": "sluzbeni-list",
+   "question": "What did the city decide, and when?",
+   "sid": null,
+   "name": "Sluzbeni list grada Beograda (Official Gazette of the City of Belgrade)",
+   "kind": "semi-static",
+   "cadence": "per issue",
+   "licence": "no copyright - Copyright Act Art. 6(2) excludes official materials of public bodies",
+   "nature": "text corpus (decisions)",
+   "status": "identified in 07-legal as the cleanest unused corpus in the country; needs a registry id, a capture and its own organ (gazette-reader) before it enters a digest"
+  }
+ ]
+}

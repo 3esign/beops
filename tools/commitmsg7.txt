@@ -1,0 +1,58 @@
+Collect what we may, and find that the backlog was the wall
+
+The question was whether everything permitted had actually been collected. It
+had not: 32 sources carried a permission capture and exactly one had been
+collected. The rest were samples in a scratch folder, which is not collection.
+
+collect_permitted.py closes that, and it gates itself. Before any request it
+reads the provenance ledger and takes the newest capture per source; a source is
+collectable only if that capture says allowed and complete. Refused, undecided,
+incomplete or never captured are all skipped with the reason printed, and there
+is no flag to override it. On the first run it stored 183 files across eleven
+sources and skipped 23 by its own gate, which is the tool working rather than
+failing.
+
+Then the backlog itself. The largest category in the registry was never a wall:
+122 sources were neither refused nor absent, they simply had no capture, and our
+own rule forbids collecting without one. capture_backlog.py cleared 121 of them
+in one polite pass. The index went from 31 permitted and 137 undocumented to
+143 permitted and 18 undocumented.
+
+Four genuine refusals surfaced, and one of them is a pattern rather than a case:
+api.openstreetmap.org disallows /api/, exactly as Wikidata disallows /sparql and
+Overpass disallows /api/. Three major open-data services refuse the path that is
+their API. The State Audit Institution and PVGIS disallow everything.
+
+Two corrections, both about our own instruments rather than about any source.
+
+C-005: the rule "take the stricter of the two engines" turned urllib's bug into
+a refusal. jnportal.ujn.gov.rs publishes Allow: /$ , which RFC 9309 reads as a
+permission and urllib, which does not implement the $ anchor, reads as a
+refusal. The earlier rule was the wrong generalisation of a right observation -
+urllib is unreliable in both directions, over-permitting where it ignores
+longest-match and under-permitting where it ignores $. Now a disagreement makes
+the verdict unknown, in both directions, and surfaces for a person. A safety
+rule that always resolves ambiguity the same way is not conservative, it is
+biased.
+
+C-006: parking-servis.co.rs, the source of the OBS-001 pilot, came back
+unverifiable. Its certificate is valid and chains to Sectigo Public Server
+Authentication Root R46, which the machine trusts and the certifi bundle
+shipped with this interpreter does not carry. Three further hosts were affected.
+The fix exports this machine's own 121 trusted roots to a PEM in the repository
+and prefers it, so the project's trust decision is a file that can be hashed,
+committed and diffed rather than whatever a library happened to ship. Recorded
+with it: the pilot collected from that source before the evidence-before-
+collector rule existed, and the sequence was wrong even though the observation
+stands.
+
+Also written: the closed layer, an inventory of the 23 sources that are
+genuinely unavailable, sorted into five kinds that must never be spoken of as
+one - refused by name, open content behind a closed door, refused by letter but
+permitted by intent, simply absent for Belgrade, and published once then
+abandoned. Its central finding fell out of counting and survived being checked:
+57 Serbian towns and municipalities publish open data, Novi Pazar publishes 67
+datasets, and Belgrade publishes 7.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01L8NfE9kz5DBpWDL6cYpeKP
