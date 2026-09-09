@@ -26,6 +26,7 @@ import hashlib
 import json
 import os
 import pathlib
+import re
 import sys
 import tempfile
 import urllib.error
@@ -36,7 +37,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 LIVE = ROOT / "data" / "live"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "news-sorter"
-ORGAN_VERSION = "0.1.0"
+ORGAN_VERSION = "0.1.1"
 OLLAMA = os.environ.get("BEOPS_OLLAMA", "http://127.0.0.1:11434")
 
 CATEGORIES = ["saobracaj", "radovi", "iskljucenja", "javni_prevoz", "vreme_i_vazduh", "voda_i_reke",
@@ -112,6 +113,7 @@ def save_done(keys: set) -> None:
 PROMPT = """Ti si organ BEOPS-a, opservatorije Beograda. Dobijaš naslove vesti (samo naslove).
 Za SVAKI naslov vrati JSON objekat sa poljima:
 - "i": redni broj naslova (ceo broj, kako je dat)
+- "headline": naslov PREPISAN doslovno (prvih 60 znakova je dovoljno) - po njemu se odgovor vezuje za naslov
 - "category": tačno jedna vrednost iz liste: %s
 - "belgrade": true ako se vest odnosi na grad Beograd ili neku njegovu opštinu, inače false
 - "zones": lista od najviše 3 kandidata {"name": <ime TAČNO iz gazetteera>, "score": 0..1} - samo ako je belgrade true; ako se ne može odrediti, prazna lista
@@ -132,12 +134,12 @@ SCHEMA = {
     "type": "object",
     "properties": {"items": {"type": "array", "items": {
         "type": "object",
-        "properties": {"i": {"type": "integer"}, "category": {"type": "string", "enum": CATEGORIES},
+        "properties": {"i": {"type": "integer"}, "headline": {"type": "string"}, "category": {"type": "string", "enum": CATEGORIES},
                        "belgrade": {"type": "boolean"},
                        "zones": {"type": "array", "items": {"type": "object", "properties": {
                            "name": {"type": "string"}, "score": {"type": "number"}}, "required": ["name", "score"]}},
                        "event_time_text": {"type": ["string", "null"]}},
-        "required": ["i", "category", "belgrade", "zones", "event_time_text"]}}},
+        "required": ["i", "headline", "category", "belgrade", "zones", "event_time_text"]}}},
     "required": ["items"],
 }
 
@@ -167,8 +169,12 @@ def pick_model(available: list[str], preferred: list[str], allow_cloud: bool = F
 THINKING_MODELS = ("qwen3", "deepseek-r1", "gpt-oss", "magistral")   # Ollama accepts think=false only for models that can think
 
 
-def ollama_chat(model: str, prompt: str, timeout: int = 180) -> dict:
-    payload = {"model": model, "stream": False, "format": SCHEMA, "keep_alive": "30m", "options": {"temperature": 0},
+def ollama_chat(model: str, prompt: str, timeout: int = 600) -> dict:
+    """One constrained call. Small local models on a CPU are slow: a batch of five headlines took
+    minutes on qwen2.5:3b, so the timeout is generous and keep_alive holds the model in memory
+    between batches. num_ctx is capped because the prompt is short and a big context slows it."""
+    payload = {"model": model, "stream": False, "format": SCHEMA, "keep_alive": "30m",
+               "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 1500},
                "messages": [{"role": "user", "content": prompt}]}
     if model.split(":")[0].startswith(THINKING_MODELS):
         payload["think"] = False   # measured 2026-09-09: left thinking, qwen3.5 spends its whole budget thinking and returns empty content
@@ -183,9 +189,29 @@ def ollama_chat(model: str, prompt: str, timeout: int = 180) -> dict:
 # --------------------------------------------------------------------- run
 def derive(batch: list[dict], answer: dict, model: str, prompt_sha: str, now: datetime) -> list[dict]:
     out = []
-    by_i = {int(it.get("i", -1)): it for it in answer.get("items", []) if isinstance(it, dict)}
-    for i, r in enumerate(batch):
+    items = [it for it in answer.get("items", []) if isinstance(it, dict)]
+    by_i = {}
+    for it in items:
+        try:
+            by_i.setdefault(int(it.get("i", -1)), it)
+        except (TypeError, ValueError):
+            pass
+
+    def norm(t):
+        return re.sub(r"[^a-z0-9]+", " ", str(t or "").lower()).strip()[:50]
+
+    def match(i, r):
+        """Bind by the echoed headline first (a 3B model shifted every index by one on the first run,
+        C-013); fall back to the index only when the echo is absent or ambiguous."""
+        key = norm(r["result"])
+        cands = [it for it in items if key and norm(it.get("headline")) and (norm(it.get("headline")).startswith(key[:30]) or key.startswith(norm(it.get("headline"))[:30]))]
+        if len(cands) == 1:
+            return cands[0], "echo"
         it = by_i.get(i)
+        return it, ("index" if it is not None else None)
+
+    for i, r in enumerate(batch):
+        it, how = match(i, r)
         base = {"schema": "beops-derived-row/v1", "state": "estimated", "organ": ORGAN_ID, "organ_version": ORGAN_VERSION,
                 "model": model, "prompt_sha256": prompt_sha, "ai_generated": True,
                 "input_sid": r["sid"], "input_key": r.get("dedupe_key"), "input_headline": r["result"],
@@ -207,7 +233,7 @@ def derive(batch: list[dict], answer: dict, model: str, prompt_sha: str, now: da
                 zones.append({"name": None, "rejected": str(name)[:60], "score": 0.0,
                               "why": "not in gazetteer - a place the model named on its own is kept as a rejection, never as a zone"})
         zones.sort(key=lambda z: -z["score"])
-        out.append({**base, "category": cat, "belgrade": it.get("belgrade") if isinstance(it.get("belgrade"), bool) else None,
+        out.append({**base, "bound_by": how, "category": cat, "belgrade": it.get("belgrade") if isinstance(it.get("belgrade"), bool) else None,
                     "zones": zones, "binding": "inferred_from_content" if zones and zones[0].get("name") else None,
                     "event_time_text": (str(it.get("event_time_text"))[:80] if it.get("event_time_text") else None)})
     return out
@@ -227,10 +253,12 @@ def publish(path: pathlib.Path, value: dict) -> None:
         os.unlink(tmp)
 
 
-def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_size: int = 20, limit: int | None = None) -> dict:
+def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_size: int | None = None, limit: int | None = None) -> dict:
     now = now or utcnow()
     if limit is None:
-        limit = int(os.environ.get("BEOPS_ORGAN_LIMIT", "200"))
+        limit = int(os.environ.get("BEOPS_ORGAN_LIMIT", "60"))
+    if batch_size is None:
+        batch_size = int(os.environ.get("BEOPS_ORGAN_BATCH", "5"))
     reg = json.loads(ORGANS.read_text(encoding="utf-8"))
     organ = next(o for o in reg["organs"] if o["id"] == ORGAN_ID)
     receipt_path = LIVE / "derived" / "news" / "receipts" / f"{stamp(now)}.json"

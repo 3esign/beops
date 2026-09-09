@@ -492,7 +492,9 @@ def prompt_for(ent: dict, dg: dict, memory: list[dict], conversation: list[dict]
     conv = ""
     if conversation:
         lines = [f"- {ENT[c['entity']]['en']}: \"{c['en']}\"" for c in conversation]
-        conv = "\nWhat the other entities just said (answer them - agree, dispute or refine, always with the facts):\n" + "\n".join(lines) + "\n"
+        conv = ("\nWhat the other entities just said (answer them - agree, dispute or refine, always with the facts). "
+                "They spoke over an EARLIER version of the facts: a number in their sentences that is not in the facts below "
+                "is stale - do not repeat it, say instead what the facts say now:\n" + "\n".join(lines) + "\n")
     return PROMPT.format(name=ent["en"], others=others, role=ent["role_en"], memory=mem, conversation=conv, facts=facts)
 
 
