@@ -209,3 +209,7 @@ carrying no numbers). **The instrument exists, the law permits, and the data doe
 Which means the binding constraint on this project is not copyright and not privacy. It is that
 Serbian public institutions hold real instruments and publish almost nothing from them — and the
 remedy for that is written in §5, not in a scraper.
+
+## 9. Later readings of this frame
+
+- 2026-09-09 — the news layer re-combed under §§1–4 and §7: `NEWS_AUDIT_2026-09-09.md` (three corrections to records, twelve candidates sorted into official materials / clean-robots publishers / left alone, one new named refusal, a weekly re-capture). Nothing in that audit widens the narrow reading of §1; the three edge cases it added are E-011 to E-013.

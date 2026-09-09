@@ -10,6 +10,7 @@ code, thinking aloud about what BEOPS has just seen. The real monologue: a conve
     python -B tools/organ_mind.py status     receipts, scoreboard, models present, whether the daemon answers
     python -B tools/organ_mind.py check      register + validator self-test, no model call
     python -B tools/organ_mind.py retract <conversation> <entity> <round> <reason>   append a retraction (the row stays; export skips it)
+    python -B tools/organ_mind.py voice-bench <model> [<model> ...] [--n 8]   render the last accepted thoughts with each model, for reading (needs Ollama)
 
 THE ARCHITECTURE (v0.3) - between a program and an intelligence, built from the small models the
 project already has or has already researched (research/MODEL_CANDIDATES.json, Svemir's registry):
@@ -31,9 +32,12 @@ project already has or has already researched (research/MODEL_CANDIDATES.json, S
                      council: round 1 alone, round 2 each answers the other two
                      relay:   Observer -> Skeptic answers -> Connector answers both -> Observer closes
                    Only VALIDATED utterances are passed between them (no echo of an invented number).
-  L3  voice        the one local model that can write Serbian renders every accepted utterance in
-                   Serbian (ekavica, Latin), validated again: same numbers, same citations, Serbian words.
-                   If the voice fails, the thought is shown in English with "Serbian rendering refused".
+  L3  voice        the one local model that can write Serbian renders every accepted utterance - the
+                   thought, its hypotheses and its questions - in Serbian EKAVICA (Latin), validated
+                   again: same numbers, same citations, Serbian words, no ijekavian or Croatian word (a
+                   list of ~300 stems, tested), one retry with the refusal read back. If the voice still
+                   fails, the Serbian page shows NO English: the program says, in Serbian, that the
+                   rendering was refused; the English original stays on disk and on the English page.
   L4  checks       the validator (numbers only from the digest, citations inside the text, no future
                    as fact, claims in a fixed shape, language and prompt-echo checks), the notebooks
                    (verbal feedback read back next time - learning without training), the scoring of
@@ -65,6 +69,7 @@ import pathlib
 import re
 import sys
 import tempfile
+import time
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
@@ -77,7 +82,7 @@ SNAPSHOT = ROOT / "public" / "live-snapshot.json"
 CONTEXT_POP = ROOT / "public" / "context-population.json"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "mind"
-ORGAN_VERSION = "0.3.4"
+ORGAN_VERSION = "0.3.5"
 OUT_DIR = LIVE / "derived" / "mind"
 ORCHESTRATIONS = ("council", "relay")   # for `run`; the scheduled mode is the drip (see STEPS)
 
@@ -404,13 +409,18 @@ SCHEMA = {
     "required": ["text", "cites", "hypotheses", "questions", "next_check", "claim"],
 }
 
-VOICE_PROMPT = """Prevedi ovu misao na srpski - EKAVICA (vreme, mesto, vrednost, promenile, proveriti; nikako ijekavica),
-latinica, verno i prirodno, u prvom licu. Ne dodaj nijedan broj ni činjenicu koje nema u originalu.
-Imena stanica i izvora ostavi kako jesu.
-
+VOICE_PROMPT = """Prevedi ovu misao na srpski jezik, EKAVICA, latinica, verno i prirodno, u prvom licu.
+Ekavica znači: vreme (ne vrijeme), mesto (ne mjesto), vrednost (ne vrijednost), promenile (ne promijenile),
+proveriti (ne provjeriti), gde (ne gdje), sledeći (ne sljedeći), uticaj (ne utjecaj), verovatno (ne vjerojatno),
+sugeriše (ne sugerira), nedelja (ne tjedan), poslednji (ne posljednji), vazduh (ne zrak). Nijedna reč sa "ije" ili "je" umesto "e".
+Ne dodaj nijedan broj ni činjenicu koje nema u originalu. Imena stanica i izvora ostavi kako jesu.
+Prevedi i pretpostavke (hypotheses) i pitanja (questions), svako posebno, istim redom; ako ih nema, vrati prazne liste.
+{feedback}
 Misao: {text}
+Pretpostavke: {hypotheses}
+Pitanja: {questions}
 
-Odgovori isključivo JSON: {{"sr": "..."}}"""
+Odgovori isključivo JSON: {{"sr": "...", "hypotheses": ["..."], "questions": ["..."]}}"""
 
 
 def voice_split(text: str) -> tuple[str, str]:
@@ -419,7 +429,51 @@ def voice_split(text: str) -> tuple[str, str]:
     cites = "".join(f"[{c}]" for c in dict.fromkeys(re.findall(r"\[(F\d+)\]", text)))
     plain = re.sub(r"\s*\[F\d+\]", "", text).strip()
     return plain, cites
-VOICE_SCHEMA = {"type": "object", "properties": {"sr": {"type": "string"}}, "required": ["sr"]}
+VOICE_SCHEMA = {"type": "object", "properties": {"sr": {"type": "string"}, "hypotheses": {"type": "array", "items": {"type": "string"}},
+                                                 "questions": {"type": "array", "items": {"type": "string"}}}, "required": ["sr", "hypotheses", "questions"]}
+THINKING_MODELS = ("qwen3", "deepseek-r1", "gpt-oss", "magistral")   # Ollama accepts think=false only for models that can think
+
+
+def voice(row: dict, text: str, dg: dict, voice_model: str | None, chat, rec: dict | None = None, attempts: int = 2) -> dict:
+    """L3: render an accepted thought (text + hypotheses + questions) in Serbian ekavica and validate it.
+    On refusal the model is asked once more with the refusal read back. Fills row["sr"], row["hypotheses_sr"],
+    row["questions_sr"], row["sr_state"], row["voice_model"], row["voice_attempts"]; never raises."""
+    row.setdefault("hypotheses_sr", [])
+    row.setdefault("questions_sr", [])
+    if not voice_model:
+        row["sr_state"] = "no voice model"
+        return row
+    plain, cites = voice_split(text)
+    hyps = [re.sub(r"\s*\[F\d+\]", "", h).strip() for h in (row.get("hypotheses") or [])]
+    qs = [re.sub(r"\s*\[F\d+\]", "", q).strip() for q in (row.get("questions") or [])]
+    feedback = ""
+    row["voice_model"] = voice_model
+    for attempt in range(1, attempts + 1):
+        row["voice_attempts"] = attempt
+        try:
+            v = chat(voice_model, VOICE_PROMPT.format(text=plain, hypotheses=json.dumps(hyps, ensure_ascii=False),
+                                                      questions=json.dumps(qs, ensure_ascii=False), feedback=feedback),
+                     schema=VOICE_SCHEMA, num_predict=900, temperature=0.2 if attempt == 1 else 0.1)
+            if rec is not None:
+                rec["calls"] = rec.get("calls", 0) + 1
+        except Exception as e:  # noqa: BLE001
+            row["sr_state"] = f"failed: {type(e).__name__}"
+            return row
+        sr_text = re.sub(r"\s*\[F\d+\]", "", (v.get("sr") or "")).strip() + (" " + cites if cites else "")
+        h_sr = [x.strip() for x in (v.get("hypotheses") or []) if isinstance(x, str) and x.strip()][:len(hyps)]
+        q_sr = [x.strip() for x in (v.get("questions") or []) if isinstance(x, str) and x.strip()][:len(qs)]
+        vok, vwhy = validate_voice(sr_text, text, dg, h_sr, q_sr, len(hyps), len(qs))
+        if vok:
+            row["sr"], row["hypotheses_sr"], row["questions_sr"], row["sr_state"] = sr_text, h_sr, q_sr, "voiced"
+            if rec is not None:
+                rec["voiced"] = rec.get("voiced", 0) + 1
+            return row
+        row["sr"], row["hypotheses_sr"], row["questions_sr"] = "", [], []
+        row["sr_state"] = "refused: " + "; ".join(vwhy)[:160]
+        feedback = "Prethodni pokušaj je odbijen (" + "; ".join(vwhy)[:200] + "). Ispravi to i piši isključivo ekavicom."
+    if rec is not None:
+        rec["voice_refused"] = rec.get("voice_refused", 0) + 1
+    return row
 
 
 def prompt_for(ent: dict, dg: dict, memory: list[dict], conversation: list[dict]) -> str:
@@ -443,9 +497,12 @@ def prompt_for(ent: dict, dg: dict, memory: list[dict], conversation: list[dict]
 
 
 def ollama_chat(model: str, prompt: str, schema: dict | None = None, num_predict: int = 1000, temperature: float = 0.5, timeout: int = 600) -> dict:
-    body = json.dumps({"model": model, "stream": False, "format": schema or SCHEMA, "keep_alive": "30m",
-                       "options": {"temperature": temperature, "num_ctx": 6144, "num_predict": num_predict},
-                       "messages": [{"role": "user", "content": prompt}]}).encode("utf-8")
+    payload = {"model": model, "stream": False, "format": schema or SCHEMA, "keep_alive": "30m",
+               "options": {"temperature": temperature, "num_ctx": 6144, "num_predict": num_predict},
+               "messages": [{"role": "user", "content": prompt}]}
+    if model.split(":")[0].startswith(THINKING_MODELS):
+        payload["think"] = False   # the organ wants the answer, not a hidden monologue; the JSON must carry all of it
+    body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(OLLAMA + "/api/chat", data=body, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         doc = json.load(r)
@@ -459,6 +516,62 @@ SR_WORDS = re.compile(r" (je|su|i|u|na|ne|se|da|od|do|za|sa|što|koji|ali|nema|i
 EN_WORDS = re.compile(r" (the|is|are|and|of|in|no|not|at|with|for|that|from|has|have|was|were|while|but|to|a|an|up|by|on|as|it|we|this|between) ")
 PROMPT_FRAGMENTS = ["You notice.", "You doubt.", "You connect.", "Rules (a program checks", "You may use only numbers", "Answer only JSON",
                     "Do not repeat these instructions", "Ti primećuješ", "Ti sumnjaš", "Ti povezuješ"]
+# --- ekavica guard ------------------------------------------------------------------------------
+# Every utterance the public sees must be Serbian ekavica. The guard is a LIST, not a rule: the
+# ijekavian reflex of jat (vrijeme, mjesto, gdje...) and Croatian-standard lexis (tjedan, tisuća...),
+# as stems that may follow a verbal prefix. Word-initial matching keeps the ekavian words that only
+# look ijekavian out of it: the genitive of -ija nouns (Srbije, linije, informacije), prijem, dijeta,
+# pijaca, objekat, odjednom, sjediniti, kolovoz, travnjak, and đ written as dj (gradjevina, medju).
+_PREFIX = r"(?:naj|ne|pre|pri|pro|po|pod|pred|na|nad|za|iz|is|od|ot|do|u|uz|s|sa|su|raz|ras|o|ob|obes|bez)?"
+_JAT_STEMS = [
+    # long reflex (ije)
+    "vrijem", "vrijed", "vrjed", "lijep", "ljep", "lijev", "ljev", "bijel", "bjel", "cijel", "cjel", "cijen", "cjen",
+    "dijel", "dijete\\b", "djet", "djec", "djed\\b", "djeda", "djedov", "djev", "djel", "dvije\\b", "dviju\\b", "obje\\b",
+    "objema\\b", "prije\\b", "poslije\\b", "prijepodn", "poslijepodn", "naprijed\\b", "unaprijed\\b", "sprijeda\\b",
+    "prijelaz", "prijedlog", "prijevoz", "prijenos", "prijetnj", "prijelom", "prijestup", "mlijek", "mljek", "mijenj",
+    "mijen", "mjen", "rijek", "riječ", "rječ", "riješ", "rješ", "slijed", "sljed", "snijeg", "snjeg", "snjež", "sniježi",
+    "svijet", "svjet", "svijes", "svjes", "smijeh", "smije", "smijal", "tijel", "tjel", "tijek", "umrije", "uvijek\\b",
+    "vijek", "vijec", "vijeć", "vjeć", "vijes", "vjesn", "zvijezd", "zvjezd", "brijeg", "cvijet", "cvjet", "cvjeć", "lijek",
+    "liječ", "lijen", "nijem", "pijes", "pješ", "pjes", "pjev", "sijed", "stijen", "strijel", "tijes", "trijez", "žlijezd",
+    "ždrijeb", "zvijer", "zvjer", "grijeh", "griješ", "grješ", "korijen", "korjen", "plijen", "povijes", "rijetk", "rjeđ",
+    "srijed", "svijeć", "svjeć", "vrijeđ", "cijev", "cjev", "cijep", "cjep", "naslijeđ", "nasljeđ", "nasljed", "naslijed",
+    "bijeg", "bjeg", "bjež", "bijed", "bljed", "bijes", "bjesn", "bljes", "lijeg", "lijes", "kolijev", "gnijezd", "gnjezd",
+    "dvjest", "medvjed", "medvjeđ", "zapovijed", "zapovjed", "ispovijed", "ispovjed", "pripovijed", "pripovjed",
+    "propovijed", "propovjed", "razumije", "umije", "dospije", "uspije", "dospje", "uspje", "zastarje", "ostarje",
+    "starješ", "zavijes", "zijev", "zjev", "zjen",
+    # short reflex (je)
+    "mjer", "mjest", "mješt", "mjesec", "mjesn", "mjeseč", "mješ", "mjed", "mjeđ", "mjehur", "vjer", "vjež", "vjenč",
+    "vječ", "vjet", "vjeđ", "svjež", "svjedoč", "svjedok", "gdje", "sjed(?!in)", "sjen", "sjek", "sjet", "sjev", "sjem",
+    "sječ", "sjeć", "tjer", "tješ", "tjem", "htjel", "htjet", "vidjel", "vidjet", "voljel", "voljet", "živjel", "živjet",
+    "letjel", "letjet", "sjedjel", "sjedjet", "trpjel", "trpjet", "željel", "željet", "umjet", "smjel", "smjet",
+    "razumjel", "razumjet", "gorjel", "gorjet", "vrtjel", "vrtjet", "kipjel", "kipjet", "šutjel", "šutjet", "štedjel",
+    "štedjet", "bdjen", "bdjet", "ljet", "pljev", "nedjelj", "ponedjeljak", "tjedan", "tjedn", "pobjed", "pobjeđ",
+    "objed\\b", "objes", "utjec", "sudjel", "odjel\\b", "odjeljen", "podjel", "razdjel", "razdijel", "predjel", "predio\\b",
+    "usjev", "sjekir", "sjetv", "sjenk", "sjeme", "sjemen", "zavjet", "zavjes", "sjever", "sjevern",
+]
+# Croatian-standard lexis never used in ekavian Serbian (whole words or stems)
+_HR = ["tisuć", "sveučilišt", "kolodvor", "\\btko\\b", "\\bnitko\\b", "\\bnetko\\b", "uvjet", "kazališ", "glazb", "tvrtk",
+       "postotak", "postotk", "siječnj", "veljač", "ožuj", "svibnj", "lipnj", "srpnj", "rujan\\b", "rujn", "prosinc",
+       "sudjelov", "zrakoplov", "\\bvlak\\b", "\\bvlakov", "uporab", "izvješć", "obitelj", "\\bopći", "općin", "tjelovj",
+       "nogomet", "zemljopis", "gospodarstv", "sustav", "ozračj", "ravnatelj", "djelatnik", "ustroj", "prosvjed", "\\bglede\\b"]
+IJEKAVIAN = re.compile(r"\b" + _PREFIX + r"(?:" + "|".join(_JAT_STEMS) + r")|(?:" + "|".join(_HR) + ")", re.IGNORECASE)
+
+
+def ijekavian_hits(text: str) -> list[str]:
+    """The words that show a text is not ekavian Serbian (ijekavian jat reflex or Croatian lexis); [] when clean."""
+    if not text:
+        return []
+    seen: dict[str, None] = {}
+    for m in IJEKAVIAN.finditer(text):
+        a, b = m.start(), m.end()
+        while a > 0 and (text[a - 1].isalpha()):
+            a -= 1
+        while b < len(text) and text[b].isalpha():
+            b += 1
+        seen[text[a:b].lower()] = None
+    return list(seen)[:8]
+
+
 CLAIM_KINDS = {"reception": {"sid", "within_minutes"}, "spread": {"sid", "parameter", "lo", "hi", "within_minutes"}}
 
 
@@ -561,8 +674,10 @@ def validate(answer: dict, dg: dict, previous: list[str] | None = None) -> tuple
     return (not reasons), reasons
 
 
-def validate_voice(sr: str, en: str, dg: dict) -> tuple[bool, list[str]]:
-    """The Serbian rendering may not add a number or a citation, and must be Serbian."""
+def validate_voice(sr: str, en: str, dg: dict, hyp_sr: list[str] | None = None, q_sr: list[str] | None = None,
+                   n_hyp: int = 0, n_q: int = 0) -> tuple[bool, list[str]]:
+    """The Serbian rendering may not add a number or a citation, must be Serbian, and must be EKAVICA -
+    in the thought and in every hypothesis and question."""
     reasons = []
     sr = (sr or "").strip()
     if len(sr) < 20:
@@ -575,14 +690,29 @@ def validate_voice(sr: str, en: str, dg: dict) -> tuple[bool, list[str]]:
         reasons.append("citations differ from the original")
     if not SR_WORDS.search(" " + sr.lower() + " "):
         reasons.append("not Serbian")
-    if re.search(r"\b(vrijednost|vrijeme|mjesto|promijenil|provjer|utjecaj|sljede|tjedan|mjesec)", sr.lower()):
-        reasons.append("ijekavian, not ekavica")
+    if EN_WORDS.search(" " + sr.lower() + " ") and len(EN_WORDS.findall(" " + sr.lower() + " ")) >= 3:
+        reasons.append("English words in the rendering")
+    hits = ijekavian_hits(sr)
+    if hits:
+        reasons.append("ijekavian, not ekavica: " + ", ".join(hits[:4]))
     if sr.lower() == en.strip().lower():
         reasons.append("identical to the English")
     for frag in PROMPT_FRAGMENTS + ["Prevedi ovu misao", "Odgovori isključivo"]:
         if frag in sr:
             reasons.append("echoed the prompt")
             break
+    for label, items, n in (("hypothesis", hyp_sr or [], n_hyp), ("question", q_sr or [], n_q)):
+        if n and len(items) != n:
+            reasons.append(f"{label} count {len(items)} != {n}")
+        for it in items:
+            for m in _nums(it):
+                if m not in allowed:
+                    reasons.append(f"number not in the original ({label}): {m}")
+            h = ijekavian_hits(it)
+            if h:
+                reasons.append(f"ijekavian {label}: " + ", ".join(h[:3]))
+            if len(it) >= 40 and not SR_WORDS.search(" " + it.lower() + " "):
+                reasons.append(f"{label} not Serbian")
     return (not reasons), reasons
 
 
@@ -717,22 +847,9 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=o
                "questions": [q for q in (answer.get("questions") or []) if isinstance(q, str)][:4],
                "next_check": (answer.get("next_check") or "")[:300] if isinstance(answer.get("next_check"), str) else "",
                "claim": claim, "rejected_because": reasons or None}
-        # L3 - the voice: Serbian rendering of an accepted thought, validated against the original
-        if ok and voice_model:
-            try:
-                plain, cites = voice_split(text)
-                v = chat(voice_model, VOICE_PROMPT.format(text=plain), schema=VOICE_SCHEMA, num_predict=600, temperature=0.2)
-                rec["calls"] += 1
-                sr_text = re.sub(r"\s*\[F\d+\]", "", (v.get("sr") or "")).strip() + (" " + cites if cites else "")
-                vok, vwhy = validate_voice(sr_text, text, dg)
-                row["sr"] = sr_text if vok else ""
-                row["sr_state"] = "voiced" if vok else "refused: " + "; ".join(vwhy)[:160]
-                row["voice_model"] = voice_model
-                rec["voiced" if vok else "voice_refused"] += 1
-            except Exception as e:  # noqa: BLE001
-                row["sr_state"] = f"failed: {type(e).__name__}"
-        elif ok:
-            row["sr_state"] = "no voice model"
+        # L3 - the voice: Serbian ekavica rendering of an accepted thought, validated against the original
+        if ok:
+            voice(row, text, dg, voice_model, chat, rec)
         _append(out_path, row)
         _append(OUT_DIR / "notebook" / f"{ent['id']}.jsonl",
                 {"at": iso(now), "conversation": conv_id, "round": rnd, "state": row["state"], "text": text, "sr": row["sr"],
@@ -915,20 +1032,8 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
                        "questions": [q for q in (answer.get("questions") or []) if isinstance(q, str)][:4],
                        "next_check": (answer.get("next_check") or "")[:300] if isinstance(answer.get("next_check"), str) else "",
                        "claim": claim, "rejected_because": reasons or None}
-                if ok and voice_model:
-                    try:
-                        plain, cites = voice_split(text)
-                        v = chat(voice_model, VOICE_PROMPT.format(text=plain), schema=VOICE_SCHEMA, num_predict=600, temperature=0.2)
-                        rec["calls"] += 1
-                        sr_text = re.sub(r"\s*\[F\d+\]", "", (v.get("sr") or "")).strip() + (" " + cites if cites else "")
-                        vok, vwhy = validate_voice(sr_text, text, dg)
-                        row["sr"] = sr_text if vok else ""
-                        row["sr_state"] = "voiced" if vok else "refused: " + "; ".join(vwhy)[:160]
-                        row["voice_model"] = voice_model
-                    except Exception as e:  # noqa: BLE001
-                        row["sr_state"] = f"failed: {type(e).__name__}"
-                elif ok:
-                    row["sr_state"] = "no voice model"
+                if ok:
+                    voice(row, text, dg, voice_model, chat, rec)
                 _append(out_path, row)
                 _append(OUT_DIR / "notebook" / f"{name}.jsonl", {"at": iso(now), "conversation": cycle_id, "round": ctx["step"], "state": row["state"],
                                                                  "text": text, "sr": row["sr"], "reason": "; ".join(reasons) if reasons else None, "claim": claim})
@@ -1075,6 +1180,48 @@ def check() -> dict:
             "voice_accepts_faithful": vok, "voice_reasons": vr, "voice_refuses_salad": (not vok2), "voice_refusal_reasons": vr2}
 
 
+def voice_bench(model_names: list[str], n: int = 8) -> dict:
+    """Render the last n accepted English thoughts with each candidate voice model and run the same validator
+    the organ runs. Writes data/live/derived/mind/voice_bench/<time>.json and returns it. The reading of the
+    Serbian itself (word salad or not) is a person's job: the file is meant to be read, not only counted."""
+    rows = []
+    for f in sorted(OUT_DIR.glob("*.jsonl")):
+        if f.name[:4].isdigit():
+            for line in f.read_text(encoding="utf-8").splitlines():
+                try:
+                    r = json.loads(line)
+                except ValueError:
+                    continue
+                if r.get("state") == "thought" and r.get("en"):
+                    rows.append(r)
+    rows = rows[-n:]
+    now = datetime.now(timezone.utc)
+    out = {"schema": "beops-voice-bench/v1", "at": iso(now), "organ_version": ORGAN_VERSION, "thoughts": len(rows), "models": {}}
+    d = OUT_DIR / "voice_bench"
+    d.mkdir(parents=True, exist_ok=True)
+    log = d / (now.strftime("%Y%m%dT%H%M%SZ") + ".jsonl")   # one line per rendering, written as it happens (a CPU bench is slow)
+    for m in model_names:
+        res = {"voiced": 0, "refused": 0, "failed": 0, "seconds": 0.0, "renderings": []}
+        for r in rows:
+            dg = {"numbers": sorted(_nums(r["en"]) | {x for h in (r.get("hypotheses") or []) for x in _nums(h)})}
+            row = {"hypotheses": r.get("hypotheses") or [], "questions": r.get("questions") or []}
+            t0 = time.time()
+            voice(row, r["en"], dg, m, ollama_chat)
+            dt = time.time() - t0
+            res["seconds"] += dt
+            state = row.get("sr_state", "")
+            res["voiced" if state == "voiced" else "failed" if state.startswith("failed") else "refused"] += 1
+            rend = {"model": m, "en": r["en"][:400], "sr": row.get("sr") or "", "hypotheses_sr": row.get("hypotheses_sr"),
+                    "questions_sr": row.get("questions_sr"), "state": state, "attempts": row.get("voice_attempts"), "seconds": round(dt, 1)}
+            res["renderings"].append(rend)
+            _append(log, rend)
+            print(f"[{m}] {round(dt)} s {state[:50]} | {(row.get('sr') or '')[:160]}", flush=True)
+        res["seconds"] = round(res["seconds"], 1)
+        out["models"][m] = res
+    (d / (now.strftime("%Y%m%dT%H%M%SZ") + ".json")).write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    return out
+
+
 def main() -> int:
     cmd = sys.argv[1] if len(sys.argv) > 1 else "status"
     if cmd == "run":
@@ -1094,6 +1241,17 @@ def main() -> int:
         print(json.dumps(status(), ensure_ascii=False, indent=1))
     elif cmd == "check":
         print(json.dumps(check(), ensure_ascii=False, indent=1))
+    elif cmd == "voice-bench" and len(sys.argv) >= 3:
+        args = sys.argv[2:]
+        n = int(args[args.index("--n") + 1]) if "--n" in args else 8
+        names = [a for i, a in enumerate(args) if a != "--n" and (i == 0 or args[i - 1] != "--n")]
+        out = voice_bench(names, n)
+        for m, res in out["models"].items():
+            print(f"== {m}: voiced {res['voiced']} / refused {res['refused']} / failed {res['failed']} in {res['seconds']} s")
+            for r in res["renderings"]:
+                print(f"  [{r['state'][:40]}] {r['sr'][:300] if r['sr'] else '(none)'}")
+                if r.get("hypotheses_sr"):
+                    print("     H:", " | ".join(r["hypotheses_sr"])[:300])
     elif cmd == "retract" and len(sys.argv) >= 6:
         print(json.dumps(retract(sys.argv[2], sys.argv[3], int(sys.argv[4]), " ".join(sys.argv[5:])), ensure_ascii=False))
     else:

@@ -328,6 +328,93 @@ reservation meaningless one hop downstream.
 
 ---
 
+## E-011 — Signals that are not addressed to us
+
+**What we found.** Two of the polled news sources carry a machine signal that
+is *about something else*:
+
+- `gradnja.rs/feed/` and `bvk.rs/feed/` answer `X-Robots-Tag: noindex, follow`,
+  and `masina.rs/feed/` answers `X-Robots-Tag: noindex`. `noindex` is a
+  search-engine directive: do not list this document in search results.
+  `follow` says: the links in it may be followed.
+- `n1info.rs/sitemap/sitemap_news_1.xml` is a Google-News sitemap — a crawl
+  aid addressed to a search engine, listing title, link and publication
+  date. robots.txt permits it for every agent.
+
+**Our choice.** BEOPS neither indexes nor republishes the feed document; it
+keeps a headline, the link and the publisher's time, and links back to the
+article — which is what `follow` describes. So `noindex` on a feed does not
+change the verdict for reading it, and a news sitemap read for title, link
+and date is used for what it publishes. Both are recorded on the source rows
+(`news_audit_2026_09_09`) as decisions, not as permissions, and the verdict
+is revisited the day either publisher adds an AI-purpose signal
+(`Content-Signal`, a named agent in robots.txt).
+
+**Where this is thin.** A publisher who writes `noindex` on a feed may mean
+"do not machine-read this" and simply not know the vocabulary for it. We
+read the letter because the letter is all a machine can read; a letter is
+what E-005 promises when a door is ajar.
+
+**The question we would put.** *Does a search-engine directive on a feed
+document express any reservation under Art. 4 of Directive 2019/790 — and
+if a Serbian transposition ever arrives, will it read `noindex` as one?*
+
+---
+
+## E-012 — A named opt-out on material that is not a copyright work
+
+**What we found.** `mup.gov.rs/robots.txt` names ClaudeBot, GPTBot,
+ChatGPT-User, OAI-SearchBot, Bytespider and others with `Disallow: /`, and
+has no `User-agent: *` group. Police press releases are official materials
+of a state body — outside copyright under Art. 6(2) of the Copyright Act.
+Copyright law would let us take them; the operator has said no to us by
+name.
+
+**Our choice.** The refusal wins (S204, `opted_out`). The project's promise
+about named opt-outs (frame §7) is a promise about consent and identity —
+we ask honestly and we accept the answer — not a promise about copyright.
+A rule that held only where copyright also held would be no rule.
+
+**Where this is thin.** Art. 6(2) exists so that citizens can know what
+their state says; a state body fencing its releases from named readers is
+exactly what the frame's §5 (freedom of information) is for. A request
+under that statute is the route, and it is on the list.
+
+**The question we would put.** *Can a body exercising public function
+lawfully restrict, by robots.txt, automated reading of materials the
+Copyright Act declares free — or is the statute the answer and robots.txt
+merely a preference we choose to honour?*
+
+---
+
+## E-013 — Headlines carry names
+
+**What we found.** Every polled headline may name a person. The news layer
+is therefore personal-data processing under ZZPL Art. 4, even though it
+keeps no body, no image, no profile and never searches by person. Art. 88
+(journalistic and scientific expression) may cover the published findings;
+the standing store of month files looks like ordinary processing under
+Art. 12 with Art. 92 safeguards (frame §4).
+
+**What we already do.** Headline, link, time — nothing else; no per-person
+index; the public export carries only the window (six hours) and the
+scoreboard, never the archive; the mind cites headlines by number and is
+refused when it invents.
+
+**What we do not yet do.** There is no retention rule for the month files.
+Proposed, for the editor to decide: keep them locally as research evidence
+under the project's immutability rule; never build a per-person index;
+delete nothing automatically, because deletion of evidence is the one thing
+this project has promised not to do — and write that reasoning down where a
+supervisory authority would look for it.
+
+**The question we would put.** *Is a research archive of headlines with a
+six-hour public window and no per-person index within Art. 92's
+"appropriate safeguards" without a retention limit, or does the safeguard
+require a date?*
+
+---
+
 ## How to add to this file
 
 Add an entry when you notice that a rule you are relying on does not clearly

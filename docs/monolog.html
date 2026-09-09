@@ -68,6 +68,7 @@ main{display:grid;grid-template-columns:minmax(360px,5fr) minmax(360px,7fr);min-
 .line.text .g{background:var(--ink30)}
 .line .sr{font-size:15px}
 .line .en{font-size:13px;color:var(--ink60)}
+.line.unvoiced .sr{color:var(--ink60);font-style:italic}
 .line .meta{font-family:var(--mono);font-size:11px;color:var(--ink60);margin-top:2px}
 .line.new{animation:draw .4s ease-out}
 @keyframes draw{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
@@ -253,21 +254,27 @@ function sentence(e){
   }
   if(e.kind==='mind_silent'){ const r=e.run; const why=r.state==='organ_silent'?(LANG==='sr'?'model ne odgovara':'the model daemon is not answering'):r.state==='paused'?(LANG==='sr'?'čovek ga je zaustavio':'a person paused it'):r.state==='rejected'?(LANG==='sr'?`svaka rečenica odbijena proverom (${r.rejected})`:`every utterance refused by the validator (${r.rejected})`):(r.reason||r.state);
     return {cls:'estimate', sr:`Um ćuti: ${why}. Ćutanje uma je zapis kao i svako drugo.`, en:`The mind is silent: ${why}. Its silence is a record like any other.`, meta:`organ mind · ${r.model||''} · ${r.state}`}; }
-  if(e.kind==='organelle'){ const th=e.th; return {cls:'estimate organelle', sr:th.sr||th.en, en:th.en||th.sr,
+  if(e.kind==='organelle'){ const th=e.th; return {cls:'estimate organelle', sr:th.sr||'Organela je govorila samo na engleskom; na srpskoj strani ćuti.', en:th.en||th.sr,
       meta:`organela / organelle ${th.organelle||''} · ${th.model||''} · ${LANG==='sr'?'aritmetika ili mali model, ne merenje':'arithmetic or a small model, not a measurement'}`}; }
   if(e.kind==='thought'){ const th=e.th; const name=LANG==='sr'?th.entity_sr:th.entity_en; const voiced=th.sr_state==='voiced'&&th.sr;
     const rep=(th.replies_to||[]).length?(LANG==='sr'?' · odgovara: ':' · replies to: ')+(th.replies_to||[]).map(x=>({observer:['Posmatrač','Observer'],skeptic:['Sumnjalo','Skeptic'],connector:['Povezivač','Connector']}[x]||[x,x])[LANG==='sr'?0:1]).join(', '):'';
     const claim=th.claim&&th.claim.kind?(th.claim.kind==='reception'?(LANG==='sr'?`tvrdnja: ${th.claim.sid} će se javiti u roku od ${th.claim.within_minutes} min`:`claim: ${th.claim.sid} will report within ${th.claim.within_minutes} min`):(LANG==='sr'?`tvrdnja: ${th.claim.parameter} (${th.claim.sid}) sledeći sat između ${th.claim.lo} i ${th.claim.hi}`:`claim: ${th.claim.parameter} (${th.claim.sid}) next hour between ${th.claim.lo} and ${th.claim.hi}`)):'';
-    return {cls:'estimate thought', name, voiced, hyp:th.hypotheses||[], q:th.questions||[], claim,
-      sr: voiced?th.sr:th.en, en: th.en,
-      meta:`${LANG==='sr'?'misao':'thought'} · ${th.model}${th.voice_model?' · '+(LANG==='sr'?'glas':'voice')+' '+th.voice_model:''}${voiced?'':(LANG==='sr'?' · srpski prevod nije prošao proveru — prikazan original':' · Serbian rendering refused by the check — original shown')}${rep} · ai_generated=true · ${LANG==='sr'?'svaki broj proveren prema digestu':'every number checked against the digest'}${th.cites&&th.cites.length?' · '+th.cites.join(' '):''}`};
+    // The Serbian page carries Serbian only: a thought whose ekavica rendering was refused is not shown in English there -
+    // the program says so, in Serbian, and the English original stays on the English page (and on disk).
+    const why=(th.sr_state||'').replace(/^refused: /,'').replace(/^failed: /,'');
+    const srMain=voiced?th.sr:(LANG==='sr'?`Misao nije izgovorena na srpskom: prevod na ekavicu nije prošao proveru (${why||'nema glasa'}). Ćutanje je zapis kao i svako drugo.`:th.en);
+    return {cls:'estimate thought'+(voiced||LANG!=='sr'?'':' unvoiced'), name, voiced, claim,
+      hyp: LANG==='sr'?(voiced?(th.hypotheses_sr||[]):[]):(th.hypotheses||[]),
+      q: LANG==='sr'?(voiced?(th.questions_sr||[]):[]):(th.questions||[]),
+      sr: LANG==='sr'?srMain:th.en, en: LANG==='sr'?'':(voiced?th.sr:''),
+      meta:`${LANG==='sr'?'misao':'thought'} · ${th.model}${th.voice_model?' · '+(LANG==='sr'?'glas':'voice')+' '+th.voice_model:''}${voiced?'':(LANG==='sr'?' · ekavica odbijena proverom':' · Serbian rendering refused by the check — original shown')}${rep} · ai_generated=true · ${LANG==='sr'?'svaki broj proveren prema digestu':'every number checked against the digest'}${th.cites&&th.cites.length?' · '+th.cites.join(' '):''}`};
   }
   return {cls:'',sr:'',en:'',meta:''};
 }
 function addLine(e,fresh){
   const s=sentence(e); const el=document.createElement('div'); el.className='line '+s.cls+(fresh?' new':'');
-  if(s.name){ el.innerHTML=`<span class="t">${fmtT(e.t)}</span><span class="g"></span><div><div class="who"><b>${esc(s.name)}</b> <span class="mono model">${esc(e.th.model||'')}</span></div><div class="sr think">${esc(s.sr)}</div><div class="en">${esc(LANG==='sr'?s.en:(s.voiced?e.th.sr:''))}</div>${s.hyp.length?`<div class="hyp">${LANG==='sr'?'pretpostavka':'hypothesis'}: ${esc(s.hyp.join(' · '))}</div>`:''}${s.q.length?`<div class="hyp">${LANG==='sr'?'pitanje':'question'}: ${esc(s.q.join(' · '))}</div>`:''}${s.claim?`<div class="hyp claim">${esc(s.claim)}</div>`:''}<div class="meta">${esc(s.meta)}</div></div>`; }
-  else el.innerHTML=`<span class="t">${fmtT(e.t)}</span><span class="g"></span><div><div class="sr">${esc(LANG==='sr'?s.sr:s.en)}</div><div class="en">${esc(LANG==='sr'?s.en:s.sr)}</div><div class="meta">${esc(s.meta)}</div></div>`;
+  if(s.name){ el.innerHTML=`<span class="t">${fmtT(e.t)}</span><span class="g"></span><div><div class="who"><b>${esc(s.name)}</b> <span class="mono model">${esc(e.th.model||'')}</span></div><div class="sr think">${esc(s.sr)}</div>${s.en?`<div class="en">${esc(s.en)}</div>`:''}${s.hyp.length?`<div class="hyp">${LANG==='sr'?'pretpostavka':'hypothesis'}: ${esc(s.hyp.join(' · '))}</div>`:''}${s.q.length?`<div class="hyp">${LANG==='sr'?'pitanje':'question'}: ${esc(s.q.join(' · '))}</div>`:''}${s.claim?`<div class="hyp claim">${esc(s.claim)}</div>`:''}<div class="meta">${esc(s.meta)}</div></div>`; }
+  else el.innerHTML=`<span class="t">${fmtT(e.t)}</span><span class="g"></span><div><div class="sr">${esc(LANG==='sr'?s.sr:s.en)}</div>${LANG==='sr'?'':`<div class="en">${esc(s.sr)}</div>`}<div class="meta">${esc(s.meta)}</div></div>`;
   const box=document.getElementById('lines'); box.prepend(el); while(box.children.length>80) box.lastChild.remove();
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}

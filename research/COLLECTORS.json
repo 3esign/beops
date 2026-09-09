@@ -1,376 +1,552 @@
 {
-  "schema": "beops-collectors/v1",
-  "note": "Sources the continuous collector (tools/collect_daemon.py) is allowed to poll. A source may be listed here only if it has a permission capture in research/08-provenance/LEDGER.jsonl; the collector re-checks that gate on every tick and refuses otherwise. Cadence is a floor, not a promise: the scheduler fires every 5 minutes and a source is served when its own cadence has elapsed.",
-  "sources": [
-    {
-      "sid": "S146",
-      "name": "SEPA air quality HVD API - hourly preliminary means",
-      "url": "https://opendata.kosava.cloud/api/v1/observations?from={from_iso}",
-      "window_seconds": 7200,
-      "parser": "sepa_hvd",
-      "ext": "json",
-      "cadence_seconds": 3600,
-      "timeout_seconds": 120,
-      "max_bytes": 25000000,
-      "phenomenon_time_published": "yes - time_start_utc/time_end_utc per hourly mean; published_at_utc is resultTime; data_status preliminary",
-      "why_window": "without from= the endpoint returns the whole 30-day bundle (140 MB, measured 2026-09-08); 2 h covers the previous hour plus late publication; repeats are removed by the seen-set, not by the source",
-      "enabled": true,
-      "station_ids": [
-        "10",
-        "11",
-        "12",
-        "16",
-        "48",
-        "49",
-        "50",
-        "51",
-        "56",
-        "57",
-        "6",
-        "60",
-        "61",
-        "64",
-        "7",
-        "80",
-        "81",
-        "82",
-        "83",
-        "84",
-        "85",
-        "86",
-        "87",
-        "88",
-        "89",
-        "9",
-        "90",
-        "92",
-        "95",
-        "96",
-        "97",
-        "98"
-      ],
-      "station_names": {
-        "10": "Mostar",
-        "11": "Vračar",
-        "12": "Zeleno brdo",
-        "16": "Obrenovac Centar",
-        "48": "Krnjača",
-        "49": "Zemun TB",
-        "50": "Bulevar despota Stefana",
-        "51": "Omladinskih brigada",
-        "56": "Pančevo Cara Dušana",
-        "57": "Pančevo Vatrogasni dom",
-        "6": "Pančevo Sodara",
-        "60": "Vinča",
-        "61": "Dragiša Mišović",
-        "64": "Jajinci",
-        "7": "Stari grad",
-        "80": "Topčiderska zvezda",
-        "81": "Vračar Dom zdravlja",
-        "82": "Bežanijska kosa",
-        "83": "Banovo brdo",
-        "84": "Ada petlja",
-        "85": "Surčin",
-        "86": "Zemun Ugrinovačka",
-        "87": "Borča",
-        "88": "Franše d’Epere",
-        "89": "Leštane",
-        "9": "Novi Beograd",
-        "90": "Stojčino brdo",
-        "92": "Ada Ciganlija",
-        "95": "Rakovica",
-        "96": "Mirijevo",
-        "97": "Beograd na vodi",
-        "98": "Danijelova"
-      },
-      "why_station_ids": "Belgrade bbox 44.60-44.95 / 20.20-20.65 from /api/v1/stations on 2026-09-06 (32 of 87 national stations); raw responses keep all 87",
-      "source_clock_note": {
-        "offset_seconds": 7200,
-        "text": "SEPA HVD labels local time (UTC+2, CEST) as 'Z': published_at_utc 22:50:17Z was received at 20:52Z on 2026-09-08 and hourly rows ending 22:00Z arrived at 20:52Z. Rows keep the label as received; phenomenonTimeCorrected/resultTimeCorrected are our ESTIMATE (minus 2 h) and are marked so. Re-check after the clocks change on 2026-10-25."
-      },
-      "station_coords": {
-        "6": [
-          44.862975,
-          20.64429
-        ],
-        "7": [
-          44.82112,
-          20.459113
-        ],
-        "9": [
-          44.803179,
-          20.400152
-        ],
-        "10": [
-          44.798746,
-          20.450184
-        ],
-        "11": [
-          44.796959,
-          20.475288
-        ],
-        "12": [
-          44.786488,
-          20.521715
-        ],
-        "16": [
-          44.659478,
-          20.204496
-        ],
-        "48": [
-          44.844288,
-          20.49219
-        ],
-        "49": [
-          44.835246,
-          20.403299
-        ],
-        "50": [
-          44.8168146768154,
-          20.4699406027794
-        ],
-        "51": [
-          44.805925,
-          20.398811
-        ],
-        "56": [
-          44.870226,
-          20.648069
-        ],
-        "57": [
-          44.8586504491852,
-          20.6491014361382
-        ],
-        "60": [
-          44.765339,
-          20.619412
-        ],
-        "61": [
-          44.777237,
-          20.457029
-        ],
-        "64": [
-          44.740492,
-          20.485642
-        ],
-        "80": [
-          44.788646,
-          20.444507
-        ],
-        "81": [
-          44.796427,
-          20.486154
-        ],
-        "82": [
-          44.815028,
-          20.3779
-        ],
-        "83": [
-          44.777284,
-          20.409701
-        ],
-        "84": [
-          44.791445,
-          20.425578
-        ],
-        "85": [
-          44.7924,
-          20.272734
-        ],
-        "86": [
-          44.849212,
-          20.377266
-        ],
-        "87": [
-          44.873952,
-          20.446585
-        ],
-        "88": [
-          44.794262,
-          20.463173
-        ],
-        "89": [
-          44.728534,
-          20.580721
-        ],
-        "90": [
-          44.776953,
-          20.535435
-        ],
-        "92": [
-          44.790166,
-          20.4169
-        ],
-        "95": [
-          44.754935,
-          20.463871
-        ],
-        "96": [
-          44.789792,
-          20.538598
-        ],
-        "97": [
-          44.811892,
-          20.450132
-        ],
-        "98": [
-          44.782294,
-          20.479144
-        ]
-      }
-    },
-    {
-      "sid": "S04",
-      "name": "Sensor.Community citizen sensors within 25 km of Belgrade centre",
-      "url": "https://data.sensor.community/airrohr/v1/filter/area=44.82,20.46,25",
-      "parser": "sensor_community",
-      "ext": "json",
-      "cadence_seconds": 600,
-      "timeout_seconds": 60,
-      "max_bytes": 5000000,
-      "phenomenon_time_published": "yes - timestamp (UTC) per record; latest five-minute window only",
-      "enabled": true
-    },
-    {
-      "sid": "S10",
-      "name": "Parking servis - displayed free spaces per lot",
-      "url": "https://www.parking-servis.co.rs/lat/garaze-i-parkiralista",
-      "parser": "parking",
-      "ext": "html",
-      "cadence_seconds": 900,
-      "timeout_seconds": 45,
-      "max_bytes": 3000000,
-      "phenomenon_time_published": "NO - value known, time unknown (the fifth state); receivedTime only",
-      "enabled": true
-    },
-    {
-      "sid": "S68",
-      "name": "Tanjug - Belgrade branch RSS",
-      "url": "https://www.tanjug.rs/rss/beograd",
-      "parser": "rss",
-      "ext": "xml",
-      "store_raw": false,
-      "cadence_seconds": 1800,
-      "timeout_seconds": 45,
-      "max_bytes": 3000000,
-      "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
-      "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
-      "enabled": true
-    },
-    {
-      "sid": "S69",
-      "name": "Danas RSS",
-      "url": "https://www.danas.rs/feed/",
-      "parser": "rss",
-      "ext": "xml",
-      "store_raw": false,
-      "cadence_seconds": 1800,
-      "timeout_seconds": 45,
-      "max_bytes": 3000000,
-      "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
-      "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
-      "enabled": true
-    },
-    {
-      "sid": "S75",
-      "name": "Studio B RSS",
-      "url": "https://studiob.rs/feed/",
-      "parser": "rss",
-      "ext": "xml",
-      "store_raw": false,
-      "cadence_seconds": 1800,
-      "timeout_seconds": 45,
-      "max_bytes": 3000000,
-      "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
-      "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
-      "enabled": true
-    },
-    {
-      "sid": "S76",
-      "name": "Beta agency RSS",
-      "url": "https://beta.rs/rss",
-      "parser": "rss",
-      "ext": "xml",
-      "store_raw": false,
-      "cadence_seconds": 1800,
-      "timeout_seconds": 45,
-      "max_bytes": 3000000,
-      "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
-      "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
-      "enabled": true
-    },
-    {
-      "sid": "S78",
-      "name": "Danubeogradu RSS",
-      "url": "https://www.danubeogradu.rs/feed/",
-      "parser": "rss",
-      "ext": "xml",
-      "store_raw": false,
-      "cadence_seconds": 1800,
-      "timeout_seconds": 45,
-      "max_bytes": 3000000,
-      "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
-      "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
-      "enabled": true
-    },
-    {
-      "sid": "S74",
-      "name": "Gradnja.rs RSS",
-      "url": "https://www.gradnja.rs/feed/",
-      "parser": "rss",
-      "ext": "xml",
-      "store_raw": false,
-      "cadence_seconds": 1800,
-      "timeout_seconds": 45,
-      "max_bytes": 3000000,
-      "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
-      "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
-      "enabled": true
-    },
-    {
-      "sid": "S70",
-      "name": "Kurir RSS",
-      "url": "https://www.kurir.rs/rss",
-      "parser": "rss",
-      "ext": "xml",
-      "store_raw": false,
-      "cadence_seconds": 1800,
-      "timeout_seconds": 45,
-      "max_bytes": 3000000,
-      "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
-      "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
-      "enabled": false,
-      "why_disabled": "high-volume national tabloid feed; enable after a Belgrade filter exists in the organ"
-    },
-    {
-      "sid": "S71",
-      "name": "Telegraf RSS",
-      "url": "https://www.telegraf.rs/rss",
-      "parser": "rss",
-      "ext": "xml",
-      "store_raw": false,
-      "cadence_seconds": 1800,
-      "timeout_seconds": 45,
-      "max_bytes": 3000000,
-      "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
-      "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
-      "enabled": false,
-      "why_disabled": "high-volume national tabloid feed; enable after a Belgrade filter exists in the organ"
-    },
-    {
-      "sid": "S72",
-      "name": "Informer RSS",
-      "url": "https://informer.rs/rss/najnovije-vesti",
-      "parser": "rss",
-      "ext": "xml",
-      "store_raw": false,
-      "cadence_seconds": 1800,
-      "timeout_seconds": 45,
-      "max_bytes": 3000000,
-      "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
-      "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
-      "enabled": false,
-      "why_disabled": "high-volume national tabloid feed; enable after a Belgrade filter exists in the organ"
-    }
-  ]
+ "schema": "beops-collectors/v1",
+ "note": "Sources the continuous collector (tools/collect_daemon.py) is allowed to poll. A source may be listed here only if it has a permission capture in research/08-provenance/LEDGER.jsonl; the collector re-checks that gate on every tick and refuses otherwise. Cadence is a floor, not a promise: the scheduler fires every 5 minutes and a source is served when its own cadence has elapsed. 2026-09-09: eleven news/official feeds added by the news audit (07-legal/NEWS_AUDIT_2026-09-09.md); each one enters only if its capture of the same day measured permission - the gate below decides, not this list.",
+ "sources": [
+  {
+   "sid": "S146",
+   "name": "SEPA air quality HVD API - hourly preliminary means",
+   "url": "https://opendata.kosava.cloud/api/v1/observations?from={from_iso}",
+   "window_seconds": 7200,
+   "parser": "sepa_hvd",
+   "ext": "json",
+   "cadence_seconds": 3600,
+   "timeout_seconds": 120,
+   "max_bytes": 25000000,
+   "phenomenon_time_published": "yes - time_start_utc/time_end_utc per hourly mean; published_at_utc is resultTime; data_status preliminary",
+   "why_window": "without from= the endpoint returns the whole 30-day bundle (140 MB, measured 2026-09-08); 2 h covers the previous hour plus late publication; repeats are removed by the seen-set, not by the source",
+   "enabled": true,
+   "station_ids": [
+    "10",
+    "11",
+    "12",
+    "16",
+    "48",
+    "49",
+    "50",
+    "51",
+    "56",
+    "57",
+    "6",
+    "60",
+    "61",
+    "64",
+    "7",
+    "80",
+    "81",
+    "82",
+    "83",
+    "84",
+    "85",
+    "86",
+    "87",
+    "88",
+    "89",
+    "9",
+    "90",
+    "92",
+    "95",
+    "96",
+    "97",
+    "98"
+   ],
+   "station_names": {
+    "10": "Mostar",
+    "11": "Vračar",
+    "12": "Zeleno brdo",
+    "16": "Obrenovac Centar",
+    "48": "Krnjača",
+    "49": "Zemun TB",
+    "50": "Bulevar despota Stefana",
+    "51": "Omladinskih brigada",
+    "56": "Pančevo Cara Dušana",
+    "57": "Pančevo Vatrogasni dom",
+    "6": "Pančevo Sodara",
+    "60": "Vinča",
+    "61": "Dragiša Mišović",
+    "64": "Jajinci",
+    "7": "Stari grad",
+    "80": "Topčiderska zvezda",
+    "81": "Vračar Dom zdravlja",
+    "82": "Bežanijska kosa",
+    "83": "Banovo brdo",
+    "84": "Ada petlja",
+    "85": "Surčin",
+    "86": "Zemun Ugrinovačka",
+    "87": "Borča",
+    "88": "Franše d’Epere",
+    "89": "Leštane",
+    "9": "Novi Beograd",
+    "90": "Stojčino brdo",
+    "92": "Ada Ciganlija",
+    "95": "Rakovica",
+    "96": "Mirijevo",
+    "97": "Beograd na vodi",
+    "98": "Danijelova"
+   },
+   "why_station_ids": "Belgrade bbox 44.60-44.95 / 20.20-20.65 from /api/v1/stations on 2026-09-06 (32 of 87 national stations); raw responses keep all 87",
+   "source_clock_note": {
+    "offset_seconds": 7200,
+    "text": "SEPA HVD labels local time (UTC+2, CEST) as 'Z': published_at_utc 22:50:17Z was received at 20:52Z on 2026-09-08 and hourly rows ending 22:00Z arrived at 20:52Z. Rows keep the label as received; phenomenonTimeCorrected/resultTimeCorrected are our ESTIMATE (minus 2 h) and are marked so. Re-check after the clocks change on 2026-10-25."
+   },
+   "station_coords": {
+    "6": [
+     44.862975,
+     20.64429
+    ],
+    "7": [
+     44.82112,
+     20.459113
+    ],
+    "9": [
+     44.803179,
+     20.400152
+    ],
+    "10": [
+     44.798746,
+     20.450184
+    ],
+    "11": [
+     44.796959,
+     20.475288
+    ],
+    "12": [
+     44.786488,
+     20.521715
+    ],
+    "16": [
+     44.659478,
+     20.204496
+    ],
+    "48": [
+     44.844288,
+     20.49219
+    ],
+    "49": [
+     44.835246,
+     20.403299
+    ],
+    "50": [
+     44.8168146768154,
+     20.4699406027794
+    ],
+    "51": [
+     44.805925,
+     20.398811
+    ],
+    "56": [
+     44.870226,
+     20.648069
+    ],
+    "57": [
+     44.8586504491852,
+     20.6491014361382
+    ],
+    "60": [
+     44.765339,
+     20.619412
+    ],
+    "61": [
+     44.777237,
+     20.457029
+    ],
+    "64": [
+     44.740492,
+     20.485642
+    ],
+    "80": [
+     44.788646,
+     20.444507
+    ],
+    "81": [
+     44.796427,
+     20.486154
+    ],
+    "82": [
+     44.815028,
+     20.3779
+    ],
+    "83": [
+     44.777284,
+     20.409701
+    ],
+    "84": [
+     44.791445,
+     20.425578
+    ],
+    "85": [
+     44.7924,
+     20.272734
+    ],
+    "86": [
+     44.849212,
+     20.377266
+    ],
+    "87": [
+     44.873952,
+     20.446585
+    ],
+    "88": [
+     44.794262,
+     20.463173
+    ],
+    "89": [
+     44.728534,
+     20.580721
+    ],
+    "90": [
+     44.776953,
+     20.535435
+    ],
+    "92": [
+     44.790166,
+     20.4169
+    ],
+    "95": [
+     44.754935,
+     20.463871
+    ],
+    "96": [
+     44.789792,
+     20.538598
+    ],
+    "97": [
+     44.811892,
+     20.450132
+    ],
+    "98": [
+     44.782294,
+     20.479144
+    ]
+   }
+  },
+  {
+   "sid": "S04",
+   "name": "Sensor.Community citizen sensors within 25 km of Belgrade centre",
+   "url": "https://data.sensor.community/airrohr/v1/filter/area=44.82,20.46,25",
+   "parser": "sensor_community",
+   "ext": "json",
+   "cadence_seconds": 600,
+   "timeout_seconds": 60,
+   "max_bytes": 5000000,
+   "phenomenon_time_published": "yes - timestamp (UTC) per record; latest five-minute window only",
+   "enabled": true
+  },
+  {
+   "sid": "S10",
+   "name": "Parking servis - displayed free spaces per lot",
+   "url": "https://www.parking-servis.co.rs/lat/garaze-i-parkiralista",
+   "parser": "parking",
+   "ext": "html",
+   "cadence_seconds": 900,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - value known, time unknown (the fifth state); receivedTime only",
+   "enabled": true
+  },
+  {
+   "sid": "S68",
+   "name": "Tanjug - Belgrade branch RSS",
+   "url": "https://www.tanjug.rs/rss/beograd",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": true
+  },
+  {
+   "sid": "S69",
+   "name": "Danas RSS",
+   "url": "https://www.danas.rs/feed/",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": true
+  },
+  {
+   "sid": "S75",
+   "name": "Studio B RSS",
+   "url": "https://studiob.rs/feed/",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": true
+  },
+  {
+   "sid": "S76",
+   "name": "Beta agency RSS",
+   "url": "https://beta.rs/rss",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": true
+  },
+  {
+   "sid": "S78",
+   "name": "Danubeogradu RSS",
+   "url": "https://www.danubeogradu.rs/feed/",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": true
+  },
+  {
+   "sid": "S74",
+   "name": "Gradnja.rs RSS",
+   "url": "https://www.gradnja.rs/feed/",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": true
+  },
+  {
+   "sid": "S70",
+   "name": "Kurir RSS",
+   "url": "https://www.kurir.rs/rss",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": false,
+   "why_disabled": "high-volume national tabloid feed; enable after a Belgrade filter exists in the organ"
+  },
+  {
+   "sid": "S71",
+   "name": "Telegraf RSS",
+   "url": "https://www.telegraf.rs/rss",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": false,
+   "why_disabled": "high-volume national tabloid feed; enable after a Belgrade filter exists in the organ"
+  },
+  {
+   "sid": "S72",
+   "name": "Informer RSS",
+   "url": "https://informer.rs/rss/najnovije-vesti",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": false,
+   "why_disabled": "high-volume national tabloid feed; enable after a Belgrade filter exists in the organ"
+  },
+  {
+   "sid": "S11",
+   "name": "BVK - JKP Beogradski vodovod i kanalizacija RSS",
+   "url": "https://www.bvk.rs/feed/",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "official materials of a body exercising public function - Copyright Act Art. 6(2), outside copyright; still only headline, link and pubDate are kept, by the same collector rule",
+   "enabled": true,
+   "why": "the water utility's own notices: outages, works, deratisation per street",
+   "added": "news audit 2026-09-09 (07-legal/NEWS_AUDIT_2026-09-09.md); permission capture of the same day in the ledger"
+  },
+  {
+   "sid": "S175",
+   "name": "Beogradske elektrane RSS (works, daily system status)",
+   "url": "https://www.beoelektrane.co.rs/feed/",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "official materials of a body exercising public function - Copyright Act Art. 6(2), outside copyright; still only headline, link and pubDate are kept, by the same collector rule",
+   "enabled": true,
+   "why": "the heating operator's works and its daily 'Stanje sistema' line",
+   "added": "news audit 2026-09-09 (07-legal/NEWS_AUDIT_2026-09-09.md); permission capture of the same day in the ledger"
+  },
+  {
+   "sid": "S195",
+   "name": "RTS - Vesti RSS (public broadcaster)",
+   "url": "https://www.rts.rs/vesti/rss.html",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": true,
+   "why": "the public broadcaster's wire; Cyrillic titles kept as served",
+   "added": "news audit 2026-09-09 (07-legal/NEWS_AUDIT_2026-09-09.md); permission capture of the same day in the ledger"
+  },
+  {
+   "sid": "S196",
+   "name": "Vecernje novosti - Beograd RSS",
+   "url": "https://www.novosti.rs/rss/beograd",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": true,
+   "why": "a Belgrade-only feed of a national daily; government-aligned - service content",
+   "added": "news audit 2026-09-09 (07-legal/NEWS_AUDIT_2026-09-09.md); permission capture of the same day in the ledger"
+  },
+  {
+   "sid": "S197",
+   "name": "Euronews Srbija - Srbija RSS",
+   "url": "https://www.euronews.rs/rss/srbija",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": true,
+   "why": "high-volume general feed with frequent Belgrade items",
+   "added": "news audit 2026-09-09 (07-legal/NEWS_AUDIT_2026-09-09.md); permission capture of the same day in the ledger"
+  },
+  {
+   "sid": "S198",
+   "name": "B92 - najnovije RSS",
+   "url": "https://www.b92.net/info/rss/",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": true,
+   "why": "fast general feed; service content",
+   "added": "news audit 2026-09-09 (07-legal/NEWS_AUDIT_2026-09-09.md); permission capture of the same day in the ledger"
+  },
+  {
+   "sid": "S199",
+   "name": "CINS RSS",
+   "url": "https://www.cins.rs/feed/",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 3600,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": true,
+   "why": "investigative cadence",
+   "added": "news audit 2026-09-09 (07-legal/NEWS_AUDIT_2026-09-09.md); permission capture of the same day in the ledger"
+  },
+  {
+   "sid": "S200",
+   "name": "Cenzolovka RSS",
+   "url": "https://www.cenzolovka.rs/feed/",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 3600,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": true,
+   "why": "media-freedom watchdog; split from S77",
+   "added": "news audit 2026-09-09 (07-legal/NEWS_AUDIT_2026-09-09.md); permission capture of the same day in the ledger"
+  },
+  {
+   "sid": "S201",
+   "name": "Masina RSS",
+   "url": "https://www.masina.rs/feed/",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 3600,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": true,
+   "why": "labour and social reporting; split from S77",
+   "added": "news audit 2026-09-09 (07-legal/NEWS_AUDIT_2026-09-09.md); permission capture of the same day in the ledger"
+  },
+  {
+   "sid": "S202",
+   "name": "Istinomer RSS",
+   "url": "https://www.istinomer.rs/feed/",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 3600,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "headline (<=200 chars), link and pubDate only; body never stored; raw not retained (07-legal, Art. 49 short quotation; no TDM exception in Serbia)",
+   "enabled": true,
+   "why": "fact-checking of public statements",
+   "added": "news audit 2026-09-09 (07-legal/NEWS_AUDIT_2026-09-09.md); permission capture of the same day in the ledger"
+  },
+  {
+   "sid": "S203",
+   "name": "Vlada Republike Srbije - vesti RSS",
+   "url": "https://www.srbija.gov.rs/rss/?change_lang=cr",
+   "parser": "rss",
+   "ext": "xml",
+   "store_raw": false,
+   "cadence_seconds": 3600,
+   "timeout_seconds": 45,
+   "max_bytes": 3000000,
+   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
+   "legal": "official materials of a body exercising public function - Copyright Act Art. 6(2), outside copyright; still only headline, link and pubDate are kept, by the same collector rule",
+   "enabled": true,
+   "why": "national official materials; the sorter filters for Belgrade",
+   "added": "news audit 2026-09-09 (07-legal/NEWS_AUDIT_2026-09-09.md); permission capture of the same day in the ledger"
+  }
+ ]
 }

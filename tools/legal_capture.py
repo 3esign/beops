@@ -473,6 +473,37 @@ def capture(sid: str, name: str, urls: list[str], terms: list[str], note: str, d
     return entry
 
 
+def recheck_collectors(dry: bool = False) -> int:
+    """One capture per polled source. The collector's own gate reads the NEWEST ledger line for a
+    source, so a refusal measured here stops the polling at the next tick without any other change."""
+    cfg_path = os.path.join(ROOT, "research", "COLLECTORS.json")
+    with open(cfg_path, encoding="utf-8") as fh:
+        cfg = json.load(fh)
+    reg = _registry()
+    changed = 0
+    for src in cfg.get("sources", []):
+        sid = src.get("sid")
+        if not sid or sid not in reg:
+            print(f"{sid}: not in the registry - skipped")
+            continue
+        url = src.get("url") or ""
+        if "{" in url:   # a templated collector URL: capture the registry URL instead
+            url = reg[sid].get("url") or url.split("{")[0]
+        name = reg[sid].get("name") or src.get("name") or sid
+        try:
+            e = capture(sid, name, [url], [], "weekly re-check of a polled source", dry)
+        except Exception as ex:  # noqa: BLE001
+            print(f"{sid}: capture failed: {type(ex).__name__}: {str(ex)[:120]}")
+            continue
+        flag = "" if e.get("allowed_for_us") else "  <-- NOT PERMITTED NOW: the collector stops this source at its next tick"
+        if flag:
+            changed += 1
+        print(f"{sid} {name[:40]!r}: capture_ok={e.get('capture_ok')} allowed={e.get('allowed_for_us')} "
+              f"signals={json.dumps(e.get('opt_out_signals_seen') or {}, ensure_ascii=False)[:120]}{flag}")
+    print(f"re-checked {len(cfg.get('sources', []))} polled sources; {changed} no longer permitted")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--sid", required=True, help="source id in SOURCE_REGISTRY.json, e.g. S134")
@@ -492,7 +523,13 @@ def main() -> int:
     ap.add_argument("--needs-decision", metavar="REASON",
                     help="force the verdict to UNKNOWN pending a human decision, with the reason "
                          "recorded. For genuine edge cases - see 08-provenance/EDGE_CASES.md.")
+    ap.add_argument("--recheck-collectors", action="store_true",
+                    help="re-capture every source the collector polls (research/COLLECTORS.json), so that a "
+                         "permission captured once is measured again - a robots.txt or a Content-Signal "
+                         "can change any day (scheduled weekly as Beops_Legal)")
     a = ap.parse_args()
+    if a.recheck_collectors:
+        return recheck_collectors(a.dry_run)
     if not a.url:
         print("at least one --url is required", file=sys.stderr)
         return 2

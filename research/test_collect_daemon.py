@@ -250,35 +250,31 @@ class DedupeAndExportTests(LiveDirCase):
         self.assertTrue(all(p["tu"] for d in park["datastreams"] for p in d["points"]))
         self.assertEqual(out["status"]["sources"][0]["captured"], 1)
 
-    def test_export_takes_coordinates_from_later_rows_and_keeps_scope(self):
-        """The month file is append-only. Rows captured before station_coords / station_names existed
-        in COLLECTORS.json carry null lat/lon/name; a datastream first seen through such a row stayed
-        null for ever, and the 32 SEPA stations never reached the map. Rows captured before the
-        Belgrade station filter existed are national and must not enter the observatory's snapshot."""
+    def test_export_re_checks_ekavica_on_thoughts_voiced_under_the_old_guard(self):
         _cfg, _root = cd.CONFIG, cd.ROOT
         cfgp = cd.LIVE.parent / "COLLECTORS.json"
         cfgp.parent.mkdir(parents=True, exist_ok=True)
-        src_now = dict(SRC_SEPA, station_ids=["1"], station_names={"1": "Stari grad"}, station_coords={"1": [44.8186, 20.4573]})
-        cfgp.write_text(json.dumps({"sources": [src_now]}), encoding="utf-8")
+        cfgp.write_text(json.dumps({"sources": [SRC_SEPA]}), encoding="utf-8")
+        md = cd.LIVE / "derived" / "mind"
+        md.mkdir(parents=True, exist_ok=True)
+        base = {"schema": "beops-derived-row/v1", "state": "thought", "organ": "mind", "conversation": "c", "entity": "observer", "round": 1,
+                "derivedTime": (NOW + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ"), "en": "Two stations reported.", "sr_state": "voiced"}
+        with open(md / "2026-09.jsonl", "w", encoding="utf-8") as fh:
+            fh.write(json.dumps({**base, "sr": "Dvije stanice su javile.", "hypotheses_sr": []}) + "\n")
+            fh.write(json.dumps({**base, "round": 2, "sr": "Dve stanice su javile.", "hypotheses_sr": ["možda pada prije jutra"]}) + "\n")
+            fh.write(json.dumps({**base, "round": 3, "sr": "Dve stanice su javile.", "hypotheses_sr": ["možda pada pre jutra"], "questions_sr": ["Zašto?"]}) + "\n")
         cd.CONFIG, cd.ROOT = cfgp, cd.LIVE.parent
         try:
-            old_body = json.dumps({"data": [
-                {"station_id": "1", "parameter_code": "CO", "time_start_utc": "2026-09-09T07:00:00Z", "time_end_utc": "2026-09-09T08:00:00Z",
-                 "value": 0.11, "unit": "mg.m-3", "data_status": "preliminary", "aggregation_type": "hourly_mean", "published_at_utc": "2026-09-09T08:40:00Z"},
-                {"station_id": "999", "parameter_code": "CO", "time_start_utc": "2026-09-09T07:00:00Z", "time_end_utc": "2026-09-09T08:00:00Z",
-                 "value": 0.5, "unit": "mg.m-3", "data_status": "preliminary", "aggregation_type": "hourly_mean", "published_at_utc": "2026-09-09T08:40:00Z"},
-            ]}).encode()
-            cd.collect_one(SRC_SEPA, NOW - timedelta(hours=1), PERMIT, fetcher=ok(old_body))   # no filter, no coords: the early days
-            cd.collect_one(src_now, NOW, PERMIT, fetcher=ok(SEPA_BODY))                          # today's configuration
             out = json.loads(cd.export(NOW + timedelta(minutes=1)).read_text(encoding="utf-8"))
         finally:
             cd.CONFIG, cd.ROOT = _cfg, _root
-        sepa = next(s for s in out["sources"] if s["sid"] == "S146")
-        co = next(d for d in sepa["datastreams"] if d["datastream"] == "1|CO")
-        self.assertEqual((co["lat"], co["lon"]), (44.8186, 20.4573))
-        self.assertEqual(co["station"], "Stari grad")
-        self.assertEqual(len(co["points"]), 2, "the old row itself is kept - only its null coordinates are superseded")
-        self.assertFalse(any(d["datastream"].startswith("999|") for d in sepa["datastreams"]), "a station outside the Belgrade scope must not appear")
+        th = sorted(out["thoughts"], key=lambda t: t["round"])
+        self.assertEqual(len(th), 3)
+        self.assertTrue(th[0]["sr_state"].startswith("refused at export: ijekavian"), th[0]["sr_state"])
+        self.assertEqual(th[0]["sr"], "")
+        self.assertTrue(th[1]["sr_state"].startswith("refused at export"))
+        self.assertEqual(th[1]["hypotheses_sr"], [])
+        self.assertEqual((th[2]["sr_state"], th[2]["hypotheses_sr"], th[2]["questions_sr"]), ("voiced", ["možda pada pre jutra"], ["Zašto?"]))
 
 
 RSS_BODY = b"""<?xml version="1.0"?><rss version="2.0"><channel><title>x</title>

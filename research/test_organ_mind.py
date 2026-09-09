@@ -176,6 +176,53 @@ class ValidatorTests(unittest.TestCase):
         ok, why = om.validate_voice("Vrijednosti su se promijenile [F1].", "Values changed [F1].", self.dg)
         self.assertTrue(any("ijekavian" in r for r in why))
 
+    def test_ekavica_guard_catches_ijekavian_and_croatian_and_spares_ekavian(self):
+        bad = ["Vrijeme je lijepo.", "Provjerio sam mjesto i vrijednost.", "Gdje je stanica? Ovdje.", "Sljedeći tjedan, u ponedjeljak.",
+               "Dvije stanice su promijenile vrijednost.", "Riječ je o mjerenju.", "Kvalitet zraka: utjecaj prometa, vjerojatno.",
+               "U posljednjih sat vremena", "Tisuću ljudi", "obje stanice", "Prosjek je 12", "Primjer:", "u ljeto", "sugerira viši utjecaj"]
+        for b in bad:
+            self.assertTrue(om.ijekavian_hits(b), b)
+        good = ["Vreme je lepo, proverio sam mesto i vrednost.", "Grad Beograd, Republika Srbije, linije 16 i 95, informacije o prijemu.",
+                "Objekat na pijaci, dijeta, hijerarhija i orijentacija.", "Odjednom su se Sjedinjene Države javile.",
+                "Gradjevina medju zgradama, izmedju.", "Kolovoz je mokar, travnjak zelen.", "Odjek, prijem, prijava, prijatelj, subjekat, objektivno.",
+                "Sledeće nedelje u ponedeljak; u poslednjih sat vremena, uvek.", "Deca i susedi; svet je mali; osećam; zamenio; primer.",
+                "Voljen, želje, bolje, polje, poljem", "Stanica Vračar javila 44 µg/m³ PM10 [F3][F5]", "Mesec, mesečno, mešavina, smeša",
+                "Ne verujem, Srbije, avenije, serije, bijenale, pijenje", "jednom, jesen, jezik, ujedno, podjednako, najednom, nije, nijedan, sjaj, sjediniti"]
+        for g in good:
+            self.assertEqual(om.ijekavian_hits(g), [], g)
+        # the guard is applied to the hypotheses and questions too, and their count must match
+        en = "Two stations [F1] reported, the highest at 41."
+        ok, why = om.validate_voice("Dve stanice [F1] su javile, najviše 41.", en, self.dg, ["možda pada prije jutra"], [], 1, 0)
+        self.assertTrue(any("ijekavian hypothesis" in r for r in why), why)
+        ok2, why2 = om.validate_voice("Dve stanice [F1] su javile, najviše 41.", en, self.dg, [], ["Zašto?"], 2, 1)
+        self.assertTrue(any("hypothesis count" in r for r in why2), why2)
+        self.assertEqual(om.validate_voice("Dve stanice [F1] su javile, najviše 41.", en, self.dg, ["možda pada pre jutra"], ["Zašto ćuti?"], 1, 1), (True, []))
+
+    def test_voice_retries_once_with_the_refusal_read_back_and_shows_nothing_when_it_still_fails(self):
+        calls = []
+        def chat(model, prompt, schema=None, num_predict=1000, temperature=0.5):
+            calls.append(prompt)
+            if len(calls) == 1:
+                return {"sr": "Dvije stanice su javile, najviše 41.", "hypotheses": [], "questions": []}
+            return {"sr": "Dve stanice su javile, najviše 41.", "hypotheses": [], "questions": []}
+        row = {"hypotheses": [], "questions": []}
+        om.voice(row, "Two stations [F1] reported, the highest at 41.", self.dg, "fake-voice", chat)
+        self.assertEqual((row["sr_state"], row["voice_attempts"]), ("voiced", 2))
+        self.assertTrue(row["sr"].endswith("[F1]"))
+        self.assertIn("Prethodni pokušaj je odbijen", calls[1])
+        self.assertIn("dvije", calls[1])
+        calls.clear()
+        def stubborn(model, prompt, schema=None, num_predict=1000, temperature=0.5):
+            calls.append(prompt)
+            return {"sr": "Dvije stanice su javile, najviše 41.", "hypotheses": ["vjerojatno pada"], "questions": []}
+        row2 = {"hypotheses": ["probably falls"], "questions": []}
+        om.voice(row2, "Two stations [F1] reported, the highest at 41.", self.dg, "fake-voice", stubborn)
+        self.assertTrue(row2["sr_state"].startswith("refused: ijekavian"), row2["sr_state"])
+        self.assertEqual((row2["sr"], row2["hypotheses_sr"], row2["voice_attempts"], len(calls)), ("", [], 2, 2))
+        row3 = {"hypotheses": [], "questions": []}
+        om.voice(row3, "Two stations [F1] reported.", self.dg, None, stubborn)
+        self.assertEqual(row3["sr_state"], "no voice model")
+
     def test_voice_must_be_faithful_and_serbian(self):
         en = "Two stations [F1] reported, the highest at 41."
         self.assertEqual(om.validate_voice("Dve stanice [F1] su javile, najviše 41.", en, self.dg), (True, []))
@@ -191,12 +238,16 @@ def fake_chat_factory(log: list):
     """Entities answer in English; the voice call renders Serbian; the ranker rates."""
     def chat(model, prompt, schema=None, num_predict=1000, temperature=0.5):
         if prompt.startswith("Prevedi ovu misao"):
-            text = prompt.split("Misao: ", 1)[1].split("\n\nOdgovori", 1)[0]
-            sr = text.replace("Two stations", "Dve stanice").replace("reported", "su javile").replace("the highest at", "najviše").replace("Kurir is silent", "Kurir ćuti") \
-                     .replace("Parking publishes no measurement time", "Parking ne objavljuje vreme merenja").replace("that is a reception, not a measurement", "to je prijem, ne merenje") \
-                     .replace("The Skeptic is right", "Sumnjalo je u pravu").replace("PM10 up to", "PM10 do").replace("may follow traffic", "možda prati saobraćaj").replace("across", "u")
+            text = prompt.split("Misao: ", 1)[1].split("\nPretpostavke:", 1)[0]
+            hyps = json.loads(prompt.split("Pretpostavke: ", 1)[1].split("\nPitanja:", 1)[0])
+            qs = json.loads(prompt.split("Pitanja: ", 1)[1].split("\n\nOdgovori", 1)[0])
+            def sr_of(t):
+                return t.replace("Two stations", "Dve stanice").replace("reported", "su javile").replace("the highest at", "najviše").replace("Kurir is silent", "Kurir ćuti") \
+                        .replace("Parking publishes no measurement time", "Parking ne objavljuje vreme merenja").replace("that is a reception, not a measurement", "to je prijem, ne merenje") \
+                        .replace("The Skeptic is right", "Sumnjalo je u pravu").replace("PM10 up to", "PM10 do").replace("may follow traffic", "možda prati saobraćaj").replace("across", "u") \
+                        .replace("maybe it falls by morning", "možda padne do jutra").replace("Why is Kurir silent?", "Zašto Kurir ćuti?")
             log.append(("voice", False, False, prompt))
-            return {"sr": sr}
+            return {"sr": sr_of(text), "hypotheses": [sr_of(h) for h in hyps], "questions": [sr_of(q) for q in qs]}
         if prompt.startswith("You rate connections"):
             log.append(("ranker", False, False, prompt))
             return {"ratings": []}

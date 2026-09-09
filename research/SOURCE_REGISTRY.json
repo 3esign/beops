@@ -1,8 +1,8 @@
 {
  "schema": "beops-source-research/v1",
- "reviewed_at": "2026-09-06",
+ "reviewed_at": "2026-09-09",
  "scope": "Belgrade; global sources are filtered or contextual, not other-city substitution",
- "review_note": "Current-products continuation2026-09-06:189 source records after S192;12 product-scoped legal reviews. Records are not device/feed counts; coverage gaps and access limits remain visible. 2026-09-08: S193 added (GeoSrbija OGC host) for the base map; 190 records. S193 measured 401 (account_required); S194 Nominatim added for the base map; 191 records. S194 refused by robots.txt (opted_out); base map via S126 ohsome. S126 extraction route measured 403 (blocked).",
+ "review_note": "Current-products continuation2026-09-06:189 source records after S192;12 product-scoped legal reviews. Records are not device/feed counts; coverage gaps and access limits remain visible. 2026-09-08: S193 added (GeoSrbija OGC host) for the base map; 190 records. S193 measured 401 (account_required); S194 Nominatim added for the base map; 191 records. S194 refused by robots.txt (opted_out); base map via S126 ohsome. S126 extraction route measured 403 (blocked). 2026-09-09 news audit: S68 corrected (private publisher), S77 split, S74 X-Robots-Tag decision recorded, S15/S11/S175 extended with official routes, S195-S206 added (RTS, Novosti-Beograd, Euronews Srbija, B92, CINS, Cenzolovka, Masina, Istinomer, Vlada RS, MUP refused, Nova.rs, Putevi Srbije); 203 records.",
  "status_legend": {
   "probe_ok": "bounded direct response and reconnaissance parsing succeeded; not a production or accuracy verdict",
   "probe_tls_failed": "local verified-TLS request failed; no certificate bypass",
@@ -158,7 +158,9 @@
    "rhythm": "event-driven/daily",
    "access": "public HTML",
    "reuse": "check allowed metadata/derived-fact publication",
-   "next": "Extract street segments, start/end intervals, revisions and cancellation; do not infer actual outage or restoration."
+   "next": "Extract street segments, start/end intervals, revisions and cancellation; do not infer actual outage or restoration.",
+   "news_audit_2026_09_09": "BVK publishes an RSS feed (https://www.bvk.rs/feed/, robots.txt clean, sitemap.rss declared): outages, works, deratisation, per settlement and street, ~10 items, newest 2026-09-05. A public utility's service notices are official materials of a body exercising public function (Art. 6(2)). Captured under this id 2026-09-09; enabled as a headline stream.",
+   "measured_2026_09_09": "bvk.rs/feed/ captured with --allow-shared-host (S63/S175 share the host): allowed, 200; the feed answers X-Robots-Tag: noindex, follow - the E-011 decision applies (recorded, permitted)"
   },
   {
    "id": "S12",
@@ -207,7 +209,10 @@
    "rhythm": "event-driven",
    "access": "public HTML",
    "reuse": "not verified",
-   "next": "Sample changed routes/stops and link notice facts to the static GTFS graph with uncertainty."
+   "next": "Sample changed routes/stops and link notice facts to the static GTFS graph with uncertainty.",
+   "news_audit_2026_09_09": "beograd.rs is the City's own portal: its news (Beoinfo vesti, /lat/beoinfo-vesti) and service notices (/lat/servisne-informacije) are official materials of a body exercising public function - Copyright Act Art. 6(2), not copyright works. Terms (/lat/uslovi-koriscenja, read 2026-09-09): source documents may be downloaded without restriction with attribution and a link to www.beograd.rs; the design, logos, photographs and content carried from other sources are excluded. robots.txt DISALLOWS /feed/ (so the RSS route is refused) and permits the listing pages. Route for v1: poll the listing pages, keep title + link + date. Needs an HTML listing parser (not RSS). Political framing of the Beoinfo stream is real; service notices are the value.",
+   "documentation": "https://www.beograd.rs/lat/uslovi-koriscenja",
+   "measured_2026_09_09": "captured with --allow-shared-host (S31/S64 share the portal host): listing pages 200, terms captured; the /feed/ route is disallowed in the stored robots.txt and stays refused"
   },
   {
    "id": "S16",
@@ -878,9 +883,11 @@
    "kind": "news_feed",
    "rhythm": "several per day; newest item 2026-09-05T09:01+0200 at fetch",
    "access": "open RSS 2.0, no key, clean robots.txt",
-   "reuse": "state agency; no reuse statement found",
+   "reuse": "private publisher (Tacno d.o.o.); 'all rights reserved'; no reuse statement found; headline+link only (corrected 2026-09-09, see news_audit_2026_09_09)",
    "next": "Best single feed found: pre-filtered Belgrade wire. Carried the 10K transport-regime change the day BEFORE the race. State-owned - weight political framing, administrative notices are low risk.",
-   "measurement_time": "yes - pubDate"
+   "measurement_time": "yes - pubDate",
+   "news_audit_2026_09_09": "CORRECTION: not a state agency. The impressum (tanjug.rs/stranice/9/impresum, read 2026-09-09) names the publisher as Tacno d.o.o., Decanska 12/7, Beograd - a private company operating the Tanjug brand since the state agency was wound up (2021). Footer: 'Sva prava zadrzana - Tanjug (c) 2015-2026'; no reuse statement, no automated-access clause found. Editorial alignment with the government is documented by media research; the earlier note 'state-owned' is replaced by 'private, government-aligned'. Headline + link + pubDate only, as before.",
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
   },
   {
    "id": "S69",
@@ -893,7 +900,9 @@
    "access": "open RSS, clean robots",
    "reuse": "no reuse statement",
    "next": "OWNERSHIP UNDER CHANGE: part of United Group / Adria News Network, being sold to Alpac Capital as of Aug 2026 with the European Board for Media Services reviewing for concentration. Editorial independence is now an open question, not an assumption.",
-   "measurement_time": "yes"
+   "measurement_time": "yes",
+   "news_audit_2026_09_09": "Ownership change (Adria News / Alpac Capital) still in review; re-captured 2026-09-09 from the PC. No reuse statement; headline+link only.",
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
   },
   {
    "id": "S70",
@@ -906,7 +915,9 @@
    "access": "open at /rss; robots disallows /feed/ but NOT /rss",
    "reuse": "no statement",
    "next": "Government-aligned per documented media research; use for service content (traffic, weather, incidents), not politics.",
-   "measurement_time": "yes"
+   "measurement_time": "yes",
+   "news_audit_2026_09_09": "Registered and captured, NOT polled (COLLECTORS.json enabled=false): government-aligned tabloid; v1 does not need three of them for service content when Tanjug, Studio B, Beta and Novosti-Beograd carry it. Kept as a captured option, not a stream.",
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
   },
   {
    "id": "S71",
@@ -919,7 +930,9 @@
    "access": "open, clean robots",
    "reuse": "no statement",
    "next": "ISO 8601 timestamps.",
-   "measurement_time": "yes"
+   "measurement_time": "yes",
+   "news_audit_2026_09_09": "Registered and captured, NOT polled (COLLECTORS.json enabled=false): government-aligned tabloid; v1 does not need three of them for service content when Tanjug, Studio B, Beta and Novosti-Beograd carry it. Kept as a captured option, not a stream.",
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
   },
   {
    "id": "S72",
@@ -932,7 +945,9 @@
    "access": "open, empty Disallow",
    "reuse": "no statement",
    "next": "Government-aligned; service content only.",
-   "measurement_time": "yes"
+   "measurement_time": "yes",
+   "news_audit_2026_09_09": "Registered and captured, NOT polled (COLLECTORS.json enabled=false): government-aligned tabloid; v1 does not need three of them for service content when Tanjug, Studio B, Beta and Novosti-Beograd carry it. Kept as a captured option, not a stream.",
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
   },
   {
    "id": "S73",
@@ -945,7 +960,9 @@
    "access": "Google-News XML sitemap; no working RSS (feed redirect-loops)",
    "reuse": "no statement",
    "next": "Same Alpac Capital sale as S69. Title and URL only, no summary.",
-   "measurement_time": "yes - news:publication_date"
+   "measurement_time": "yes - news:publication_date",
+   "news_audit_2026_09_09": "A Google-News sitemap is a crawl aid addressed to search engines; robots.txt permits it for every agent and we take only title, link and publication date. Recorded as an edge case (08-provenance/EDGE_CASES.md). Not polled in v1 (no summary field needed; Danas of the same group is).",
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
   },
   {
    "id": "S74",
@@ -958,7 +975,9 @@
    "access": "open, clean",
    "reuse": "no statement",
    "next": "Construction and infrastructure - a direct sense of the city changing physically, and apolitical.",
-   "measurement_time": "yes"
+   "measurement_time": "yes",
+   "news_audit_2026_09_09": "The feed answers with X-Robots-Tag: noindex, follow. Decision: 'noindex' addresses search-engine indexing of the feed document; BEOPS neither indexes nor republishes the feed, it keeps a headline, the link and the time and links back to the article - 'follow' is exactly that. Recorded as a decision, not as a permission; revisited if the publisher adds an AI signal. Verdict stays permitted.",
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal (X-Robots-Tag noindex, follow unchanged)"
   },
   {
    "id": "S75",
@@ -971,7 +990,8 @@
    "access": "open, clean",
    "reuse": "no statement",
    "next": "City operations: station closures, transit detours. Municipally linked - reliable for did-this-happen, weak for scrutiny of the administration.",
-   "measurement_time": "yes"
+   "measurement_time": "yes",
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
   },
   {
    "id": "S76",
@@ -984,12 +1004,14 @@
    "access": "open; commercial reuse needs a paid subscription",
    "reuse": "teaser slice of a paid wire",
    "next": "Most editorially neutral verified feed; good as a cross-check baseline.",
-   "measurement_time": "yes"
+   "measurement_time": "yes",
+   "news_audit_2026_09_09": "Beta Press d.o.o.; the public RSS is the free teaser of a paid wire and BEOPS is non-commercial research - fine for v1; a product would need Beta's licence. Footer '(c) 1994-2026 Beta Press d.o.o.', no reuse statement on the site.",
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
   },
   {
    "id": "S77",
    "theme": "media",
-   "name": "KRIK + Cenzolovka + Masina RSS",
+   "name": "KRIK RSS",
    "url": "https://www.krik.rs/feed/",
    "status": "probe_ok",
    "kind": "news_feed",
@@ -997,7 +1019,9 @@
    "access": "open, clean",
    "reuse": "no statement",
    "next": "Where city-is-about-to-be-harmed stories surface first: illegal construction legalisations, land-deal irregularities.",
-   "measurement_time": "yes"
+   "measurement_time": "yes",
+   "news_audit_2026_09_09": "CORRECTION: this record named three outlets (KRIK, Cenzolovka, Masina) but carries one host and one capture (krik.rs). Split: S77 is KRIK only; Cenzolovka is S200, Masina is S201, each with its own capture.",
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
   },
   {
    "id": "S78",
@@ -1010,7 +1034,8 @@
    "access": "open, clean",
    "reuse": "no statement",
    "next": "Explicitly forward-looking: weekend listings, markets, weather. Service journalism, low editorial risk.",
-   "measurement_time": "yes"
+   "measurement_time": "yes",
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
   },
   {
    "id": "S79",
@@ -1023,7 +1048,9 @@
    "access": "open, minimal robots",
    "reuse": "no statement",
    "next": "THE ONLY ONE of Belgrade's 17 municipalities with a working feed. Ten more were checked and confirmed to have none; five were unreachable.",
-   "measurement_time": "yes"
+   "measurement_time": "yes",
+   "news_audit_2026_09_09": "Municipal news feed - official materials of a body exercising public function (Copyright Act Art. 6(2)); the only municipal feed found. Not polled in v1; candidate for the official-materials layer together with S15/S81.",
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
   },
   {
    "id": "S80",
@@ -2393,7 +2420,9 @@
    "spatial_binding": "planned works and outages -> street/address",
    "spatial_resolution": "street",
    "spatial_join_key": "address -> S150",
-   "next": "Planned works and outage notices are semi-live spatial data: where the city is dug up, and when. Check each utility for a works or outage page with a date. zelenilo.rs stays untouched until its robots.txt can be read."
+   "next": "Planned works and outage notices are semi-live spatial data: where the city is dug up, and when. Check each utility for a works or outage page with a date. zelenilo.rs stays untouched until its robots.txt can be read.",
+   "news_audit_2026_09_09": "Beogradske elektrane publish an RSS feed (https://www.beoelektrane.co.rs/feed/, robots.txt clean): 'Radovi na toplovodnoj mreži', a daily 'Stanje sistema' (system status: NEMA POREMEĆAJA on 2026-09-09) and outage reports. The daily status line is the closest thing to an instrument the heating operator publishes. Captured under this id 2026-09-09; enabled as a headline stream (the legal_review above applies: attributed facts, no telemetry).",
+   "measured_2026_09_09": "beoelektrane.co.rs/feed/ captured under this id: allowed, 200"
   },
   {
    "id": "S176",
@@ -2911,6 +2940,189 @@
    "spatial_binding": "polygon",
    "spatial_resolution": "administrative unit (17 city municipalities)",
    "next": "base map comes from S126 ohsome API instead"
+  },
+  {
+   "id": "S195",
+   "theme": "media",
+   "name": "RTS - Vesti RSS (public broadcaster)",
+   "url": "https://www.rts.rs/vesti/rss.html",
+   "status": "probe_ok",
+   "kind": "news_feed",
+   "rhythm": "continuous, sub-hourly",
+   "access": "robots.txt: only /*.its4test and /admin/ disallowed, no AI-bot names; feed RSS 2.0, 20 items, Cyrillic titles, descriptions present (not kept), newest 2026-09-09T11:21+0200",
+   "reuse": "public media service (Zakon o javnim medijskim servisima) - a copyright holder, not a state body; no reuse statement found; headline+link only",
+   "next": "The public broadcaster's wire; Cyrillic headlines - the embedding organelle is multilingual, the digest keeps the script as served. Enable at 30 min.",
+   "measurement_time": "yes - pubDate",
+   "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
+   "documentation": "https://www.rts.rs/page/stories/sr/rss.html",
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+  },
+  {
+   "id": "S196",
+   "theme": "media",
+   "name": "Vecernje novosti - Beograd RSS",
+   "url": "https://www.novosti.rs/rss/beograd",
+   "status": "probe_ok",
+   "kind": "news_feed",
+   "rhythm": "multiple per hour",
+   "access": "robots.txt: /dopisno/ only; feed RSS 2.0 'Novosti.rs RSS - Beograd', ~100 items, all Belgrade, descriptions present (not kept), newest 2026-09-09T11:28+0200",
+   "reuse": "no reuse statement found; government-aligned per documented media research - service content, not politics; headline+link only",
+   "next": "The only Belgrade-only feed of a national daily besides Tanjug's branch wire: schools, transport, works, municipal notices. Enable at 30 min.",
+   "measurement_time": "yes - pubDate",
+   "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
+   "documentation": "https://www.novosti.rs/rss",
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+  },
+  {
+   "id": "S197",
+   "theme": "media",
+   "name": "Euronews Srbija - Srbija RSS",
+   "url": "https://www.euronews.rs/rss/srbija",
+   "status": "probe_ok",
+   "kind": "news_feed",
+   "rhythm": "multiple per hour",
+   "access": "robots.txt: 'Allow: /' only; RSS index at /rss; feed ~100 items, descriptions present (not kept), newest 2026-09-09T11:23+0200; footer 'Copyright (c) euronews 2021-2026'",
+   "reuse": "no reuse statement found; franchise of Euronews operated by a Serbian licensee - ownership to record; headline+link only",
+   "next": "High-volume general feed with frequent Belgrade items. Enable at 30 min; weight as a fourth commercial outlet, not as a second agency.",
+   "measurement_time": "yes - pubDate",
+   "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
+   "documentation": "https://www.euronews.rs/rss",
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+  },
+  {
+   "id": "S198",
+   "theme": "media",
+   "name": "B92 - najnovije RSS",
+   "url": "https://www.b92.net/info/rss/",
+   "status": "probe_ok",
+   "kind": "news_feed",
+   "rhythm": "multiple per hour",
+   "access": "robots.txt: Bytespider Disallow: /, AhrefsBot group, * disallows /ajax only; /info/rss/ serves RSS 'B92.net - Najnovije'",
+   "reuse": "no reuse statement found; headline+link only",
+   "next": "Fast general feed; service content. Enable at 30 min.",
+   "measurement_time": "yes - pubDate",
+   "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+  },
+  {
+   "id": "S199",
+   "theme": "media",
+   "name": "CINS - Centar za istrazivacko novinarstvo Srbije RSS",
+   "url": "https://www.cins.rs/feed/",
+   "status": "probe_ok",
+   "kind": "news_feed",
+   "rhythm": "weeks",
+   "access": "robots.txt: 'Disallow:' (empty) for *, no AI-bot names; feed RSS 2.0, 10 items, newest 2026-07-09 - investigative cadence",
+   "reuse": "no licence element in the feed; headline+link only",
+   "next": "Investigative cadence like KRIK (S77): where a harm to the city surfaces first. Enable at 60 min.",
+   "measurement_time": "yes - pubDate",
+   "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+  },
+  {
+   "id": "S200",
+   "theme": "media",
+   "name": "Cenzolovka RSS",
+   "url": "https://www.cenzolovka.rs/feed/",
+   "status": "probe_ok",
+   "kind": "news_feed",
+   "rhythm": "days",
+   "access": "robots.txt: 'Disallow:' (empty) for *, sitemap_index.xml; WordPress feed route to be measured by the capture",
+   "reuse": "no reuse statement found; headline+link only",
+   "next": "Media-freedom watchdog; split out of S77. Enable at 60 min if the capture measures the feed.",
+   "measurement_time": "yes - pubDate",
+   "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+  },
+  {
+   "id": "S201",
+   "theme": "media",
+   "name": "Masina RSS",
+   "url": "https://www.masina.rs/feed/",
+   "status": "probe_ok",
+   "kind": "news_feed",
+   "rhythm": "days",
+   "access": "robots.txt: WordPress default (/wp-admin/ only); feed route to be measured by the capture",
+   "reuse": "no reuse statement found; headline+link only",
+   "next": "Labour and social reporting; split out of S77. Enable at 60 min if the capture measures the feed.",
+   "measurement_time": "yes - pubDate",
+   "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
+   "measured_2026_09_09": "permission capture from the PC: allowed; the feed answers X-Robots-Tag: noindex (without 'follow') - the E-011 decision applies (a search-indexing directive on a feed document we neither index nor republish); recorded, permitted, revisited on any AI signal"
+  },
+  {
+   "id": "S202",
+   "theme": "media",
+   "name": "Istinomer RSS",
+   "url": "https://www.istinomer.rs/feed/",
+   "status": "probe_ok",
+   "kind": "news_feed",
+   "rhythm": "days",
+   "access": "robots.txt: 'Disallow:' (empty) for *, sitemap_index.xml; feed route to be measured by the capture",
+   "reuse": "no reuse statement found; headline+link only",
+   "next": "Fact-checking of public statements; a claim-outcome source for the mind's scoring in a later version. Enable at 60 min if measured.",
+   "measurement_time": "yes - pubDate",
+   "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+  },
+  {
+   "id": "S203",
+   "theme": "documentary",
+   "name": "Vlada Republike Srbije - vesti RSS",
+   "url": "https://www.srbija.gov.rs/rss/?change_lang=cr",
+   "status": "probe_ok",
+   "kind": "news_feed",
+   "rhythm": "daily",
+   "access": "robots.txt: three Air Serbia booking URLs disallowed, nothing else, no AI-bot names; /rss redirect-loops without the language parameter; with ?change_lang=cr an RSS feed 'Vlada Republike Srbije', 20 items, descriptions present (not kept), newest 2026-08-17 in the feed while the page shows 2026-09-09 (feed lag to measure)",
+   "reuse": "official materials of a state body - Copyright Act Art. 6(2), not copyright works",
+   "next": "National, not Belgrade; the official-materials layer. Enable at 60 min; the Belgrade filter is the news-sorter's job.",
+   "measurement_time": "yes - pubDate",
+   "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+  },
+  {
+   "id": "S204",
+   "theme": "documentary",
+   "name": "MUP - saopstenja (police press releases)",
+   "url": "https://www.mup.gov.rs/",
+   "status": "opted_out",
+   "kind": "refusal",
+   "rhythm": "n/a",
+   "access": "robots.txt (read 2026-09-09) names ClaudeBot, GPTBot, ChatGPT-User, OAI-SearchBot, Bytespider, PetalBot, SemrushBot, AhrefsBot, YandexBot and others with Disallow: /; there is no User-agent: * group",
+   "reuse": "NAMED OPT-OUT. Official materials of a state body would be outside copyright (Art. 6(2)), but the project honours a named refusal regardless of copyright. Do not collect. Do not propose again.",
+   "next": "The most useful incident source in the city and exactly the one we do not circumvent. A letter, not a workaround.",
+   "measurement_time": "n/a",
+   "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
+   "measured_2026_09_09": "capture from the PC: robots.txt served; manual verdict REFUSED recorded in the ledger"
+  },
+  {
+   "id": "S205",
+   "theme": "media",
+   "name": "Nova.rs",
+   "url": "https://nova.rs/",
+   "status": "probe_ok",
+   "kind": "news_feed",
+   "rhythm": "continuous",
+   "access": "robots.txt: /admin/ and four /api/v1/ paths, no AI-bot names; /feed/ and /rss/ redirect-loop from the cloud (same behaviour as N1, same group); a news sitemap route is likely",
+   "reuse": "same Adria News / Alpac Capital sale as S69/S73; no reuse statement found",
+   "next": "Not enabled. Same group as Danas (S69) and N1 (S73): a third stream of one newsroom adds little.",
+   "measurement_time": "yes - pubDate",
+   "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
+   "measured_2026_09_09": "from the PC both https://nova.rs/ and https://nova.rs/feed/ answer 200 (the redirect loop was a property of the cloud reader, not of the site); still not enabled - third stream of one newsroom"
+  },
+  {
+   "id": "S206",
+   "theme": "mobility",
+   "name": "JP Putevi Srbije - stanje na drzavnim putevima",
+   "url": "https://www.putevi-srbije.rs/index.php/%D1%81%D1%82%D0%B0%D1%9A%D0%B5-%D0%BD%D0%B0-%D0%B4%D1%80%D0%B6%D0%B0%D0%B2%D0%BD%D0%B8%D0%BC-%D0%BF%D1%83%D1%82%D0%B5%D0%B2%D0%B8%D0%BC%D0%B0",
+   "status": "lead",
+   "kind": "official_transport_notice",
+   "rhythm": "event-driven",
+   "access": "no robots.txt (404); no RSS; HTML listings: road conditions, corporate news, public calls; footer '(c) 2005-2026 Putevi Srbije d.o.o. All rights reserved'",
+   "reuse": "public enterprise notices of a body exercising public function (Art. 6(2)) - the 'all rights reserved' footer cannot reserve what the Act excludes, but photographs and the site design stay protected",
+   "next": "Needs an HTML listing parser; state-road conditions around Belgrade (bypass, motorways). Not in v1.",
+   "measurement_time": "notice date",
+   "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
+   "measured_2026_09_09": "capture from the PC: no robots.txt (404), site 200; lead, needs a listing parser"
   }
  ]
 }

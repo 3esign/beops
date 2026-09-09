@@ -162,6 +162,7 @@ of each — under `evidence/legal/<SID>/<UTC>/`, never edited, never deleted.
 
 ## 07-legal
 
+- **[NEWS_AUDIT_2026-09-09.md](07-legal/NEWS_AUDIT_2026-09-09.md)** — the news layer re-combed: what the collector keeps (headline, link, time), three corrections to existing records (Tanjug's publisher is the private Tačno d.o.o.; the KRIK record hid two uncaptured outlets; Gradnja's `noindex` was seen and not decided), twelve candidates pre-screened and captured — three official routes (the City portal, the water utility, the heating operator), eight publishers with clean robots.txt, one named refusal (MUP names ClaudeBot) — and the weekly re-capture (`legal_capture.py --recheck-collectors`, task `Beops_Legal`). Edge cases E-011 to E-013 added.
 - **[COLLECTION_LEGAL_FRAME.md](07-legal/COLLECTION_LEGAL_FRAME.md)** — what may lawfully be collected continuously, in quoted primary texts. No Serbian text-and-data-mining exception is relied on; see the dated pre-paper legal audit for the narrower current statement and Article138/new-law updates. The official gazette is not a copyright work at all (Art. 6(2)) and is the cleanest corpus available. Seven named opt-outs are recorded with their clauses and are never circumvented. Six questions are marked for a real lawyer.
 
 ## 06-paper
@@ -208,8 +209,8 @@ GeoPackage read with sqlite3 + a forty-line WKB parser) ·
 `build_site.py` (generates `docs/index.html` from the registry, the
 provenance index, the corrections and the last snapshot) · `publish_github.ps1` (the export to
 github.com/3esign/beops) · `register_tasks.ps1` + `collect_tick.bat`, `organ_tick.bat`,
-`publish_tick.bat`, `mind_tick.bat` (the four scheduled tasks) · `legal_capture.py` (permission evidence before
-any collection) · `build_provenance_index.py`. Their tests: `test_collect_daemon.py`,
+`publish_tick.bat`, `mind_tick.bat`, `legal_tick.bat` (the five scheduled tasks) · `legal_capture.py` (permission evidence before
+any collection; `--recheck-collectors` re-captures every polled source weekly) · `build_provenance_index.py`. Their tests: `test_collect_daemon.py`,
 `test_organ_news.py`, `test_basemap.py`, `test_organ_mind.py`.
 
 These stay flat deliberately: `tools/test-research.js` discovers tests with

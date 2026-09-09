@@ -754,6 +754,11 @@ def export(now: datetime | None = None, hours: int = 24) -> pathlib.Path:
     # never reaches the public), the last conversations' receipts, and the public scoreboard.
     md = LIVE / "derived" / "mind"
     thoughts = []
+    try:   # the ekavica guard of the organ (tools/organ_mind.py); rows voiced before it existed are re-checked at export
+        sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+        from organ_mind import ijekavian_hits  # noqa: PLC0415
+    except Exception:  # noqa: BLE001
+        ijekavian_hits = None
     if md.exists():
         retracted = set()
         for mf in sorted(md.glob("*.jsonl")):
@@ -780,13 +785,19 @@ def export(now: datetime | None = None, hours: int = 24) -> pathlib.Path:
                         continue
                     if (r.get("conversation"), r.get("entity"), r.get("round")) in retracted:
                         continue   # a retraction was appended later: the row stays on disk, never on the page
+                    sr_state, sr, h_sr, q_sr = r.get("sr_state"), r.get("sr"), r.get("hypotheses_sr") or [], r.get("questions_sr") or []
+                    if ijekavian_hits and sr_state == "voiced":
+                        hits = ijekavian_hits(sr or "") + [h for x in h_sr + q_sr for h in ijekavian_hits(x)]
+                        if hits:   # voiced under an older guard: the row stays on disk, the Serbian page does not show it
+                            sr_state, sr, h_sr, q_sr = "refused at export: ijekavian, not ekavica: " + ", ".join(hits[:3]), "", [], []
                     thoughts.append({"t": r.get("derivedTime"), "conversation": r.get("conversation"), "round": r.get("round"),
                                      "orchestration": r.get("orchestration"), "state": r.get("state"), "organelle": r.get("organelle"),
                                      "entity": r.get("entity"), "entity_sr": r.get("entity_sr"), "entity_en": r.get("entity_en"),
-                                     "model": r.get("model"), "voice_model": r.get("voice_model"), "sr_state": r.get("sr_state"),
+                                     "model": r.get("model"), "voice_model": r.get("voice_model"), "sr_state": sr_state,
                                      "ai_generated": True, "replies_to": r.get("replies_to") or [],
-                                     "sr": r.get("sr"), "en": r.get("en"), "cites": r.get("cites") or [],
+                                     "sr": sr, "en": r.get("en"), "cites": r.get("cites") or [],
                                      "hypotheses": r.get("hypotheses") or [], "questions": r.get("questions") or [],
+                                     "hypotheses_sr": h_sr, "questions_sr": q_sr,
                                      "next_check": r.get("next_check"), "claim": r.get("claim"), "similarity": r.get("similarity")})
         claims = []
         if (md / "claims.jsonl").exists():
