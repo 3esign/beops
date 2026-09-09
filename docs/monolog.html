@@ -62,7 +62,9 @@ main{display:grid;grid-template-columns:minmax(360px,5fr) minmax(360px,7fr);min-
 @media (max-width:900px){.mind{padding:calc(var(--u)*3) calc(var(--u)*4)}.mind .cards{grid-template-columns:1fr}}
 .monolog{border-right:1px solid var(--ink12);display:flex;flex-direction:column;min-height:60vh}
 .monolog h2,.map h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink60);font-weight:600;margin:0;padding:calc(var(--u)*3) calc(var(--u)*6);border-bottom:1px solid var(--ink12)}
-.lines{flex:1;overflow:auto;padding:calc(var(--u)*2) 0;max-height:none;height:var(--feedh,460px)}
+.lines{flex:0 0 auto;overflow:auto;padding:calc(var(--u)*2) 0;max-height:none;height:var(--feedh,460px)}   /* flex:1 means flex-basis:0, which beats `height` in a column flex box - the same trap that
+      collapsed the map box, hit again one file later. The feed is a fixed column the reader can
+      drag, so it is flex:0 0 auto and its height is its height. */
 /* C-027. The feed and the three minds were reading three lines at a time because the frame's
    height is whatever its content asks for, and they were asking for very little. They ask for
    a proper column now, and the reader can change it: the rule between the map and the text is
@@ -72,7 +74,7 @@ main{display:grid;grid-template-columns:minmax(360px,5fr) minmax(360px,7fr);min-
 .grip::after{content:'';position:absolute;left:0;right:0;top:5px;height:1px;background:var(--ink12)}
 .grip:hover::after,.grip.on::after{height:2px;top:4px;background:var(--ink30)}
 .mind .cards{align-items:start}
-.mind{overflow:auto;max-height:calc(var(--feedh,460px) + 46px)}
+.mind{overflow:auto;max-height:calc(var(--feedh,460px) + 46px);min-height:calc(var(--feedh,460px) * 0.55)}
 .line{display:grid;grid-template-columns:8ch 14px 1fr;gap:calc(var(--u)*2);padding:calc(var(--u)*2) calc(var(--u)*6);border-bottom:1px solid var(--ink06);align-items:start}
 .line .t{font-family:var(--mono);font-size:12px;color:var(--ink60);padding-top:3px}
 .line .g{width:10px;height:10px;margin-top:6px;border-radius:50%;background:var(--signal)}
