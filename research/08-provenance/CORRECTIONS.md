@@ -866,3 +866,39 @@ way: each rule was correct on its own, the comment above the dead one described 
 and the defect existed only in the *relationship* between two rules a hundred lines apart. It was found
 by a person looking at a phone, like C-016 before it — and the fix is not care, it is the fifteen-line
 parser that now reads the whole sheet in order and answers the question nobody can hold in their head.
+
+---
+
+## C-024 — Fixing the phone layout broke the map on every screen, and it was published that way
+
+**When** 2026-09-09, published 20:34 UTC in commit `8f9ac75`, found 20:41 UTC by measuring the live
+page at 412 px. Live for roughly seven minutes.
+
+**What it said.** The commit message for C-023 said the narrowing blocks had been moved to the end of
+each stylesheet and that 190 tests passed. Both true.
+
+**What was actually true.** The move was done by a script that cut from the block's opening comment to
+the first `}` after its last declaration — which is the brace closing that declaration, not the one
+closing the media block. So the block arrived at the end of the sheet **one brace short**, and an
+orphan `}` was left behind where it had been. A stray `}` at top level makes a CSS parser discard
+until it recovers, and what it discarded was the very next rule:
+`canvas{position:absolute;inset:0;width:100%;height:100%;display:block}`. The pulse map's canvas
+therefore fell back to its intrinsic 600×300, static and inline, hanging 238 px out of a 362 px frame —
+**on every screen, not only on a phone.** The 190 tests were all green: not one of them looked at
+whether the stylesheet was syntactically whole.
+
+**How it was found.** By measuring the live page at a phone viewport and asking which elements are
+wider than their container. One was: `canvas`, 600 px in a 362 px box.
+
+**The fix.** Braces repaired, and two assertions added: every stylesheet closes every brace it opens —
+the cheapest check in the suite — and every canvas inside a frame is given a CSS width. Unbalanced
+braces are not a style problem; they mean everything after the break is arbitrary.
+
+**Rule: a repair is a change, and a change is not verified by the tests that passed before it.** The
+suite had thirteen checks about how this page lays out and none about whether its stylesheet parses.
+Worse, the defect was introduced *by the script that implemented the previous correction* — the fix for
+C-023 was correct in what it moved and wrong in how it cut, and it shipped because "190 tests OK" was
+read as "the change is good" rather than as "nothing I already knew to check has broken". Three
+corrections this evening now share one shape: C-018, C-020 and C-022 were fixes written from the
+instances in front of me; this one is a fix that broke something no test was watching. Both are the
+same failure to ask what the change could break that the record does not yet check.

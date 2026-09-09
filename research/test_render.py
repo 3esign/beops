@@ -167,6 +167,35 @@ class BuiltSiteTests(unittest.TestCase):
             self.assertEqual(dead, [], f"{name}: narrow-screen rules a later unconditional rule "
                                        f"undoes: " + ", ".join(dead))
 
+    def test_every_stylesheet_closes_every_brace_it_opens(self):
+        """C-024. Moving a media block to the end of a sheet took one brace too few with it and left
+        one behind. The orphan `}` at top level made the browser discard the NEXT rule while
+        recovering - which happened to be `canvas{position:absolute;width:100%;height:100%}` - so the
+        pulse map fell back to its intrinsic 600x300 and hung out of the frame on every screen. A
+        stylesheet with unbalanced braces is not a style problem, it is a truncated file: everything
+        after the break is arbitrary. This counts, which is the cheapest check in the suite and the
+        one that would have caught it."""
+        for name, text in [("docs/index.html", self.s)] + [
+                (f"docs/{f}", read(DOCS / f)) for f in self.frames if (DOCS / f).exists()]:
+            css = css_of(text)
+            self.assertEqual(css.count("{"), css.count("}"),
+                             f"{name}: the stylesheet opens {css.count('{')} braces and closes "
+                             f"{css.count('}')}")
+
+    def test_a_canvas_fills_the_box_it_was_given(self):
+        """The other half of C-024, stated as the property that actually matters: a canvas whose CSS
+        size is not set renders at its intrinsic 300x150 (or whatever its backing store says) and
+        overflows or collapses. Every canvas in a frame here is an absolutely positioned layer."""
+        for f in self.frames:
+            p = DOCS / f
+            if not p.exists():
+                continue
+            body = read(p)
+            if "<canvas" not in body:
+                continue
+            self.assertRegex(css_of(body), r"canvas\s*\{[^}]*width\s*:\s*100%",
+                             f"docs/{f}: its canvas is never given a CSS width")
+
     def test_no_element_id_is_used_twice(self):
         dupes = [i for i, n in Counter(re.findall(r'\sid="([^"]+)"', self.s)).items() if n > 1]
         self.assertEqual(dupes, [], "duplicate ids: " + ", ".join(dupes))
