@@ -466,3 +466,35 @@ first and by the index only as a fallback, and each derived row says which (`bou
 wrong rows stay in `data/live/derived/news/2026-09.jsonl` as organ 0.1.0 output — derived rows are
 append-only like everything else — and the organ's version in every row is what tells them apart.
 Rule: **a model's answer is bound to its input by content, never by position.**
+
+## C-014 — The publish task never published: a batch that ran another batch and never came back
+
+**When** 2026-09-08 20:05 UTC (the task was registered) to 2026-09-09 12:53 UTC (found), so
+roughly seventeen hours and about a hundred scheduled runs.
+
+**What it said.** `tools/publish_tick.bat`, the scheduled task `Beops_Publish`, is documented in the
+repository and on the public page as the thing that keeps the site current: export, report, push.
+The task's own status was `Ready`, its last result `0`, and `runtime/publish-tick.log` had a line for
+every run. Everything a check would look at said the site was being published on a schedule.
+
+**What was actually true.** The batch's last three lines were:
+
+    C:\Svemir\python.cmd ... collect_daemon.py export >> runtime\publish-tick.log 2>&1
+    C:\Svemir\python.cmd ... collect_daemon.py report  >> runtime\publish-tick.log 2>&1
+    powershell ... tools\publish_github.ps1            >> runtime\publish-tick.log 2>&1
+
+`python.cmd` is itself a batch file. In `cmd.exe`, a batch file that runs another batch file **without
+`call`** transfers control and never returns: the first line ran, and the second and third were
+skipped on every single run. The log proves it — each tick wrote the export's one line of output and
+nothing else. The exit code was 0 because the export succeeded; the public site was published only
+when a person (or this session) ran `publish_github.ps1` by hand. The task ran a hundred times and
+published nothing, and its receipts said it was fine.
+
+**The fix.** `call` before every `python.cmd` in all five tick batches — including the four where it
+is currently the last line and therefore harmless, because the trap is sprung by the next person who
+appends a line. The comment naming this correction sits in each file.
+
+**Rule: an exit code of 0 is evidence that something finished, never evidence that it happened.** A
+scheduled job that produces an artefact must be checked by the artefact — here, the timestamp of the
+published commit — and not by its own status, its own log line, or its own return code. The same test
+the project applies to the city applies to the project: a reception is not a measurement.
