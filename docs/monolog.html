@@ -93,8 +93,10 @@ main{display:grid;grid-template-columns:minmax(360px,5fr) minmax(360px,7fr);min-
 .mind .entname{display:flex;justify-content:space-between;align-items:baseline;gap:calc(var(--u)*2);
   font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
   padding-bottom:calc(var(--u)*1.5);border-bottom:1px solid var(--ink12);margin-bottom:calc(var(--u)*3)}
+.mind .entname b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mind .entname .n{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--ink60);
-  text-transform:none;letter-spacing:0;white-space:nowrap}
+  text-transform:none;letter-spacing:0;white-space:nowrap;flex:0 1 auto;min-width:0;
+  overflow:hidden;text-overflow:ellipsis}
 .mind .stack{flex:0 0 auto;height:var(--feedh,460px);overflow:auto;
   display:flex;flex-direction:column;gap:calc(var(--u)*4);padding-right:calc(var(--u)*3)}
 .mind .card.refused{border-left-style:dashed}
@@ -655,10 +657,11 @@ function renderMind(){
     const voiced=mine.filter(voicedIn).length;
     const col=document.createElement('div'); col.className='ent';
     const name=LANG==='sr'?nsr:nen;
-    const count=LANG==='sr'
-      ? (mine.length+' u prozoru · '+voiced+' na srpskom')
-      : (mine.length+' in the window');
-    col.innerHTML='<div class="entname"><b>'+esc(name)+'</b><span class="n">'+esc(count)+'</span></div>';
+    const count=LANG==='sr' ? (mine.length+' · '+voiced+' sr') : String(mine.length);
+    const full=LANG==='sr'
+      ? (mine.length+' misli u prozoru, '+voiced+' izgovorenih na srpskom')
+      : (mine.length+' utterances in the window');
+    col.innerHTML='<div class="entname"><b>'+esc(name)+'</b><span class="n" title="'+esc(full)+'">'+esc(count)+'</span></div>';
     const stack=document.createElement('div'); stack.className='stack';
     if(!mine.length){
       const el=document.createElement('div'); el.className='card quiet';
