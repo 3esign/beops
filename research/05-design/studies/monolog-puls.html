@@ -36,17 +36,13 @@ main{display:grid;grid-template-columns:minmax(360px,5fr) minmax(360px,7fr);min-
   /* On a phone the two columns were still sitting side by side - the page had no viewport meta, so
      every phone rendered it at 980 px and this query never fired. With the meta in place, stack:
      the map first (it is the thing you look at), the monologue under it, both full width. */
-  main{grid-template-columns:1fr}
-  .map{order:1}
-  .monolog{order:2;border-right:0;border-top:1px solid var(--ink12)}
-  .map .cv{min-height:56vh}
-  .lines{max-height:none}
+  /* Only what nothing later contradicts stays here. Everything else moved to the narrow block at
+     the end of this sheet - see C-023: a media query that sits before the wide layout is not a
+     media query, it is a comment. `.map .cv{min-height:56vh}` is not moved but deleted: a viewport
+     height inside a frame the parent sizes from its content is the C-016 runaway. */
   header{grid-template-columns:1fr;align-items:start;gap:calc(var(--u)*2);padding:calc(var(--u)*4)}
-  header h1{font-size:17px}
   .ctl{justify-content:flex-start;row-gap:8px}
   .clock{min-width:0;text-align:left;width:100%}
-  .line{grid-template-columns:6ch 12px 1fr;padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*4)}
-  .how{padding:calc(var(--u)*4)}
 }
 .mind{border-bottom:1px solid var(--ink12);padding:calc(var(--u)*3) calc(var(--u)*6) calc(var(--u)*4)}
 .mind h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink60);font-weight:600;margin:0 0 calc(var(--u)*2)}
@@ -99,6 +95,8 @@ main{grid-template-columns:minmax(300px,4fr) minmax(0,8fr)}
 .maptip span.m{font-family:var(--mono);font-size:11px}
 .mapreset{position:absolute;right:8px;top:8px;z-index:5;font-size:12px;line-height:1;padding:5px 9px;border:1px solid var(--ink12);background:var(--field);color:var(--ink60);border-radius:4px;cursor:pointer}
 @media (max-width:900px){.monolog{border-right:0;border-bottom:1px solid var(--ink12)}}
+
+}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .maplegend{display:flex;flex-wrap:wrap;gap:calc(var(--u)*4);padding:calc(var(--u)*2) calc(var(--u)*6) calc(var(--u)*3);font-size:13px;color:var(--ink60);border-top:1px solid var(--ink12)}
 .maplegend i{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle;margin-right:6px}
@@ -151,6 +149,25 @@ body.embedded .map .cv{min-height:0}
      H = 1873 + 0.52H = 3900px on a 412px phone - a 2000px empty box under the pulse. Width is the
      one dimension the parent sets by layout and never reads back, so the map is sized from it. */
   body.embedded .map .cv{min-height:0;flex:0 0 auto;height:clamp(220px,72vw,420px)} }
+/* C-023. THIS is the rule that decides the phone layout, and it has to sit here, after the
+   unconditional `main{grid-template-columns:minmax(300px,4fr) minmax(0,8fr)}` above. That rule
+   was written later than the max-width:900px block near the top of this sheet and has the same
+   specificity, so it overrode the phone layout entirely: on a 412 px screen the two columns
+   stayed side by side, the first took its 300 px minimum, and the second - the feed - was
+   squeezed to about one character wide and clipped off the right edge of the frame. A media
+   query only wins if nothing later contradicts it; a narrow layout written before the wide one
+   is not a narrow layout. */
+@media (max-width:900px){
+  main{grid-template-columns:1fr;min-height:0}
+  .mind{order:1;border-bottom:1px solid var(--ink12)}
+  .monolog{order:2;border-top:0}
+  .mind .cards{grid-template-columns:1fr}
+  .monolog h2,.map h2,.line{padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*4)}
+  .maplegend{padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*4)}
+  .line{grid-template-columns:6ch 12px 1fr}
+  .lines{max-height:none}
+  header h1{font-size:17px}
+  .how{padding:calc(var(--u)*4)}
 </style>
 
 <header>

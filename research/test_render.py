@@ -23,6 +23,61 @@ def read(p):
     return p.read_text(encoding="utf-8", errors="replace")
 
 
+def css_of(text):
+    css = "\n".join(re.findall(r"<style[^>]*>(.*?)</style>", text, re.S))
+    return re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+
+
+def declarations(css):
+    """(order, at-rule conditions, selector, property) in source order.
+
+    A deliberately small parser: plain rules do not nest, so a `{` after an `@` opens a condition and
+    every other `{` opens a rule that the next `}` closes."""
+    i, n, stack, order, out = 0, len(css), [], 0, []
+    while i < n:
+        nb, nc = css.find("{", i), css.find("}", i)
+        if nb < 0 and nc < 0:
+            break
+        if nc >= 0 and (nb < 0 or nc < nb):
+            if stack:
+                stack.pop()
+            i = nc + 1
+            continue
+        head = css[i:nb].strip()
+        if head.startswith("@"):
+            stack.append(head)
+            i = nb + 1
+            continue
+        end = css.find("}", nb + 1)
+        if end < 0:
+            break
+        for sel in head.split(","):
+            sel = " ".join(sel.split())
+            if not sel:
+                continue
+            for decl in css[nb + 1:end].split(";"):
+                if ":" in decl:
+                    prop = decl.split(":", 1)[0].strip().lower()
+                    if prop and not prop.startswith("--"):
+                        out.append((order, tuple(stack), sel, prop))
+                        order += 1
+        i = end + 1
+    return out
+
+
+def dead_narrow_rules(text):
+    """Narrow-screen declarations that a later unconditional rule of equal specificity undoes."""
+    rs = declarations(css_of(text))
+    media, plain = {}, {}
+    for o, cond, sel, prop in rs:
+        if any("max-width" in c for c in cond):
+            media[(sel, prop)] = o
+        elif not cond:
+            plain[(sel, prop)] = o
+    return sorted(f"{sel} {{{prop}}}" for (sel, prop), o in media.items()
+                  if plain.get((sel, prop), -1) > o)
+
+
 class BuiltSiteTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -93,6 +148,24 @@ class BuiltSiteTests(unittest.TestCase):
         self.assertGreater(counts["sr"], 0, "the front door has no Serbian")
         self.assertEqual(len(set(counts.values())), 1,
                          "the four languages of the front door are not in step: " + json.dumps(counts))
+
+    def test_no_narrow_screen_rule_is_undone_by_a_later_unconditional_one(self):
+        """C-023. On a phone the monologue frame showed the three entity panels beside the feed, with
+        the feed squeezed to about one character wide and clipped off the right edge. The stylesheet
+        had `@media (max-width:900px){main{grid-template-columns:1fr}}` - written, correct, and dead,
+        because a later `main{grid-template-columns:minmax(300px,4fr) minmax(0,8fr)}` of equal
+        specificity was added below it when the map moved out of `main`. CSS has no memory of intent:
+        the last rule that matches wins, so a narrow layout written before the wide one is not a
+        narrow layout, it is a comment. Six more declarations were dead the same way across three
+        files, including the phone sizing of the language buttons added an hour earlier.
+
+        The rule this encodes: everything that narrows the layout belongs at the END of its
+        stylesheet, after every rule it is meant to override."""
+        for name, text in [("docs/index.html", self.s)] + [
+                (f"docs/{f}", read(DOCS / f)) for f in self.frames if (DOCS / f).exists()]:
+            dead = dead_narrow_rules(text)
+            self.assertEqual(dead, [], f"{name}: narrow-screen rules a later unconditional rule "
+                                       f"undoes: " + ", ".join(dead))
 
     def test_no_element_id_is_used_twice(self):
         dupes = [i for i, n in Counter(re.findall(r'\sid="([^"]+)"', self.s)).items() if n > 1]

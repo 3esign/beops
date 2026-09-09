@@ -44,7 +44,7 @@ header h1 span{font-weight:400;color:var(--ink60)}
 .legend .nod{width:2px;height:10px;border:1px solid var(--state);background:transparent}
 .legend .q{width:22px;height:4px;background:repeating-linear-gradient(90deg,var(--ink) 0 4px,transparent 4px 6px)}
 main{display:grid;grid-template-columns:minmax(0,1fr) 300px}
-@media (max-width:900px){main{grid-template-columns:1fr}.reading{position:static;border-left:0;border-top:1px solid var(--ink12)}}
+@media (max-width:900px){main{grid-template-columns:1fr}}
 .ribbon{padding:0 0 calc(var(--u)*8) 0;min-width:0}
 .axis{position:sticky;top:0;background:var(--field);z-index:2;border-bottom:1px solid var(--ink12)}
 .group{border-bottom:1px solid var(--ink12)}
@@ -75,7 +75,6 @@ canvas{display:block;width:100%;height:100%}
 @media (max-width:560px){
   header{grid-template-columns:1fr;align-items:start;gap:calc(var(--u)*2)}
   .gh{grid-template-columns:1fr;gap:calc(var(--u)*1);padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*4)}
-  .gh h2{font-size:14px;line-height:1.25}
   .gh h2 small{margin-left:0;display:block}
   .quorum{padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*4)}
   .lane{grid-template-columns:124px minmax(0,1fr)}
@@ -119,6 +118,12 @@ button{border-radius:3px;transition:background .15s,color .15s}
 button:hover{background:var(--ink06)}
 button[aria-pressed="true"]:hover{background:var(--ink)}
 .clock{letter-spacing:.02em}
+/* C-023. Both of these were written where they could not win: an unconditional rule later in
+   this sheet set the same property, so the narrow-screen version never applied. A media query
+   only decides anything if nothing after it contradicts it, which means the narrow layout
+   belongs at the END of the sheet, not beside the rule it is narrowing. */
+@media (max-width:900px){ .reading{position:static;border-left:0;border-top:1px solid var(--ink12)} }
+@media (max-width:560px){ .gh h2{font-size:14px;line-height:1.25} }
 </style>
 
 <body class="lang-sr">

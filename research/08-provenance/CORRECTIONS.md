@@ -812,3 +812,57 @@ the same test on a different marker. The pattern now asks for `{{` followed by a
 template placeholder is `{{name}}`; two braces followed by a backtick are prose about braces. Twice in
 one hour, a check written against a narrower world than the one it runs in, and both times the world
 that broke it was this project's own writing about itself.
+
+**Third occurrence, and the actual fix.** Tightening the pattern was still the instance-shaped answer:
+the next correction entry quoted `>None<` and the test failed again. The structural fact is that the
+page carries its own registers inside `<script id="data">` — the source registry, the provenance index
+and this ledger — and that block QUOTES what publishers wrote and what this system said when it was
+wrong. By design it may contain any string, including every marker a placeholder check looks for. A
+placeholder is a defect of the *template*, so the check now scans the page with the data block removed.
+Three passes to stop patching the symptom: the first two asked "which marker tripped?", the third asked
+"what is this check actually about?"
+
+---
+
+## C-023 — A phone layout that was written, correct, and dead: CSS has no memory of intent
+
+**When** Seen on a phone 2026-09-09 ~22:29 local, in a screenshot. The `main` rule it depends on was
+written earlier the same evening, when the map moved out of `<main>`.
+
+**What it said.** `research/05-design/studies/monolog-puls.html` carries
+`@media (max-width:900px){ main{grid-template-columns:1fr} ... }` near the top of its stylesheet, with
+a comment explaining that on a phone the two columns must stack. The site's own render tests assert
+several other phone-layout properties. Everything said the narrow layout existed.
+
+**What was actually true.** Further down the same sheet, added later, sat
+`main{grid-template-columns:minmax(300px,4fr) minmax(0,8fr)}` — unconditional, equal specificity, and
+*after*. The last rule that matches wins, so on a 412 px phone the two columns never stacked: the
+three entity panels took the first column's 300 px minimum and the feed was squeezed to roughly one
+character wide and clipped off the right edge of the frame. A media query that sits before the rule it
+is meant to narrow is not a media query, it is a comment.
+
+**And it was not one rule.** Written as a check and run across the three frames and the built page, the
+same shape appeared **seven** times: `.line{grid-template-columns}`, `.lines{max-height}`,
+`.how{padding}` and `header h1{font-size}` in the monologue; `.reading{position}`,
+`.reading{border-left}` and `.gh h2{font-size}` in the ribbon; and — an hour old —
+`.hlangs button{font-size}`, `.hlangs button{padding}` and `.hlangs{flex}` in the built page, which is
+the phone sizing of the four language buttons I had just added. One of the seven was not worth
+resurrecting at all: `.map .cv{min-height:56vh}` is the C-016 runaway, a viewport height inside a frame
+the parent sizes from its content, and it was deleted rather than moved.
+
+**The fix.** Every narrowing block now sits at the END of its stylesheet, after every rule it is meant
+to override, and the phone layout of a page is in one place instead of two. `research/test_render.py`
+gains a small CSS parser and the assertion that no `max-width` declaration is undone by a later
+unconditional one of equal specificity — across the built page and every frame it embeds.
+
+Separately, the phone header: nine navigation links in a three-column grid is three rows, and with the
+new language row that made a sticky header about 300 px tall on a 412 px screen — a third of the phone,
+permanently, on every page. Five columns fit the nine links in two rows at a size that is still a
+26 px tap target, and nothing is hidden behind a sideways scroll.
+
+**Rule: source order is part of the meaning, and only a tool can see it.** Every other rule in this
+project is checked by reading a file and asking whether a claim holds. This one could not be found that
+way: each rule was correct on its own, the comment above the dead one described the intent accurately,
+and the defect existed only in the *relationship* between two rules a hundred lines apart. It was found
+by a person looking at a phone, like C-016 before it — and the fix is not care, it is the fifteen-line
+parser that now reads the whole sheet in order and answers the question nobody can hold in their head.

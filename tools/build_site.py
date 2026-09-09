@@ -181,6 +181,9 @@ header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--field
 [id]{scroll-margin-top:64px}   /* the header is sticky: without this, following a nav link hides the heading under it */
 .hbar{display:flex;align-items:center;gap:calc(var(--u)*4);padding:calc(var(--u)*3) 0;flex-wrap:wrap}
 .brand{font-weight:700;letter-spacing:-.01em;font-size:17px;border:0;white-space:nowrap;flex:none}
+.hlangs{display:flex;gap:4px;flex:none}
+.hlangs button{font-size:12px;padding:3px 8px}
+.hlangs button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-color:var(--ink)}
 .brand span{font-weight:400;color:var(--ink55)}
 nav{display:flex;gap:calc(var(--u)*4);margin-left:auto;flex-wrap:wrap;font-size:14px;color:var(--ink70)}
 nav a{border:0;padding:2px 0;border-bottom:1px solid transparent}
@@ -208,19 +211,24 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
   .brand span{display:none}
   .stagelink{top:auto;bottom:10px}
 }
-/* the header on a phone: two tidy rows - the name and the language on the first, every section on the
-   second. Everything fits at 360 px: nothing scrolls sideways and nothing has to be zoomed to be tapped. */
+/* The header on a phone: two tidy rows - the name and the four languages on the first, every section
+   on the second. It says "two rows" because that is what it must be: this bar is sticky, so every row
+   it grows is a row taken from the page for the whole visit. Nine links in a three-column grid is
+   three rows, which with the language row made a header 300 px tall on a 412 px phone - a third of
+   the screen, permanently. Five columns fit the nine links in two rows at a size that is still a
+   tappable 26 px target, and nothing is hidden behind a sideways scroll. */
 @media (max-width:760px){
-  .hbar{flex-wrap:wrap;overflow:visible;row-gap:calc(var(--u)*1.5);column-gap:calc(var(--u)*3);padding:calc(var(--u)*1.5) 0}
-  .brand{font-size:16px;flex:0 0 auto}
-  button#lang,.hlangs{margin-left:auto;flex:none}
-  .hlangs button{padding:3px 7px;font-size:11.5px}
-  nav{order:3;flex:1 0 100%;margin-left:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
-      column-gap:calc(var(--u)*2);row-gap:calc(var(--u)*1.5);font-size:12.5px;text-align:center}
-  nav a{white-space:nowrap;padding:3px 0;min-height:26px;display:flex;align-items:center;justify-content:center}
-  [id]{scroll-margin-top:104px}
+  .hbar{flex-wrap:wrap;overflow:visible;row-gap:calc(var(--u)*1);column-gap:calc(var(--u)*2);padding:calc(var(--u)*1.5) 0}
+  .brand{font-size:15.5px;flex:0 0 auto}
+  button#lang,.hlangs{margin-left:auto;flex:none;gap:3px}
+  .hlangs button{padding:2px 6px;font-size:11px;line-height:1.5}
+  nav{order:3;flex:1 0 100%;margin-left:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+      column-gap:calc(var(--u)*1.5);row-gap:calc(var(--u)*1);font-size:11.5px;text-align:center}
+  nav a{white-space:nowrap;padding:2px 0;min-height:26px;display:flex;align-items:center;justify-content:center}
+  [id]{scroll-margin-top:86px}
 }
-@media (max-width:390px){ nav{font-size:11.5px;column-gap:calc(var(--u)*1)} .brand{font-size:15px} }
+@media (max-width:390px){ nav{font-size:10.5px;column-gap:calc(var(--u)*1)} .brand{font-size:14.5px}
+  .hlangs button{padding:2px 5px;font-size:10.5px} [id]{scroll-margin-top:80px} }
 .hero .kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--signal);font-weight:600;margin-bottom:calc(var(--u)*4)}
 .hero h1{font-size:clamp(26px,3.6vw,44px);line-height:1.06;margin:0 0 calc(var(--u)*5);font-weight:600;letter-spacing:-.02em;max-width:20ch;text-wrap:balance}
 .hero h1 em{font-style:normal;color:var(--signal)}
@@ -345,9 +353,6 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
 .zh-only,.de-only{display:none}
 .lang-zh .zh-only,.lang-de .de-only{display:inline}
 .lang-zh .en-only.i18n,.lang-de .en-only.i18n{display:none}
-.hlangs{display:flex;gap:4px;flex:none}
-.hlangs button{font-size:12px;padding:3px 8px}
-.hlangs button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-color:var(--ink)}
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important}}
 </style>
 </head>
