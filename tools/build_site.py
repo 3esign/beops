@@ -203,6 +203,18 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
   .brand span{display:none}
   .stagelink{top:auto;bottom:10px}
 }
+/* the header on a phone: two tidy rows - the name and the language on the first, every section on the
+   second. Everything fits at 360 px: nothing scrolls sideways and nothing has to be zoomed to be tapped. */
+@media (max-width:760px){
+  .hbar{flex-wrap:wrap;overflow:visible;row-gap:calc(var(--u)*1.5);column-gap:calc(var(--u)*3);padding:calc(var(--u)*1.5) 0}
+  .brand{font-size:16px;flex:0 0 auto}
+  button#lang{margin-left:auto;flex:none;padding:3px 8px}
+  nav{order:3;flex:1 0 100%;margin-left:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+      column-gap:calc(var(--u)*2);row-gap:calc(var(--u)*1.5);font-size:12.5px;text-align:center}
+  nav a{white-space:nowrap;padding:3px 0;min-height:26px;display:flex;align-items:center;justify-content:center}
+  [id]{scroll-margin-top:104px}
+}
+@media (max-width:390px){ nav{font-size:11.5px;column-gap:calc(var(--u)*1)} .brand{font-size:15px} }
 .hero .kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--signal);font-weight:600;margin-bottom:calc(var(--u)*4)}
 .hero h1{font-size:clamp(26px,3.6vw,44px);line-height:1.06;margin:0 0 calc(var(--u)*5);font-weight:600;letter-spacing:-.02em;max-width:20ch;text-wrap:balance}
 .hero h1 em{font-style:normal;color:var(--signal)}
