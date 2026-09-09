@@ -24,6 +24,14 @@ Set-Location $src
 $head = (git rev-parse --short HEAD).Trim()
 $files = (git ls-files) -split "`n" | Where-Object { $_ -ne '' }
 $keep = $files | Where-Object { $f = $_; -not ($exclude | Where-Object { $f -eq $_ -or $f.StartsWith($_ + '/') }) }
+# C-020, second occurrence. The folder list above excludes research/06-paper, so pre-papers and
+# working documents never reach the export - but research/07-legal is exported whole, and the letters
+# live there. The site build calls letters internal by name (NOT_PUBLIC in tools/build_site.py) while
+# this export published them, which is the same policy answering two different ways depending on which
+# door a document walks through. The categories are named here too, by FILENAME, so a new document of
+# an internal kind is excluded by being that kind rather than by someone remembering to list it.
+$notPublic = @('PISMA','LETTER','WORKING_DOCUMENT','INTERNAL','DRAFT','PRESEK','PRE_PAPER','PREPAPER','PRED_RAD')
+$keep = $keep | Where-Object { $n = (Split-Path $_ -Leaf).ToUpper(); -not ($notPublic | Where-Object { $n.Contains($_) }) }
 Write-Output ("source commit {0}: {1} tracked files, {2} exported" -f $head, $files.Count, $keep.Count)
 if ($DryRun) { $keep | Select-Object -First 40; exit 0 }
 if (-not (Test-Path $pub)) { New-Item -ItemType Directory -Path $pub | Out-Null; git -C $pub init -q -b main }

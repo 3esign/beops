@@ -751,3 +751,28 @@ source in `research/`.
 already written down, in the project's own publish notice, one file away. And a rule about what is
 public has to run in both directions: a build that can only add is a build whose mistakes are
 permanent.
+
+---
+
+## C-021 — A test said the page carried a placeholder; the page carried the word „metodologija"
+
+**When** 2026-09-09, ~19:47 UTC. Found by the suite, before anything was committed.
+
+**What it said.** `research/test_render.py` failed with *"the built page carries 'TODO'"* — an
+assertion that an unfinished placeholder had reached the public artefact.
+
+**What was actually true.** Nothing on the page was unfinished. The test searched for its markers as
+bare substrings, and `TODO` is inside **ME-TODO-LOGIJA**. The word arrived on the page through the
+correction entry immediately above this one, which quotes the deny-list categories by name; the
+correction that fixed one leak tripped a test on a different one's Serbian spelling.
+
+**The fix.** Word-shaped markers (`TODO`, `FIXME`, `undefined`, `NaN`) are matched with word
+boundaries; bracket-shaped ones (`{{`, `>None<`, `[object Object]`) stay literal, since they cannot
+occur inside a word.
+
+**Rule: a test that cries wolf is a defect, not a nuisance.** This project's whole argument is that a
+check is worth more than an intention — which only holds while a failure means something. A test that
+fails on correct content in the site's own second language teaches its operators to read failures as
+noise, and the next real one goes past. English-only pattern matching on a bilingual artefact is the
+same category of error as reading a reception time as a measurement time: the check was written for a
+narrower world than the one it runs in.
