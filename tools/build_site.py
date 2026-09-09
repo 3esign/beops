@@ -22,6 +22,7 @@ site is a snapshot of the same files a reviewer can clone.
 from __future__ import annotations
 
 import json
+import sys
 import pathlib
 import re
 import shutil
@@ -209,6 +210,9 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 .authors b{color:var(--ink);font-weight:600}
 
 .databar{border-bottom:1px solid var(--ink12);padding:calc(var(--u)*8) 0}
+.layersbar{border-bottom:1px solid var(--ink12);padding:calc(var(--u)*8) 0}
+.layers{max-width:1320px;overflow-x:auto}
+.layers svg{min-width:900px;display:block}
 .datastage{height:min(90vh,1100px);border:1px solid var(--ink12);border-radius:6px;overflow:hidden;background:var(--field)}
 .datastage iframe{width:100%;height:100%;border:0;display:block}
 .livebar{border-top:1px solid var(--ink12);border-bottom:1px solid var(--ink12);background:var(--panel);
@@ -284,6 +288,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
     <nav>
       <a href="#zivo"><span class="sr-only">Uživo</span><span class="en-only">Live</span></a>
       <a href="#podaci"><span class="sr-only">Podaci</span><span class="en-only">Data</span></a>
+      <a href="#slojevi"><span class="sr-only">Slojevi</span><span class="en-only">Layers</span></a>
       <a href="#kako"><span class="sr-only">Kako radi</span><span class="en-only">How it works</span></a>
       <a href="#izvori"><span class="sr-only">Izvori</span><span class="en-only">Sources</span></a>
       <a href="#dozvole"><span class="sr-only">Dozvole</span><span class="en-only">Permissions</span></a>
@@ -327,6 +332,14 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
       <a class="stagelink" style="position:static" href="podaci.html?v={stamp}"><span class="sr-only">Otvori sve podatke ↗</span><span class="en-only">Open all the data ↗</span></a>
     </div>
     <div class="datastage"><iframe id="datastage" src="podaci.html?v={stamp}" title="BEOPS · Podaci" loading="lazy"></iframe></div>
+  </div>
+</div>
+
+<div class="layersbar" id="slojevi">
+  <div class="wrap">
+    <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0 0 6px;font-weight:600"><span class="sr-only">Slojevi — od čega je opservatorija napravljena</span><span class="en-only">Layers — what the observatory is made of</span></h2>
+    <p class="sub" style="margin:0 0 16px;max-width:80ch"><span class="sr-only">Podloga, statični slojevi, periodični izvori, živa čula, pravna kapija, sistem koji organizuje, sistem koji misli i govori, izraz — i znanje pored njih. Brojevi u crtežu se čitaju iz registara pri svakoj objavi.</span><span class="en-only">Ground, static layers, periodic sources, live senses, the legal gate, the system that organizes, the system that thinks and speaks, expression — and the knowledge beside them. The numbers in the drawing are read from the registers at every publish.</span></p>
+    <div class="layers">__LAYERS_SVG__</div>
   </div>
 </div>
 
@@ -560,6 +573,14 @@ def main() -> int:
     }
     DOCS.mkdir(parents=True, exist_ok=True)
     html = TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False).replace("</script>", "<\\/script>"))
+    try:
+        sys.path.insert(0, str(ROOT / "tools"))
+        from make_layers import build as _layers_build, counts as _layers_counts  # noqa: PLC0415
+        layers_svg = _layers_build(_layers_counts())
+        (ROOT / "research" / "05-design" / "studies" / "slojevi.svg").write_text(layers_svg, encoding="utf-8")
+    except Exception as e:  # noqa: BLE001
+        layers_svg = f"<!-- layers drawing unavailable: {type(e).__name__} -->"
+    html = html.replace("__LAYERS_SVG__", layers_svg)
     html = html.replace("{stamp}", data["built"].replace(" ", "T").replace(":", "").replace("-", ""))   # the stage frame: a browser that cached yesterday's monolog.html must not show it today
     (DOCS / "index.html").write_text(html, encoding="utf-8")
     for src, dst in [("research/05-design/studies/monolog-puls.html", "monolog.html"),
