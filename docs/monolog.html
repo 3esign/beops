@@ -456,6 +456,14 @@ try{ if(window.self!==window.top||location.search.includes('embed')) document.bo
 })();
 // the landing page's language toggle reaches the frame
 window.addEventListener('message',ev=>{ if(ev&&ev.data&&ev.data.beopsLang&&ev.data.beopsLang!==LANG){ LANG=ev.data.beopsLang; relang(); } });
-Promise.all([loadBasemap(),loadPeople()]).then(()=>load()).then(snap=>{ if(!snap){document.getElementById('clock').textContent='no snapshot';return;} SNAP=snap; T1=P(snap.as_of); T0=T1-snap.window_hours*3600e3; EVENTS=build(snap); document.getElementById('mapnote').textContent=(snap.as_of.slice(0,19))+'Z'; speedLabel(); showLatest(); renderMind(); requestAnimationFrame(frame); });
+Promise.all([loadBasemap(),loadPeople()]).then(()=>load()).then(snap=>{ if(!snap){document.getElementById('clock').textContent='no snapshot';return;} SNAP=snap; T1=P(snap.as_of); T0=T1-snap.window_hours*3600e3; EVENTS=build(snap); document.getElementById('mapnote').textContent=(snap.as_of.slice(0,19))+'Z'; speedLabel(); showLatest(); renderMind();
+  // Paint once, straight away, before the animation loop starts. requestAnimationFrame does not
+  // fire while a document is hidden, so a frame that loads out of view - a background tab, a
+  // print, a thumbnail, an embedding whose host is not the foreground - kept a 300x150 default
+  // canvas and showed nothing. The pulse is an animation; the map underneath it is not, and it
+  // should be on the screen the moment the record is in hand.
+  drawMap(performance.now());
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) drawMap(performance.now()); });
+  requestAnimationFrame(frame); });
 })();
 </script>
