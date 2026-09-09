@@ -32,13 +32,11 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 RES = ROOT / "research"
 DOCS = ROOT / "docs"
 
-
 def read_json(p: pathlib.Path, default=None):
     try:
         return json.loads(p.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return default
-
 
 def registry() -> dict:
     d = read_json(RES / "SOURCE_REGISTRY.json", {}) or {}
@@ -56,7 +54,6 @@ def registry() -> dict:
     for r in rows:
         counts[r["status"]] = counts.get(r["status"], 0) + 1
     return {"reviewed_at": d.get("reviewed_at"), "rows": rows, "counts": counts, "legend": d.get("status_legend", {})}
-
 
 def provenance() -> dict:
     txt = ""
@@ -84,7 +81,6 @@ def provenance() -> dict:
                 refused.append({"id": cells[0], "source": cells[1], "said": re.sub(r"\[|\]\([^)]*\)", "", cells[2])[:300]})
     return {"nums": nums, "refused": refused}
 
-
 def corrections() -> list:
     try:
         txt = (RES / "08-provenance" / "CORRECTIONS.md").read_text(encoding="utf-8")
@@ -102,25 +98,21 @@ def corrections() -> list:
                     "said": clean(said), "true": clean(what), "rule": clean(rule)})
     return out
 
-
 def collectors() -> list:
     d = read_json(RES / "COLLECTORS.json", {}) or {}
     return [{"sid": s.get("sid"), "name": s.get("name"), "cadence": s.get("cadence_seconds"),
              "time": s.get("phenomenon_time_published", ""), "enabled": s.get("enabled", True)}
             for s in d.get("sources", [])]
 
-
 def related() -> dict:
     d = read_json(RES / "RELATED_WORK.json", {}) or {}
     return {"claim": d.get("claim_boundary", {}), "entries": d.get("entries", [])}
-
 
 def organs() -> list:
     d = read_json(RES / "ORGANS.json", {}) or {}
     return [{"id": o.get("id"), "purpose": o.get("purpose", ""), "status": o.get("status", ""),
              "models": o.get("models_preferred", []), "editor": o.get("editor_of_record", ""),
              "runs_where": o.get("runs_where", "")} for o in d.get("organs", [])]
-
 
 def live() -> dict:
     d = read_json(ROOT / "public" / "live-snapshot.json", {}) or {}
@@ -136,7 +128,6 @@ def live() -> dict:
                                "captured": q.get("captured", 0), "expected": q.get("expected_slots", 0),
                                "age": q.get("age_seconds"), "paused": q.get("paused")})
     return out
-
 
 TEMPLATE = r"""<!doctype html>
 <html lang="sr">
@@ -214,7 +205,7 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 /* The signature and the venue line are each ONE line: a signature that wraps stops reading as a
    signature and starts reading as a paragraph. Below 900 px there is no room for that, so they
    wrap there rather than being cut. */
-.hero .kicker{grid-column:1 / -1;margin:calc(var(--u)*6) 0 0;padding-top:calc(var(--u)*4);border-top:1px solid var(--ink12);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11.5px;color:var(--ink55)}
+
 /* The live panel sits in the hero, under the sentence that introduces it. It reports its
    own height like every other frame; the 300px is only what the box holds until it does. */
 .nowpanel{grid-column:1 / -1;width:min(100%,980px);margin:calc(var(--u)*7) auto 0;height:300px}
@@ -251,7 +242,9 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 }
 @media (max-width:390px){ nav{font-size:10.5px;column-gap:calc(var(--u)*1)} .brand{font-size:14.5px}
   .hlangs button{padding:2px 5px;font-size:10.5px} [id]{scroll-margin-top:80px} }
-.hero .kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--signal);font-weight:600;margin-bottom:calc(var(--u)*4)}
+.hero .kicker{grid-column:1 / -1;margin:calc(var(--u)*6) 0 0;padding-top:calc(var(--u)*4);border-top:1px solid var(--ink12);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink55);font-weight:600}   /* one rule, one place: two declarations for one element is C-023's shape at a smaller
+      scale - the second wins silently and nothing shows you which one decided. Muted, not
+      signal: at the foot of the hero this is a provenance line, not a headline. */
 .hero h1{font-size:clamp(26px,3.6vw,44px);line-height:1.06;margin:0 0 calc(var(--u)*5);font-weight:600;letter-spacing:-.02em;max-width:20ch;text-wrap:balance}
 .hero h1 em{font-style:normal;color:var(--signal)}
 .hero .sub{font-size:clamp(15px,1.35vw,17.5px);color:var(--ink70);max-width:52ch;margin:0}
@@ -420,7 +413,6 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
     <div class="datastage airstage"><iframe id="airstage" src="podaci.html?only=vazduh&amp;v={stamp}" title="BEOPS · Vazduh" loading="eager"></iframe></div>
   </div>
 </div>
-
 
 <div class="whatbar" id="sta">
   <div class="wrap">
@@ -843,7 +835,6 @@ render();
 </html>
 """
 
-
 def main() -> int:
     data = {
         "built": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M"),
@@ -915,7 +906,6 @@ def main() -> int:
     print(f"wrote {DOCS/'index.html'} ({len(html)} bytes; {len(data['registry']['rows'])} sources, "
           f"{len(data['corrections'])} corrections, {len(data['provenance']['refused'])} refusals)")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
