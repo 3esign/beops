@@ -541,3 +541,49 @@ not how many utterances a validator refused but how many it should have refused 
 that has been measured against a set someone tried to break it with, the mechanism is a
 demonstration, and calling it anything else is the same error as trusting a receipt instead of the
 artefact (C-014) — one level up.
+
+## C-016 — The pulse map was empty on a phone, and the frame that held it was 3 900 px tall
+
+**When** From the day the monologue was embedded in the front page until 2026-09-09 18:00 UTC, when
+it was reported from a phone with a screenshot.
+
+**What it said.** The section is titled *Puls — kruži samo kad je instrument stvarno pročitan*, and on
+a desktop it draws Belgrade with a ring around every instrument at the moment it is read. The offline
+suite passed, the frame protocol worked, both languages were present, and nothing in the repository
+suggested a problem.
+
+**What was actually true.** On a 412 px phone the map was a blank grey box about two thousand pixels
+tall. One CSS declaration caused it: `body.embedded .map .cv{min-height:52vh}`. The parent sizes that
+frame from the height of its own content, so a child asking for 52 % of the viewport was asking for
+52 % of itself. It settles rather than diverges — H = 1873 + 0.52H — at **3 900 px**, which is exactly
+what was measured. The map's box became 2 027 px.
+
+That alone would have been ugly. What made it *empty* was a second fault, in the canvas: the resize
+compared only the width against the backing store — `if(cv.width!==Math.round(w*dpr))` — so when the
+box grew taller the bitmap stayed 589 px while the projection kept drawing into a 2 027 px space.
+Everything below the old height fell outside the bitmap, and what remained visible was the margin
+above the city. A map of Belgrade with no Belgrade in it.
+
+Two further defects of the same family were found while measuring, in frames that had never been
+looked at below 900 px: the ribbon's source header and the data page's header both kept a desktop
+two-column grid, so a source title wrapped one word per line and ran underneath its own note, and a
+sparkline had 162 px left to draw twenty-four hours in.
+
+**The fix.** The map is sized from the frame's WIDTH (`clamp(220px,72vw,420px)`) — the one dimension
+the parent sets by layout and never reads back, so the loop cannot close. The canvas resize compares
+both dimensions. The ribbon and the data page collapse their headers and narrow their label columns
+below 560 px. Measured before and after, at 412 px: frame 3 898 → 2 134 px, map box 2 027 → 261 px,
+canvas bitmap 589 → 261 px, and the map draws.
+
+**Rule: an artefact that is only ever read as text has only ever been half tested.** Two tests are
+added to `research/test_render.py` — no descendant of an embedded frame may be sized in `vh`, and a
+guarded canvas resize must guard both dimensions — and both were checked against the defect itself
+before being committed: reinstating the old declaration makes the suite fail. But neither would have
+found the two-column headers, because a text test lays nothing out. `research/measure_render.js` now
+opens the built page at five widths in a real browser and fails on a runaway frame, a canvas whose
+bitmap disagrees with its box, a page that scrolls sideways, or a frame that loaded no text. It needs
+a browser, so it is deliberately outside `npm test`, which stays dependency-free, and is run by hand.
+
+**And the honest part: this was found by a person looking at a screen, again.** C-014's rule was that
+a scheduled job must be checked by its artefact rather than its own report. The same applies one level
+out: a site must be checked by what it looks like, not only by what it contains.

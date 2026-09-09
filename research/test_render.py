@@ -89,6 +89,37 @@ class BuiltSiteTests(unittest.TestCase):
             self.assertNotRegex(body, r"(documentElement|body)\.scrollHeight",
                                 f"docs/{f} measures its height from scrollHeight, which cannot shrink")
 
+    def test_no_element_inside_an_embedded_frame_is_sized_from_the_viewport_height(self):
+        """The parent measures the frame from its content, so a child asking for a share of the
+        viewport is asking for a share of itself. `body.embedded .map .cv{min-height:52vh}` settled at
+        H = 1873 + 0.52H = 3900 px on a 412 px phone and left a 2000 px empty box under the pulse map.
+        The frame's OWN box may fill its viewport - that is the parent's decision to honour - but no
+        descendant of it may, because a descendant is what the measurement reads."""
+        for f in self.frames:
+            p = DOCS / f
+            if not p.exists():
+                continue
+            for rule in re.findall(r"([^{}]*embedded[^{}]*)\{([^}]*)\}", read(p)):
+                selector, body = rule[0].strip(), rule[1]
+                descendant = re.search(r"embedded[^,{]*\s+\S", selector)
+                if descendant and re.search(r"\d\s*d?vh\b", body):
+                    self.fail(f"docs/{f}: `{selector}` sizes a descendant of an embedded frame in vh: {body.strip()[:90]}")
+
+    def test_a_canvas_is_resized_when_either_dimension_changes(self):
+        """The pulse map compared only its width against the backing store, so when its box grew taller
+        the bitmap stayed 589 px while the projection drew into 2027 px: everything below the old
+        height fell outside the bitmap and the map read as empty."""
+        for f in self.frames:
+            p = DOCS / f
+            if not p.exists():
+                continue
+            body = read(p)
+            # A page that re-sizes its canvas on every draw needs no guard. One that guards the resize
+            # must guard on both dimensions, or a taller box keeps a shorter bitmap.
+            if re.search(r"\.width\s*!==\s*Math\.round\(", body):
+                self.assertRegex(body, r"\.height\s*!==\s*Math\.round\(",
+                                 f"docs/{f} guards its canvas resize on width alone")
+
     def test_every_frame_reports_its_own_height_and_takes_the_language(self):
         for f in self.frames:
             p = DOCS / f

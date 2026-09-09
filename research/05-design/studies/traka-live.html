@@ -68,6 +68,21 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 300px}
 .lane.sub .lc{height:calc(var(--u)*7)}
 .lane.sub .ll{padding-left:calc(var(--u)*10);font-size:13px}
 canvas{display:block;width:100%;height:100%}
+/* Phone. The two-column header, the source header and the 200px lane label were all laid out for a
+   desktop pane; inside a 362px frame the name column collapsed to about 150px, the source title broke
+   one word per line and ran under its own note, and the sparkline had 162px left to draw 24 hours in.
+   None of it is a font-size problem, so none of it is fixed with one. */
+@media (max-width:560px){
+  header{grid-template-columns:1fr;align-items:start;gap:calc(var(--u)*2)}
+  .gh{grid-template-columns:1fr;gap:calc(var(--u)*1);padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*4)}
+  .gh h2{font-size:14px;line-height:1.25}
+  .gh h2 small{margin-left:0;display:block}
+  .quorum{padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*4)}
+  .lane{grid-template-columns:124px minmax(0,1fr)}
+  .ll{padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*2);font-size:12.5px}
+  .lane.sub .ll{padding-left:calc(var(--u)*6);font-size:12px}
+  .legend{padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*4)}
+}
 .reading{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;border-left:1px solid var(--ink12);padding:calc(var(--u)*5) calc(var(--u)*5)}
 /* Embedded, the frame is made as tall as this document; a panel measured in viewport heights would
    then grow the document, which would grow the frame, without end. Here it is as tall as it reads. */

@@ -62,6 +62,13 @@ tr.max td{box-shadow:inset 3px 0 0 var(--signal)}
 .hax{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--ink60);margin-top:calc(var(--u)*2)}
 .hsum{display:flex;gap:calc(var(--u)*8);flex-wrap:wrap;margin:calc(var(--u)*3) 0 0}
 .bar{display:grid;grid-template-columns:22ch 1fr 6ch;gap:8px;align-items:center;font-size:13px}
+/* Phone. Same shape of defect as the ribbon: a header and a bar row measured for a desktop pane,
+   inside a 362px frame. 22ch of label leaves the bar itself about a hundred pixels. */
+@media (max-width:560px){
+  header{grid-template-columns:1fr;align-items:start;gap:calc(var(--u)*2)}
+  .bar{grid-template-columns:13ch minmax(0,1fr) 5ch;gap:6px;font-size:12.5px}
+  .tiles{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+}
 .bar .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar .b{height:10px;background:var(--ink06);position:relative}
 .bar .b i{position:absolute;left:0;top:0;bottom:0;background:var(--ink30)}

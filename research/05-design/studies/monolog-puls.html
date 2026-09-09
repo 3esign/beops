@@ -133,7 +133,11 @@ body.embedded .map .cv{min-height:0}
    document instead, and only the feed keeps a scroll of its own. */
 @media (max-width:900px){ body.embedded{height:auto;overflow:visible;display:block}
   body.embedded main{min-height:0} body.embedded .lines{max-height:330px;height:auto}
-  body.embedded .map .cv{min-height:52vh} }
+  /* Never vh INSIDE an embedded frame: the parent sizes this frame from its content height, so a
+     child asking for a share of the viewport is asking for a share of itself. 52vh here settled at
+     H = 1873 + 0.52H = 3900px on a 412px phone - a 2000px empty box under the pulse. Width is the
+     one dimension the parent sets by layout and never reads back, so the map is sized from it. */
+  body.embedded .map .cv{min-height:0;flex:0 0 auto;height:clamp(220px,72vw,420px)} }
 </style>
 
 <header>
@@ -332,7 +336,7 @@ function buildCover(w,h){
 }
 function proj(lat,lon,w,h){ const kx=Math.cos(44.8*Math.PI/180); const sx=w/((BB.lo1-BB.lo0)*kx), sy=h/(BB.la1-BB.la0); const s=Math.min(sx,sy); const cx=(w-(BB.lo1-BB.lo0)*kx*s)/2, cy=(h-(BB.la1-BB.la0)*s)/2; return [cx+(lon-BB.lo0)*kx*s, cy+(BB.la1-lat)*s]; }
 function drawMap(now){
-  const dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=cv.clientHeight; if(cv.width!==Math.round(w*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);} g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
+  const dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=cv.clientHeight; if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);} g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
   // Base map: Natural Earth 1:10m, public domain (S98). Built-up footprint as a soft area, the two
   // rivers as centrelines. It is generalised - orientation, never measurement - and the caption at
   // the bottom of the canvas says so. Every richer route to a Belgrade base map was refused and the
@@ -361,7 +365,23 @@ function drawMap(now){
   // pulses: ring expands 900 ms after a reception; nothing else moves
   const alive=[]; for(const pl of pulses){ const a=(now-pl.at)/1400; if(a>1) continue; alive.push(pl); const [x,y]=proj(pl.lat,pl.lon,w,h); const col=pl.untimed?css('--signal-untimed'):css('--signal'); g.strokeStyle=col; g.globalAlpha=(1-a)*.9; g.lineWidth=1.5; g.beginPath(); g.arc(x,y,3+a*16,0,Math.PI*2); g.stroke(); g.globalAlpha=(1-a)*.18; g.lineWidth=8; g.beginPath(); g.arc(x,y,3+a*16,0,Math.PI*2); g.stroke(); g.globalAlpha=1; g.fillStyle=col; g.beginPath(); g.arc(x,y,2.6,0,Math.PI*2); g.fill(); }
   pulses=alive;
-  g.fillStyle=css('--ink60'); g.font='11px '+css('--mono'); g.fillText((BM_RIVERS.length?(LANG==='sr'?'Natural Earth 1:10 mil. (javno vlasništvo) · generalizovano, orijentacija a ne merenje · bez granica opština: svi putevi odbijeni':'Natural Earth 1:10m (public domain) · generalised - orientation, not measurement · no municipality boundaries: every route refused'):(LANG==='sr'?'shematski':'schematic'))+(PEOPLE?(LANG==='sr'?' · ljudi po H3 heksagonu: Kontur 2022 (CC BY), modelska procena':' · people per H3 hexagon: Kontur 2022 (CC BY), a modelled estimate'):'')+' · WGS84 · '+POINTS.length+' '+(LANG==='sr'?'instrumenata':'instruments'),8,h-8);
+  // The credit is evidence too - the base map's provenance and licence belong on the picture, not in a
+  // footnote. On a narrow canvas the full sentence runs off the right edge, so it steps down to a
+  // shorter form and then to a smaller face rather than being drawn where nobody can read it.
+  g.fillStyle=css('--ink60');
+  const _srb=LANG==='sr';
+  const _base=BM_RIVERS.length?(_srb?'Natural Earth 1:10 mil. (javno vlasni\u0161tvo) \u00b7 generalizovano, orijentacija a ne merenje \u00b7 bez granica op\u0161tina: svi putevi odbijeni':'Natural Earth 1:10m (public domain) \u00b7 generalised - orientation, not measurement \u00b7 no municipality boundaries: every route refused'):(_srb?'shematski':'schematic');
+  const _ppl=PEOPLE?(_srb?' \u00b7 ljudi po H3 heksagonu: Kontur 2022 (CC BY), modelska procena':' \u00b7 people per H3 hexagon: Kontur 2022 (CC BY), a modelled estimate'):'';
+  const _tail=' \u00b7 WGS84 \u00b7 '+POINTS.length+' '+(_srb?'instrumenata':'instruments');
+  const _long=_base+_ppl+_tail;
+  const _mid=(BM_RIVERS.length?(_srb?'Natural Earth 1:10 mil. \u00b7 orijentacija, ne merenje':'Natural Earth 1:10m \u00b7 orientation, not measurement'):(_srb?'shematski':'schematic'))+(PEOPLE?(_srb?' \u00b7 ljudi: Kontur 2022 (CC BY)':' \u00b7 people: Kontur 2022 (CC BY)'):'')+' \u00b7 '+POINTS.length+' '+(_srb?'instrumenata':'instruments');
+  const _short=(_srb?'Natural Earth \u00b7 Kontur 2022 \u00b7 ':'Natural Earth \u00b7 Kontur 2022 \u00b7 ')+POINTS.length+' '+(_srb?'instr.':'instr.');
+  g.font='11px '+css('--mono');
+  let _txt=_long;
+  if(g.measureText(_txt).width>w-16){ _txt=_mid; }
+  if(g.measureText(_txt).width>w-16){ _txt=_short; }
+  if(g.measureText(_txt).width>w-16){ g.font='9px '+css('--mono'); }
+  g.fillText(_txt,8,h-8);
 }
 function pulseFor(e){ const now=performance.now(); if(e.kind==='rx'){ for(const st of e.stations){ const pt=POINTS.find(p=>p.sid===e.sid&&p.station===st); if(pt) pulses.push({at:now,lat:pt.lat,lon:pt.lon,untimed:e.untimed>0}); } } }
 // pulse rings live 1400 ms now: slower, softer
