@@ -173,6 +173,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--signal);outline-off
 header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--field) 78%,transparent);
   backdrop-filter:saturate(1.25) blur(16px);-webkit-backdrop-filter:saturate(1.25) blur(16px);
   border-bottom:1px solid var(--ink12)}
+[id]{scroll-margin-top:64px}   /* the header is sticky: without this, following a nav link hides the heading under it */
 .hbar{display:flex;align-items:center;gap:calc(var(--u)*4);padding:calc(var(--u)*3) 0;flex-wrap:wrap}
 .brand{font-weight:700;letter-spacing:-.01em;font-size:17px;border:0;white-space:nowrap;flex:none}
 .brand span{font-weight:400;color:var(--ink55)}
@@ -214,6 +215,8 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 .layers{max-width:820px;margin:0 auto}
 .layers svg{width:100%;height:auto;display:block}
 .layerlink{display:block;text-align:center;font-size:12px;color:var(--ink55);margin-top:calc(var(--u)*3)}
+/* on a narrow screen the drawing keeps a readable size and scrolls inside its own box; the page itself never scrolls sideways */
+@media (max-width:760px){.layers{overflow-x:auto;-webkit-overflow-scrolling:touch}.layers svg{width:760px;max-width:none}}
 .datastage{height:min(90vh,1100px);border:1px solid var(--ink12);border-radius:6px;overflow:hidden;background:var(--field)}
 .datastage iframe{width:100%;height:100%;border:0;display:block}
 .livebar{border-top:1px solid var(--ink12);border-bottom:1px solid var(--ink12);background:var(--panel);
