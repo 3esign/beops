@@ -396,6 +396,7 @@ load().then(snap=>{
   const lb=document.getElementById('lang');
   if(lb) lb.addEventListener('click',()=>setLang(LANG==='sr'?'en':'sr'));
   window.addEventListener('message',ev=>{
+  var d=ev&&ev.data; if(!d) return;
   if(d.beopsTheme!==undefined){
     if(d.beopsTheme) document.documentElement.setAttribute('data-theme',d.beopsTheme);
     else document.documentElement.removeAttribute('data-theme');

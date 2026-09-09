@@ -451,6 +451,9 @@ document.getElementById('lang').addEventListener('click',()=>{LANG=LANG==='sr'?'
 })();
 
 window.addEventListener('message',ev=>{
+  // `d` was read here without ever being declared, so every message into this frame threw before it
+  // reached either branch: the theme never followed the page and the language switch was dead too.
+  var d=ev&&ev.data; if(!d) return;
   if(d.beopsTheme!==undefined){
     if(d.beopsTheme) document.documentElement.setAttribute('data-theme',d.beopsTheme);
     else document.documentElement.removeAttribute('data-theme');
