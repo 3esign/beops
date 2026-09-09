@@ -204,7 +204,7 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
   .hbar::-webkit-scrollbar{display:none}
   nav{flex-wrap:nowrap;gap:calc(var(--u)*3);font-size:13px;margin-left:auto}
   nav a{white-space:nowrap}
-  button#lang{flex:none}
+  button#lang,.hlangs{flex:none}
   .brand span{display:none}
   .stagelink{top:auto;bottom:10px}
 }
@@ -213,7 +213,8 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 @media (max-width:760px){
   .hbar{flex-wrap:wrap;overflow:visible;row-gap:calc(var(--u)*1.5);column-gap:calc(var(--u)*3);padding:calc(var(--u)*1.5) 0}
   .brand{font-size:16px;flex:0 0 auto}
-  button#lang{margin-left:auto;flex:none;padding:3px 8px}
+  button#lang,.hlangs{margin-left:auto;flex:none}
+  .hlangs button{padding:3px 7px;font-size:11.5px}
   nav{order:3;flex:1 0 100%;margin-left:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
       column-gap:calc(var(--u)*2);row-gap:calc(var(--u)*1.5);font-size:12.5px;text-align:center}
   nav a{white-space:nowrap;padding:3px 0;min-height:26px;display:flex;align-items:center;justify-content:center}
@@ -336,6 +337,17 @@ footer{padding:calc(var(--u)*10) 0;font-size:13.5px;color:var(--ink55)}
 footer .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:calc(var(--u)*6)}
 footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
 .lang-en .sr-only,.lang-sr .en-only{display:none}
+/* The page writes its own explanations in four languages; everything generated from a
+   register stays Serbian and English, because those strings are quotations of what a
+   publisher wrote and this project does not translate a source. Chinese and German
+   therefore ride on top of English: a block that has no translation falls back to it
+   rather than disappearing, and .i18n marks the blocks that do have one. */
+.zh-only,.de-only{display:none}
+.lang-zh .zh-only,.lang-de .de-only{display:inline}
+.lang-zh .en-only.i18n,.lang-de .en-only.i18n{display:none}
+.hlangs{display:flex;gap:4px;flex:none}
+.hlangs button{font-size:12px;padding:3px 8px}
+.hlangs button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-color:var(--ink)}
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important}}
 </style>
 </head>
@@ -344,28 +356,28 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
   <div class="wrap hbar">
     <a class="brand" href="#top">BEOPS <span>· Beograd</span></a>
     <nav>
-      <a href="#sta"><span class="sr-only">Šta je ovo</span><span class="en-only">What this is</span></a>
-      <a href="#zivo"><span class="sr-only">Uživo</span><span class="en-only">Live</span></a>
-      <a href="#podaci"><span class="sr-only">Podaci</span><span class="en-only">Data</span></a>
-      <a href="#slojevi"><span class="sr-only">Slojevi</span><span class="en-only">Layers</span></a>
-      <a href="#kako"><span class="sr-only">Kako radi</span><span class="en-only">How it works</span></a>
-      <a href="#izvori"><span class="sr-only">Izvori</span><span class="en-only">Sources</span></a>
-      <a href="#srodno"><span class="sr-only">Srodno</span><span class="en-only">Related</span></a>
-      <a href="#dozvole"><span class="sr-only">Dozvole</span><span class="en-only">Permissions</span></a>
-      <a href="#greske"><span class="sr-only">Greške</span><span class="en-only">Corrections</span></a>
+      <a href="#sta"><span class="sr-only i18n">Šta je ovo</span><span class="en-only i18n">What this is</span><span class="zh-only">这是什么</span><span class="de-only">Was das ist</span></a>
+      <a href="#zivo"><span class="sr-only i18n">Uživo</span><span class="en-only i18n">Live</span><span class="zh-only">实时</span><span class="de-only">Live</span></a>
+      <a href="#podaci"><span class="sr-only i18n">Podaci</span><span class="en-only i18n">Data</span><span class="zh-only">数据</span><span class="de-only">Daten</span></a>
+      <a href="#slojevi"><span class="sr-only i18n">Slojevi</span><span class="en-only i18n">Layers</span><span class="zh-only">层</span><span class="de-only">Schichten</span></a>
+      <a href="#kako"><span class="sr-only i18n">Kako radi</span><span class="en-only i18n">How it works</span><span class="zh-only">如何运作</span><span class="de-only">Funktionsweise</span></a>
+      <a href="#izvori"><span class="sr-only i18n">Izvori</span><span class="en-only i18n">Sources</span><span class="zh-only">来源</span><span class="de-only">Quellen</span></a>
+      <a href="#srodno"><span class="sr-only i18n">Srodno</span><span class="en-only i18n">Related</span><span class="zh-only">相关</span><span class="de-only">Verwandtes</span></a>
+      <a href="#dozvole"><span class="sr-only i18n">Dozvole</span><span class="en-only i18n">Permissions</span><span class="zh-only">许可</span><span class="de-only">Erlaubnisse</span></a>
+      <a href="#greske"><span class="sr-only i18n">Greške</span><span class="en-only i18n">Corrections</span><span class="zh-only">更正</span><span class="de-only">Korrekturen</span></a>
     </nav>
-    <button id="lang" aria-pressed="false" title="Jezik / Language">SR / EN</button>
+    <div class="hlangs" id="lang" role="group" aria-label="Jezik / Language"><button type="button" data-l="sr" aria-pressed="true">SR</button><button type="button" data-l="en" aria-pressed="false">EN</button><button type="button" data-l="zh" aria-pressed="false">中文</button><button type="button" data-l="de" aria-pressed="false">DE</button></div>
   </div>
 </header>
 
 <div id="top" class="hero">
   <div class="wrap herohead">
     <div>
-      <div class="kicker"><span class="sr-only">Naučni rad za konferenciju „Creating sustainable commUNiTy“ · Univerzitet Union – Nikola Tesla, 2026</span><span class="en-only">A scientific paper for the conference “Creating sustainable commUNiTy” · University Union – Nikola Tesla, 2026</span></div>
-      <h1><span class="sr-only">Ovo je ono što nam je Beograd rekao, kad nam je rekao, i <em>gde je zaćutao</em>.</span><span class="en-only">This is what Belgrade told us, when it told us, and <em>where it went quiet</em>.</span></h1>
-      <p class="authors"><b>prof. dr Darinka Golubović Matić</b> · <b>doc. dr Semir Poturak</b> — autori rada; nastavnici Univerziteta Union – Nikola Tesla u Beogradu, ali rad ne nastupa u ime ustanove · <span class="sr-only">sa <b>Svemirom</b>, lokalnom AI infrastrukturom autora (Claude, Anthropic) — proveren saradnik, ne autor</span><span class="en-only">with <b>Svemir</b>, the authors' local AI infrastructure (Claude, Anthropic) — a verified contributor, not an author</span></p>
+      <div class="kicker"><span class="sr-only i18n">Naučni rad za konferenciju „Creating sustainable commUNiTy“ · Univerzitet Union – Nikola Tesla, 2026</span><span class="en-only i18n">A scientific paper for the conference “Creating sustainable commUNiTy” · University Union – Nikola Tesla, 2026</span><span class="zh-only">为会议“Creating sustainable commUNiTy”撰写的科学论文 · Union – Nikola Tesla 大学，2026</span><span class="de-only">Eine wissenschaftliche Arbeit für die Konferenz „Creating sustainable commUNiTy“ · Universität Union – Nikola Tesla, 2026</span></div>
+      <h1><span class="sr-only i18n">Ovo je ono što nam je Beograd rekao, kad nam je rekao, i <em>gde je zaćutao</em>.</span><span class="en-only i18n">This is what Belgrade told us, when it told us, and <em>where it went quiet</em>.</span><span class="zh-only">这是贝尔格莱德告诉我们的内容、告诉我们的时刻，以及<em>它沉默的地方</em>。</span><span class="de-only">Das ist, was Belgrad uns gesagt hat, wann es das gesagt hat, und <em>wo es verstummt ist</em>.</span></h1>
+      <p class="authors"><b>prof. dr Darinka Golubović Matić</b> · <b>doc. dr Semir Poturak</b> — autori rada; nastavnici Univerziteta Union – Nikola Tesla u Beogradu, ali rad ne nastupa u ime ustanove · <span class="sr-only i18n">sa <b>Svemirom</b>, lokalnom AI infrastrukturom autora (Claude, Anthropic) — proveren saradnik, ne autor</span><span class="en-only i18n">with <b>Svemir</b>, the authors' local AI infrastructure (Claude, Anthropic) — a verified contributor, not an author</span><span class="zh-only">与<b>Svemir</b>协作——作者本地的人工智能基础设施（Claude，Anthropic）：经过核验的贡献者，而非作者</span><span class="de-only">mit <b>Svemir</b>, der lokalen KI-Infrastruktur der Autoren (Claude, Anthropic) — ein geprüfter Mitwirkender, kein Autor</span></p>
     </div>
-    <p class="sub"><span class="sr-only">Grad govori u prijemima; mapa kruži samo kad je instrument stvarno pročitan; um od malih lokalnih modela razmišlja naglas i svaka njegova rečenica se proverava pre nego što je vidiš. Ono čega nema je zapis — nikada nula.</span><span class="en-only">The city speaks in receptions; the map pulses only when an instrument was actually read; a mind of small local models thinks aloud and every sentence is checked before you see it. What is missing is a record — never a zero.</span></p>
+    <p class="sub"><span class="sr-only i18n">Grad govori u prijemima; mapa kruži samo kad je instrument stvarno pročitan; um od malih lokalnih modela razmišlja naglas i svaka njegova rečenica se proverava pre nego što je vidiš. Ono čega nema je zapis — nikada nula.</span><span class="en-only i18n">The city speaks in receptions; the map pulses only when an instrument was actually read; a mind of small local models thinks aloud and every sentence is checked before you see it. What is missing is a record — never a zero.</span><span class="zh-only">城市以“接收”说话；只有当仪器真正被读取时，地图才会脉动；一个由小型本地模型组成的思维出声思考，而它的每一句话在你看到之前都经过核验。缺失的东西是一条记录——绝不是零。</span><span class="de-only">Die Stadt spricht in Empfängen; die Karte pulsiert nur, wenn ein Instrument tatsächlich gelesen wurde; ein Verstand aus kleinen lokalen Modellen denkt laut, und jeder seiner Sätze wird geprüft, bevor Sie ihn sehen. Was fehlt, ist ein Eintrag — niemals eine Null.</span></p>
   </div>
   <div class="wrap">
     <div class="stage">
@@ -376,7 +388,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
 
 <div class="airbar" id="vazduhbar">
   <div class="wrap">
-    <h2 class="barhead"><span class="sr-only">Vazduh — državna mreža, poslednji sat</span><span class="en-only">Air — the state network, the last hour</span></h2>
+    <h2 class="barhead"><span class="sr-only i18n">Vazduh — državna mreža, poslednji sat</span><span class="en-only i18n">Air — the state network, the last hour</span><span class="zh-only">空气——国家监测网，最近一小时</span><span class="de-only">Luft — das staatliche Messnetz, die letzte Stunde</span></h2>
     <div class="datastage airstage"><iframe id="airstage" src="podaci.html?only=vazduh&amp;v={stamp}" title="BEOPS · Vazduh" loading="eager"></iframe></div>
   </div>
 </div>
@@ -408,30 +420,30 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
         <p><span class="w-sr">Nije nadzor, nije „pametni grad" i nije digitalni blizanac. Nema podataka o pojedincima, nema kamera, nema praćenja ljudi. I nije merenje grada: ovo je ono što su instrumenti objavili i kad smo to primili — prijem nije merenje, a ono čega nema je zapis, nikada nula.</span><span class="w-en">Not surveillance, not a "smart city", not a digital twin. No person-level data, no cameras, no tracking of people. And not a measurement of the city: this is what the instruments published, and when we received it — a reception is not a measurement, and what is missing is a record, never a zero.</span><span class="w-zh">这不是监控，不是"智慧城市"，也不是数字孪生。没有个人层面的数据，没有摄像头，不追踪任何人。它也不是对城市的测量：这是仪器所发布的内容以及我们接收到的时间——接收不等于测量，缺失之处是一条记录，而绝非零。</span><span class="w-de">Keine Überwachung, keine „Smart City", kein digitaler Zwilling. Keine personenbezogenen Daten, keine Kameras, keine Verfolgung von Menschen. Und keine Messung der Stadt: Dies ist, was die Instrumente veröffentlicht haben und wann wir es empfangen haben — ein Empfang ist keine Messung, und was fehlt, ist ein Eintrag, niemals eine Null.</span></p>
       </div>
     </div>
-    <p class="wnote"><span class="w-sr">Ova četiri odgovora postoje na srpskom, engleskom, kineskom i nemačkom. Ostatak stranice je dvojezičan, srpski i engleski, jer se generiše iz registara koji se menjaju svakih nekoliko minuta.</span><span class="w-en">These four answers exist in Serbian, English, Chinese and German. The rest of the page is bilingual, Serbian and English, because it is generated from registers that change every few minutes.</span><span class="w-zh">以上四个回答提供塞尔维亚语、英语、中文和德语版本。本页其余部分为塞尔维亚语和英语双语，因为它由每隔几分钟变动一次的登记册生成。</span><span class="w-de">Diese vier Antworten gibt es auf Serbisch, Englisch, Chinesisch und Deutsch. Der übrige Teil der Seite ist zweisprachig, Serbisch und Englisch, weil er aus Registern erzeugt wird, die sich alle paar Minuten ändern.</span></p>
+    <p class="wnote"><span class="sr-only i18n">Sve što stranica sama kaže — objašnjenja, metodologija, pravila čitanja, zaglavlja i podnožje — postoji na srpskom, engleskom, kineskom i nemačkom. Ono što se generiše iz registara — imena izvora, stanja, ispravke, srodni radovi — ostaje na srpskom i engleskom, jer su to navodi onoga što je neko drugi objavio, a tuđi izvor se ovde ne prevodi. Gde prevoda nema, stoji engleski, a ne prazno.</span><span class="en-only i18n">Everything the page says in its own voice — the explanations, the method, the reading rules, the headings and the footer — exists in Serbian, English, Chinese and German. What is generated from the registers — source names, statuses, corrections, related work — stays Serbian and English, because those are quotations of what someone else published, and a source is not translated here. Where there is no translation the English stands, not a blank.</span><span class="zh-only">凡是本页以自己的声音所说的内容——说明、方法、阅读规则、标题与页脚——都有塞尔维亚语、英语、中文和德语四种。凡是由登记册生成的内容——来源名称、状态、更正、相关工作——保持塞尔维亚语与英语，因为那些是对他人已发布内容的引用，而本项目不翻译来源。没有译文之处显示英语，而不是留白。</span><span class="de-only">Alles, was die Seite mit eigener Stimme sagt — die Erläuterungen, die Methode, die Leseregeln, die Überschriften und die Fußzeile — gibt es auf Serbisch, Englisch, Chinesisch und Deutsch. Was aus den Registern erzeugt wird — Quellennamen, Zustände, Korrekturen, verwandte Arbeiten — bleibt serbisch und englisch, denn das sind Zitate dessen, was jemand anderes veröffentlicht hat, und eine Quelle wird hier nicht übersetzt. Wo keine Übersetzung steht, steht das Englische, keine Lücke.</span></p>
   </div>
 </div>
 
 <div class="databar" id="podaci">
   <div class="wrap">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:12px">
-      <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only">Podaci — šta smo izmerili, po stanici i na mapi</span><span class="en-only">Data — what was measured, per station and on the map</span></h2>
+      <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only i18n">Podaci — šta smo izmerili, po stanici i na mapi</span><span class="en-only i18n">Data — what was measured, per station and on the map</span><span class="zh-only">数据——测得了什么，按站点与地图</span><span class="de-only">Daten — was gemessen wurde, je Station und auf der Karte</span></h2>
       
     </div>
     <div class="datastage"><iframe id="datastage" src="podaci.html?v={stamp}" title="BEOPS · Podaci" loading="lazy"></iframe></div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin:28px 0 12px">
-      <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only">Traka — vreme kao glavni predmet, jedna traka po čulu</span><span class="en-only">The ribbon — time as the primary object, one lane per sense</span></h2>
+      <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only i18n">Traka — vreme kao glavni predmet, jedna traka po čulu</span><span class="en-only i18n">The ribbon — time as the primary object, one lane per sense</span><span class="zh-only">时间带——以时间为主体，每种感官一条轨道</span><span class="de-only">Das Band — die Zeit als eigentlicher Gegenstand, eine Spur je Sinn</span></h2>
       
     </div>
     <div class="datastage trakastage"><iframe id="trakastage" src="traka.html?v={stamp}" title="BEOPS · Traka" loading="lazy"></iframe></div>
-    <p class="mono" style="font-size:11.5px;color:var(--ink55);margin:12px 0 0"><span class="sr-only">Oznaka postoji samo tamo gde red postoji; prazno mesto je tišina, ne nula.</span><span class="en-only">A mark exists only where a row exists; an empty place is silence, not a zero.</span></p>
+    <p class="mono" style="font-size:11.5px;color:var(--ink55);margin:12px 0 0"><span class="sr-only i18n">Oznaka postoji samo tamo gde red postoji; prazno mesto je tišina, ne nula.</span><span class="en-only i18n">A mark exists only where a row exists; an empty place is silence, not a zero.</span><span class="zh-only">只有存在数据行的地方才有标记；空白之处是沉默，不是零。</span><span class="de-only">Eine Markierung gibt es nur dort, wo eine Zeile existiert; eine leere Stelle ist Stille, keine Null.</span></p>
   </div>
 </div>
 
 <div class="layersbar" id="slojevi">
   <div class="wrap">
-    <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0 0 6px;font-weight:600"><span class="sr-only">Slojevi — od čega je opservatorija napravljena</span><span class="en-only">Layers — what the observatory is made of</span></h2>
-    <p class="sub" style="margin:0 0 16px;max-width:80ch"><span class="sr-only">Na dnu je zakon — srpski i evropski — i on nosi sve ostalo: sloj postoji samo ako je propušten kroz kapiju dozvole. Iznad njega: podloga grada, statični slojevi, periodični izvori, živa čula, sistem koji organizuje, sistem koji misli i govori, i izraz; znanje stoji pored njih i takođe stoji na zakonu. Brojevi u crtežu se čitaju iz registara pri svakoj objavi.</span><span class="en-only">At the bottom is the law — Serbian and European — and it carries everything else: a layer exists only if it passed the permission gate. Above it: the city's ground, static layers, periodic sources, live senses, the system that organizes, the system that thinks and speaks, and expression; the knowledge stands beside them and on the same slab. The numbers in the drawing are read from the registers at every publish.</span></p>
+    <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0 0 6px;font-weight:600"><span class="sr-only i18n">Slojevi — od čega je opservatorija napravljena</span><span class="en-only i18n">Layers — what the observatory is made of</span><span class="zh-only">层——这座观测站由什么构成</span><span class="de-only">Schichten — woraus das Observatorium besteht</span></h2>
+    <p class="sub" style="margin:0 0 16px;max-width:80ch"><span class="sr-only i18n">Na dnu je zakon — srpski i evropski — i on nosi sve ostalo: sloj postoji samo ako je propušten kroz kapiju dozvole. Iznad njega: podloga grada, statični slojevi, periodični izvori, živa čula, sistem koji organizuje, sistem koji misli i govori, i izraz; znanje stoji pored njih i takođe stoji na zakonu. Brojevi u crtežu se čitaju iz registara pri svakoj objavi.</span><span class="en-only i18n">At the bottom is the law — Serbian and European — and it carries everything else: a layer exists only if it passed the permission gate. Above it: the city's ground, static layers, periodic sources, live senses, the system that organizes, the system that thinks and speaks, and expression; the knowledge stands beside them and on the same slab. The numbers in the drawing are read from the registers at every publish.</span><span class="zh-only">最底层是法律——塞尔维亚的与欧洲的——它承载着其余一切：只有通过许可闸门的层才存在。其上依次是：城市的底图、静态层、周期性来源、实时感官、负责组织的系统、负责思考与言说的系统，以及表达；知识与它们并列，立在同一块基石上。图中的数字在每次发布时都从登记册中读取。</span><span class="de-only">Zuunterst liegt das Recht — das serbische und das europäische — und es trägt alles andere: eine Schicht existiert nur, wenn sie das Erlaubnistor passiert hat. Darüber: der Grund der Stadt, statische Schichten, periodische Quellen, lebendige Sinne, das System, das ordnet, das System, das denkt und spricht, und der Ausdruck; das Wissen steht daneben und auf derselben Platte. Die Zahlen in der Zeichnung werden bei jeder Veröffentlichung aus den Registern gelesen.</span></p>
     <div class="layers">__LAYERS_SVG__</div>
     
   </div>
@@ -440,36 +452,36 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
 <div class="livebar" id="zivo">
   <div class="wrap">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:16px">
-      <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only">Poslednji prijem po izvoru</span><span class="en-only">Last reception per source</span></h2>
+      <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only i18n">Poslednji prijem po izvoru</span><span class="en-only i18n">Last reception per source</span><span class="zh-only">每个来源的最近一次接收</span><span class="de-only">Letzter Empfang je Quelle</span></h2>
       <span class="mono" style="font-size:12px;color:var(--ink55)" id="asof"></span>
     </div>
     <div class="lgrid" id="lgrid"></div>
-    <p class="mono" style="font-size:11.5px;color:var(--ink55);margin:16px 0 0"><span class="sr-only">Popunjena ćelija = prijem u tom taktu; prazna = tišina. Prijem nije merenje.</span><span class="en-only">A filled cell is a reception in that slot; an empty one is silence. A reception is not a measurement.</span></p>
+    <p class="mono" style="font-size:11.5px;color:var(--ink55);margin:16px 0 0"><span class="sr-only i18n">Popunjena ćelija = prijem u tom taktu; prazna = tišina. Prijem nije merenje.</span><span class="en-only i18n">A filled cell is a reception in that slot; an empty one is silence. A reception is not a measurement.</span><span class="zh-only">填充的方格表示该时段有一次接收；空格表示沉默。接收不是测量。</span><span class="de-only">Eine gefüllte Zelle ist ein Empfang in diesem Takt; eine leere ist Stille. Ein Empfang ist keine Messung.</span></p>
   </div>
 </div>
 
 <section id="kako">
   <div class="wrap">
-    <h2><span class="sr-only">Kako ovo radi</span><span class="en-only">How this works</span></h2>
-    <p class="lede"><span class="sr-only">Jedan računar autora, jedan zakazani zadatak na svakih pet minuta, i pravila koja se ne pregovaraju.</span><span class="en-only">One computer belonging to the authors, one scheduled task every five minutes, and rules that are not negotiable.</span></p>
+    <h2><span class="sr-only i18n">Kako ovo radi</span><span class="en-only i18n">How this works</span><span class="zh-only">它如何运作</span><span class="de-only">Wie das funktioniert</span></h2>
+    <p class="lede"><span class="sr-only i18n">Jedan računar autora, jedan zakazani zadatak na svakih pet minuta, i pravila koja se ne pregovaraju.</span><span class="en-only i18n">One computer belonging to the authors, one scheduled task every five minutes, and rules that are not negotiable.</span><span class="zh-only">作者的一台计算机，每五分钟一个计划任务，以及不容商量的规则。</span><span class="de-only">Ein Rechner der Autoren, eine geplante Aufgabe alle fünf Minuten und Regeln, über die nicht verhandelt wird.</span></p>
     <div class="cols">
       <div>
-        <h3><span class="sr-only">Dozvola pre kolektora</span><span class="en-only">Permission before collector</span></h3>
-        <p><span class="sr-only">Nijedan izvor se ne čita dok njegov <code>robots.txt</code>, zaglavlja i stranica licence ne budu sačuvani kao bajtovi sa hešom. Nepoznato nikada nije dozvola. Predstavljamo se pošteno kao <span class="mono">Beops-Research-Collect/1.0</span> i kad izvor kaže ne — odgovor je ne, i to se zapisuje da niko ne pokuša ponovo.</span><span class="en-only">No source is read until its <code>robots.txt</code>, headers and licence page are stored as bytes with a hash. An unknown is never a permission. We identify honestly as <span class="mono">Beops-Research-Collect/1.0</span>, and when a source says no the answer is no — recorded, so nobody tries again next year.</span></p>
-        <h3><span class="sr-only">Tri vremena</span><span class="en-only">Three times</span></h3>
-        <p><span class="sr-only">Izmereno, objavljeno, primljeno — nikad se ne stapaju. Neki izvori ne objavljuju vreme merenja uopšte: tada je vrednost tačna, a njena starost nepoznata, i tako se i crta.</span><span class="en-only">Measured, published, received — never collapsed into one. Some sources publish no measurement time at all: then the value is exact and its age is unknown, and it is drawn that way.</span></p>
+        <h3><span class="sr-only i18n">Dozvola pre kolektora</span><span class="en-only i18n">Permission before collector</span><span class="zh-only">先有许可，后有采集</span><span class="de-only">Erlaubnis vor Sammler</span></h3>
+        <p><span class="sr-only i18n">Nijedan izvor se ne čita dok njegov <code>robots.txt</code>, zaglavlja i stranica licence ne budu sačuvani kao bajtovi sa hešom. Nepoznato nikada nije dozvola. Predstavljamo se pošteno kao <span class="mono">Beops-Research-Collect/1.0</span> i kad izvor kaže ne — odgovor je ne, i to se zapisuje da niko ne pokuša ponovo.</span><span class="en-only i18n">No source is read until its <code>robots.txt</code>, headers and licence page are stored as bytes with a hash. An unknown is never a permission. We identify honestly as <span class="mono">Beops-Research-Collect/1.0</span><span class="zh-only">在一个来源的 <code>robots.txt</code>、响应头与许可页面被作为带哈希的字节保存下来之前，我们不会读取它。未知从来不等于许可。我们如实以 <span class="mono">Beops-Research-Collect/1.0</span> 表明身份；当一个来源说不，答案就是不——并被记录下来，以免明年有人再试一次。</span><span class="de-only">Keine Quelle wird gelesen, bevor ihre <code>robots.txt</code>, die Header und die Lizenzseite als Bytes mit Prüfsumme gespeichert sind. Ein Unbekanntes ist niemals eine Erlaubnis. Wir weisen uns ehrlich als <span class="mono">Beops-Research-Collect/1.0</span> aus, und wenn eine Quelle Nein sagt, ist die Antwort Nein — festgehalten, damit es im nächsten Jahr niemand erneut versucht.</span>, and when a source says no the answer is no — recorded, so nobody tries again next year.</span></p>
+        <h3><span class="sr-only i18n">Tri vremena</span><span class="en-only i18n">Three times</span><span class="zh-only">三种时间</span><span class="de-only">Drei Zeiten</span></h3>
+        <p><span class="sr-only i18n">Izmereno, objavljeno, primljeno — nikad se ne stapaju. Neki izvori ne objavljuju vreme merenja uopšte: tada je vrednost tačna, a njena starost nepoznata, i tako se i crta.</span><span class="en-only i18n">Measured, published, received — never collapsed into one. Some sources publish no measurement time at all: then the value is exact and its age is unknown, and it is drawn that way.</span><span class="zh-only">测量时刻、发布时刻、接收时刻——绝不合并为一。有些来源根本不发布测量时刻：那么数值是准确的，而它的年龄是未知的，并且就按这样绘制。</span><span class="de-only">Gemessen, veröffentlicht, empfangen — niemals zu einem verschmolzen. Manche Quellen veröffentlichen überhaupt keinen Messzeitpunkt: dann ist der Wert exakt und sein Alter unbekannt, und genau so wird er gezeichnet.</span></p>
       </div>
       <div>
-        <div class="rule"><b><span class="sr-only">Nema izmišljenog merenja</span><span class="en-only">No invented measurement</span></b><span><span class="sr-only">Broj koji nijedan izvor nije rekao ne postoji. Bez interpolacije, bez popunjavanja.</span><span class="en-only">A number no source reported does not exist. No interpolation, no back-filling.</span></span></div>
-        <div class="rule"><b><span class="sr-only">Primljeno nije izmereno</span><span class="en-only">Received is not measured</span></b><span><span class="sr-only">Vreme prijema je naše, ne gradsko.</span><span class="en-only">The reception time is ours, not the city's.</span></span></div>
-        <div class="rule"><b><span class="sr-only">Prognoza nije merenje</span><span class="en-only">Forecast is not measurement</span></b><span><span class="sr-only">Procena i prognoza imaju drugi potez i drugu boju — nikad boju merenja.</span><span class="en-only">Estimates and forecasts get a different stroke and never the colour of measurement.</span></span></div>
-        <div class="rule"><b><span class="sr-only">Nedostaje nije nula</span><span class="en-only">Missing is not zero</span></b><span><span class="sr-only">Mrtav senzor, izdavač koji je odbio i nikad prikupljen izvor su tri različita zapisa.</span><span class="en-only">A dead sensor, a publisher that refused and a never-collected source are three different records.</span></span></div>
-        <div class="rule"><b><span class="sr-only">Svaka tvrdnja nosi izvor, vreme, prostor, jedinicu i dozvolu</span><span class="en-only">Every claim carries source, time, space, unit and permission</span></b><span><span class="sr-only">Dozvola je bajt na disku, ne rečenica.</span><span class="en-only">Permission is bytes on disk, not a sentence.</span></span></div>
+        <div class="rule"><b><span class="sr-only i18n">Nema izmišljenog merenja</span><span class="en-only i18n">No invented measurement</span><span class="zh-only">不虚构测量</span><span class="de-only">Keine erfundene Messung</span></b><span><span class="sr-only i18n">Broj koji nijedan izvor nije rekao ne postoji. Bez interpolacije, bez popunjavanja.</span><span class="en-only i18n">A number no source reported does not exist. No interpolation, no back-filling.</span><span class="zh-only">没有任何来源报告过的数字并不存在。不插值，不回填。</span><span class="de-only">Eine Zahl, die keine Quelle gemeldet hat, existiert nicht. Keine Interpolation, kein Auffüllen.</span></span></div>
+        <div class="rule"><b><span class="sr-only i18n">Primljeno nije izmereno</span><span class="en-only i18n">Received is not measured</span><span class="zh-only">接收不是测量</span><span class="de-only">Empfangen ist nicht gemessen</span></b><span><span class="sr-only i18n">Vreme prijema je naše, ne gradsko.</span><span class="en-only i18n">The reception time is ours, not the city's.</span><span class="zh-only">接收时刻是我们的，不是城市的。</span><span class="de-only">Der Empfangszeitpunkt ist unserer, nicht der der Stadt.</span></span></div>
+        <div class="rule"><b><span class="sr-only i18n">Prognoza nije merenje</span><span class="en-only i18n">Forecast is not measurement</span><span class="zh-only">预报不是测量</span><span class="de-only">Prognose ist keine Messung</span></b><span><span class="sr-only i18n">Procena i prognoza imaju drugi potez i drugu boju — nikad boju merenja.</span><span class="en-only i18n">Estimates and forecasts get a different stroke and never the colour of measurement.</span><span class="zh-only">估计与预报使用不同的笔触，绝不使用测量的颜色。</span><span class="de-only">Schätzungen und Prognosen erhalten einen anderen Strich und nie die Farbe der Messung.</span></span></div>
+        <div class="rule"><b><span class="sr-only i18n">Nedostaje nije nula</span><span class="en-only i18n">Missing is not zero</span><span class="zh-only">缺失不是零</span><span class="de-only">Fehlend ist nicht null</span></b><span><span class="sr-only i18n">Mrtav senzor, izdavač koji je odbio i nikad prikupljen izvor su tri različita zapisa.</span><span class="en-only i18n">A dead sensor, a publisher that refused and a never-collected source are three different records.</span><span class="zh-only">失效的传感器、拒绝了我们的发布者，以及从未被采集的来源，是三种不同的记录。</span><span class="de-only">Ein toter Sensor, ein Herausgeber, der abgelehnt hat, und eine nie erhobene Quelle sind drei verschiedene Einträge.</span></span></div>
+        <div class="rule"><b><span class="sr-only i18n">Svaka tvrdnja nosi izvor, vreme, prostor, jedinicu i dozvolu</span><span class="en-only i18n">Every claim carries source, time, space, unit and permission</span><span class="zh-only">每一项陈述都带有来源、时间、空间、单位与许可</span><span class="de-only">Jede Aussage trägt Quelle, Zeit, Ort, Einheit und Erlaubnis</span></b><span><span class="sr-only i18n">Dozvola je bajt na disku, ne rečenica.</span><span class="en-only i18n">Permission is bytes on disk, not a sentence.</span><span class="zh-only">许可是磁盘上的字节，不是一句话。</span><span class="de-only">Die Erlaubnis sind Bytes auf der Festplatte, kein Satz.</span></span></div>
       </div>
       <div>
-        <h3><span class="sr-only">Šta se sada sakuplja</span><span class="en-only">What is collected now</span></h3>
+        <h3><span class="sr-only i18n">Šta se sada sakuplja</span><span class="en-only i18n">What is collected now</span><span class="zh-only">目前正在采集什么</span><span class="de-only">Was derzeit gesammelt wird</span></h3>
         <div id="collectors"></div>
-        <h3 style="margin-top:20px"><span class="sr-only">Organi — mali lokalni modeli</span><span class="en-only">Organs — small local models</span></h3>
+        <h3 style="margin-top:20px"><span class="sr-only i18n">Organi — mali lokalni modeli</span><span class="en-only i18n">Organs — small local models</span><span class="zh-only">器官——小型本地模型</span><span class="de-only">Organe — kleine lokale Modelle</span></h3>
         <div id="organs"></div>
       </div>
     </div>
@@ -478,18 +490,18 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
 
 <section id="izvori">
   <div class="wrap">
-    <h2><span class="sr-only">Popis otvorenosti: šta Beograd objavljuje, a šta ne</span><span class="en-only">An audit of openness: what Belgrade publishes, and what it does not</span></h2>
-    <p class="lede"><span class="sr-only">Svaki zapis je pristupna ruta sa stanjem i sledećim korakom. Broj zapisa nije broj uređaja niti broj živih tokova — i tu razliku ovaj projekat ne zamagljuje.</span><span class="en-only">Every record is an access route with a state and a next step. The number of records is not a number of devices or of live feeds — and this project does not blur that difference.</span></p>
+    <h2><span class="sr-only i18n">Popis otvorenosti: šta Beograd objavljuje, a šta ne</span><span class="en-only i18n">An audit of openness: what Belgrade publishes, and what it does not</span><span class="zh-only">开放度清点：贝尔格莱德发布了什么，又没有发布什么</span><span class="de-only">Eine Bestandsaufnahme der Offenheit: was Belgrad veröffentlicht und was nicht</span></h2>
+    <p class="lede"><span class="sr-only i18n">Svaki zapis je pristupna ruta sa stanjem i sledećim korakom. Broj zapisa nije broj uređaja niti broj živih tokova — i tu razliku ovaj projekat ne zamagljuje.</span><span class="en-only i18n">Every record is an access route with a state and a next step. The number of records is not a number of devices or of live feeds — and this project does not blur that difference.</span><span class="zh-only">每一条记录都是一条带有状态和下一步的访问路径。记录的数量不等于设备的数量，也不等于实时数据流的数量——本项目不会模糊这个区别。</span><span class="de-only">Jeder Eintrag ist ein Zugangsweg mit einem Zustand und einem nächsten Schritt. Die Zahl der Einträge ist weder eine Zahl von Geräten noch von laufenden Datenströmen — und dieses Projekt verwischt diesen Unterschied nicht.</span></p>
     <div class="stats" id="rstats"></div>
     <div class="filters">
       <input id="q" type="search" placeholder="pretraga / search" aria-label="search sources">
       <span id="chips"></span>
     </div>
     <div class="tablewrap"><table id="rtable"><thead><tr>
-      <th>id</th><th><span class="sr-only">izvor</span><span class="en-only">source</span></th>
-      <th><span class="sr-only">stanje</span><span class="en-only">status</span></th>
-      <th><span class="sr-only">ritam</span><span class="en-only">rhythm</span></th>
-      <th><span class="sr-only">vreme merenja</span><span class="en-only">measurement time</span></th>
+      <th>id</th><th><span class="sr-only i18n">izvor</span><span class="en-only i18n">source</span><span class="zh-only">来源</span><span class="de-only">Quelle</span></th>
+      <th><span class="sr-only i18n">stanje</span><span class="en-only i18n">status</span><span class="zh-only">状态</span><span class="de-only">Zustand</span></th>
+      <th><span class="sr-only i18n">ritam</span><span class="en-only i18n">rhythm</span><span class="zh-only">节奏</span><span class="de-only">Rhythmus</span></th>
+      <th><span class="sr-only i18n">vreme merenja</span><span class="en-only i18n">measurement time</span><span class="zh-only">测量时刻</span><span class="de-only">Messzeitpunkt</span></th>
     </tr></thead><tbody></tbody></table></div>
     <p class="count" id="rcount"></p>
   </div>
@@ -497,44 +509,44 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
 
 <section id="dozvole">
   <div class="wrap">
-    <h2><span class="sr-only">Dokaz dozvole, i ono što je reklo ne</span><span class="en-only">The proof of permission, and what said no</span></h2>
-    <p class="lede"><span class="sr-only">Za svaki izvor čuvamo njegov sopstveni <code>robots.txt</code> kako je poslužen, zaglavlja tačnih adresa koje čitamo, stranicu licence i SHA-256 svakog od njih. Odbijanja se čuvaju sa klauzulom, pa se izvor ne otkriva ponovo za godinu dana i ne počne tiho da se sakuplja.</span><span class="en-only">For every source we store its own <code>robots.txt</code> as served, the headers of the exact URLs we read, the licence page, and a SHA-256 of each. Refusals are kept with their clause, so a source is not rediscovered next year and quietly collected.</span></p>
+    <h2><span class="sr-only i18n">Dokaz dozvole, i ono što je reklo ne</span><span class="en-only i18n">The proof of permission, and what said no</span><span class="zh-only">许可的证据，以及说“不”的那些</span><span class="de-only">Der Nachweis der Erlaubnis, und was Nein gesagt hat</span></h2>
+    <p class="lede"><span class="sr-only i18n">Za svaki izvor čuvamo njegov sopstveni <code>robots.txt</code> kako je poslužen, zaglavlja tačnih adresa koje čitamo, stranicu licence i SHA-256 svakog od njih. Odbijanja se čuvaju sa klauzulom, pa se izvor ne otkriva ponovo za godinu dana i ne počne tiho da se sakuplja.</span><span class="en-only i18n">For every source we store its own <code>robots.txt</code> as served, the headers of the exact URLs we read, the licence page, and a SHA-256 of each. Refusals are kept with their clause, so a source is not rediscovered next year and quietly collected.</span><span class="zh-only">对每一个来源，我们都保存它自己被实际送达的 <code>robots.txt</code>、我们所读取的确切网址的响应头、许可页面，以及每一项的 SHA-256。拒绝连同其条款一并保存，这样一个来源不会在明年被重新“发现”并被悄悄采集。</span><span class="de-only">Für jede Quelle speichern wir ihre eigene <code>robots.txt</code> so, wie sie ausgeliefert wurde, die Header genau der URLs, die wir lesen, die Lizenzseite und je einen SHA-256. Ablehnungen werden mitsamt ihrer Klausel aufbewahrt, damit eine Quelle nicht im nächsten Jahr neu entdeckt und still gesammelt wird.</span></p>
     <div class="stats" id="pstats"></div>
-    <h3 style="font-size:15px;margin:24px 0 8px"><span class="sr-only">Rekli su ne — i to ostaje zapisano</span><span class="en-only">They said no — and it stays recorded</span></h3>
-    <div class="tablewrap"><table><thead><tr><th>id</th><th><span class="sr-only">izvor</span><span class="en-only">source</span></th><th><span class="sr-only">šta je reklo ne</span><span class="en-only">what said no</span></th></tr></thead><tbody id="refused"></tbody></table></div>
+    <h3 style="font-size:15px;margin:24px 0 8px"><span class="sr-only i18n">Rekli su ne — i to ostaje zapisano</span><span class="en-only i18n">They said no — and it stays recorded</span><span class="zh-only">他们说了不——并且这被记录下来</span><span class="de-only">Sie haben Nein gesagt — und das bleibt festgehalten</span></h3>
+    <div class="tablewrap"><table><thead><tr><th>id</th><th><span class="sr-only i18n">izvor</span><span class="en-only i18n">source</span><span class="zh-only">来源</span><span class="de-only">Quelle</span></th><th><span class="sr-only i18n">šta je reklo ne</span><span class="en-only i18n">what said no</span><span class="zh-only">是什么说了不</span><span class="de-only">was Nein gesagt hat</span></th></tr></thead><tbody id="refused"></tbody></table></div>
   </div>
 </section>
 
 <section id="greske">
   <div class="wrap">
-    <h2><span class="sr-only">Svaki put kad je ovaj sistem rekao nešto neistinito</span><span class="en-only">Every time this system said something untrue</span></h2>
-    <p class="lede"><span class="sr-only">Sistem koji krije sopstvene greške ne vredi ništa, jer jedino što treba da dokaže jeste da ne govori tiho neistine. Zato je ovaj spisak javan i dopisuje se, nikad se ne briše.</span><span class="en-only">A system that hides its own failures is worth nothing, because the one thing it must prove is that it does not quietly say untrue things. So this list is public, append-only, and never edited.</span></p>
+    <h2><span class="sr-only i18n">Svaki put kad je ovaj sistem rekao nešto neistinito</span><span class="en-only i18n">Every time this system said something untrue</span><span class="zh-only">这个系统每一次说了不真实的话</span><span class="de-only">Jedes Mal, wenn dieses System etwas Unwahres gesagt hat</span></h2>
+    <p class="lede"><span class="sr-only i18n">Sistem koji krije sopstvene greške ne vredi ništa, jer jedino što treba da dokaže jeste da ne govori tiho neistine. Zato je ovaj spisak javan i dopisuje se, nikad se ne briše.</span><span class="en-only i18n">A system that hides its own failures is worth nothing, because the one thing it must prove is that it does not quietly say untrue things. So this list is public, append-only, and never edited.</span><span class="zh-only">一个隐藏自身失误的系统毫无价值，因为它唯一需要证明的，就是它不会悄悄说出不真实的话。因此这份清单是公开的，只追加，从不修改。</span><span class="de-only">Ein System, das die eigenen Fehler verbirgt, ist nichts wert, denn das Einzige, was es beweisen muss, ist, dass es nicht still Unwahres sagt. Darum ist diese Liste öffentlich, wird nur ergänzt und nie überschrieben.</span></p>
     <div class="corr" id="corr"></div>
   </div>
 </section>
 
 <section id="kontakt">
   <div class="wrap">
-    <h2><span class="sr-only">Prigovor i uklanjanje</span><span class="en-only">Objection and removal</span></h2>
+    <h2><span class="sr-only i18n">Prigovor i uklanjanje</span><span class="en-only i18n">Objection and removal</span><span class="zh-only">异议与撤除</span><span class="de-only">Widerspruch und Entfernung</span></h2>
     <div class="claimbox">
-      <p><span class="sr-only">Ako objavljujete neki od izvora sa ovog spiska i ne želite da ga čitamo, ne treba Vam ni advokat ni obrazac. Jedna poruka je dovoljna: <a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a>. Prestajemo u roku od 24 sata, bez pregovora, i izvor se više ne predlaže. U javnom registru ostaje zapisano da je zatraženo uklanjanje i kada — zapis se dopisuje, ne prepravlja, pa se vidi i šta je bilo prikupljeno pre toga.</span><span class="en-only">If you publish one of the sources on this list and would rather we did not read it, you need no lawyer and no form. One message is enough: <a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a>. We stop within 24 hours, without negotiation, and the source is never proposed again. The public register keeps a line saying that removal was requested and when — the record is appended to, never rewritten, so what was collected before that also stays visible.</span></p>
-      <p><span class="sr-only">Isto vredi i za ispravku: ako je nešto ovde netačno, javite i biće ispravljeno, a ispravka će stajati u javnom spisku grešaka sa datumom. Taj spisak se ne briše.</span><span class="en-only">The same holds for a correction: if something here is wrong, tell us and it will be corrected, and the correction will stand in the public list of failures with its date. That list is never deleted.</span></p>
-      <p><span class="sr-only">Za pitanja o metodu, pravnom okviru ili saradnji — ista adresa. Odgovaraju autori, ne program.</span><span class="en-only">For questions about the method, the legal frame or collaboration — the same address. The authors answer, not the program.</span></p>
+      <p><span class="sr-only i18n">Ako objavljujete neki od izvora sa ovog spiska i ne želite da ga čitamo, ne treba Vam ni advokat ni obrazac. Jedna poruka je dovoljna: <a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a>. Prestajemo u roku od 24 sata, bez pregovora, i izvor se više ne predlaže. U javnom registru ostaje zapisano da je zatraženo uklanjanje i kada — zapis se dopisuje, ne prepravlja, pa se vidi i šta je bilo prikupljeno pre toga.</span><span class="en-only i18n">If you publish one of the sources on this list and would rather we did not read it, you need no lawyer and no form. One message is enough: <a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a>. We stop within 24 hours, without negotiation, and the source is never proposed again. The public register keeps a line saying that removal was requested and when — the record is appended to, never rewritten, so what was collected before that also stays visible.</span><span class="zh-only">如果您是本清单中某个来源的发布者，并且不希望我们读取它，您不需要律师，也不需要表格。一条消息就够了：<a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a>。我们会在 24 小时内停止，不作商量，该来源也不会再被提议。公开登记册中会保留一行，记明曾有撤除请求以及时间——记录只追加、绝不改写，因此在那之前采集到的内容也依然可见。</span><span class="de-only">Wenn Sie eine der hier aufgeführten Quellen herausgeben und lieber nicht möchten, dass wir sie lesen, brauchen Sie weder Anwalt noch Formular. Eine Nachricht genügt: <a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a>. Wir hören innerhalb von 24 Stunden auf, ohne Verhandlung, und die Quelle wird nie wieder vorgeschlagen. Im öffentlichen Register bleibt eine Zeile stehen, dass eine Entfernung verlangt wurde und wann — der Eintrag wird ergänzt, nie umgeschrieben, sodass auch sichtbar bleibt, was zuvor erhoben wurde.</span></p>
+      <p><span class="sr-only i18n">Isto vredi i za ispravku: ako je nešto ovde netačno, javite i biće ispravljeno, a ispravka će stajati u javnom spisku grešaka sa datumom. Taj spisak se ne briše.</span><span class="en-only i18n">The same holds for a correction: if something here is wrong, tell us and it will be corrected, and the correction will stand in the public list of failures with its date. That list is never deleted.</span><span class="zh-only">更正同理：如果这里有任何错误，请告诉我们，它会被更正，而这条更正会带着日期留在公开的失误清单中。那份清单从不删除。</span><span class="de-only">Dasselbe gilt für eine Korrektur: Ist hier etwas falsch, sagen Sie es uns, es wird korrigiert, und die Korrektur steht mit Datum in der öffentlichen Fehlerliste. Diese Liste wird nie gelöscht.</span></p>
+      <p><span class="sr-only i18n">Za pitanja o metodu, pravnom okviru ili saradnji — ista adresa. Odgovaraju autori, ne program.</span><span class="en-only i18n">For questions about the method, the legal frame or collaboration — the same address. The authors answer, not the program.</span><span class="zh-only">关于方法、法律框架或合作的问题——同一个地址。回复的是作者，不是程序。</span><span class="de-only">Für Fragen zur Methode, zum Rechtsrahmen oder zur Zusammenarbeit — dieselbe Adresse. Es antworten die Autoren, nicht das Programm.</span></p>
     </div>
   </div>
 </section>
 
 <section id="srodno">
   <div class="wrap">
-    <h2><span class="sr-only">Srodni radovi, standardi i projekti</span><span class="en-only">Related work, standards and projects</span></h2>
-    <p class="sub" style="max-width:80ch"><span class="sr-only">Ovo nije prvi pokušaj da grad govori kroz svoje instrumente. Ovde stoji odakle je šta uzeto, sa linkom na izvor da čitalac ne mora da nam veruje — i, ispod, šta se ovde tvrdi kao novo, a šta ne. Beleška „uzima" govori šta je ovaj projekat uzeo iz tog rada; ne tvrdi da autori znaju za ovaj projekat niti da ga odobravaju.</span><span class="en-only">This is not the first attempt to let a city speak through its instruments. Here is where each idea came from, with a link so the reader need not take our word — and, below, what is claimed as new here and what is not. The "takes" note says what this project took from that work; it does not claim the authors know of this project or endorse it.</span></p>
+    <h2><span class="sr-only i18n">Srodni radovi, standardi i projekti</span><span class="en-only i18n">Related work, standards and projects</span><span class="zh-only">相关工作、标准与项目</span><span class="de-only">Verwandte Arbeiten, Normen und Projekte</span></h2>
+    <p class="sub" style="max-width:80ch"><span class="sr-only i18n">Ovo nije prvi pokušaj da grad govori kroz svoje instrumente. Ovde stoji odakle je šta uzeto, sa linkom na izvor da čitalac ne mora da nam veruje — i, ispod, šta se ovde tvrdi kao novo, a šta ne. Beleška „uzima" govori šta je ovaj projekat uzeo iz tog rada; ne tvrdi da autori znaju za ovaj projekat niti da ga odobravaju.</span><span class="en-only i18n">This is not the first attempt to let a city speak through its instruments. Here is where each idea came from, with a link so the reader need not take our word — and, below, what is claimed as new here and what is not. The "takes" note says what this project took from that work; it does not claim the authors know of this project or endorse it.</span><span class="zh-only">让城市通过自己的仪器说话，这并非第一次尝试。这里写明每个想法来自何处，并附有链接，读者不必只听我们的说法——下面则写明这里主张什么是新的、什么不是。“取自”一栏说明本项目从该工作中取用了什么；它并不主张那些作者知晓本项目或为其背书。</span><span class="de-only">Dies ist nicht der erste Versuch, eine Stadt durch ihre Instrumente sprechen zu lassen. Hier steht, woher jede Idee stammt, mit einem Link, damit die Leserin uns nicht glauben muss — und darunter, was hier als neu beansprucht wird und was nicht. Der Vermerk „übernimmt“ sagt, was dieses Projekt jener Arbeit entnommen hat; er behauptet nicht, dass deren Autoren von diesem Projekt wissen oder es befürworten.</span></p>
     <div class="problembox">
       <p><span class="sr-only">__PROB_SR__</span><span class="en-only">__PROB_EN__</span></p>
     </div>
     <div class="claimbox">
-      <p><b><span class="sr-only">Standardno, i nimalo novo</span><span class="en-only">Standard, and in no way new</span></b><br><span class="sr-only">__STD_SR__</span><span class="en-only">__STD_EN__</span></p>
-      <p><b><span class="sr-only">Ono što ovde jeste drugačije</span><span class="en-only">What is different here</span></b><br><span class="sr-only">__OURS_SR__</span><span class="en-only">__OURS_EN__</span></p>
-      <p><b><span class="sr-only">Šta se ne tvrdi</span><span class="en-only">What is not claimed</span></b><br><span class="sr-only">__NOT_SR__</span><span class="en-only">__NOT_EN__</span></p>
+      <p><b><span class="sr-only i18n">Standardno, i nimalo novo</span><span class="en-only i18n">Standard, and in no way new</span><span class="zh-only">标准做法，毫无新意</span><span class="de-only">Standard, und in keiner Weise neu</span></b><br><span class="sr-only">__STD_SR__</span><span class="en-only">__STD_EN__</span></p>
+      <p><b><span class="sr-only i18n">Ono što ovde jeste drugačije</span><span class="en-only i18n">What is different here</span><span class="zh-only">这里有什么不同</span><span class="de-only">Was hier anders ist</span></b><br><span class="sr-only">__OURS_SR__</span><span class="en-only">__OURS_EN__</span></p>
+      <p><b><span class="sr-only i18n">Šta se ne tvrdi</span><span class="en-only i18n">What is not claimed</span><span class="zh-only">不主张什么</span><span class="de-only">Was nicht behauptet wird</span></b><br><span class="sr-only">__NOT_SR__</span><span class="en-only">__NOT_EN__</span></p>
     </div>
     <div class="rwgrid" id="related"></div>
   </div>
@@ -542,19 +554,19 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
 
 <section id="citaj">
   <div class="wrap">
-    <h2><span class="sr-only">Čitaj dalje</span><span class="en-only">Read on</span></h2>
+    <h2><span class="sr-only i18n">Čitaj dalje</span><span class="en-only i18n">Read on</span><span class="zh-only">继续阅读</span><span class="de-only">Weiterlesen</span></h2>
     <div class="cards">
-      <a class="card" href="https://github.com/3esign/beops" style="border:0;padding:0"><div class="card" style="height:100%"><h3>GitHub</h3><p><span class="sr-only">Kod, registri, pravila i dokaz dozvole — otvoreno. MIT za kod, CC BY 4.0 za dokumente.</span><span class="en-only">Code, registries, rules and the permission evidence — open. MIT for code, CC BY 4.0 for documents.</span></p><span class="mono">3esign/beops</span></div></a>
+      <a class="card" href="https://github.com/3esign/beops" style="border:0;padding:0"><div class="card" style="height:100%"><h3>GitHub</h3><p><span class="sr-only i18n">Kod, registri, pravila i dokaz dozvole — otvoreno. MIT za kod, CC BY 4.0 za dokumente.</span><span class="en-only i18n">Code, registries, rules and the permission evidence — open. MIT for code, CC BY 4.0 for documents.</span><span class="zh-only">代码、登记册、规则与许可证据——全部开放。代码采用 MIT，文档采用 CC BY 4.0。</span><span class="de-only">Code, Register, Regeln und die Erlaubnisnachweise — offen. MIT für den Code, CC BY 4.0 für die Dokumente.</span></p><span class="mono">3esign/beops</span></div></a>
     </div>
   </div>
 </section>
 
 <footer>
   <div class="wrap fgrid">
-    <div><b><span class="sr-only">Autori i kontakt</span><span class="en-only">Authors and contact</span></b>prof. dr Darinka Golubović Matić<br>doc. dr Semir Poturak<br><span class="sr-only">Autori rada. Predaju na Univerzitetu Union – Nikola Tesla, gde se održava i konferencija kojoj se rad nudi; rad ne nastupa u ime ustanove i ustanova nije njegov nosilac ni naručilac.</span><span class="en-only">Authors of the work. They teach at University Union – Nikola Tesla, where the conference the work is offered to is also held; the work does not act in the institution’s name and the institution is neither its owner nor its commissioner.</span><br><a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a></div>
-    <div><b><span class="sr-only">Licenca</span><span class="en-only">Licence</span></b><span class="sr-only">MIT za kod, CC BY 4.0 za dokumente i registre. Vrednosti zadržavaju licencu svog izvora.</span><span class="en-only">MIT for code, CC BY 4.0 for documents and registries. Values keep their source's licence.</span></div>
-    <div><b><span class="sr-only">Šta ovo nije</span><span class="en-only">What this is not</span></b><span class="sr-only">Nije digitalni blizanac, nije „pametni grad", nije nadzor. Nema podataka o pojedincima, nema kamera, nema ulica kao jedinice analize.</span><span class="en-only">Not a digital twin, not a smart city, not surveillance. No person-level data, no cameras, no street as a unit of analysis.</span></div>
-    <div><b><span class="sr-only">Stanje</span><span class="en-only">State</span></b><span class="mono" id="built"></span></div>
+    <div><b><span class="sr-only i18n">Autori i kontakt</span><span class="en-only i18n">Authors and contact</span><span class="zh-only">作者与联系方式</span><span class="de-only">Autoren und Kontakt</span></b>prof. dr Darinka Golubović Matić<br>doc. dr Semir Poturak<br><span class="sr-only i18n">Autori rada. Predaju na Univerzitetu Union – Nikola Tesla, gde se održava i konferencija kojoj se rad nudi; rad ne nastupa u ime ustanove i ustanova nije njegov nosilac ni naručilac.</span><span class="en-only i18n">Authors of the work. They teach at University Union – Nikola Tesla, where the conference the work is offered to is also held; the work does not act in the institution’s name and the institution is neither its owner nor its commissioner.</span><span class="zh-only">本作品的作者。他们任教于 Union – Nikola Tesla 大学，本作品所投的会议也在该校举行；本作品不以该机构的名义行事，该机构既非其所有者，也非其委托方。</span><span class="de-only">Die Autoren der Arbeit. Sie lehren an der Universität Union – Nikola Tesla, an der auch die Konferenz stattfindet, der die Arbeit angeboten wird; die Arbeit tritt nicht im Namen der Institution auf, und die Institution ist weder ihre Trägerin noch ihre Auftraggeberin.</span><br><a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a></div>
+    <div><b><span class="sr-only i18n">Licenca</span><span class="en-only i18n">Licence</span><span class="zh-only">许可协议</span><span class="de-only">Lizenz</span></b><span class="sr-only i18n">MIT za kod, CC BY 4.0 za dokumente i registre. Vrednosti zadržavaju licencu svog izvora.</span><span class="en-only i18n">MIT for code, CC BY 4.0 for documents and registries. Values keep their source's licence.</span><span class="zh-only">代码采用 MIT，文档与登记册采用 CC BY 4.0。数值保留其来源的许可。</span><span class="de-only">MIT für den Code, CC BY 4.0 für Dokumente und Register. Die Werte behalten die Lizenz ihrer Quelle.</span></div>
+    <div><b><span class="sr-only i18n">Šta ovo nije</span><span class="en-only i18n">What this is not</span><span class="zh-only">这不是什么</span><span class="de-only">Was das nicht ist</span></b><span class="sr-only i18n">Nije digitalni blizanac, nije „pametni grad", nije nadzor. Nema podataka o pojedincima, nema kamera, nema ulica kao jedinice analize.</span><span class="en-only i18n">Not a digital twin, not a smart city, not surveillance. No person-level data, no cameras, no street as a unit of analysis.</span><span class="zh-only">不是数字孪生，不是“智慧城市”，也不是监控。没有个人层面的数据，没有摄像头，不把街道作为分析单位。</span><span class="de-only">Kein digitaler Zwilling, keine „Smart City“, keine Überwachung. Keine personenbezogenen Daten, keine Kameras, keine Straße als Analyseeinheit.</span></div>
+    <div><b><span class="sr-only i18n">Stanje</span><span class="en-only i18n">State</span><span class="zh-only">状态</span><span class="de-only">Stand</span></b><span class="mono" id="built"></span></div>
   </div>
 </footer>
 
@@ -673,22 +685,34 @@ function corr(){
 
 function render(){ live(); chips(); stats(); rows(); filter(); prov(); corr();
   document.getElementById('built').textContent=D.built+' UTC · '+D.registry.rows.length+' '+T('izvora','sources'); }
-document.getElementById('lang').addEventListener('click',function(e){
-  LANG=LANG==='sr'?'en':'sr';
-  document.body.className='lang-'+LANG;
-  document.documentElement.lang=LANG;
-  e.currentTarget.setAttribute('aria-pressed',String(LANG==='en'));
-  render();
-  // every embedded study, not a hand-kept list of two: the ribbon was added and stayed Serbian on the English page
-  var bar=document.getElementById('sta');
-  if(bar && (LANG==='sr'||LANG==='en') && !bar.classList.contains('what-zh') && !bar.classList.contains('what-de')){
-    bar.classList.remove('what-sr','what-en'); bar.classList.add('what-'+LANG);
-    bar.querySelectorAll('.wlangs button').forEach(function(o){ o.setAttribute('aria-pressed', String(o.getAttribute('data-w')===LANG)); });
+// Four buttons, one meaning: which language the page speaks in its own voice. Serbian and English
+// also switch the generated tables, because those exist in two languages. Chinese and German sit on
+// top of English - the body carries lang-en as well, so anything without a translation reads as
+// English instead of vanishing, which is the only honest failure mode for a partial translation.
+(function language(){
+  var box=document.getElementById('lang'); if(!box) return;
+  var btns=box.querySelectorAll('button');
+  function apply(l){
+    LANG=(l==='sr')?'sr':'en';                       // the generated half only knows two
+    document.body.className=(l==='sr'||l==='en')?('lang-'+l):('lang-en lang-'+l);
+    document.documentElement.lang=l;
+    btns.forEach(function(o){ o.setAttribute('aria-pressed', String(o.getAttribute('data-l')===l)); });
+    var bar=document.getElementById('sta');
+    if(bar){
+      bar.classList.remove('what-sr','what-en','what-zh','what-de');
+      bar.classList.add('what-'+l);
+      bar.querySelectorAll('.wlangs button').forEach(function(o){
+        o.setAttribute('aria-pressed', String(o.getAttribute('data-w')===l)); });
+    }
+    render();
+    // every embedded study, not a hand-kept list of two: the ribbon was added and stayed Serbian on
+    // the English page. The frames speak two languages, so they are told the two-language answer.
+    document.querySelectorAll('iframe').forEach(function(f){
+      try{ if(f.contentWindow) f.contentWindow.postMessage({beopsLang:LANG},'*'); }catch(err){}
+    });
   }
-  document.querySelectorAll('iframe').forEach(function(f){
-    try{ if(f.contentWindow) f.contentWindow.postMessage({beopsLang:LANG},'*'); }catch(err){}
-  });
-});
+  btns.forEach(function(b){ b.addEventListener('click',function(){ apply(b.getAttribute('data-l')); }); });
+})();
 // A frame that carries a document (the data view, the ribbon) reports its height and is made exactly
 // that tall, so the page has one scrollbar instead of three. The monologue is a feed and keeps its own.
 addEventListener('message',function(ev){
@@ -734,7 +758,8 @@ addEventListener('message',function(ev){
 // Each part can be folded away: its heading gets a button, the rest of the part hides.
 (function fold(){
   var ids=['sta','zivo','podaci','slojevi','kako','izvori','srodno','dozvole','greske','kontakt','citaj'];
-  var OPEN_ON_ARRIVAL=['slojevi'];   // the drawing that explains the rest; the live interface at the
+  var OPEN_ON_ARRIVAL=['sta','slojevi'];   // the answer to "what is this" and the drawing that
+                                   // explains the rest; the live interface at the
                                    // top of the page does not fold at all
   var opener={};
   ids.forEach(function(id){
