@@ -720,6 +720,8 @@ addEventListener('message',function(ev){
 // Each part can be folded away: its heading gets a button, the rest of the part hides.
 (function fold(){
   var ids=['sta','zivo','podaci','slojevi','kako','izvori','srodno','dozvole','greske','kontakt','citaj'];
+  var OPEN_ON_ARRIVAL=['zivo'];      // the monologue at the top; everything else opens when asked for
+  var opener={};
   ids.forEach(function(id){
     var sec=document.getElementById(id); if(!sec) return;
     var w=sec.querySelector('.wrap'); if(!w) return;
@@ -732,14 +734,29 @@ addEventListener('message',function(ev){
     var b=document.createElement('button'); b.type='button'; b.className='fold'; b.textContent='–';
     b.setAttribute('aria-expanded','true');
     b.setAttribute('aria-label','Skupi / razvij · Fold / unfold');
-    b.addEventListener('click',function(){
-      var folded=sec.classList.toggle('folded');
+    function setFolded(folded){
+      sec.classList.toggle('folded',folded);
       b.textContent=folded?'+':'–';
       b.setAttribute('aria-expanded',String(!folded));
-    });
+      if(!folded){
+        // A frame inside a display:none section never measured itself; a resize makes it report.
+        var fr=sec.querySelectorAll('iframe');
+        setTimeout(function(){ for(var i=0;i<fr.length;i++){ try{ fr[i].contentWindow.dispatchEvent(new Event('resize')); }catch(e){} } },60);
+      }
+    }
+    b.addEventListener('click',function(){ setFolded(!sec.classList.contains('folded')); });
     var head=kids[hi];
     (head.tagName==='H2'?head.parentElement:head).appendChild(b);
+    // OPEN_ON_ARRIVAL: the page opens as a list of its parts, with the live one running.
+    if(OPEN_ON_ARRIVAL.indexOf(id)<0) setFolded(true);
+    opener[id]=setFolded;
   });
+  function openHash(){
+    var id=(location.hash||'').replace('#','');
+    if(id && opener[id]) opener[id](false);
+  }
+  addEventListener('hashchange',openHash);
+  openHash();
 })();
 
 document.getElementById('q').addEventListener('input',filter);
@@ -793,8 +810,15 @@ def main() -> int:
         p = ROOT / src
         if p.exists():
             shutil.copy(p, DOCS / dst)
-    for folder in ("06-paper", "07-legal"):        # every published document reaches the site by existing, not by being listed
+    # A document reaches the site by existing rather than by being listed - except the kinds that
+    # are internal by policy. Working documents, letters and programme notes are not published;
+    # research/test_public_docs.py holds this, because the first version of this loop published
+    # two working documents by accident (C-018).
+    NOT_PUBLIC = ("WORKING_DOCUMENT", "PISMA", "LETTER", "INTERNAL", "DRAFT", "PRESEK")
+    for folder in ("06-paper", "07-legal"):
         for p in sorted((ROOT / "research" / folder).glob("*.pdf")):
+            if any(k in p.name.upper() for k in NOT_PUBLIC):
+                continue
             shutil.copy(p, DOCS / p.name)
     (DOCS / ".nojekyll").write_text("", encoding="utf-8")
     print(f"wrote {DOCS/'index.html'} ({len(html)} bytes; {len(data['registry']['rows'])} sources, "

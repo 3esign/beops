@@ -588,42 +588,91 @@ a browser, so it is deliberately outside `npm test`, which stays dependency-free
 a scheduled job must be checked by its artefact rather than its own report. The same applies one level
 out: a site must be checked by what it looks like, not only by what it contains.
 
-## C-017 — Four sources were being collected while the registry still called them unverified leads
+## C-017 — Four polled sources carried a status the registry reserves for sources it never verified
 
 **When** From the day each of them entered the collector's list until 2026-09-09 18:30 UTC, when a
-new test was written to assert the thing everyone assumed.
+test was written to assert the thing everyone assumed.
 
 **What it said.** `research/SOURCE_REGISTRY.json` gives every source a status, and the public page
 renders those statuses as the audit of what this project reads and on what footing. Four of the
-twenty-eight sources being polled carried a status that says the opposite of being polled: **S15**
-(City transport service notices) as `primary_page` — "publisher page inspected; actual local feed not
-validated" — and **S175** (Beogradske elektrane), **S207** (Blic RSS) and **S208** (Beoinfo, the
-City's own news listing) as `lead` — "discovery lead; not independently verified in this pass".
+twenty-eight polled sources carried a status whose own legend says the opposite of being read:
+**S15** (City transport service notices) as `primary_page` — "publisher page or documentation
+inspected; actual local feed not validated" — and **S175** (Beogradske elektrane), **S207** (Blic
+RSS) and **S208** (Beoinfo, the City's own news listing) as `lead` — "discovery lead; not
+independently verified in this pass".
 
-**What was actually true.** All four were being read on a schedule and all four have rows on disk. The
+**What was actually true.** All four were being read every tick and all four have rows on disk. The
 permission was never in question: each has a line in `research/08-provenance/LEDGER.jsonl` with its
 robots.txt, headers and terms captured as bytes before the first read, and the collector re-checks
 that gate on every tick. Nothing was collected without evidence. What had gone stale was the
-registry's own description of these four — they were promoted into collection and their status stayed
+registry's own description of these four: they were promoted into collection and their status stayed
 where the discovery pass had left it.
 
-This is small and it is not cosmetic. The registry IS the audit; §3 of the paper reports 211 records
-each with a status and asks a reader to take that table as the state of openness in Belgrade. A
-reviewer who lays the collector list beside the registry finds four sources being read whose own
-record says they were never verified, and is right to ask what else the table is behind on.
+Small, and not cosmetic. The registry IS the audit; §3 of the paper reports 211 records each with a
+status and asks a reader to take that table as the state of openness in Belgrade. A reviewer who lays
+the collector list beside the registry finds four sources being read whose own record says they were
+never verified, and is right to ask what else the table is behind on.
 
-**The fix.** The four statuses now read `collected`, and each carries a dated note keeping the old
-value beside the new one — `status_change_2026_09_09` — rather than overwriting it out of existence.
-The permission evidence is untouched; this corrected the bookkeeping, not the basis.
+**The fix, and the wrong fix that came first.** They were set to `collected` — and that was an
+over-claim made without understanding the file: twenty of the twenty-eight polled sources sit at
+`probe_ok`, so `collected` carries a distinction in this registry that had not been established, and
+assigning it to four records would have invented a fact to cover a stale one. Caught by the test
+itself, which failed on sixteen `probe_ok` sources and made the wrong assumption visible within the
+hour. The four now read **`probe_ok`** — "bounded direct response and reconnaissance parsing
+succeeded; not a production or accuracy verdict" — which is precisely what a source parsed
+successfully every ten minutes satisfies, and is the smallest correct statement available. Each keeps
+a dated `status_change_2026_09_09` note holding the old value beside the new one rather than
+overwriting it out of existence. The permission evidence is untouched.
 
 `research/test_permission_gate.py` now holds the whole claim as an invariant: every polled source has
 a line in the permission ledger, no publisher who said no is polled, no polled source sits in an
-unsettled state, every polled source is recorded as `collected`, every disabled collector says why,
-and nothing in the undocumented queue is being read. If a source is ever added to the polling list
-without evidence behind it, the suite fails before anything is collected.
+unsettled state, no polled source carries a status the legend reserves for something never verified,
+every polled source exists in the registry, every disabled collector says why, and nothing in the
+undocumented queue is being read. If a source is ever added to the polling list without evidence
+behind it, the suite fails before anything is collected.
 
-**Rule: a status is a claim about a thing, and it has to stay true of the thing.** An audit that is
-allowed to drift from what the system actually does is not an audit; it is a document. The same test
-also settles a wording problem in the other direction — the index's "26 undocumented" reads as
-twenty-six sources being read without paperwork, and is the opposite: they are the queue of sources
-*not* being read, which is now enforced rather than explained.
+**Rule: a status is a claim about a thing, and it has to stay true of the thing — and a correction
+must not be an invention.** An audit allowed to drift from what the system does is not an audit but a
+document; a correction that assigns a status nobody can define is the same failure with a newer
+timestamp. The same test settles a wording problem in the other direction: the index's "26
+undocumented" reads as twenty-six sources being read without paperwork and is the opposite — they are
+the queue of sources *not* being read, which is now enforced rather than explained.
+
+## C-018 — A copy rule meant to stop a document going missing published two internal ones instead
+
+**When** 2026-09-09, from roughly 19:00 UTC (commit 879b6ad) until 20:20 UTC.
+
+**What it said.** `tools/publish_github.ps1` states in the public repository's own notice that the
+working documents, pre-papers, research trails and programme notes are internal and stay off the
+public site. That was true of the site until I changed how documents reach it.
+
+**What was actually true.** Earlier the same day a PDF was written, committed, and then absent from
+`docs/` because a hand-maintained copy list had not been extended — twice. The fix made every PDF in
+`research/06-paper` and `research/07-legal` reach `docs/` "by existing rather than by being listed".
+It worked, and it also published **`BEOPS_WORKING_DOCUMENT_v1_2026-09-09.pdf`** and
+**`BEOPS_WORKING_DOCUMENT_v1.1_2026-09-09.pdf`**, which are internal by that policy and which discuss,
+among other things, commercialisation paths involving the university. A rule written to stop things
+disappearing published things that were meant to stay put, and no test noticed because no test knew
+what was supposed to be public.
+
+**The fix.** Both files removed from `docs/` and from the published export. The copy rule keeps its
+shape — a document reaches the site by existing — with an explicit deny for the kinds that are
+internal by policy (working documents, letters, drafts, programme notes), and
+`research/test_public_docs.py` now holds all three halves of the claim: no internal document is
+published, the builder still carries the exclusion, and the paper itself is still published, so the
+fence cannot quietly swallow what it was built to protect.
+
+**And the wording it exposed.** Looking for what else the public surfaces claimed on the university's
+behalf turned up four places saying this runs on "one university computer" / "the university machine"
+— in the monologue page, the README, the September pre-paper and the publish notice — while
+`research/07-legal/BEOPS_EVIDENCIJA_OBRADE` states plainly that the processing runs on the authors'
+own equipment. All four now say the authors' own machine. `research/ORGANS.json` named the editor of
+record as "Semir Poturak (Union Nikola Tesla University)" in five places, which reads as an
+institution taking on editorial responsibility for what a machine says; the editor of record is a
+person, and now says so.
+
+**Rule: automation decides what happens, so it has to be told what must not.** "Everything of this
+kind, automatically" is the right shape for a rule about publishing — a document that must not go out
+is not an exception to be remembered, it is a property to be stated. The university is named on this
+site as the authors' affiliation and as where the conference is held, and nowhere else: not as owner,
+not as operator, not as sender, and not as the machine this runs on.

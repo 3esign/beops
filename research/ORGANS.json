@@ -1,7 +1,7 @@
 {
  "schema": "beops-organs/v1",
  "note": "Algorithm register for every model-driven organ in BEOPS (cf. Amsterdam/Helsinki algorithm registers; EU AI Act Art. 50 transparency). An organ derives; it never measures. Everything an organ writes is state 'estimated', drawn with a structural stroke, never chromatic, and carries model id + prompt hash + organ version. A human editor of record is named for every organ whose text can reach the public.",
- "editor_of_record_default": "Semir Poturak (Union Nikola Tesla University)",
+ "editor_of_record_default": "doc. dr Semir Poturak, one of the two authors (editorial responsibility is the person's, not an institution's)",
  "organs": [
   {
    "id": "news-sorter",
@@ -23,7 +23,7 @@
    "known_limits": "Serbian tabloid headlines are ambiguous; the gazetteer is coarse by rule (zones, not streets); a place the model names outside the gazetteer is recorded as a rejection, never as a zone; the organ is silent when the daemon is down and says so in a receipt",
    "human_review": "a weekly sample of 30 derived rows is read by the editor of record and disagreements are appended to research/08-provenance/CORRECTIONS.md",
    "ai_act_art_50": "outputs are machine-marked ai_generated=true; any sentence shown to the public is labelled as model-derived; the editor of record holds editorial responsibility (Art. 50(4) exception path)",
-   "editor_of_record": "Semir Poturak (Union Nikola Tesla University)",
+   "editor_of_record": "doc. dr Semir Poturak, one of the two authors (editorial responsibility is the person's, not an institution's)",
    "status": "built 2026-09-08; first run against a local model on 2026-09-09 (see receipts) ; 0.1.1 binds by echoed headline (C-013); 2026-09-09: moved to the same main model as the mind (qwen3.5:4b, Apache-2.0) - the body (8 GB RAM, 4 GB GPU) cannot hold two models, and the 500s of 10:19 UTC on the public page were the two organs evicting each other during the voice bench; 11:15 UTC: the 4b sorted five headlines in more than nine minutes (the task limit) - with fourteen feeds the sorter needs a small fast model: qwen2.5:1.5b, the Skeptic's model, already resident beside the 4b (1.0 + 3.1 GB fit the 4 GB GPU). Categorical JSON with the C-013 echo binding is a job a 1.5B model can do; its sorting is a model's estimate and is labelled so",
    "allow_cloud": false,
    "why_local_only": "names ending in ':cloud' are Ollama-hosted; a headline sent there leaves the machine, which this entry forbids. Measured on the PC 2026-09-08: local qwen2.5:3b (2.0 GB), qwen3.5:0.8b, lfm2.5:1.2b, llama3.2:1b present"
@@ -68,7 +68,7 @@
    "known_limits": "first night: llama3.2:1b and lfm2.5:1.2b produce no Serbian, so thinking is in English and one model renders Serbian (validated); the family comparison therefore starts with organelles, not with voices; small CPU: one or two model calls per 4-minute step; the embedding organelle needs 'paraphrase-multilingual' pulled into Ollama (278 MB) - until then the linker step leaves a receipt 'no embedding model' and the drip continues; claims are worth their score and nothing more; multi-agent echo is prevented by passing validated utterances only",
    "human_review": "the editor of record reads a weekly sample of 30 utterances and every settled claim; disagreements are appended to research/08-provenance/CORRECTIONS.md; a human may stop the organ by creating data/live/derived/mind/PAUSED",
    "ai_act_art_50": "every utterance is machine-marked ai_generated=true and shown with the entity name, the model id and the 'thought' state; nothing it says is presented as a measurement; the editor of record holds editorial responsibility",
-   "editor_of_record": "Semir Poturak (Union Nikola Tesla University)",
+   "editor_of_record": "doc. dr Semir Poturak, one of the two authors (editorial responsibility is the person's, not an institution's)",
    "status": "0.3.0 built 2026-09-09: layers, organelles, English thinking + Serbian voice, drip mode every 4 min (Beops_Mind); 0.3.5 (2026-09-09): every public word in Serbian ekavica - guard of ~300 ijekavian/Croatian stems on the thought, the hypotheses and the questions; one retry with the refusal read back; the Serbian page shows no English (a refused rendering is announced by the program in Serbian); rows voiced under the old guard are re-checked at export",
    "allow_cloud": false,
    "experiment": "research/03-models/MIND_ARCHITECTURES_2026-09-09.md (v0.3 addendum: layers, organelles, the drip)",
@@ -117,7 +117,7 @@
     "amazon/chronos-bolt-tiny"
    ],
    "known_limits": "one week of rows is needed before any range means anything; imputation is forbidden by rule (contra Ferrer-Cid et al. 2025 mainstream)",
-   "editor_of_record": "Semir Poturak (Union Nikola Tesla University)",
+   "editor_of_record": "doc. dr Semir Poturak, one of the two authors (editorial responsibility is the person's, not an institution's)",
    "status": "planned"
   },
   {
@@ -134,7 +134,7 @@
     "glm-5.3"
    ],
    "known_limits": "must not state any number that is not in status/derived rows verbatim; a test compares every number in the text against its sources",
-   "editor_of_record": "Semir Poturak (Union Nikola Tesla University)",
+   "editor_of_record": "doc. dr Semir Poturak, one of the two authors (editorial responsibility is the person's, not an institution's)",
    "status": "planned",
    "allow_cloud": false
   }
