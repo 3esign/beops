@@ -523,8 +523,98 @@ def parse_rhmz_auto(body: bytes, received: datetime, src: dict) -> list[dict]:
     return rows
 
 
+METAR_FIELDS = (("temperature", "Cel", "temp"), ("dew_point", "Cel", "dewp"), ("wind_direction", "deg", "wdir"),
+                ("wind_speed", "kt", "wspd"), ("pressure_qnh", "hPa", "altim"))
+
+
+def parse_metar(body: bytes, received: datetime, src: dict) -> list[dict]:
+    """NOAA Aviation Weather METAR for LYBE (Belgrade / Nikola Tesla airport). The observation carries its
+    own instant - obsTime, a UNIX epoch, which the airport's own site never publishes - so this is a
+    measurement with a stated measurement time, not a reception. US federal data, no key. The station is
+    at the airport, not in the city: the row says so through its own coordinates, and nothing here is a
+    citywide temperature."""
+    rows_in = json.loads(body.decode("utf-8", "replace"))
+    if not isinstance(rows_in, list):
+        raise ValueError("METAR: expected a list")
+    out = []
+    for ob in rows_in:
+        icao = ob.get("icaoId")
+        ts = ob.get("obsTime")
+        if not icao or not isinstance(ts, (int, float)):
+            continue
+        pt = datetime.fromtimestamp(int(ts), tz=timezone.utc)
+        lat, lon = ob.get("lat"), ob.get("lon")
+        for name, unit, key in METAR_FIELDS:
+            v = ob.get(key)
+            val = float(v) if isinstance(v, (int, float)) else None
+            out.append({
+                "schema": SCHEMA_ROW, "sid": src["sid"],
+                "datastream": f"{icao}|{name}", "station_id": icao, "station_name": ob.get("name") or icao,
+                "parameter": name, "result": val, "unit": unit,
+                "phenomenonTime": iso(pt), "phenomenonTimeUnknown": False,
+                "phenomenonTimeSource": "obsTime (UNIX epoch) as published by the source",
+                "resultTime": ob.get("reportTime"), "receivedTime": iso(received),
+                "resultQuality": "unvalidated" if val is not None else "missing",
+                "lat": lat, "lon": lon,
+                "spatial_binding": "airport station coordinates as published by the source; an airport observation, not a citywide value",
+                "dedupe_key": f"{src['sid']}|{icao}|{name}|{int(ts)}",
+            })
+    return out
+
+
+RHMZ_GAUGES = {   # only the two gauges inside Belgrade; Pancevo is a different city and stays out of scope
+    ("SAVA", "BEOGRAD"): (44.8206, 20.4489),
+    ("DUNAV", "ZEMUN"): (44.8459, 20.4123),
+}
+GAUGE_FIELDS = (("water_level", "cm"), ("water_level_change", "cm"), ("discharge", "m3/s"), ("water_temperature", "Cel"))
+
+
+def parse_rhmz_gauges(body: bytes, received: datetime, src: dict) -> list[dict]:
+    """RHMZ river gauges (stanje_voda.php): the daily hydrological table. The page states its own instant in
+    UTC - 'vreme: 8:00 (06:00 UTC)' - so no timezone is guessed here. Only the two gauges inside Belgrade are
+    kept: the Sava at Beograd and the Danube at Zemun. A cell of '*' or '-' is a MISSING value, never a zero;
+    the level is a level, never a discharge. Coordinates are approximate and say so on every row."""
+    text = body.decode("utf-8", "replace")
+    m = re.search(r"(\d{2})\.(\d{2})\.(\d{4})\.?(?:&nbsp;|\s)*vreme:(?:&nbsp;|\s)*\d{1,2}:\d{2}(?:&nbsp;|\s)*\((\d{1,2}):(\d{2})\s*UTC\)", text)
+    if not m:
+        return []
+    dd, mm, yy, hh, mi = (int(x) for x in m.groups())
+    pt = datetime(yy, mm, dd, hh, mi, tzinfo=timezone.utc)
+    rows = []
+    for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", text, re.S | re.I):
+        c = _cells(tr)
+        if len(c) < 6:
+            continue
+        key = (c[0].strip().upper(), c[2].strip().upper())
+        if key not in RHMZ_GAUGES:
+            continue
+        vals = [x for x in c[3:] if x.strip()]
+        lat, lon = RHMZ_GAUGES[key]
+        station = f"{key[1].title()} ({key[0].title()})"
+        for i, (name, unit) in enumerate(GAUGE_FIELDS):
+            raw = vals[i] if i < len(vals) else ""
+            try:
+                val = float(raw.replace(",", "."))
+            except (TypeError, ValueError):
+                val = None                     # '*' and '-' are the source's own way of saying: no value
+            rows.append({
+                "schema": SCHEMA_ROW, "sid": src["sid"],
+                "datastream": f"{station}|{name}", "station_id": station, "station_name": station,
+                "parameter": name, "result": val, "unit": unit,
+                "phenomenonTime": iso(pt), "phenomenonTimeUnknown": False,
+                "phenomenonTimeSource": "the page states its own reading time in UTC",
+                "resultTime": None, "receivedTime": iso(received),
+                "resultQuality": "unvalidated" if val is not None else "missing",
+                "lat": lat, "lon": lon, "river": key[0].title(),
+                "spatial_binding": "gauge coordinates approximate, not from an official list",
+                "dedupe_key": f"{src['sid']}|{station}|{name}|{iso(pt)}",
+            })
+    return rows
+
+
 PARSERS = {"sepa_hvd": parse_sepa_hvd, "sensor_community": parse_sensor_community, "parking": parse_parking, "rss": parse_rss,
-           "city_listing": parse_city_listing, "eds_outages": parse_eds_outages, "rhmz_auto": parse_rhmz_auto}
+           "city_listing": parse_city_listing, "eds_outages": parse_eds_outages, "rhmz_auto": parse_rhmz_auto,
+           "metar": parse_metar, "rhmz_gauges": parse_rhmz_gauges}
 
 
 # ------------------------------------------------------------------ storage

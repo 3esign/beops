@@ -211,8 +211,9 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 
 .databar{border-bottom:1px solid var(--ink12);padding:calc(var(--u)*8) 0}
 .layersbar{border-bottom:1px solid var(--ink12);padding:calc(var(--u)*8) 0}
-.layers{max-width:1320px;overflow-x:auto}
-.layers svg{min-width:900px;display:block}
+.layers{max-width:820px;margin:0 auto}
+.layers svg{width:100%;height:auto;display:block}
+.layerlink{display:block;text-align:center;font-size:12px;color:var(--ink55);margin-top:calc(var(--u)*3)}
 .datastage{height:min(90vh,1100px);border:1px solid var(--ink12);border-radius:6px;overflow:hidden;background:var(--field)}
 .datastage iframe{width:100%;height:100%;border:0;display:block}
 .livebar{border-top:1px solid var(--ink12);border-bottom:1px solid var(--ink12);background:var(--panel);
@@ -338,8 +339,9 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
 <div class="layersbar" id="slojevi">
   <div class="wrap">
     <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0 0 6px;font-weight:600"><span class="sr-only">Slojevi — od čega je opservatorija napravljena</span><span class="en-only">Layers — what the observatory is made of</span></h2>
-    <p class="sub" style="margin:0 0 16px;max-width:80ch"><span class="sr-only">Podloga, statični slojevi, periodični izvori, živa čula, pravna kapija, sistem koji organizuje, sistem koji misli i govori, izraz — i znanje pored njih. Brojevi u crtežu se čitaju iz registara pri svakoj objavi.</span><span class="en-only">Ground, static layers, periodic sources, live senses, the legal gate, the system that organizes, the system that thinks and speaks, expression — and the knowledge beside them. The numbers in the drawing are read from the registers at every publish.</span></p>
+    <p class="sub" style="margin:0 0 16px;max-width:80ch"><span class="sr-only">Na dnu je zakon — srpski i evropski — i on nosi sve ostalo: sloj postoji samo ako je propušten kroz kapiju dozvole. Iznad njega: podloga grada, statični slojevi, periodični izvori, živa čula, sistem koji organizuje, sistem koji misli i govori, i izraz; znanje stoji pored njih i takođe stoji na zakonu. Brojevi u crtežu se čitaju iz registara pri svakoj objavi.</span><span class="en-only">At the bottom is the law — Serbian and European — and it carries everything else: a layer exists only if it passed the permission gate. Above it: the city's ground, static layers, periodic sources, live senses, the system that organizes, the system that thinks and speaks, and expression; the knowledge stands beside them and on the same slab. The numbers in the drawing are read from the registers at every publish.</span></p>
     <div class="layers">__LAYERS_SVG__</div>
+    <a class="layerlink" href="slojevi.svg"><span class="sr-only">Otvori ceo crtež ↗</span><span class="en-only">Open the full drawing ↗</span></a>
   </div>
 </div>
 
@@ -576,8 +578,9 @@ def main() -> int:
     try:
         sys.path.insert(0, str(ROOT / "tools"))
         from make_layers import build as _layers_build, counts as _layers_counts  # noqa: PLC0415
-        layers_svg = _layers_build(_layers_counts())
-        (ROOT / "research" / "05-design" / "studies" / "slojevi.svg").write_text(layers_svg, encoding="utf-8")
+        _c = _layers_counts()
+        (ROOT / "research" / "05-design" / "studies" / "slojevi.svg").write_text(_layers_build(_c, False), encoding="utf-8")
+        layers_svg = _layers_build(_c, True)   # the page shows the small rendering; the link opens the full drawing
     except Exception as e:  # noqa: BLE001
         layers_svg = f"<!-- layers drawing unavailable: {type(e).__name__} -->"
     html = html.replace("__LAYERS_SVG__", layers_svg)
@@ -585,6 +588,7 @@ def main() -> int:
     (DOCS / "index.html").write_text(html, encoding="utf-8")
     for src, dst in [("research/05-design/studies/monolog-puls.html", "monolog.html"),
                      ("research/05-design/studies/podaci.html", "podaci.html"),
+                     ("research/05-design/studies/slojevi.svg", "slojevi.svg"),
                      ("research/05-design/studies/traka-live.html", "traka.html"),
                      ("public/live-snapshot.json", "live-snapshot.json"),
                      ("public/basemap-belgrade.json", "basemap-belgrade.json"),

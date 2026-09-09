@@ -355,6 +355,102 @@ class CityListingTests(unittest.TestCase):
         self.assertEqual(cd.parse_city_listing(b"<html><body>nothing here</body></html>", NOW, SRC_CITY), [])
 
 
+METAR_JSON = json.dumps([
+    {"icaoId": "LYBE", "obsTime": 1788955200, "reportTime": "2026-09-09T12:00:00.000Z", "name": "Beograd/Nikola Tesla, RS",
+     "temp": 34, "dewp": 9, "wdir": 110, "wspd": 7, "altim": 1010, "lat": 44.824, "lon": 20.291},
+    {"icaoId": "LYBE", "obsTime": 1788951600, "reportTime": "2026-09-09T11:00:00.000Z",
+     "temp": 33, "dewp": None, "wdir": "VRB", "wspd": 5, "altim": 1010, "lat": 44.824, "lon": 20.291},
+    {"icaoId": "LYBE", "reportTime": "2026-09-09T10:00:00.000Z", "temp": 32},          # no obsTime: no instant, no row
+]).encode("utf-8")
+
+GAUGE_HTML = """<html><body><div id="sadrzaj">
+<h1>Hidrološki podaci: &nbsp;SREDA&nbsp;09.09.2026.&nbsp;&nbsp;vreme:&nbsp;8:00&nbsp;(06:00 UTC)</h1>
+<table>
+ <tr><td class="bela75 levo">&nbsp;SAVA</td><td class="bela75"><img src="0.gif" /></td>
+     <td class="bela75 levo">&nbsp;<a href="prognoza.php?hm_id=45099">BEOGRAD</a></td>
+     <td class="bela75"><a href="x"><img src="nrt.gif" /></a></td><td class="bela75"><a href="y"><img src="izv.gif" /></a></td>
+     <td class="bela75 ">&nbsp;132</td><td class="bela75 ">&nbsp;0</td><td class="bela75 ">&nbsp;*</td><td class="bela75 ">&nbsp;26.1</td>
+     <td class="bela75 "><img src="nema.gif" /></td></tr>
+ <tr><td class="bela75 levo">&nbsp;DUNAV</td><td class="bela75"><img src="0.gif" /></td>
+     <td class="bela75 levo">&nbsp;<a href="prognoza.php?hm_id=42035">ZEMUN</a></td>
+     <td class="bela75"><a href="x"><img src="nrt.gif" /></a></td><td class="bela75"><a href="y"><img src="izv.gif" /></a></td>
+     <td class="bela75 ">&nbsp;218</td><td class="bela75 ">&nbsp;-4</td><td class="bela75 ">&nbsp;2380</td><td class="bela75 ">&nbsp;24,8</td>
+     <td class="bela75 "><img src="nema.gif" /></td></tr>
+ <tr><td class="bela75 levo">&nbsp;DUNAV</td><td class="bela75"><img src="0.gif" /></td>
+     <td class="bela75 levo">&nbsp;<a href="prognoza.php?hm_id=42045">PAN&#268;EVO</a></td>
+     <td class="bela75"><a href="x"><img src="nrt.gif" /></a></td><td class="bela75"><a href="y"><img src="izv.gif" /></a></td>
+     <td class="bela75 ">&nbsp;225</td><td class="bela75 ">&nbsp;-3</td><td class="bela75 ">&nbsp;*</td><td class="bela75 ">&nbsp;25.0</td>
+     <td class="bela75 "><img src="nema.gif" /></td></tr>
+</table></div></body></html>""".encode("utf-8")
+
+
+class MetarTests(unittest.TestCase):
+    """The airport observation states its own instant; the parser must never invent one, and must never
+    turn an absent value into a zero."""
+
+    def test_metar_uses_the_sources_own_observation_instant(self):
+        rows = cd.parse_metar(METAR_JSON, NOW, {"sid": "S03", "url": "https://aviationweather.gov/api/data/metar"})
+        by = {(r["datastream"], r["phenomenonTime"]): r for r in rows}
+        self.assertEqual(len(rows), 10)                     # two observations x five fields; the third has no instant
+        a = by[("LYBE|temperature", "2026-09-09T12:00:00Z")]
+        self.assertEqual((a["result"], a["unit"], a["resultQuality"]), (34.0, "Cel", "unvalidated"))
+        self.assertFalse(a["phenomenonTimeUnknown"])
+        self.assertEqual(a["resultTime"], "2026-09-09T12:00:00.000Z")
+        self.assertEqual((a["lat"], a["lon"]), (44.824, 20.291))
+        self.assertIn("airport", a["spatial_binding"])
+        self.assertEqual(a["station_name"], "Beograd/Nikola Tesla, RS")
+
+    def test_absent_values_are_missing_and_a_text_wind_is_not_a_number(self):
+        rows = cd.parse_metar(METAR_JSON, NOW, {"sid": "S03"})
+        by = {(r["datastream"], r["phenomenonTime"]): r for r in rows}
+        dewp = by[("LYBE|dew_point", "2026-09-09T11:00:00Z")]
+        wdir = by[("LYBE|wind_direction", "2026-09-09T11:00:00Z")]
+        self.assertEqual((dewp["result"], dewp["resultQuality"]), (None, "missing"))
+        self.assertEqual((wdir["result"], wdir["resultQuality"]), (None, "missing"))   # "VRB" is not a bearing
+
+    def test_the_same_observation_twice_is_the_same_key_and_a_bad_body_raises(self):
+        first = cd.parse_metar(METAR_JSON, NOW, {"sid": "S03"})
+        again = cd.parse_metar(METAR_JSON, NOW + timedelta(minutes=15), {"sid": "S03"})
+        self.assertEqual([r["dedupe_key"] for r in first], [r["dedupe_key"] for r in again])
+        self.assertEqual(len(set(r["dedupe_key"] for r in first)), len(first))
+        self.assertEqual(cd.parse_metar(b"[]", NOW, {"sid": "S03"}), [])
+        with self.assertRaises(ValueError):
+            cd.parse_metar(b'{"icaoId":"LYBE"}', NOW, {"sid": "S03"})
+
+
+class RiverGaugeTests(unittest.TestCase):
+    """The hydrological table states its instant in UTC. Only the two gauges inside Belgrade are kept,
+    a level is never a discharge, and '*' is a missing value, never a zero."""
+
+    def test_only_belgrade_gauges_and_the_pages_own_utc_instant(self):
+        rows = cd.parse_rhmz_gauges(GAUGE_HTML, NOW, {"sid": "S52", "url": "https://www.hidmet.gov.rs/x/stanje_voda.php"})
+        by = {r["datastream"]: r for r in rows}
+        self.assertEqual(len(rows), 8)                       # two gauges x four parameters; Pancevo is another city
+        self.assertNotIn("Pančevo (Dunav)|water_level", by)
+        self.assertEqual(by["Beograd (Sava)|water_level"]["result"], 132.0)
+        self.assertEqual(by["Beograd (Sava)|water_level"]["unit"], "cm")
+        self.assertEqual(by["Beograd (Sava)|water_level"]["phenomenonTime"], "2026-09-09T06:00:00Z")
+        self.assertFalse(by["Beograd (Sava)|water_level"]["phenomenonTimeUnknown"])
+        self.assertEqual(by["Zemun (Dunav)|water_level_change"]["result"], -4.0)
+        self.assertEqual(by["Zemun (Dunav)|discharge"]["result"], 2380.0)
+        self.assertEqual(by["Zemun (Dunav)|water_temperature"]["result"], 24.8)   # a decimal comma is a decimal point
+        self.assertEqual(by["Zemun (Dunav)|water_temperature"]["river"], "Dunav")
+
+    def test_a_star_is_missing_and_not_a_zero(self):
+        by = {r["datastream"]: r for r in cd.parse_rhmz_gauges(GAUGE_HTML, NOW, {"sid": "S52"})}
+        d = by["Beograd (Sava)|discharge"]
+        self.assertIsNone(d["result"])
+        self.assertEqual(d["resultQuality"], "missing")
+        self.assertEqual(d["unit"], "m3/s")
+
+    def test_coordinates_say_they_are_approximate_and_a_page_without_a_time_yields_nothing(self):
+        rows = cd.parse_rhmz_gauges(GAUGE_HTML, NOW, {"sid": "S52"})
+        self.assertTrue(all("approximate" in r["spatial_binding"] for r in rows))
+        self.assertEqual((rows[0]["lat"], rows[0]["lon"]), (44.8206, 20.4489))
+        self.assertEqual(len(set(r["dedupe_key"] for r in rows)), len(rows))
+        self.assertEqual(cd.parse_rhmz_gauges(b"<html><table><tr><td>SAVA</td></tr></table></html>", NOW, {"sid": "S52"}), [])
+
+
 RSS_BODY = b"""<?xml version="1.0"?><rss version="2.0"><channel><title>x</title>
 <item><title>  Radovi na Brankovom mostu   od ponedeljka</title><link>https://ex/1</link><guid>g1</guid><pubDate>Tue, 08 Sep 2026 20:10:00 +0200</pubDate><description>LONG BODY THAT MUST NOT BE KEPT</description></item>
 <item><title>Bez naslova</title><link>https://ex/2</link><guid>g2</guid></item>

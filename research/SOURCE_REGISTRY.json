@@ -2,7 +2,7 @@
  "schema": "beops-source-research/v1",
  "reviewed_at": "2026-09-09",
  "scope": "Belgrade; global sources are filtered or contextual, not other-city substitution",
- "review_note": "Current-products continuation2026-09-06:189 source records after S192;12 product-scoped legal reviews. Records are not device/feed counts; coverage gaps and access limits remain visible. 2026-09-08: S193 added (GeoSrbija OGC host) for the base map; 190 records. S193 measured 401 (account_required); S194 Nominatim added for the base map; 191 records. S194 refused by robots.txt (opted_out); base map via S126 ohsome. S126 extraction route measured 403 (blocked). 2026-09-09 news audit: S68 corrected (private publisher), S77 split, S74 X-Robots-Tag decision recorded, S15/S11/S175 extended with official routes, S195-S206 added (RTS, Novosti-Beograd, Euronews Srbija, B92, CINS, Cenzolovka, Masina, Istinomer, Vlada RS, MUP refused, Nova.rs, Putevi Srbije); 203 records. S207 Blic (Beograd feed, from the PC) and S208 Beoinfo listing added; 205 records. Afternoon live-layer pass: S12 (EDS outages) and S01 (RHMZ automatic stations) enabled with parsers; S209 Beograd-put and S210 Gradska cistoca refused (ClaudeBot named), S211 beg.aero bot wall, S212 Srbijavoz and S213 Infostan leads, S214 Zelenilo 403; 211 records.",
+ "review_note": "Current-products continuation2026-09-06:189 source records after S192;12 product-scoped legal reviews. Records are not device/feed counts; coverage gaps and access limits remain visible. 2026-09-08: S193 added (GeoSrbija OGC host) for the base map; 190 records. S193 measured 401 (account_required); S194 Nominatim added for the base map; 191 records. S194 refused by robots.txt (opted_out); base map via S126 ohsome. S126 extraction route measured 403 (blocked). 2026-09-09 news audit: S68 corrected (private publisher), S77 split, S74 X-Robots-Tag decision recorded, S15/S11/S175 extended with official routes, S195-S206 added (RTS, Novosti-Beograd, Euronews Srbija, B92, CINS, Cenzolovka, Masina, Istinomer, Vlada RS, MUP refused, Nova.rs, Putevi Srbije); 203 records. S207 Blic (Beograd feed, from the PC) and S208 Beoinfo listing added; 205 records. Afternoon live-layer pass: S12 (EDS outages) and S01 (RHMZ automatic stations) enabled with parsers; S209 Beograd-put and S210 Gradska cistoca refused (ClaudeBot named), S211 beg.aero bot wall, S212 Srbijavoz and S213 Infostan leads, S214 Zelenilo 403; 211 records. Live-senses pass C1: S03 (NOAA METAR LYBE) and S52 (RHMZ river gauges, Sava/Beograd and Dunav/Zemun) enabled with parsers and moved to collected - both publish their own measurement instant; still 211 records.",
  "status_legend": {
   "probe_ok": "bounded direct response and reconnaissance parsing succeeded; not a production or accuracy verdict",
   "probe_tls_failed": "local verified-TLS request failed; no certificate bypass",
@@ -56,12 +56,16 @@
    "name": "NOAA Aviation Weather LYBE",
    "url": "https://aviationweather.gov/api/data/metar?ids=LYBE&format=json",
    "documentation": "https://aviationweather.gov/data/api/",
-   "status": "probe_ok",
+   "status": "collected",
    "kind": "airport_observation",
    "rhythm": "observation-dependent; reportTime present",
    "access": "public JSON, no key in probe",
    "reuse": "verify attribution/policy for chosen output",
-   "next": "Validate obsTime versus reportTime, units, station location and aggregation provenance."
+   "next": "Validate obsTime versus reportTime, units, station location and aggregation provenance.",
+   "live_layer_2026_09_09": "ENABLED: collect_daemon.py `metar` keeps temperature, dew point, wind direction, wind speed and QNH pressure for LYBE. The observation carries its own instant - obsTime, a UNIX epoch - so phenomenonTime is the source's, not ours; reportTime is kept separately as resultTime. Every 15 min. US federal data, no key, no Content-Signal. The station is at Nikola Tesla airport, 15 km west of the centre: every row carries the airport's own coordinates and says it is an airport observation, never a citywide temperature.",
+   "coordinates_note": "44.824N 20.291E as published by the source on every observation; the airport, not the city",
+   "evidence_quality_note": "aviationweather.gov answers 404 for /robots.txt (nginx) - a 404 is no robots.txt, not a refusal; the 404 body is the captured evidence and the verdict rests on it plus the absence of any Content-Signal.",
+   "measurement_time": "yes - obsTime (UNIX epoch), plus reportTime"
   },
   {
    "id": "S04",
@@ -674,13 +678,15 @@
    "theme": "hydrology",
    "name": "RHMZ water levels",
    "url": "https://www.hidmet.gov.rs/latin/osmotreni/stanje_voda.php",
-   "status": "probe_ok",
+   "status": "collected",
    "kind": "river_gauge",
    "rhythm": "real time telemetry; Sava at Beograd 133 cm and Danube at Zemun 176 cm observed 2026-09-05",
    "access": "public HTML table",
    "reuse": "RHMZ terms",
-   "next": "Pairs with Open-Meteo for the rainfall-to-gauge lag sense. Limit: big-river navigational gauges only; no public real-time gauge found on Belgrade's small urban streams, which are the ones that flood streets.",
-   "measurement_time": "yes - na dan"
+   "next": "Pairs with Open-Meteo for the rainfall-to-gauge lag sense. Limit: big-river navigational gauges only; no public real-time gauge found on Belgrade's small urban streams, which are the ones that flood streets. Pančevo is on the same table and stays out - it is a different city.",
+   "measurement_time": "yes - the page prints its own reading time in UTC",
+   "live_layer_2026_09_09": "ENABLED: collect_daemon.py `rhmz_gauges` keeps water level, daily change, discharge and water temperature for the two gauges inside the city - the Sava at Beograd and the Danube at Zemun. The page states its own reading instant in UTC ('vreme: 8:00 (06:00 UTC)'), so no timezone is guessed. A '*' or '-' cell is recorded as MISSING, never as zero; a level is never a discharge. Every 60 min - the table is written once a day, so the cadence is for catching the new one, not for new values.",
+   "coordinates_note": "Sava/Beograd 44.8206N 20.4489E and Dunav/Zemun 44.8459N 20.4123E are approximate and are labelled so on every row; the official gauge list (S188 route) would replace them"
   },
   {
    "id": "S53",
