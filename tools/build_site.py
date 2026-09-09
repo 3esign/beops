@@ -156,12 +156,21 @@ TEMPLATE = r"""<!doctype html>
   --ink30:rgba(242,241,236,.3); --ink12:rgba(242,241,236,.12); --ink06:rgba(242,241,236,.06);
   --signal:#F0532B; --signal-untimed:#D8836A; --signal-faint:rgba(240,83,43,.16); }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth;scrollbar-gutter:stable}
+html{scroll-behavior:smooth;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:var(--ink30) transparent}
 /* C-026, the last few pixels of it. Switching a parameter changes how many stations have a
    value, so the table under the map gets longer or shorter, so the frame reports a different
    height, so the page crosses the height at which the window scrollbar appears - and every
    thing on the page slides seven pixels sideways. Reserving the gutter means the page is the
    same width whether it scrolls or not, and nothing moves that the data did not move. */
+/* C-030: the scrollbar was the operating system's, so on a dark page it was a light grey bar -
+   the one bright element in the frame. It takes its colours from the same two tokens as
+   everything else now, and it is thin, so it reads as an edge rather than as a control.
+   Both properties are inherited, so the feed, the minds and the reading column get it too. */
+::-webkit-scrollbar{width:9px;height:9px;background:transparent}
+::-webkit-scrollbar-thumb{background:var(--ink30);border:3px solid transparent;background-clip:padding-box;border-radius:9px}
+::-webkit-scrollbar-thumb:hover{background:var(--ink60)}
+::-webkit-scrollbar-corner{background:transparent}
+
 body{margin:0;background:var(--field);color:var(--ink);font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
 body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.4;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}

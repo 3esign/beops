@@ -182,6 +182,19 @@ class BuiltSiteTests(unittest.TestCase):
                              f"{name}: the stylesheet opens {css.count('{')} braces and closes "
                              f"{css.count('}')}")
 
+    def test_every_scrollbar_takes_its_colour_from_the_page(self):
+        """C-030. Every scrollable surface here - the window, the feed, the three minds, the reading
+        column - was drawn by the operating system, which knows nothing about the theme. On the dark
+        page that made the scrollbar a light grey bar: the single brightest element in a frame whose
+        every other colour comes from two tokens. `scrollbar-color` and `scrollbar-width` are
+        inherited, so one declaration on the root is enough, and it must be there rather than
+        anywhere else - a scroller that sets its own is a scroller someone has to remember."""
+        for name, text in [("docs/index.html", self.s)] + [
+                (f"docs/{f}", read(DOCS / f)) for f in self.frames if (DOCS / f).exists()]:
+            css = css_of(text)
+            self.assertRegex(css, r"html\s*\{[^}]*scrollbar-color\s*:\s*var\(--",
+                             f"{name}: its scrollbar is the operating system's, not the page's")
+
     def test_a_canvas_fills_the_box_it_was_given(self):
         """The other half of C-024, stated as the property that actually matters: a canvas whose CSS
         size is not set renders at its intrinsic 300x150 (or whatever its backing store says) and

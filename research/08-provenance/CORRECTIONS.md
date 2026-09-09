@@ -962,3 +962,26 @@ the tiles; it is verified by measuring `sada`, `24 h` and `7 dana` and finding o
 
 **Nothing observed was changed.** This correction touches presentation only: no stored value, no
 provenance state, no permission record.
+
+## C-030 — the scrollbar belonged to the operating system
+
+**2026-09-09.** With the dark theme selected, the monologue feed and the page's own window drew the
+default platform scrollbar: a light grey track and thumb on a `#111311` ground. Every other colour in
+the frame is one of two tokens; this one was neither, and it was the brightest thing on the screen.
+
+**Correction.** `html{scrollbar-width:thin;scrollbar-color:var(--ink30) transparent}` in all four
+frames and in the built page. Both properties are inherited, so the feed, the three mind columns and
+the reading column are covered by the root declaration and none of them declares its own. A
+`::-webkit-scrollbar` block carries the same tokens for engines without the standard properties;
+engines that have them ignore it.
+
+**Asserted, not assumed.** `test_every_scrollbar_takes_its_colour_from_the_page` requires the
+declaration on the `html` rule of every frame and of `docs/index.html`. Asserting it on the root rather
+than on each scroller is deliberate: the next scrollable panel added to a frame inherits the theme
+without anyone having to remember it.
+
+**Why it survived.** The theme was verified after C-027 by measuring the page and all five frames in
+light and in dark — but by measuring the *background* colour each resolved to, which was correct in
+both. A defect present in only one theme is not caught by checking that both themes load.
+
+**Nothing observed was changed.** Presentation only.
