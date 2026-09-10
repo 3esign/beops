@@ -2608,3 +2608,79 @@ is a diagnostic script rather than a tool and is better described as one than te
 remain all touch the network or move files, so testing them means separating what they decide from
 what they do — which is the same shape of work the compressor needed, and the same reason they were
 skipped.
+
+## C-062 — the tool that builds the population layer could not start, and had not been able to for days
+
+**Written at the commit that carries this entry.** Found by writing tests for the last three tools on
+the C-050 list, which is now cleared.
+
+### The one that matters
+
+`tools/fetch_static.py` has two entry points and both call `layer("kontur-population")` on their first
+line. That function reads the static-layer register and returns the entry whose `id` matches.
+
+**The register has no `id`.** It was rewritten during C-049 — the correction that gave the static
+layers a rule at all — and the rewrite gave each layer a `file`, a `sid`, a `what`, a `built_by`, a
+`sha256`, a `review_due` and eight other keys. Not an `id`. So every call raised `KeyError: 'id'`, and
+**the tool that fetches and derives the population layer could not run at all** from the moment its own
+register was improved.
+
+Nobody found out, and the reason is worth more than the bug: **the layer it had built earlier was
+still on disk, still correct, still being used by the maps, the mind and the guard.** A builder that
+cannot run and an output that looks right are indistinguishable until somebody rebuilds. This is
+C-060's lesson again — a tool that cannot start hides everything behind it — with the twist that here
+there was nothing visibly wrong to notice.
+
+It is also the fourth time today that **a register was improved and something that reads it was not
+told**: C-049 changed this one, C-057 found a vocabulary the enforcing test could not see, C-061 found
+an index that fell over on a line missing a key, and this.
+
+**Correction.** The register declares an `id` for each layer, because a thing that is looked up by name
+should have the name written down rather than inferred. And `layer()` accepts the id, the sid, the file
+path or the file's stem, and when it finds nothing it raises **naming what it looked for and what the
+register actually holds**, instead of a `KeyError` on a missing dictionary key three frames down. A
+test asserts that every name this tool asks for is a name the register answers to — read out of the
+tool's own source, so it cannot drift.
+
+### Missing is not zero, in the layer that says how many people a reading is about
+
+`people_near()` is how a measurement becomes a statement about a city: *"about nine thousand people
+live within a kilometre of this station"*, which the mind is allowed to say. With no population layer
+on the machine it correctly returned `None`. **With a layer present but empty it returned 0** — and
+"nobody lives within a kilometre of this station" is false, is written in the same words as the true
+version, and would have been said with the same confidence. It now returns `None` in both cases.
+
+Two other properties are now written down rather than left to be discovered: it counts a hexagon **by
+its centroid**, so at H3 resolution 8 the quantisation is about 460 m; and its `ctx` parameter is
+applied with `or`, so a caller who passes an empty dict silently gets the file on disk instead of
+their own empty context.
+
+### The tool that decides who gets approached
+
+`tools/capture_backlog.py` runs the permission capture against every source that has none. The one
+decision in it that matters is **who gets asked**, and it was written inside the loop that talks to
+the network, so it could not be checked without asking them. It is now a function of the registry and
+the ledger, and the project's oldest invariant — *a named refusal is never approached again* — is a
+test run against the real registry rather than a reading of the code.
+
+One property found while testing is written down rather than fixed: **any ledger line at all takes a
+source off that queue permanently, including a line recording a capture that failed.** So the
+"incomplete" queue never drains by running the backlog again. Draining it is a different tool's job,
+and until one exists this is a known hole rather than an unnoticed one.
+
+### And a migration that has already run
+
+`tools/migrate_structure.py` moved the research documents into numbered folders in early September and
+rewrote every local link. It is the kind of script that is dangerous because it is finished: still in
+the repository, still able to move files, and with nothing recording that it has nothing left to do.
+Its path arithmetic is now tested — including that a directory move does not drag along a directory
+whose name merely starts the same way — and **a test asserts that running it again would move
+nothing**, which is the only safe resting state for a spent migration.
+
+### The list is clear
+
+Every tool the C-050 sweep found untested now has a test: the provenance index, the evidence
+compressor, the permission dataset, the two drawing tools, the figure tool, the PDF converter, the
+static-layer fetcher, the capture backlog and the migration. `tls_test.py` remains without one, and
+deliberately: it is a diagnostic script that opens four sockets and prints what happened, and the
+honest thing is to describe it as a diagnostic rather than to wrap it in assertions.

@@ -42,16 +42,27 @@ def captured() -> set:
     return out
 
 
+def targets(sources: list, done: set) -> list:
+    """Which sources this tool may approach, separated from the approaching.
+
+    It was written inside main(), wrapped around a subprocess loop that talks to the network, so the
+    one decision that matters here - **who gets asked** - could not be tested without asking them.
+    A refuser must never appear in this list, and that is now a test rather than a reading of the
+    code (C-062).
+    """
+    return [r for r in sources
+            if r.get("id") not in done
+            and r.get("status") not in WALL
+            and (r.get("url") or "").startswith("http")]
+
+
 def main() -> int:
     python = sys.argv[1] if len(sys.argv) > 1 else sys.executable
     limit = int(sys.argv[2]) if len(sys.argv) > 2 else 10 ** 9
     with open(REG, encoding="utf-8") as fh:
         reg = json.load(fh)
     done = captured()
-    todo = [r for r in reg["sources"]
-            if r["id"] not in done
-            and r.get("status") not in WALL
-            and (r.get("url") or "").startswith("http")]
+    todo = targets(reg["sources"], done)
     print(f"{len(todo)} sources to capture (of {len(reg['sources'])} in the registry)\n")
     ok = fail = 0
     for i, r in enumerate(todo[:limit], 1):

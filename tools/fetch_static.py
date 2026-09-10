@@ -40,8 +40,22 @@ BBOX = (20.15, 44.55, 20.85, 45.00)     # W, S, E, N - the Belgrade window of th
 
 
 def layer(lid: str) -> dict:
+    """A layer from the register, by its id - or by its sid or its file name, whichever the caller has.
+
+    This raised `KeyError: 'id'` for every lookup from the day the register was rewritten, because the
+    rewrite gave each layer a `file`, a `sid` and a `what` and no `id`, and this line still asked for
+    one. Both entry points of this tool call it on their first line, so **the tool that builds the
+    population layer could not start at all** - and nobody found out, because the layer it had already
+    built was still sitting on disk and still correct. A builder that cannot run and an output that
+    looks right are indistinguishable until somebody rebuilds (C-062).
+    """
     reg = json.loads(REGISTER.read_text(encoding="utf-8"))
-    return next(x for x in reg["layers"] if x["id"] == lid)
+    for x in reg["layers"]:
+        if lid in (x.get("id"), x.get("sid"), x.get("file"),
+                   pathlib.Path(str(x.get("file") or "")).stem):
+            return x
+    raise KeyError("no layer %r in the register; it holds: %s"
+                   % (lid, ", ".join(str(x.get("id") or x.get("file")) for x in reg["layers"])))
 
 
 def _manifest(sid: str, ts: str, files: list[dict], extra: dict) -> dict:
@@ -196,7 +210,10 @@ def derive_kontur() -> pathlib.Path:
 def people_near(lat: float, lon: float, km: float = 1.0, ctx: dict | None = None) -> int | None:
     """Sum of hexagon populations whose centroid lies within `km` of (lat, lon). Used by the digest."""
     ctx = ctx or (json.loads((PUBLIC / "context-population.json").read_text(encoding="utf-8")) if (PUBLIC / "context-population.json").exists() else None)
-    if not ctx:
+    if not ctx or not ctx.get("hexes"):
+        # A layer that is present and empty is not a city with nobody in it. Returning 0 here would
+        # have let the digest say "nobody lives within a kilometre of this station", which is false
+        # and indistinguishable from the true version. Missing is not zero (C-062).
         return None
     import math
     kx = 111.32 * math.cos(math.radians(lat))
