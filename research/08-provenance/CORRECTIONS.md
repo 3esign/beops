@@ -2256,3 +2256,60 @@ running on it can be stopped by that other thing at any time, and today it was.
 
 Nor is there yet a test that the suite runs within a memory bound. The suite is now much cheaper to
 run, which is not the same as being bounded.
+
+## C-056 — the guard decides whether the collection is lawful, and almost none of its reasoning was driven by anything
+
+**Written at the commit that carries this entry.** The C-050 sweep counted fifteen checks in
+`guard.py` and found three of them named in any test. `test_guard_verdict.py` covered how the verdict
+is folded from the checks — STOP outranks UNKNOWN outranks WARN outranks OK — but not what any
+individual check concludes from any particular world. The thing that decides, every quarter of an
+hour, whether this record is still allowed to collect what it collects was reasoning unobserved.
+
+### What is checked now
+
+`research/test_guard_checks.py` builds a small BEOPS on disk — registry, collectors, ledger,
+snapshot, receipt, static-layer register, published pages — points the guard at it, and asks each
+check what it says. Twenty-four tests:
+
+- **polling a named refusal** stops and names the sid; **a polled source with no ledger line** stops
+  and names it; **all seven unsettled statuses** (`lead`, `primary_page`, `needs_decision`,
+  `restricted`, `blocked`, `account_required`, `token_required`) stop collection, each one driven
+  separately, because a status that quietly stops stopping is a source nobody verified being polled
+  while the guard says ok
+- **a refuser appearing as our source** stops, whether as a source, a sid, or the input of a derived
+  row; **a refuser named in somebody else's headline** is permitted and counted, with the outlet and
+  its link; **the same headline without the outlet that wrote it** stops
+- **the publish receipt**: absent is unknown, passing is ok, one failing run warns, forty minutes of
+  failing runs stops, a passing receipt three hours old warns that the publisher may be stopped, and
+  a receipt written by PowerShell with a BOM is still read — C-047, kept fixed
+- **the static layers**: a missing file stops, a lost licence line is unattributed, a page that shows
+  a layer and does not carry its credit stops, a changed file warns rather than stops because a
+  change is not a fault, and a review date in the past asks somebody to look
+
+### The failure all of it is built against
+
+Not a check saying STOP when it should say OK. **A check saying OK when it cannot see.** Every check
+here is also asked what it says when its inputs are missing, and the answer has to be UNKNOWN:
+unreadable registers, no snapshot, no receipt, no static-layer register, and — the sharpest one — a
+missing `REFUSER_NAMES.json`, where having no list of names to watch for means nothing is found,
+which is not the same as nothing being there.
+
+The one with teeth is the ledger. If the ledger cannot be read, the check that asks "is any polled
+source missing its permission evidence" must not run at all: no ledger read means no sid missing
+means everything fine. The test asserts that the evidence verdict is **absent** in that case and an
+UNKNOWN stands in its place.
+
+### Honest note: the meta-test passed on the first run, and would have passed on nothing
+
+The last test in the file collects every check name the guard can emit and fails if one of them is
+undriven. It passed immediately — and it would have passed just as happily if the regex reading
+`guard.py` had matched nothing at all, because an empty set is a subset of anything. **A check that
+finds no problem because it looked at nothing is the exact defect the other twenty-three tests are
+about**, and I had written one into the file that names it. It now fails if it finds fewer than
+twelve check names, and fails again if this file drives a check the guard no longer emits.
+
+### What this did not find
+
+Nothing. Every check behaved correctly on the first run against every world it was given. The guard
+was right; it simply was not verified, and those are different things — which is the same result as
+C-053 and worth saying as plainly.
