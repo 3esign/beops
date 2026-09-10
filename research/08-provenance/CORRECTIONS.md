@@ -2313,3 +2313,67 @@ twelve check names, and fails again if this file drives a check the guard no lon
 Nothing. Every check behaved correctly on the first run against every world it was given. The guard
 was right; it simply was not verified, and those are different things — which is the same result as
 C-053 and worth saying as plainly.
+
+## C-057 — the vocabulary was closed in the declaration and open in the record, and the test that enforces it was reading two files out of eight
+
+**Written at the commit that carries this entry.** Found while collecting the figures for pre-paper
+v5: the mind's tally of states included a category called `failed: HTTPError`, which is not a state.
+
+### What was measured
+
+`research/STATES.json` declares fourteen values across two vocabularies, and
+`research/test_states.py` is supposed to fail if a row carries one that is not declared. Scanning
+every derived file:
+
+| file | states | seen by the test |
+|---|---|---|
+| the mind's month | rejected 139, thought 109, organelle 253, retracted 1 | yes |
+| the claims register | 26 rows with no state at all | yes |
+| the connector's notebook | thought 46, rejected 38, claim_settled 19, retracted 1 | **no** |
+| the observer's notebook | thought 43, rejected 39, claim_settled 5 | **no** |
+| the sceptic's notebook | rejected 62, thought 20, claim_settled 1 | **no** |
+| voice benchmark, 10:02 | voiced 1, refused 1, **failed 1** | **no** |
+| voice benchmark, 10:19 | **failed 3** | **no** |
+| the news month | estimated 1814 | yes |
+
+**Two files of eight were scanned.** The six it never opened held 278 of the 806 derived rows — and
+both files carrying an undeclared value were among them.
+
+The cause is one character of glob. The test listed `*.jsonl` at one directory level; the record
+nests, one subdirectory per entity notebook and one per benchmark run. **The declaration the test
+enforces said `derived/*/**.jsonl` all along** — the file being enforced described the layout
+correctly and the enforcement did not read it.
+
+Four values were in the record and not in the declaration:
+
+- **`failed`** — written by the voice benchmark for the event `organ_failed` already names. Four rows.
+- **`derived`**, **`nothing_to_do`**, **`paused`** — written on organ tick receipts rather than on
+  rows. `derived` reaches the published snapshot, where it was passing the test **because the test
+  allowed it by name**: `allowed = epistemic | pipeline | {"derived"}`.
+
+That last one is the worse of the two shapes. An undeclared value slipping past a blind scan is an
+accident. An undeclared value written into the test as an exception is a decision — and a decision
+recorded where nobody looking for the vocabulary would ever find it.
+
+### Correction
+
+All four are now declared in `research/STATES.json` (schema `v2`), each with a sentence a stranger
+could act on. `failed` is declared rather than corrected, and the declaration says why: **a row is
+never edited, so a value the record contains is a value the vocabulary has to contain.** New code
+writes `organ_failed`.
+
+The hard-coded `{"derived"}` allowance is gone from the test: *an exception in a test is a declaration
+nobody can find*, and `how_to_add_a_state` now says so.
+
+`test_states.py` walks the tree instead of one level, and a new test fails if the scan ever counts
+fewer files than the record holds — because every assertion in that file is otherwise being made
+about a fraction of the record while reporting on all of it.
+
+### What is not fixed
+
+**The 26 rows in the claims register carry no state at all**, and the test skips a null state rather
+than judging it. Whether a settled claim ought to carry one is a real question and not a typo; it
+goes on the open list rather than being decided in the hour it was noticed.
+
+And the field-name collision named in C-050 is now three-deep: the voice benchmark writes a
+rendering's outcome under `state` too. Still not renamed, still named.

@@ -24,9 +24,14 @@ SNAP = ROOT / "public" / "live-snapshot.json"
 
 
 def rows(p):
-    """Streamed, never slurped: one of these files is 41 MB and reading it whole once cost the
-    publish gate a MemoryError on a machine with 592 MB free."""
-    for f in sorted(p.glob("*.jsonl")) if p.exists() else []:
+    """Every row under a directory, however deep, streamed and never slurped.
+
+    Two defects met in this one function. It read each file whole, which cost the publish gate a
+    MemoryError on a 41 MB file (C-055). And it listed ONE directory level while the record nests -
+    each entity's notebook and each voice benchmark sit in subdirectories - so it scanned two files
+    out of eight, and the only two files carrying an undeclared state were among the six it never
+    opened. The declaration this test enforces said `derived/*/**.jsonl` all along."""
+    for f in sorted(p.rglob("*.jsonl")) if p.exists() else []:
         yield from record.objects(f)
 
 
@@ -81,7 +86,9 @@ class Declared(unittest.TestCase):
     def test_the_published_snapshot_carries_no_undeclared_state(self):
         if not SNAP.exists():
             self.skipTest("no published snapshot on this machine")
-        allowed = self.epi | self.pipe | {"derived"}
+        # "derived" used to be permitted here rather than declared in STATES.json. An exception
+        # written into a test is a declaration nobody can find, so it now lives in the register.
+        allowed = self.epi | self.pipe
         found = set()
 
         def walk(n):
@@ -98,6 +105,22 @@ class Declared(unittest.TestCase):
         walk(json.loads(SNAP.read_text(encoding="utf-8")))
         self.assertEqual(sorted(found - allowed), [],
                          "the published snapshot shows a state nobody declared: " + ", ".join(sorted(found - allowed)))
+
+    def test_the_scan_reaches_the_nested_files_and_not_only_the_top_level(self):
+        """The test's own blindness, kept from returning. If this ever counts fewer files than the
+        record holds, every assertion above it is being made about a fraction of the record."""
+        base = LIVE / "derived"
+        if not base.exists():
+            self.skipTest("no derived rows on this machine")
+        shallow = sum(len(list((base / o).glob("*.jsonl"))) for o in ("mind", "news") if (base / o).exists())
+        deep = sum(len(list((base / o).rglob("*.jsonl"))) for o in ("mind", "news") if (base / o).exists())
+        self.assertGreaterEqual(deep, shallow)
+        seen = sum(1 for o in ("mind", "news") for _ in [0] if (base / o).exists())
+        self.assertTrue(seen, "no organ directory was found at all")
+        counted = 0
+        for o in ("mind", "news"):
+            counted += sum(1 for _ in (base / o).rglob("*.jsonl")) if (base / o).exists() else 0
+        self.assertEqual(counted, deep, "the scan sees fewer files than the record holds")
 
     def test_the_ambiguity_is_recorded_rather_than_forgotten(self):
         """Both vocabularies meet under one key in the published snapshot. That is a known defect,
