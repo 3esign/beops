@@ -245,6 +245,11 @@ class ValidatorTests(unittest.TestCase):
         limit. Without the layer built, the digest is simply smaller and nothing fails."""
         dg = om.digest(snapshot(), hours=6, now=NOW)
         self.assertFalse([f for f in dg["facts"] if f.get("kind") == "usual"])   # no layer, no fact
+        # ...but the inability is handed over rather than left as a silence to be filled in
+        none = [f for f in dg["facts"] if f.get("kind") == "no_usual"]
+        self.assertTrue(none, "the digest did not say it cannot compare")
+        self.assertIn("cannot yet say what is usual", none[0]["en"])
+        self.assertIn("does not yet support", none[0]["en"])
 
         spread = next(f for f in dg["facts"] if f.get("kind") == "spread")
         fake = {"schema": "beops-baseline/v1", "sid": "S146", "buckets": {
@@ -261,6 +266,7 @@ class ValidatorTests(unittest.TestCase):
             om._USUAL_CACHE.clear()
         u = [f for f in dg2["facts"] if f.get("kind") == "usual"]
         self.assertTrue(u, "the usual did not reach the digest")
+        self.assertFalse([f for f in dg2["facts"] if f.get("kind") == "no_usual"])  # and stops saying it cannot
         en = u[0]["en"].lower()
         self.assertIn("in our record", en)
         self.assertIn("not a limit or a standard", en)

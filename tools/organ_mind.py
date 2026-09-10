@@ -143,6 +143,24 @@ def _nums(text: str) -> set:
 _USUAL_CACHE: dict = {}
 
 
+def _usual_need() -> tuple[int, int]:
+    try:
+        import baseline as _bl
+        return _bl.BUCKET_MIN_DAYS, _bl.BUCKET_MIN_N
+    except Exception:      # noqa: BLE001
+        return (3, 5)
+
+
+def _usual_days(sid) -> int | None:
+    """How many days of record the layer has for this source, or None when it is not built."""
+    if not sid:
+        return None
+    if sid not in _USUAL_CACHE:
+        _usual(sid, "", "", 0)
+    b = _USUAL_CACHE.get(sid)
+    return b.get("days_of_record") if isinstance(b, dict) else None
+
+
 def _usual(sid: str, station: str, parameter: str, hour: int) -> dict | None:
     """What this station usually shows at this hour, from tools/baseline.py, or None. A layer that has
     not been built yet is simply absent - the digest is smaller, nothing fails, and no entity is told
@@ -311,6 +329,23 @@ def digest(snap: dict, hours: int = 6, now: datetime | None = None, context: dic
                     add(f"Kontekst: oko stanice {st_name} živi oko {k} hiljada ljudi u krugu od 1 km (Kontur 2022, modelska procena, ne popis).",
                         f"Context: about {k} thousand people live within 1 km of the {st_name} station (Kontur 2022, a modelled estimate, not a census).",
                         kind="context", station=st_name, people_thousands=k)
+    # If there are readings but no "usual" for any of them, SAY so. The entities were writing
+    # "significantly increased" against a baseline they did not have; a record that cannot yet
+    # compare should hand over its inability rather than leave a silence to be filled in.
+    if spreads and not any(f.get("kind") == "usual" for f in facts):
+        have = _usual_days(spreads[0].get("sid"))
+        need = _usual_need()
+        add("Naš zapis još ne može da kaže šta je uobičajeno za ovaj čas na ovim stanicama"
+            + (f" (ima {have} dana, treba mu {need[0]} dana i {need[1]} vrednosti po satu)." if have is not None
+               else " (sloj još nije izgrađen).")
+            + " Bez toga nema poređenja: 'poraslo' i 'visoko' su reči koje ovaj zapis još ne pokriva.",
+            "Our record cannot yet say what is usual at this hour for these stations"
+            + (f" (it has {have} days; it needs {need[0]} days and {need[1]} values per hour)." if have is not None
+               else " (the layer is not built yet).")
+            + " Without it there is nothing to compare against: 'rose' and 'high' are words this record "
+              "does not yet support.",
+            kind="no_usual")
+
     nums: set = set()
     clock: set = set()
     for f in facts:
