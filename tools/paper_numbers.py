@@ -13,6 +13,7 @@ an unavailable number is a state, like every other absence in this project.
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
 import pathlib
 import re
@@ -161,16 +162,34 @@ FIGURES = [("registry", registry), ("collectors", collectors), ("provenance", pr
            ("rows", rows_on_disk), ("history", history), ("mind", mind), ("corrections", corrections),
            ("gate", gate), ("iso37120", iso), ("retention", retention)]
 
+# Figures read from a record that is appended to while the observatory runs: the collectors write
+# rows every tick, the mind writes drops, the legal captures append to the provenance ledger, and the
+# history is derived from the rows. Two runs of this script minutes apart legitimately disagree about
+# them. That is not drift - it is what a count of a living record is - but it means the number is only
+# true as of `taken_at`, and a paper that prints it without saying when has printed a number nobody
+# can check.
+LIVE = ("provenance", "rows", "history", "mind")
+
+
+def taken_at() -> str:
+    return dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args()
     out = {name: safe(fn) for name, fn in FIGURES}
+    out["taken_at"] = taken_at()
+    out["live_figures"] = list(LIVE)
     if a.json:
         print(json.dumps(out, ensure_ascii=False, indent=1))
         return 0
+    print("taken at %s - %s count a record that is still being written to, and are true as of that "
+          "instant and no other" % (out["taken_at"], ", ".join(LIVE)))
     for name, val in out.items():
+        if name in ("taken_at", "live_figures"):
+            continue
         print(f"[{name}]")
         if isinstance(val, dict):
             for k, v in val.items():
