@@ -33,6 +33,7 @@ import pathlib
 import re
 import subprocess
 import sys
+import unicodedata
 from datetime import datetime, timedelta, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -133,9 +134,10 @@ def permission_invariants() -> list[dict]:
     status = {s.get("id"): s.get("status") for s in reg["sources"]}
 
     refused = sorted(sid for sid in polled if status.get(sid) == "opted_out")
+    n_ref = sum(1 for s in reg["sources"] if s.get("status") == "opted_out")
     out.append({"check": "no named refusal is polled", "state": STOP if refused else OK,
                 "why": ("POLLING A REFUSAL: " + ", ".join(refused)) if refused
-                       else "14 refusals on file, none of them polled"})
+                       else "%d refusals on file, none of them polled" % n_ref})
 
     led = set()
     p = RESEARCH / "08-provenance" / "LEDGER.jsonl"
@@ -245,6 +247,89 @@ def organ_output() -> list[dict]:
     return out
 
 
+def _fold(s: str) -> str:
+    """Diacritics folded, so a rule written as 'Gradska cistoca' still sees 'Gradska cistoca' spelled
+    the way a Serbian newspaper spells it. A check that only matches one spelling is not a check."""
+    s = unicodedata.normalize("NFKD", str(s))
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    # d-with-stroke does not decompose under NFKD, so it needs saying out loud.
+    return s.replace("đ", "d").replace("Đ", "D").lower()
+
+
+def refusal_route() -> list[dict]:
+    """A refusal is a refusal to be OUR SOURCE. It is not a censorship of the world.
+
+    Three organisations that told us no - MUP, JKP Beograd-put, JKP Gradska cistoca - have their
+    notices republished by municipalities, by the City portal and by the outlets, so their material
+    reaches this record anyway. Collecting that is lawful: it is the third party's own publication.
+    What must never happen is that the route becomes a way to obtain what the refuser withheld, or
+    that the refuser is presented as having supplied us with anything.
+
+    So: a mention inside somebody else's headline is PERMITTED and counted here, out loud, because a
+    number that is never printed is not an invariant. A refuser appearing as the source, the sid or
+    the attribution of anything we publish is a STOP.
+
+    See research/07-legal/THIRD_PARTY_ROUTE_RULE_2026-09-10.md."""
+    out = []
+    try:
+        reg = json.loads((RESEARCH / "SOURCE_REGISTRY.json").read_text(encoding="utf-8"))
+    except Exception as e:                                   # noqa: BLE001
+        return [{"check": "third-party route", "state": UNKNOWN, "why": type(e).__name__}]
+    refusers = {s.get("id"): (s.get("name") or "") for s in reg["sources"] if s.get("status") == "opted_out"}
+    try:
+        rule = json.loads((RESEARCH / "REFUSER_NAMES.json").read_text(encoding="utf-8"))
+        watch = {_fold(k): v for k, v in rule.get("names", {}).items()}
+    except Exception:                                        # noqa: BLE001
+        watch = {}
+
+    snap_p = ROOT / "public" / "live-snapshot.json"
+    if not snap_p.exists():
+        return [{"check": "a named refusal is never our source", "state": UNKNOWN,
+                 "why": "no published snapshot to read"}]
+    try:
+        snap = json.loads(snap_p.read_text(encoding="utf-8"))
+    except ValueError as e:
+        return [{"check": "a named refusal is never our source", "state": UNKNOWN, "why": str(e)[:60]}]
+
+    as_source = sorted({s.get("sid") for s in snap.get("sources", []) if s.get("sid") in refusers})
+    for row in snap.get("derived", []):
+        if row.get("input_sid") in refusers or row.get("sid") in refusers:
+            as_source.append(str(row.get("input_sid") or row.get("sid")))
+    as_source = sorted(set(as_source))
+    out.append({"check": "a named refusal is never our source",
+                "state": STOP if as_source else OK,
+                "why": ("A REFUSER IS ATTRIBUTED AS OUR SOURCE: " + ", ".join(as_source)) if as_source
+                       else "%d refusals on file, none of them a source, a sid or an attribution here"
+                            % len(refusers)})
+
+    if not watch:
+        out.append({"check": "a refusal reached by another route stays the third party's utterance",
+                    "state": UNKNOWN, "why": "research/REFUSER_NAMES.json is missing, so nothing is watched for"})
+        return out
+
+    named, unattributed = {}, []
+    for s in snap.get("sources", []):
+        sid = s.get("sid")
+        if sid in refusers:
+            continue
+        for e in s.get("events", []):
+            f = _fold(e.get("title") or "")
+            for name, rid in watch.items():
+                if name in f:
+                    named.setdefault(rid, 0)
+                    named[rid] += 1
+                    if not (e.get("link") or "").strip() or not sid:
+                        unattributed.append("%s via %s" % (rid, sid or "?"))
+    total = sum(named.values())
+    out.append({"check": "a refusal reached by another route stays the third party's utterance",
+                "state": STOP if unattributed else OK,
+                "why": ("UNATTRIBUTED: " + ", ".join(sorted(set(unattributed))[:6])) if unattributed
+                       else ("%d refuser(s) named in %d headline(s), every one carrying the outlet that "
+                             "wrote it and its link" % (len(named), total) if total
+                             else "no refuser is named in any published headline right now")})
+    return out
+
+
 def run(dry: bool = False) -> dict:
     checks, repairs = [], []
     for name in TASKS:
@@ -254,7 +339,7 @@ def run(dry: bool = False) -> dict:
             d = task_state(name)
             d["repaired"] = True
         checks.append(d)
-    legal = permission_invariants()
+    legal = permission_invariants() + refusal_route()
     organs = organ_output()
     states = [c["state"] for c in checks] + [c["state"] for c in legal] + [c["state"] for c in organs]
     verdict = STOP if STOP in states else (UNKNOWN if UNKNOWN in states else

@@ -1469,3 +1469,56 @@ budget is larger. Recorded as an observation; nothing is changed on the strength
 already says.
 
 **Nothing observed was changed.** The tool reads and prints; it writes nothing.
+
+## C-043 — the refusal invariant was true in the letter and asserted nothing about the route
+
+**2026-09-10, 12:40 UTC.** Not a false statement this record published. A missing one — found by
+measuring §5.6.3 of pre-paper v4 instead of leaving it on the open list.
+
+**What the guard has always asserted.** *No named refusal is polled.* True on every pass, and it was
+never the whole question.
+
+**What was never asserted.** Three of the fourteen refusers — **MUP**, **JKP Beograd-put** and
+**JKP Gradska čistoća** — publish exactly the sort of notice this observatory exists to record, and
+those notices are republished by municipalities, by the City portal and by the newspapers. Their
+material reaches the record anyway, through doors they do not control.
+
+**Measured before the rule was written:** **23 headlines naming Gradska čistoća** (via Novosti, Tanjug
+and Dan u Beogradu) and **4 naming MUP** (via Euronews, Tanjug and Danas) are in the record; six and
+two respectively were live in the published snapshot at that moment. **Every one of them was correct**
+— each carried the outlet that wrote it and a link to that outlet, and no refuser appeared as a source,
+a sid or an attribution anywhere. The practice complied. Nothing asserted that it did, which is the
+same condition Article 41 attribution was in until 2026-09-10 made it a test.
+
+**The rule, now written and enforced** (`research/07-legal/THIRD_PARTY_ROUTE_RULE_2026-09-10.md`):
+where a named refuser's material reaches this record through a third party it is kept as *the third
+party's utterance*, attributed to the third party, and the refuser is never named as a source of ours,
+never counted among our sources, and never presented as having supplied anything.
+
+**And its second half, which is not a formality.** *Nothing is filtered, suppressed or removed because
+a refuser is named in it.* Drop the first half and a refusal becomes decorative — the record could take
+everything a refuser withheld, one republication at a time, and still print its clean invariant. Drop
+the second and something worse follows: a research project deciding which of a city's publications may
+be seen, because an organisation declined to answer its emails. **A refusal is not a right to be
+unmentioned.** `test_refusal_route.py` asserts both, including that the watch list is only ever used to
+observe and count and never to drop a row.
+
+**Two things the rule explicitly does not treat as violations,** because a check that flagged them
+would be reporting findings it had not found: a refuser's name as a **place** (Aerodrom Nikola Tesla is
+a location in Belgrade before it is an organisation that refused us, and a zone named after it is
+geography), and a refuser named in **this project's own documents** — the registry, this ledger, the
+permission dataset — where naming who declined is the opposite of presenting them as a supplier and is
+the paper's central finding.
+
+**What the watch list refuses to watch, recorded in the open.** `research/REFUSER_NAMES.json` names
+*Politika* and *Vreme* as deliberately unwatched: they are ordinary Serbian words — "policy", and
+"weather"/"time" — and a record full of weather cannot match on them without inventing findings.
+Diacritics are folded before matching, so a rule written `gradska cistoca` sees `Gradska čistoća`; a
+check that reads only one spelling is not a check.
+
+**One thing tidied while there.** The guard's own line read *"14 refusals on file, none of them
+polled"* with the 14 typed by hand. It is now counted from the registry, so it cannot go stale the way
+every hand-typed figure in this project eventually has.
+
+**Nothing observed was changed.** No stored row was touched, and no headline was removed, reworded or
+withheld.
