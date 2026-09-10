@@ -185,6 +185,7 @@ def build_source(sid: str, now: datetime | None = None, src: dict | None = None)
 def build(sids: list[str] | None = None) -> dict:
     OUT.mkdir(parents=True, exist_ok=True)
     cad = cadences()
+    names = {sid: (c.get("name") or "") for sid, c in cad.items()}
     res = {}
     for d in sorted(ROWS.iterdir()) if ROWS.exists() else []:
         if not d.is_dir() or (sids and d.name not in sids):
@@ -202,11 +203,17 @@ def build(sids: list[str] | None = None) -> dict:
                                                       if not b.get("age_minutes") and b["rows_without_a_measurement_time"]),
         "what_this_is": WHAT_THIS_IS,
         "sources_on_more_than_one_clock": sum(1 for b in res.values() if b.get("mixed_clocks")),
+        "names": {s: names.get(s, "") for s in sorted(res)},
         "by_source": {s: {"median_age_minutes": (b.get("age_minutes") or {}).get("median"),
-                          "median_age_by_clock": {c: v["median"] for c, v in (b.get("age_by_clock") or {}).items()},
+                          "age_by_clock": b.get("age_by_clock") or {},
+                          "mixed_clocks": b.get("mixed_clocks"),
                           "polling_interval_minutes": b.get("our_polling_interval_minutes"),
                           "clocks": b.get("clocks"),
-                          "rows_without_a_measurement_time": b["rows_without_a_measurement_time"]}
+                          "rows_read": b.get("rows_read"),
+                          "rows_with_a_measurement_time": b.get("rows_with_a_measurement_time"),
+                          "rows_without_a_measurement_time": b["rows_without_a_measurement_time"],
+                          "source_clock_note": b.get("source_clock_note"),
+                          "what_this_source_publishes": b.get("what_this_source_publishes")}
                       for s, b in sorted(res.items())},
     }
     (OUT / "SUMMARY.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1), encoding="utf-8")

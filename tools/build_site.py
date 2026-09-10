@@ -482,6 +482,12 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
     </div>
     <div class="datastage trakastage"><iframe id="trakastage" src="traka.html?v={stamp}" title="BEOPS · Traka" loading="lazy"></iframe></div>
     <p class="mono" style="font-size:11.5px;color:var(--ink55);margin:12px 0 0"><span class="sr-only i18n">Oznaka postoji samo tamo gde red postoji; prazno mesto je tišina, ne nula.</span><span class="en-only i18n">A mark exists only where a row exists; an empty place is silence, not a zero.</span><span class="zh-only">只有存在数据行的地方才有标记；空白之处是沉默，不是零。</span><span class="de-only">Eine Markierung gibt es nur dort, wo eine Zeile existiert; eine leere Stelle ist Stille, keine Null.</span></p>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin:28px 0 12px">
+      <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only i18n">Svedoci — koliko je vrednost bila stara kad je stigla, i da li se dva izvora slažu</span><span class="en-only i18n">Witnesses — how old a value was when it reached us, and whether two sources agree</span><span class="zh-only">证人——数据抵达我们时有多旧，以及两个来源是否一致</span><span class="de-only">Zeugen — wie alt ein Wert war, als er uns erreichte, und ob zwei Quellen übereinstimmen</span></h2>
+      
+    </div>
+    <div class="datastage"><iframe id="svedocistage" src="svedoci.html?v={stamp}" title="BEOPS · Svedoci" loading="lazy"></iframe></div>
+    <p class="mono" style="font-size:11.5px;color:var(--ink55);margin:12px 0 0"><span class="sr-only i18n">Starost sadrži i zakašnjenje izdavača i do jednog našeg intervala pitanja, i zapis to dvoje ne može da razdvoji; razmak između dva izvora nije mera greške, jer izvori stoje na različitim mestima.</span><span class="en-only i18n">An age contains the publisher's delay and up to one of our own polling intervals, and this record cannot separate the two; a gap between two sources is not an error bar, because the sources stand in different places.</span><span class="zh-only">一个"多旧"里既有发布方的延迟，也有至多一个我们自己的轮询间隔，本记录无法把两者分开；两个来源之间的差距不是误差棒，因为它们所处的位置不同。</span><span class="de-only">Ein Alter enthält die Verzögerung des Herausgebers und bis zu einem unserer eigenen Abfrageintervalle, und dieses Verzeichnis kann beides nicht trennen; ein Abstand zwischen zwei Quellen ist kein Fehlerbalken, denn die Quellen stehen an verschiedenen Orten.</span></p>
   </div>
 </div>
 
@@ -926,6 +932,9 @@ def main() -> int:
                      ("research/05-design/studies/sada.html", "sada.html"),
                      ("research/05-design/studies/slojevi.svg", "slojevi.svg"),
                      ("research/05-design/studies/traka-live.html", "traka.html"),
+                     ("research/05-design/studies/svedoci.html", "svedoci.html"),
+                     ("data/live/derived/latency/SUMMARY.json", "latency.json"),
+                     ("data/live/derived/agreement/SUMMARY.json", "agreement.json"),
                      ("public/live-snapshot.json", "live-snapshot.json"),
                      ("public/history.json", "history.json"),
                      ("public/basemap-belgrade.json", "basemap-belgrade.json"),
