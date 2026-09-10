@@ -182,6 +182,15 @@ def main() -> int:
     out = {name: safe(fn) for name, fn in FIGURES}
     out["taken_at"] = taken_at()
     out["live_figures"] = list(LIVE)
+    # A run leaves a line behind. A paper that says "figures verified at 19:07" was, until now, an
+    # unverifiable claim about a run nobody recorded; from here a stamp can be matched to one.
+    try:
+        sys.path.insert(0, str(ROOT / "tools"))
+        import paper_stamps
+        paper_stamps.record({k: v for k, v in out.items() if k not in ("taken_at", "live_figures")},
+                            out["taken_at"])
+    except Exception as e:                                   # noqa: BLE001 - a receipt is not a figure
+        print("could not record this run: %s" % type(e).__name__, file=sys.stderr)
     if a.json:
         print(json.dumps(out, ensure_ascii=False, indent=1))
         return 0

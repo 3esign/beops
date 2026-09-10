@@ -2094,3 +2094,56 @@ it one.
 The pre-papers carry the same kind of line — *"Figures verified 2026-09-09 19:07 UTC"* — typed by the
 same hand and never checked against anything. That number has not been audited and is not asserted to
 be right. It goes on the open list.
+
+## C-053 — the open item from C-052, measured: the papers' typed times were right
+
+**Written at the commit that carries this entry.** C-052 said of the line in the pre-papers — *Figures
+verified ... UTC* — that it was the same kind of hand-typed stamp as the ten wrong ones in this ledger,
+that it had not been audited, and that it was not asserted to be right. It has now been audited. It
+was right, and saying so plainly matters as much as reporting a failure would.
+
+### What was measured
+
+Twenty-three documents in `research/06-paper/` were scanned for a time typed into the text. Two carry
+one:
+
+| document | states | committed | difference |
+|---|---|---|---|
+| pre-paper v3 | 19:07 | 19:30 | 24 minutes **before** |
+| pre-paper v4 | 08:49 | 08:59 | 10 minutes **before** |
+
+Both sit shortly *before* the commit that introduced the document they are in, which is exactly what
+checking the figures and then writing the line looks like. Neither is out by hours, neither is out of
+order, and there is no drift between them. The failure mode found in the corrections ledger is not
+present in the papers.
+
+**What was still missing is not correctness but evidence.** Nothing anywhere recorded that
+`paper_numbers.py` ever ran at 19:07. The claim was true and uncheckable, which is a weaker thing than
+it looked.
+
+### Correction
+
+`tools/paper_numbers.py` now appends one line per run to `data/live/paper-numbers-runs.jsonl`: the
+instant, and a SHA-256 of the figures that run produced. A stamp in a paper written from now on can be
+matched to a run that actually happened.
+
+`tools/paper_stamps.py` audits every typed time in every paper against the commit that introduced the
+document, and writes the result to `research/06-paper/PAPER_STAMPS.json` with a verdict per stamp:
+*impossible*, *implausible*, *consistent but unevidenced*, *evidenced*, or *unevidenced*.
+
+`research/test_paper_stamps.py` enforces the invariant that needs no run log — **a stamp may never be
+later than the commit that introduced the document**, because figures cannot be verified after the
+paper reporting them entered the record — and requires a match to a recorded run for anything written
+from here on. The two audited offsets are frozen, for the opposite reason the ledger's ten wrong ones
+are: a right answer is as worth protecting from a quiet edit as a wrong one is from a quiet tidy-up.
+
+One thing was deliberately built the awkward way: the receipt log takes an explicit path so the test
+can prove receipts are written **without writing test rows into the evidence**, and a second test
+fails if auditing the stamps appends anything to the real log. An append-only record that anything but
+a real run may append to is not a record of runs.
+
+### Honest note
+
+I raised this as a suspicion at the end of C-052 and it did not survive contact with the measurement.
+Flagging something as unaudited is not the same as finding it wrong, and the entry that flagged it was
+written in a half-hour when two other things had just turned out to be wrong. The number was fine.
