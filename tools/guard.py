@@ -9,7 +9,15 @@ an hour, and it is allowed to act on the first:
      thing in the project that repairs rather than reports, and it repairs exactly one class of
      thing: a BEOPS task that exists and is not running.
 
-  2. Is the collection still lawful? The permission invariants are re-checked from the files on every
+  2. Are the ORGANS still producing, or do they at least say why not? A task can run on time, return
+     success, and produce nothing - which is exactly what happened on 2026-09-10 between 00:38 and
+     01:22: the mind ticked every four minutes, every tick failed to reach its model, and the task
+     check, the watchman and this guard all said "ok" for forty-four minutes. The task was healthy.
+     The organ was mute. Those had never been different questions here, so nobody could tell them
+     apart. The guard does NOT repair this class either - an organ may be silent lawfully, and
+     restarting one because it is quiet is how a record starts inventing.
+
+  3. Is the collection still lawful? The permission invariants are re-checked from the files on every
      pass, not once in a test run that happened days ago: no named refusal is polled, every polled
      source has stored permission evidence, no polled source carries a status meaning it was never
      verified, and the retention clock is not overdue. If any of those fails the guard does NOT
@@ -36,6 +44,17 @@ TASKS = ["Beops_Collect", "Beops_Mind", "Beops_Organ", "Beops_Publish", "Beops_W
 # A task that legitimately runs rarely must not be called dead for not having run in an hour.
 MAX_SILENCE_H = {"Beops_Collect": 0.5, "Beops_Mind": 0.5, "Beops_Organ": 1.0,
                  "Beops_Publish": 1.0, "Beops_Watch": 1.0, "Beops_Legal": 36.0}
+
+# An organ is alive when it PRODUCES, not when its task exits zero. For each: where its rows land,
+# where its receipts land, and how long it may go without a row before somebody should be told.
+# A silence with a receipt that explains it is a WARN carrying the reason; a silence with no receipt
+# at all is UNKNOWN, because then we do not even know whether it ran.
+ORGANS = {
+    "mind": {"rows": LIVE / "derived" / "mind", "receipts": LIVE / "derived" / "mind" / "receipts",
+             "max_row_h": 1.0},
+    "news": {"rows": LIVE / "derived" / "news", "receipts": LIVE / "derived" / "news" / "receipts",
+             "max_row_h": 3.0},
+}
 
 OK, WARN, STOP, UNKNOWN = "ok", "warn", "STOP", "unknown"
 REPAIRABLE = {"disabled", "not running"}
@@ -173,6 +192,59 @@ def permission_invariants() -> list[dict]:
     return out
 
 
+def _newest(d: pathlib.Path, pattern: str = "*") -> tuple[float | None, pathlib.Path | None]:
+    """(age in hours, path) of the most recently written file, or (None, None)."""
+    if not d.exists():
+        return None, None
+    best, bp = None, None
+    for f in d.glob(pattern):
+        if not f.is_file():
+            continue
+        a = (now().timestamp() - f.stat().st_mtime) / 3600.0
+        if best is None or a < best:
+            best, bp = a, f
+    return best, bp
+
+
+def _last_receipt_reason(d: pathlib.Path) -> str:
+    """What the organ said about itself last, in its own words."""
+    _, f = _newest(d, "*.json")
+    if not f:
+        return ""
+    try:
+        r = json.loads(f.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return ""
+    bits = [str(r.get("state") or ""), str(r.get("step_name") or ""), str(r.get("reason") or "")]
+    return " ".join(b for b in bits if b)[:120]
+
+
+def organ_output() -> list[dict]:
+    """Did each organ actually produce, and if not, does it say why? Reports; never repairs."""
+    out = []
+    for name, cfg in ORGANS.items():
+        row_h, row_f = _newest(cfg["rows"], "*.jsonl")
+        tick_h, _ = _newest(cfg["receipts"], "*")
+        limit = float(cfg["max_row_h"])
+        if row_h is None:
+            state, why = UNKNOWN, "no rows have ever been written"
+        elif row_h <= limit:
+            state, why = OK, "last row %.1f h ago (limit %.1f h)" % (row_h, limit)
+        elif tick_h is not None and tick_h <= limit:
+            reason = _last_receipt_reason(cfg["receipts"])
+            state = WARN
+            why = ("no row for %.1f h but it is still ticking (last receipt %.1f h ago): %s"
+                   % (row_h, tick_h, reason or "the receipt gives no reason"))
+        else:
+            state = UNKNOWN
+            why = ("no row for %.1f h and no receipt either%s - the organ is not merely quiet, "
+                   "it is not running" % (row_h, "" if tick_h is None else " for %.1f h" % tick_h))
+        out.append({"organ": name, "state": state, "why": why,
+                    "row_age_h": None if row_h is None else round(row_h, 2),
+                    "tick_age_h": None if tick_h is None else round(tick_h, 2)})
+    return out
+
+
 def run(dry: bool = False) -> dict:
     checks, repairs = [], []
     for name in TASKS:
@@ -183,11 +255,12 @@ def run(dry: bool = False) -> dict:
             d["repaired"] = True
         checks.append(d)
     legal = permission_invariants()
-    states = [c["state"] for c in checks] + [c["state"] for c in legal]
+    organs = organ_output()
+    states = [c["state"] for c in checks] + [c["state"] for c in legal] + [c["state"] for c in organs]
     verdict = STOP if STOP in states else (UNKNOWN if UNKNOWN in states else
                                            (WARN if WARN in states else OK))
     return {"schema": "beops-guard/v1", "at": iso(now()), "verdict": verdict,
-            "tasks": checks, "lawful": legal, "repairs": repairs}
+            "tasks": checks, "lawful": legal, "organs": organs, "repairs": repairs}
 
 
 def report(r: dict) -> str:
@@ -196,6 +269,8 @@ def report(r: dict) -> str:
         L.append(f"  [{c['state']:<7}] {c['task']:<15} {c.get('why','')}")
     for c in r["lawful"]:
         L.append(f"  [{c['state']:<7}] {c['check']}: {c['why']}")
+    for c in r.get("organs", []):
+        L.append(f"  [{c['state']:<7}] organ {c['organ']}: {c['why']}")
     for x in r["repairs"]:
         L.append("  repaired: " + x)
     if r["verdict"] == STOP:
