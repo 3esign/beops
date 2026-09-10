@@ -450,16 +450,23 @@ load().then(snap=>{
   post();
 })();
 
-// C-039. A frame that loads after the parent's broadcast never hears it; a frame that asks before the
-// parent is listening is not heard either. Measured live twice on 2026-09-10: the reading frame came
-// up LIGHT on a dark page both times, once with the load event as the only mechanism and once with a
-// single ask. Two one-shot mechanisms with opposite race conditions are not two chances, they are two
-// ways to miss. So the ask REPEATS on a short, finite schedule and stops the moment an answer arrives.
+// C-039, third attempt, and the first two are why this one is written plainly.
+//
+//   1. The parent broadcasts on each iframe's `load`. A frame whose own listener is registered later
+//      than that - inside a DOMContentLoaded or a fetch callback, which is where this one lives -
+//      never hears it.
+//   2. So the frame asked once. It asked before the parent had installed its answerer, and was not
+//      heard. Two one-shot mechanisms with opposite races.
+//   3. So the ask repeated on a schedule, guarded by a `got` flag set from a listener registered at
+//      parse time - and THAT is what made the bug permanent. The parent's broadcast arrived, the
+//      guard's listener saw it and set `got`, the document's real handler did not exist yet and so
+//      never applied it, and every retry was then cancelled by a flag that had recorded an event
+//      nobody acted on. The optimisation consumed the exact message it existed to detect.
+//
+// There is no flag now. Five postMessages cost nothing, the handler that applies them is idempotent,
+// and the schedule is finite. A cheap thing that always runs beats a clever thing that can be wrong.
 (function(){
-  var got = false;
-  addEventListener('message', function(ev){ var d = ev && ev.data; if (d && d.beopsTheme !== undefined) got = true; });
   function ask(){
-    if (got) return;
     try { if (window.parent && window.parent !== window) window.parent.postMessage({beopsAsk:true}, '*'); } catch(e){}
   }
   [0, 120, 400, 1200, 3000].forEach(function(ms){ setTimeout(ask, ms); });
