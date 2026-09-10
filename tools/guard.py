@@ -41,10 +41,12 @@ LIVE = ROOT / "data" / "live"
 LEDGER = LIVE / "guard-ledger.jsonl"
 RESEARCH = ROOT / "research"
 
-TASKS = ["Beops_Collect", "Beops_Mind", "Beops_Organ", "Beops_Publish", "Beops_Watch", "Beops_Legal"]
+TASKS = ["Beops_Collect", "Beops_Mind", "Beops_Organ", "Beops_Publish", "Beops_Watch",
+         "Beops_Legal", "Beops_Guard", "Beops_Baseline"]
 # A task that legitimately runs rarely must not be called dead for not having run in an hour.
 MAX_SILENCE_H = {"Beops_Collect": 0.5, "Beops_Mind": 0.5, "Beops_Organ": 1.0,
-                 "Beops_Publish": 1.0, "Beops_Watch": 1.0, "Beops_Legal": 36.0}
+                 "Beops_Publish": 1.0, "Beops_Watch": 1.0, "Beops_Legal": 36.0,
+                 "Beops_Guard": 0.5, "Beops_Baseline": 1.5}
 
 # An organ is alive when it PRODUCES, not when its task exits zero. For each: where its rows land,
 # where its receipts land, and how long it may go without a row before somebody should be told.
@@ -386,7 +388,7 @@ def publish_gate() -> list[dict]:
     # lock is taken over after a quarter of an hour, so this never stops the record - but a publish
     # taking longer than the gap between publishes means they are queueing, and a queue nobody
     # mentions is how "it publishes every ten minutes" quietly stops being true.
-    lock = LIVE / "publish.lock"
+    lock = ROOT / "runtime" / "publish.lock"
     if lock.exists():
         try:
             held_m = (now() - datetime.fromtimestamp(lock.stat().st_mtime, timezone.utc)).total_seconds() / 60.0

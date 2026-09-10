@@ -13,6 +13,7 @@ file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md)
 ## Start here
 
 - **[PROJECT_MAP_2026-09-09.md](PROJECT_MAP_2026-09-09.md)** — the short way in: which folder holds what, which scheduled task writes where, what is public, and where the day's changes landed. Read it before this index.
+- **[OPERATIONAL_ORDER_2026-09-11.md](OPERATIONAL_ORDER_2026-09-11.md)** — current operational order: active private repo vs public mirror, C/D path rule, scheduler source of truth and publish safety.
 
 - **[Serbian pre-paper V2](06-paper/PRED_RAD_SR_V2_2026-09-06.md)** — current discussion entry: new literature/gap review and institutional-practice appendix; no manuscript. Final bilingual alignment is deferred.
 - **[Earlier English pre-paper](06-paper/PRE_PAPER_URBAN_INTELLIGENCE_2026-09-06.md)** — preserved earlier version, not synchronized with the Serbian additions.
@@ -213,7 +214,8 @@ GeoPackage read with sqlite3 + a forty-line WKB parser) ·
 `build_site.py` (generates `docs/index.html` from the registry, the
 provenance index, the corrections and the last snapshot) · `publish_github.ps1` (the export to
 github.com/3esign/beops) · `register_tasks.ps1` + `collect_tick.bat`, `organ_tick.bat`,
-`publish_tick.bat`, `mind_tick.bat`, `legal_tick.bat` (the five scheduled tasks) · `legal_capture.py` (permission evidence before
+`publish_tick.bat`, `mind_tick.bat`, `watch_tick.bat`, `legal_tick.bat`, `guard_tick.bat`,
+`baseline_tick.bat` (the eight scheduled tasks) · `legal_capture.py` (permission evidence before
 any collection; `--recheck-collectors` re-captures every polled source weekly) · `build_provenance_index.py`. Their tests: `test_collect_daemon.py`,
 `test_organ_news.py`, `test_basemap.py`, `test_organ_mind.py`.
 

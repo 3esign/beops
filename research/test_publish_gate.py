@@ -41,6 +41,14 @@ class Gate(unittest.TestCase):
         self.assertIn("NOTHING WAS PUBLISHED", self.s)
         self.assertIn("exit 3", self.s)
 
+    def test_the_export_tree_is_not_touched_until_the_gate_passes(self):
+        gate = self.s.find('Write-Output "gate:')
+        clear = self.s.find("Get-ChildItem -Path $pub")
+        copy = self.s.find("Copy-Item -LiteralPath (Join-Path $src $f)")
+        self.assertGreater(gate, -1)
+        self.assertGreater(clear, gate, "the public mirror is cleared before the gate passes")
+        self.assertGreater(copy, gate, "files are copied to the public mirror before the gate passes")
+
     def test_the_gate_leaves_a_receipt_the_guard_can_read(self):
         """A gate that stops the site silently has exchanged one failure for a quieter one."""
         self.assertIn("publish-receipt.json", self.s)

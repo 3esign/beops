@@ -40,6 +40,7 @@ def world(reg=None, col=None, ledger=LED_CLEAN, snapshot=None, names=None,
         root = pathlib.Path(d)
         (root / "research" / "08-provenance").mkdir(parents=True)
         (root / "data" / "live").mkdir(parents=True)
+        (root / "runtime").mkdir(parents=True)
         (root / "public").mkdir(parents=True)
         (root / "docs").mkdir(parents=True)
         w = lambda p, o: (root / p).write_text(json.dumps(o, ensure_ascii=False), encoding="utf-8")
@@ -217,7 +218,7 @@ class PublishGate(unittest.TestCase):
         import os
         import time
         with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "tests": "OK"}) as root:
-            lock = root / "data" / "live" / "publish.lock"
+            lock = root / "runtime" / "publish.lock"
             lock.write_text("held by a publish", encoding="utf-8")
             old = time.time() - 14 * 60
             os.utime(lock, (old, old))
@@ -230,7 +231,7 @@ class PublishGate(unittest.TestCase):
         import os
         import time
         with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "tests": "OK"}) as root:
-            lock = root / "data" / "live" / "publish.lock"
+            lock = root / "runtime" / "publish.lock"
             lock.write_text("held", encoding="utf-8")
             old = time.time() - 40 * 60
             os.utime(lock, (old, old))
@@ -242,7 +243,7 @@ class PublishGate(unittest.TestCase):
         """A lock a minute old is a publish doing its job. A check that mentions it every quarter of
         an hour is a check nobody reads."""
         with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "tests": "OK"}) as root:
-            (root / "data" / "live" / "publish.lock").write_text("held", encoding="utf-8")
+            (root / "runtime" / "publish.lock").write_text("held", encoding="utf-8")
             names = [c["check"] for c in g.publish_gate()]
         self.assertNotIn("a publish is not stuck", names)
 
@@ -255,6 +256,15 @@ class PublishGate(unittest.TestCase):
         with world(receipt={"at": g.iso(g.now() - timedelta(hours=3)), "tests_ok": True, "tests": "OK"}):
             c = by(g.publish_gate(), "the publisher is still running")
         self.assertEqual(c["state"], g.WARN)
+
+
+class ScheduledTasks(unittest.TestCase):
+    def test_guard_tracks_all_registered_beops_clocks(self):
+        expected = ["Beops_Collect", "Beops_Mind", "Beops_Organ", "Beops_Publish", "Beops_Watch",
+                    "Beops_Legal", "Beops_Guard", "Beops_Baseline"]
+        self.assertEqual(g.TASKS, expected)
+        for name in expected:
+            self.assertIn(name, g.MAX_SILENCE_H, f"{name} has no silence threshold")
 
 
 class Predictions(unittest.TestCase):

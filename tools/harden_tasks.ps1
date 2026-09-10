@@ -6,7 +6,7 @@
 #
 #   powershell -NoProfile -ExecutionPolicy Bypass -File tools\harden_tasks.ps1
 $ErrorActionPreference = 'Stop'
-$names = @('Beops_Collect','Beops_Mind','Beops_Organ','Beops_Publish','Beops_Watch','Beops_Legal','Beops_Guard')
+$names = @('Beops_Collect','Beops_Mind','Beops_Organ','Beops_Publish','Beops_Watch','Beops_Legal','Beops_Guard','Beops_Baseline')
 foreach ($n in $names) {
   $t = Get-ScheduledTask -TaskName $n -ErrorAction SilentlyContinue
   if (-not $t) { Write-Output "$n : not registered - skipped"; continue }

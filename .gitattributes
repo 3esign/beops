@@ -1,3 +1,19 @@
+# Source and document files stay LF so Git does not rewrite code and generated
+# public text on Windows. Evidence rules below deliberately override this.
+*.bat     text eol=crlf
+*.cmd     text eol=crlf
+*.csv     text eol=lf
+*.html    text eol=lf
+*.js      text eol=lf
+*.json    text eol=lf
+*.jsonl   text eol=lf
+*.md      text eol=lf
+*.ps1     text eol=lf
+*.py      text eol=lf
+*.svg     text eol=lf
+*.txt     text eol=lf
+*.xml     text eol=lf
+
 # Evidence is stored so that its sha256 can be checked against the manifest.
 # Git's line-ending normalisation would defeat that: a file committed with LF
 # and checked out on Windows as CRLF is no longer the bytes that were served,
