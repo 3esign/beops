@@ -421,16 +421,20 @@ def static_layers() -> list[dict]:
             if not str((doc or {}).get(k) or "").strip():
                 unattributed.append("%s has lost its %s" % (name, k))
         # and the page that uses it has to show that attribution, not merely hold it in a file
-        att = str(((L.get("provenance_as_the_file_carries_it") or {}).get("attribution") or ""))
-        key = att.split(".")[0].split(",")[0].strip()[:24]
-        if key:
-            for page in sorted((ROOT / "docs").glob("*.html")):
-                try:
-                    body = page.read_text(encoding="utf-8", errors="replace")
-                except OSError:
-                    continue
-                if name in body and key not in body:
-                    unattributed.append("%s uses %s and does not name it" % (page.name, name))
+        # What a licence requires is the CREDIT, not a form of words. The first version of this check
+        # cut the attribution string at its first full stop and demanded that phrase, so it asked for
+        # "Made with Natural Earth" from a page that says "Natural Earth 1:10 mil." and reported three
+        # correctly attributed pages as unattributed. The register names the credit instead.
+        for page in sorted((ROOT / "docs").glob("*.html")):
+            try:
+                body = page.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            if name not in body:
+                continue
+            for key in L.get("must_be_named") or []:
+                if key not in body:
+                    unattributed.append("%s uses %s and does not name %s" % (page.name, name, key))
         rd = str(L.get("review_due") or "")
         if rd and rd < now().date().isoformat():
             due.append("%s (due %s)" % (name, rd))
