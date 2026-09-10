@@ -29,11 +29,13 @@ class Credential(unittest.TestCase):
                 os.environ[k] = v
 
     def test_the_environment_comes_first(self):
+        for k in ("SVEMIR_HOME", "SVEMIR_SECRETS"):
+            os.environ.pop(k, None)
         os.environ["KAGGLE_USERNAME"], os.environ["KAGGLE_KEY"] = "someone", FAKE
         self.assertEqual(ka.credential(), ("someone", FAKE))
 
     def test_the_file_kaggle_downloads_is_read_as_it_comes(self):
-        for k in ("KAGGLE_USERNAME", "KAGGLE_KEY"):
+        for k in ("KAGGLE_USERNAME", "KAGGLE_KEY", "SVEMIR_HOME", "SVEMIR_SECRETS"):
             os.environ.pop(k, None)
         with tempfile.TemporaryDirectory() as d:
             os.environ["KAGGLE_CONFIG_DIR"] = d
@@ -69,7 +71,10 @@ class Credential(unittest.TestCase):
                 os.environ.pop("SVEMIR_HOME", None)
 
     def test_no_credential_says_what_to_do_and_does_not_crash_the_caller(self):
-        for k in ("KAGGLE_USERNAME", "KAGGLE_KEY", "KAGGLE_CONFIG_DIR"):
+        # SVEMIR_HOME / SVEMIR_SECRETS are set on the machine this normally runs on, and a test that
+        # inherits them is testing the machine rather than the code: with a store present the message
+        # is the other one, and the suite failed exactly that way once the variable was set.
+        for k in ("KAGGLE_USERNAME", "KAGGLE_KEY", "KAGGLE_CONFIG_DIR", "SVEMIR_HOME", "SVEMIR_SECRETS"):
             os.environ.pop(k, None)
         with tempfile.TemporaryDirectory() as d:
             os.environ["HOME"] = d
