@@ -1,77 +1,62 @@
 {
  "schema": "beops-static-layers/v1",
- "note": "The static and semi-static context of the city: what the mind may know about the SHAPE of Belgrade while it thinks about what the instruments say. One layer per question the mind will actually ask; not everything that exists. Every layer is a registered source (SOURCE_REGISTRY.json) with a permission capture, taken once with its hash by tools/fetch_static.py, reduced to a small public context file, and shown as a quiet layer on the map. Values keep their licence; the attribution the licence asks for travels in the derived file.",
- "rule": "A context layer is never a measurement. It answers 'what is here' (people, built-up, roads, hazard, decisions), not 'what is happening'. The digest quotes it with its source and its nature (modelled estimate, survey, register) and the interface draws it in structure colour only.",
+ "written": "2026-09-10",
+ "what_this_is": "The layers that are not a stream. Each is a release of an external dataset, so the question is never how old it is - it is whether it is still there, still the file we accepted, still carrying the attribution and licence under which we may show it, and whether anybody has looked lately for a newer release. A layer with no expiry must not be reported as fresh either: silence about it is indistinguishable from neglect, which is what this register exists to end.",
  "layers": [
   {
-   "id": "kontur-population",
-   "question": "How many people live around this instrument / in this zone?",
+   "file": "public/basemap-belgrade.json",
+   "sid": "S98/S115",
+   "what": "the ground the maps are drawn on: river banks, municipality outlines, the city's frame",
+   "built_by": "tools/fetch_basemap.py",
+   "why_no_expiry": "the Sava and the Danube do not move, and a municipality outline changes by law rather than by the hour. An age limit here would report a fault every day and mean nothing on the day something actually changed.",
+   "review_every_days": 180,
+   "must_be_named": [
+    "Natural Earth"
+   ],
+   "bytes": 5851,
+   "sha256": "a26550911ce6a8e6c2adf5a0f71615e5a9ad62b6048537bf2a6edc7f752b9187",
+   "accepted_at": "2026-09-08T23:13:33Z",
+   "review_due": "2027-03-09",
+   "provenance_as_the_file_carries_it": {
+    "source": "{'sid': 'S98', 'capture': '20260908T225803Z'}",
+    "attribution": "Made with Natural Earth. Free vector and raster map data @ naturalearthdata.com (public domain).",
+    "note": "Rivers, lakes and the built-up footprint from Natural Earth 1:10m (public domain), clipped to the Belgrade window and simplified (Douglas-Peucker, eps 0.0004 deg). Generalised at 1:10 million: this is",
+    "name": "basemap-belgrade"
+   },
+   "must_carry": [
+    "attribution",
+    "source"
+   ]
+  },
+  {
+   "file": "public/context-population.json",
    "sid": "S120",
-   "name": "Kontur Population Dataset - Serbia (H3 resolution 8)",
-   "api_url": "https://data.humdata.org/api/3/action/package_show?id=kontur-population-serbia",
-   "kind": "static",
-   "cadence": "yearly release; re-fetched only when the publisher publishes a new file",
-   "resolution": "H3 res 8, hexagon about 0.74 km2 (~460 m across)",
-   "licence": "CC BY 4.0",
-   "attribution": "Kontur Population: Global Population Density for 400m H3 Hexagons (Kontur, 2023), CC BY 4.0",
-   "nature": "modelled estimate (built-up area from satellite x census totals), not a count",
-   "derived": "public/context-population.json",
-   "used_by": ["organ_mind digest: people within 1 km of the stations named in a SEPA spread; people in the map window", "monolog-puls map: quiet hexagon layer", "make_maps: Map 4 (people) when present"],
-   "status": "tool built 2026-09-09; first capture pending"
-  },
-  {
-   "id": "roads-data-gov-rs",
-   "question": "Is this instrument on a main road? Where does the city move?",
-   "sid": null,
-   "name": "Putna infrastruktura Srbije - nodes and edges (GeoJSON) on data.gov.rs",
-   "url": "https://data.gov.rs/",
-   "kind": "static",
-   "licence": "to be captured (data.gov.rs default is the Serbian open data licence; the dataset page must say)",
-   "nature": "register",
-   "status": "found 2026-09-09 by a data.gov.rs API search ('geojson'); needs a registry id and a permission capture before any fetch"
-  },
-  {
-   "id": "elektrodistribucija-outages",
-   "question": "Which municipalities are scheduled to lose power today?",
-   "sid": "S54",
-   "name": "Elektrodistribucija Srbije - planned outages per municipality",
-   "url": "https://elektrodistribucija.rs/",
-   "kind": "semi-static",
-   "cadence": "daily, rolling four days",
-   "licence": "utility publication; reuse to be confirmed at capture",
-   "nature": "schedule (a plan, not an observation) - the digest must say 'planned', never 'without power'",
-   "status": "registered as S54 probe_ok; collector not built"
-  },
-  {
-   "id": "ghsl-builtup",
-   "question": "How built-up is this zone, and since when?",
-   "sid": "S94",
-   "name": "JRC GHSL built-up surface / population grid",
-   "kind": "static",
-   "licence": "CC BY 4.0",
-   "nature": "satellite-derived raster",
-   "status": "registered probe_ok; raster parsing (GeoTIFF) is more than a stdlib evening - deferred; Kontur carries the density question for v1"
-  },
-  {
-   "id": "jrc-flood",
-   "question": "Does this zone flood, and how often?",
-   "sid": "S117",
-   "name": "JRC Global River Flood Hazard Maps",
-   "kind": "static",
-   "licence": "CC BY 4.0",
-   "nature": "modelled hazard raster, six return periods",
-   "status": "registered probe_ok; deferred with GHSL (raster)"
-  },
-  {
-   "id": "sluzbeni-list",
-   "question": "What did the city decide, and when?",
-   "sid": null,
-   "name": "Sluzbeni list grada Beograda (Official Gazette of the City of Belgrade)",
-   "kind": "semi-static",
-   "cadence": "per issue",
-   "licence": "no copyright - Copyright Act Art. 6(2) excludes official materials of public bodies",
-   "nature": "text corpus (decisions)",
-   "status": "identified in 07-legal as the cleanest unused corpus in the country; needs a registry id, a capture and its own organ (gazette-reader) before it enters a digest"
+   "what": "how many people live near a station, as H3 hexagons - a modelled context layer, never a measurement, and labelled as one everywhere it appears",
+   "built_by": "tools/fetch_static.py",
+   "why_no_expiry": "it is a dated RELEASE of an external dataset. It becomes out of date when its publisher issues a new release, which is a thing to check for on a calendar, not a thing to infer from a file's modification time.",
+   "review_every_days": 365,
+   "must_be_named": [
+    "Kontur",
+    "CC BY"
+   ],
+   "bytes": 101972,
+   "sha256": "5dc8cb627411c0fd163be7194ab8e72a347511bd91b1694ea2496063a548d547",
+   "accepted_at": "2026-09-09T00:49:49Z",
+   "review_due": "2027-09-10",
+   "provenance_as_the_file_carries_it": {
+    "source": "{'sid': 'S120', 'capture': '20260909T003600Z', 'srs_as_shipped': 3857}",
+    "attribution": "Kontur Population: Global Population Density for 400m H3 Hexagons (Kontur, 2023), CC BY 4.0",
+    "licence": "CC BY 4.0",
+    "note": "Population per H3 hexagon (resolution 8, about 0.74 km2) from the Kontur Population Dataset, clipped to the Belgrade window by hexagon centroid; each entry is [lon, lat, people, h3]. A modelled estima",
+    "name": "context-population",
+    "layer": "kontur-population",
+    "resolution": "H3 res 8, hexagon about 0.74 km2 (~460 m across)"
+   },
+   "must_carry": [
+    "attribution",
+    "licence",
+    "source"
+   ]
   }
  ]
 }

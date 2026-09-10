@@ -1819,3 +1819,58 @@ placed before its check, where the check's failure leaves the action standing. O
 
 **Nothing observed was changed.** C-047 stays exactly as written, incomplete arithmetic included; this
 entry is the correction to it, which is what the file is for.
+
+## C-049 — the layers that never change had no rule, and the obvious rule was the wrong one
+
+**2026-09-10, 14:55 UTC.** On the stability review's open list since it was written, and left there
+because the rule that first suggests itself does not work.
+
+**What was missing.** Two of this record's layers are not streams: `basemap-belgrade.json` (the ground
+the maps are drawn on) and `context-population.json` (how many people live near a station). Each is a
+dated **release** of somebody else's dataset. Nothing anywhere said how old either may be, what would
+make it wrong, or who should look at it.
+
+**Why a maximum age would have been worse than nothing.** The Sava does not move, and a municipality
+outline changes by law rather than by the hour; the population grid is a 2022 release and is not stale
+at 34 hours and would not be at 34 weeks. **An age limit on these would have reported a fault every
+single day and meant nothing on the day something actually changed** — a check that cries continuously
+is a check nobody reads, which is the failure mode this record has already written about monitors
+under a different name.
+
+**What can actually go wrong, asked as four questions every guard pass.** Is it still there and
+readable. Is it still the file we accepted — a change is not wrong, but it must be *noticed and
+re-accepted* rather than absorbed, so a differing hash is a warn and never a silent update. Does it
+still carry the source, licence and attribution under which we may show it. And has anybody looked for
+a newer release lately — a date, not an expiry.
+
+**The attribution question is the load-bearing one, and it is a legal condition.**
+`context-population.json` is **CC BY 4.0**, and its attribution — *"Kontur Population: Global Population
+Density for 400m H3 Hexagons (Kontur, 2023), CC BY 4.0"* — lives inside the file.
+`basemap-belgrade.json` carries Natural Earth's. If a refetch drops either, or a page shows the layer
+without naming it, this record is publishing somebody's dataset unattributed. **That is Article 41 for
+data rather than for headlines**, and it is exactly the condition the news layer was in this morning
+until attribution became `test_attribution.py`.
+
+**Measured before the rule was written, and it holds.** Kontur and CC BY appear on the index and in the
+monologue; Natural Earth on the index, the data view and all four document maps; **and on no page that
+does not use them** — `sada`, `traka` and `svedoci` name neither, correctly, because neither reads
+either file. So the practice was already right. Nothing asserted it, and the file carrying the
+attribution is not the same thing as the page displaying it.
+
+**Correction.** `research/STATIC_LAYERS.json` — generated from the files themselves rather than from
+anybody's memory of them, so the recorded hash, source, licence and attribution are what is actually
+there. Two guard checks on every pass, and `research/test_static_layers.py` on every ship, including
+the one the guard states plainly: *a layer with no expiry must not be reported as fresh either, because
+silence about it is indistinguishable from neglect* — which is the state these two were in for the
+whole life of the project.
+
+**And the check's own first version was wrong in a way worth recording.** It derived the phrase a page
+must contain by cutting the attribution string at its first full stop — so it demanded *"Made with
+Natural Earth"* from a page that says *"Natural Earth 1:10 mil. (javno vlasništvo)"*, and failed three
+pages that were correctly attributed. **A licence requires the credit, not a form of words.** The
+register now names the credit explicitly (`must_be_named`: Natural Earth; Kontur, CC BY) instead of
+inferring it, which is the same rule this project applies everywhere else: write down what must be
+true rather than deducing it from a prefix.
+
+**Nothing observed was changed.** No layer was refetched, edited or moved; what changed is that they
+are now described.

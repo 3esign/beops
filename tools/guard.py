@@ -376,6 +376,81 @@ def publish_gate() -> list[dict]:
     return out
 
 
+def static_layers() -> list[dict]:
+    """The layers that are not a stream: a basemap and a population grid, each a dated RELEASE of
+    somebody else's dataset.
+
+    Age is the wrong question for them. The Sava does not move, and a 2022 population grid is not
+    stale at 34 hours and would not be at 34 weeks - an age limit would report a fault every day and
+    mean nothing on the day something actually changed. But silence about them is indistinguishable
+    from neglect, which is the state they were in until now. So four questions instead:
+
+      is it still there and readable; is it still the file we accepted (a change is not wrong, but it
+      must be noticed and re-accepted rather than absorbed); does it still carry the source, licence
+      and attribution under which we may show it; and has anybody looked for a newer release lately.
+
+    The attribution one is the load-bearing one. context-population.json is CC BY 4.0 and its
+    attribution lives inside the file: if a refetch drops it we are publishing somebody's dataset
+    unattributed, which is Article 41 for data rather than for headlines - the same defect the news
+    layer had until it became a test."""
+    reg = RESEARCH / "STATIC_LAYERS.json"
+    if not reg.exists():
+        return [{"check": "static layers", "state": UNKNOWN, "why": "no research/STATIC_LAYERS.json"}]
+    try:
+        d = json.loads(reg.read_text(encoding="utf-8"))
+    except ValueError as e:
+        return [{"check": "static layers", "state": UNKNOWN, "why": "register unreadable: %s" % type(e).__name__}]
+
+    import hashlib
+    missing, changed, unattributed, due = [], [], [], []
+    for L in d.get("layers", []):
+        f = ROOT / str(L.get("file") or "")
+        name = f.name
+        if not f.exists():
+            missing.append(name)
+            continue
+        raw = f.read_bytes()
+        if L.get("sha256") and hashlib.sha256(raw).hexdigest() != L["sha256"]:
+            changed.append(name)
+        try:
+            doc = json.loads(raw.decode("utf-8"))
+        except Exception:                                    # noqa: BLE001
+            missing.append(name + " (unreadable)")
+            continue
+        for k in L.get("must_carry") or []:
+            if not str((doc or {}).get(k) or "").strip():
+                unattributed.append("%s has lost its %s" % (name, k))
+        # and the page that uses it has to show that attribution, not merely hold it in a file
+        att = str(((L.get("provenance_as_the_file_carries_it") or {}).get("attribution") or ""))
+        key = att.split(".")[0].split(",")[0].strip()[:24]
+        if key:
+            for page in sorted((ROOT / "docs").glob("*.html")):
+                try:
+                    body = page.read_text(encoding="utf-8", errors="replace")
+                except OSError:
+                    continue
+                if name in body and key not in body:
+                    unattributed.append("%s uses %s and does not name it" % (page.name, name))
+        rd = str(L.get("review_due") or "")
+        if rd and rd < now().date().isoformat():
+            due.append("%s (due %s)" % (name, rd))
+
+    out = []
+    out.append({"check": "static layers are present and still the file we accepted",
+                "state": STOP if missing else (WARN if changed else OK),
+                "why": ("MISSING: " + ", ".join(missing)) if missing else
+                       ("changed since it was accepted, re-accept it deliberately: " + ", ".join(changed)) if changed
+                       else "%d layers, each the file recorded in the register" % len(d.get("layers", []))})
+    out.append({"check": "every static layer is named where it is shown",
+                "state": STOP if unattributed else OK,
+                "why": ("UNATTRIBUTED: " + "; ".join(unattributed[:4])) if unattributed
+                       else "source, licence and attribution present in each file and on every page that uses it"})
+    if due:
+        out.append({"check": "somebody should look for a newer release", "state": WARN,
+                    "why": "review date passed for " + ", ".join(due)})
+    return out
+
+
 def run(dry: bool = False) -> dict:
     checks, repairs = [], []
     for name in TASKS:
@@ -385,7 +460,7 @@ def run(dry: bool = False) -> dict:
             d = task_state(name)
             d["repaired"] = True
         checks.append(d)
-    legal = permission_invariants() + refusal_route() + publish_gate()
+    legal = permission_invariants() + refusal_route() + publish_gate() + static_layers()
     organs = organ_output()
     states = [c["state"] for c in checks] + [c["state"] for c in legal] + [c["state"] for c in organs]
     verdict = STOP if STOP in states else (UNKNOWN if UNKNOWN in states else
