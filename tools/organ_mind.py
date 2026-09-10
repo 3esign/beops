@@ -82,7 +82,7 @@ SNAPSHOT = ROOT / "public" / "live-snapshot.json"
 CONTEXT_POP = ROOT / "public" / "context-population.json"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "mind"
-ORGAN_VERSION = "0.4.3"
+ORGAN_VERSION = "0.4.4"
 OUT_DIR = LIVE / "derived" / "mind"
 ORCHESTRATIONS = ("council", "relay")   # for `run`; the scheduled mode is the drip (see STEPS)
 
@@ -587,7 +587,12 @@ def prompt_for(ent: dict, dg: dict, memory: list[dict], conversation: list[dict]
                          sources=srcs, facts=facts)
 
 
-def ollama_chat(model: str, prompt: str, schema: dict | None = None, num_predict: int = 1000, temperature: float = 0.5, timeout: int = 600) -> dict:
+def ollama_chat(model: str, prompt: str, schema: dict | None = None, num_predict: int = 1000, temperature: float = 0.5, timeout: int = 210) -> dict:
+    # 600 s was a whole step's worth of waiting and then some: the drip has a step every four minutes,
+    # so a call that hangs for ten of them does not just fail, it pushes every following step late.
+    # Measured on this body: a cold load of the 4b is 84 s and generation about 38 s, so 210 s leaves
+    # margin for a cold load and still fits inside a step. A call that overruns it now hands the step
+    # to the next model in the register order (C-036) instead of eating the schedule.
     payload = {"model": model, "stream": False, "format": schema or SCHEMA, "keep_alive": "30m",
                "options": {"temperature": temperature, "num_ctx": 6144, "num_predict": num_predict},
                "messages": [{"role": "user", "content": prompt}]}
