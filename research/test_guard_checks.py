@@ -205,6 +205,47 @@ class PublishGate(unittest.TestCase):
             c = by(g.publish_gate(), "the publish is gated")
         self.assertEqual(c["state"], g.OK, "a BOM made the guard blind to a good receipt again")
 
+    def test_a_publish_holding_the_lock_longer_than_the_interval_is_said_out_loud(self):
+        """A publisher that STOPPED is caught by the age of its receipt. One that is STUCK was
+        invisible: on 2026-09-10 a publish held the lock for more than thirteen minutes - longer than
+        the gap between publishes - and nothing anywhere reported it."""
+        import os
+        import time
+        with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "tests": "OK"}) as root:
+            lock = root / "data" / "live" / "publish.lock"
+            lock.write_text("held by a publish", encoding="utf-8")
+            old = time.time() - 14 * 60
+            os.utime(lock, (old, old))
+            c = by(g.publish_gate(), "a publish is not stuck")
+        self.assertEqual(c["state"], g.WARN)
+        self.assertIn("queueing", c["why"])
+        self.assertIn("14", c["why"].split(" min")[0])
+
+    def test_a_lock_older_than_the_takeover_says_the_next_publish_will_step_over_it(self):
+        import os
+        import time
+        with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "tests": "OK"}) as root:
+            lock = root / "data" / "live" / "publish.lock"
+            lock.write_text("held", encoding="utf-8")
+            old = time.time() - 40 * 60
+            os.utime(lock, (old, old))
+            c = by(g.publish_gate(), "a publish is not stuck")
+        self.assertEqual(c["state"], g.WARN)
+        self.assertIn("take the lock over", c["why"])
+
+    def test_a_publish_that_is_simply_running_is_not_reported(self):
+        """A lock a minute old is a publish doing its job. A check that mentions it every quarter of
+        an hour is a check nobody reads."""
+        with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "tests": "OK"}) as root:
+            (root / "data" / "live" / "publish.lock").write_text("held", encoding="utf-8")
+            names = [c["check"] for c in g.publish_gate()]
+        self.assertNotIn("a publish is not stuck", names)
+
+    def test_no_lock_at_all_says_nothing(self):
+        with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "tests": "OK"}):
+            names = [c["check"] for c in g.publish_gate()]
+        self.assertNotIn("a publish is not stuck", names)
+
     def test_a_stale_receipt_that_passed_still_warns_that_the_publisher_may_be_stopped(self):
         with world(receipt={"at": g.iso(g.now() - timedelta(hours=3)), "tests_ok": True, "tests": "OK"}):
             c = by(g.publish_gate(), "the publisher is still running")
@@ -280,7 +321,7 @@ class EveryCheckIsDriven(unittest.TestCase):
             "a named refusal is never our source",
             "a refusal reached by another route stays the third party's utterance",
             "third-party route",
-            "the publish is gated", "the publisher is still running",
+            "the publish is gated", "the publisher is still running", "a publish is not stuck",
             "static layers", "static layers are present and still the file we accepted",
             "every static layer is named where it is shown",
             "somebody should look for a newer release",

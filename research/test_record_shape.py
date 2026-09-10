@@ -241,31 +241,63 @@ class MindTree(unittest.TestCase):
                              f"{n[s]}: they are no longer the same utterances, so a one-level reader "
                              "is now losing some")
 
-    def test_the_settlements_register_holds_every_settlement_the_notebooks_tell(self):
+    def test_every_settlement_is_told_to_the_entity_that_predicted_it(self):
         """Two records of one event: the register is the record, the notebook line is the telling.
-        If they disagree in count, one of them is missing a settlement."""
+        The counts are compared over SETTLED rows only - the register also holds claims that are
+        still open, which is the thing the first version of this test got wrong."""
         reg = list(record.objects(self.mind / "claims.jsonl"))
+        settled = [r for r in reg if r.get("outcome") is not None]
         told = [r for r in self.notebook if r.get("state") == "claim_settled"]
-        if not reg and not told:
+        if not settled and not told:
             self.skipTest("nothing settled yet")
-        self.assertEqual(len(reg), len(told),
-                         f"{len(reg)} settlements in the register and {len(told)} told to the entities")
+        self.assertEqual(len(settled), len(told),
+                         f"{len(settled)} settled claims in the register and {len(told)} told to the "
+                         "entities")
 
-    def test_a_settled_claim_carries_an_outcome_and_not_a_state(self):
-        """The open question from C-057, answered in the register rather than left open: a settled
-        claim is not a derived row passing through an organ, it is an entry with a vocabulary of its
-        own, and the vocabulary is closed."""
+    def test_a_claim_is_written_when_it_is_made_and_scored_when_it_falls_due(self):
+        """The shape that makes a prediction a prediction. The row exists from the moment the claim is
+        made, with its due time; the outcome arrives later or not at all. A register that only
+        recorded settlements could be written after the answer was known, and would be worth nothing.
+        """
         reg = list(record.objects(self.mind / "claims.jsonl"))
         if not reg:
-            self.skipTest("nothing settled yet")
+            self.skipTest("no claims yet")
         for r in reg:
             self.assertIsNone(r.get("state"),
-                              "a settlement grew a pipeline state; the register declares it has none")
-            self.assertIn(r.get("outcome"), ("true", "false", "unverifiable"),
-                          f"a settlement carries the outcome {r.get('outcome')!r}, which is not one of "
-                          "true / false / unverifiable")
-            for key in ("claim", "entity", "settled_at"):
-                self.assertIn(key, r, f"a settlement does not record its {key}")
+                              "a claim grew a pipeline state; the register declares it has none")
+            for key in ("claim", "entity", "at", "due", "outcome", "settled_at"):
+                self.assertIn(key, r, f"a claim does not record its {key}")
+            if r.get("outcome") is None:
+                self.assertIsNone(r.get("settled_at"),
+                                  "a claim has a settling time and no outcome")
+            else:
+                self.assertIn(r["outcome"], ("true", "false", "unverifiable"),
+                              f"a claim carries the outcome {r['outcome']!r}, which is not one of "
+                              "true / false / unverifiable")
+                self.assertTrue(r.get("settled_at"), "a scored claim does not say when it was scored")
+
+    def test_no_prediction_is_quietly_forgotten(self):
+        """The strongest thing this register can be asked, and the reason it exists. A claim past its
+        due time that never gets an outcome is a prediction nobody scored - which is how a record
+        keeps only the predictions that came true."""
+        import datetime as dt
+        reg = list(record.objects(self.mind / "claims.jsonl"))
+        if not reg:
+            self.skipTest("no claims yet")
+        now = dt.datetime.now(dt.timezone.utc)
+        grace = dt.timedelta(hours=3)          # the scorer runs on the mind's tick, not at the instant
+        forgotten = []
+        for r in reg:
+            if r.get("outcome") is not None:
+                continue
+            try:
+                due = dt.datetime.fromisoformat(str(r.get("due")).replace("Z", "+00:00"))
+            except ValueError:
+                continue
+            if now - due > grace:
+                forgotten.append("%s due %s" % (r.get("entity"), r.get("due")))
+        self.assertEqual(forgotten[:5], [],
+                         "a prediction fell due and was never scored: " + "; ".join(forgotten[:5]))
 
     def test_the_benchmark_runs_are_not_mistaken_for_the_record(self):
         """voice_bench holds hand-made benchmark lines, including the one undeclared state the record

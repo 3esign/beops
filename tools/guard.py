@@ -60,6 +60,12 @@ ORGANS = {
 OK, WARN, STOP, UNKNOWN = "ok", "warn", "STOP", "unknown"
 REPAIRABLE = {"disabled", "not running"}
 
+# What the scheduled publish is set to, and how long publish_github.ps1 waits before taking a lock
+# over. A publish that runs longer than the first is queueing; longer than the second and the next
+# publish will step over it.
+PUBLISH_EVERY_MIN = 10.0
+LOCK_TAKEOVER_MIN = 15.0
+
 
 def now() -> datetime:
     return datetime.now(timezone.utc)
@@ -373,6 +379,29 @@ def publish_gate() -> list[dict]:
         out.append({"check": "the publisher is still running", "state": WARN,
                     "why": "the last publish receipt is %.1f h old; the site may be frozen for a reason "
                            "this check cannot see" % age_h})
+
+    # A publisher that has STOPPED is caught above, by the age of its receipt. A publisher that is
+    # STUCK is a different thing and was invisible: on 2026-09-10 one held the lock for more than
+    # thirteen minutes, longer than the interval between publishes, and nothing anywhere said so. The
+    # lock is taken over after a quarter of an hour, so this never stops the record - but a publish
+    # taking longer than the gap between publishes means they are queueing, and a queue nobody
+    # mentions is how "it publishes every ten minutes" quietly stops being true.
+    lock = LIVE / "publish.lock"
+    if lock.exists():
+        try:
+            held_m = (now() - datetime.fromtimestamp(lock.stat().st_mtime, timezone.utc)).total_seconds() / 60.0
+        except OSError:
+            held_m = None
+        if held_m is None:
+            out.append({"check": "a publish is not stuck", "state": UNKNOWN,
+                        "why": "there is a publish lock and its age cannot be read"})
+        elif held_m > PUBLISH_EVERY_MIN:
+            out.append({"check": "a publish is not stuck", "state": WARN,
+                        "why": "a publish has held the lock for %.1f min, longer than the %.0f min "
+                               "between publishes, so publishes are queueing behind it%s"
+                               % (held_m, PUBLISH_EVERY_MIN,
+                                  "; the next one will take the lock over" if held_m > LOCK_TAKEOVER_MIN
+                                  else "")})
     return out
 
 
