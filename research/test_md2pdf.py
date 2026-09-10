@@ -87,6 +87,53 @@ class Fonts(unittest.TestCase):
             self.assertIn(name, md2pdf.FACES)
 
 
+class Markup(unittest.TestCase):
+    """The converter promises in its own docstring that anything it does not understand is printed as
+    plain text rather than dropped. It crashed instead, on the first document that used bold whose
+    last words are italic - which is how a book title inside a bold citation is written."""
+
+    def nesting_ok(self, t):
+        return md2pdf.markup_ok(t)
+
+    def test_bold_whose_last_words_are_italic_nests_properly(self):
+        out = md2pdf.inline("**Kitchin & McArdle (2016), *Urban data and city dashboards*** — six issues")
+        self.assertTrue(self.nesting_ok(out), out)
+        self.assertIn("<b>", out)
+        self.assertIn("<i>", out)
+        self.assertNotIn("*", out, "a literal asterisk survived into the rendered paragraph")
+
+    def test_every_ordinary_construct_still_renders_with_its_emphasis(self):
+        for src, want in (("**bold**", "<b>"), ("*italic*", "<i>"), ("***both***", "<b><i>"),
+                          ("`code`", "<font"), ("[a](https://x/y)", "<link")):
+            out = md2pdf.inline(src)
+            self.assertIn(want, out, src)
+            self.assertTrue(self.nesting_ok(out), out)
+
+    def test_markup_that_cannot_be_made_well_formed_loses_emphasis_and_never_a_word(self):
+        bad = "**a *b **c* d**"
+        out = md2pdf.inline(bad)
+        self.assertTrue(self.nesting_ok(out), "the fallback still produced overlapping tags")
+        for word in ("a", "b", "c", "d"):
+            self.assertIn(word, out, "a word was dropped rather than printed plainly")
+
+    def test_overlapping_tags_are_detected_at_all(self):
+        self.assertFalse(md2pdf.markup_ok("<b>x<i>y</b></i>"))
+        self.assertFalse(md2pdf.markup_ok("<b>x"))
+        self.assertTrue(md2pdf.markup_ok("<b>x<i>y</i></b>"))
+
+    def test_the_whole_pre_paper_renders_with_full_emphasis(self):
+        """The document that crashed it. Not one paragraph of it should need the fallback."""
+        papers = sorted((ROOT / "research" / "06-paper").glob("PRE_PAPER_v*.md"))
+        if not papers:
+            self.skipTest("no pre-paper on this machine")
+        md2pdf.DEGRADED.clear()
+        for p in papers:
+            for line in p.read_text(encoding="utf-8").splitlines():
+                md2pdf.inline(line)
+        self.assertEqual(md2pdf.DEGRADED[:4], [],
+                         "a paragraph of a pre-paper cannot be marked up: " + "; ".join(md2pdf.DEGRADED[:3]))
+
+
 class Render(unittest.TestCase):
     def test_it_writes_a_pdf_that_is_a_pdf(self):
         with tempfile.TemporaryDirectory() as d:

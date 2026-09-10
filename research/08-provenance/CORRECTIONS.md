@@ -2481,3 +2481,49 @@ Both halves of this entry are the same mistake at different scales. A fix that l
 not reach the next file; a search that names one directory does not reach the next machine. **Neither
 was found by a test, and both were found by the gate refusing something correct** — which is the third
 time today the gate has been the thing that noticed.
+
+## C-060 — the converter promised to print what it could not understand, and crashed instead
+
+**Written at the commit that carries this entry.** Found immediately after C-059 fixed the font
+problem, because fixing the first fault let the tool run far enough to hit the second.
+
+### What it says about itself, and what it did
+
+`tools/md2pdf.py` opens with this sentence: *"Anything it does not understand is printed as plain text
+rather than silently dropped, because a converter that quietly loses a sentence is worse than one that
+prints it badly."*
+
+It does not. Handed pre-paper v5, it raised and produced no file at all.
+
+The construct that did it is **bold whose last words are italic** — `**Author (2016), *Title***` —
+which is how a book title inside a bold citation is written, and which appears in §4.2 of every
+pre-paper since v1. The bold rule takes two of the three trailing stars, the italic rule then reaches
+across the closing tag, and the result is `<b>… <i>…</b></i>`. reportlab's paragraph parser refuses
+overlapping tags, correctly, and the whole conversion dies on one paragraph.
+
+**Three of this project's own patterns meet here.** A file stating something about itself that is not
+true — the same defect as C-051's deposition record, in a docstring rather than in metadata. A promise
+that had never been exercised, because until C-059 the tool could not run on this machine at all. And
+a failure that takes the whole document rather than the paragraph it belongs to.
+
+### Correction
+
+The construct is now handled properly rather than survived: two rules render bold-with-trailing-italic
+and italic-with-trailing-bold as the nesting they mean. Every paragraph of every pre-paper now renders
+with its emphasis intact, which a test asserts by running the whole corpus through the converter and
+failing if a single paragraph needs a fallback.
+
+And the promise is kept for whatever comes next. After substitution the tags are checked for proper
+nesting with a small stack parser; if they do not nest, the paragraph is rendered again without
+italics; if that still does not nest, it is printed as plain escaped text. **Emphasis can be lost. A
+word cannot.** The run prints how many paragraphs were degraded and the first words of each, because a
+converter that quietly drops the emphasis of a sentence has changed the document.
+
+### Honest note
+
+C-059 and C-060 are the same tool, found four minutes apart, and the second was only reachable because
+the first was fixed. **A tool that cannot start hides every fault after the first one**, and this one
+could not start on this machine since the day it was written. There is no way to know how many more
+such faults are behind the tools on the C-050 list that still have no test — `fetch_static.py`,
+`build_provenance_index.py`, `migrate_structure.py`, `capture_backlog.py`, `compress_large_evidence.py`
+— except by running them.

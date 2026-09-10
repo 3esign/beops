@@ -188,20 +188,61 @@ S = {
     "th": ParagraphStyle("th", fontName="DJ-B", fontSize=7.8, leading=10.4, textColor=INK),
 }
 
+ITALIC_PATTERN = r"(?<![\w*])\*([^*\n]+)\*(?![\w*])"
+
 INLINE = [
     (re.compile(r"`([^`]+)`"), r'<font face="DJM" size="8">\1</font>'),
     (re.compile(r"\*\*\*(.+?)\*\*\*"), r"<b><i>\1</i></b>"),
+    # bold whose last words are italic: **A *B***. Without this the bold rule takes two of the three
+    # trailing stars and the italic rule then reaches across the closing tag, which reportlab refuses.
+    (re.compile(r"\*\*([^*]*?)\*([^*]+)\*\*\*"), r"<b>\1<i>\2</i></b>"),
+    (re.compile(r"\*\*\*([^*]+)\*([^*]*?)\*\*"), r"<b><i>\1</i>\2</b>"),
     (re.compile(r"\*\*(.+?)\*\*"), r"<b>\1</b>"),
-    (re.compile(r"(?<![\w*])\*([^*\n]+)\*(?![\w*])"), r"<i>\1</i>"),
+    (re.compile(ITALIC_PATTERN), r"<i>\1</i>"),
     (re.compile(r"\[([^\]]+)\]\(([^)]+)\)"), r'<link href="\2" color="#3a5f8a">\1</link>'),
 ]
 
 
-def inline(t: str) -> str:
-    t = html.escape(t, quote=False)
-    for rx, rep in INLINE:
-        t = rx.sub(rep, t)
-    return t
+TAG = re.compile(r"<(/?)(b|i|font|link|super|sub)\b[^>]*>")
+
+DEGRADED = []          # paragraphs whose markup could not be made well-formed, for the run to report
+
+
+def markup_ok(t: str) -> bool:
+    """Whether the tags in a rendered paragraph nest properly.
+
+    reportlab's paragraph parser raises on overlapping tags, and the markdown these documents use can
+    produce them: `**bold with *italic inside***` closes the bold before the italic, because the
+    bold rule takes two of the three trailing stars and the italic rule then reaches across the
+    closing tag. That crashed the whole conversion on pre-paper v5, in a tool whose own docstring
+    promises that anything it does not understand is printed as plain text rather than dropped.
+    """
+    stack = []
+    for m in TAG.finditer(t):
+        closing, name = m.group(1), m.group(2)
+        if not closing:
+            stack.append(name)
+        elif not stack or stack.pop() != name:
+            return False
+    return not stack
+
+
+def inline(t: str, rules=None) -> str:
+    """Markdown inline markup, degrading rather than crashing.
+
+    Three attempts: everything; then without italics, since bold-inside-italic is the construct that
+    overlaps; then the plain escaped text. The last is a loss of emphasis and never a loss of a
+    sentence, which is the trade this tool's docstring promises and did not keep.
+    """
+    escaped = html.escape(t, quote=False)
+    for attempt in (rules or INLINE, [r for r in INLINE if r[0].pattern != ITALIC_PATTERN]):
+        out = escaped
+        for rx, rep in attempt:
+            out = rx.sub(rep, out)
+        if markup_ok(out):
+            return out
+    DEGRADED.append(t.strip()[:90])
+    return escaped
 
 
 def is_table_row(s: str) -> bool:
@@ -312,7 +353,13 @@ def render(src: Path, dst: Path, footer: str) -> None:
         canvas.restoreState()
 
     doc.addPageTemplates([PageTemplate(id="p", frames=[frame], onPage=page)])
+    DEGRADED.clear()
     doc.build(build(src.read_text(encoding="utf-8"), doc.width))
+    if DEGRADED:
+        print("%d paragraph(s) printed without emphasis because their markup could not be made "
+              "well-formed; no text was dropped:" % len(DEGRADED))
+        for x in DEGRADED[:6]:
+            print("   " + x)
 
 
 if __name__ == "__main__":
