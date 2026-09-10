@@ -1405,3 +1405,67 @@ where the two verdicts happen to agree because the collected paths do not match 
 that is luck rather than design. From today it is a test.
 
 **Nothing observed was changed.**
+
+## C-042 — the acceptance rate did not recover, and the explanation for the fall got weaker too
+
+**2026-09-10, 10:00 UTC.** The measurement entry above (C-033…C-037 measured) ended with a prediction,
+written before the answer was known:
+
+> "Until 2026-09-10 the feedback an entity received was the raw refusal string, whose digits are by
+> construction absent from the digest — so adaptation was structurally impossible, not merely absent.
+> It is now possible. Whether the acceptance rate recovers is therefore a claim about the next days,
+> and it will be settled by running this same tool again, not by asserting it here."
+
+It was settled by running the tool again. **It has not recovered.**
+
+| reading | acceptance, after the cut | n |
+|---|---|---|
+| 06:50 UTC | 32.4 % | 37 |
+| 08:49 UTC | 35.4 % | 48 |
+| **10:00 UTC** | **33.9 %** | **56** |
+| (before the corrections) | 47.8 % | 161 |
+
+Three readings across three hours, moving 32.4 → 35.4 → 33.9. That is not a recovery; it is noise
+around roughly a third, against 47.8 % before. **Reported as a failed prediction**, with no excuse
+attached. The prediction said "the next days" and it has been eight hours, so it is not refuted
+either — the clock keeps running and the next reading is scheduled — but at the checkpoint it was
+given, it failed, and that is what goes in the ledger.
+
+**The second finding is worse than the first, because it is about the story rather than the number.**
+C-038 explained the fall this way: *"20 of the 23 refusals since the fix come from two reasons that did
+not exist before it — `time outside the window` (12) and `echoed its own notebook` (8). The corrections
+did not make the entities produce more; they made the refusals correct."* That was 87 % of refusals
+accounted for by the new, stricter checks.
+
+At 56 utterances the same two reasons account for 21 of 37 refusals — **57 %**. The remaining 16 are
+old categories that existed before the corrections: `number not in the cited facts` (16 overall),
+`cites nothing inside the text` (7), `too short` (6). As n grows, the share of the gap explained by
+"the checks got stricter" is falling, and the share that is simply the entities producing less
+supportable output is rising.
+
+So the honest position is now weaker than C-038's in two directions at once: the rate has not
+recovered, and the reassuring explanation for why it fell covers a shrinking majority of it. Both
+sentences are written here rather than waited out.
+
+**What did hold, measured in the same run.** Every other correction is still doing what it was written
+to do, and none of this is offered to soften the paragraph above:
+
+- **C-036** — 0 silent or failed steps out of 93 model steps since the cut, against 16.3 % of 300
+  before. Four fallbacks fired in the wild (05:09, 07:57, 08:01, 08:53 UTC), each recorded with the
+  model that actually spoke.
+- **C-037** — 0 stored utterances quote the validator back at the city, against 2 before.
+- **C-035** — 5 claims, 3 settled true, **0 unverifiable, 0 naming a source in words**, against 10 of
+  19 unverifiable before.
+- **C-033** — 2 refused Serbian renderings kept their text instead of being erased. Serbian voiced at
+  84.2 % of 19 thoughts, against 62.3 % of 77.
+
+**One thing observed and not acted on.** `OLLAMA_KEEP_ALIVE` is set to `0` in the machine environment
+and is doing nothing; what keeps models resident is the `keep_alive: "30m"` this repository sends on
+every request, which overrides it. Three models were resident at the verdict hour — `qwen3.5:4b`
+(3.08 GB), `qwen2.5:1.5b` (1.08 GB) and `paraphrase-multilingual` (0.16 GB), 4.32 GB in total, which
+is more than the 4 GB the stability review recorded as the budget. Either that figure was wrong or the
+budget is larger. Recorded as an observation; nothing is changed on the strength of it, and the
+`keep_alive` line is not touched before an hour of deliberate measurement, as the stability review
+already says.
+
+**Nothing observed was changed.** The tool reads and prints; it writes nothing.
