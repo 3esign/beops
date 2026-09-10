@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """test_kaggle_api.py - the Kaggle client, offline. No network, no credential, no key ever printed."""
+import contextlib
+import io
 import json
 import os
 import pathlib
@@ -46,7 +48,15 @@ class Credential(unittest.TestCase):
             with self.assertRaises(ka.NoCredential) as cm:
                 ka.credential()
             self.assertIn("Create New Token", str(cm.exception))
-            self.assertEqual(ka.main(["kaggle_api.py", "whoami"]), 3)
+            # main() prints; the suite's stdout is redirected into runtime/tests.txt, which the run
+            # script greps for a line starting with OK to decide whether anything may be committed.
+            # A test that writes to that file is a test that can vote on its own gate. Capture it.
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                rc = ka.main(["kaggle_api.py", "whoami"])
+            self.assertEqual(rc, 3)
+            self.assertIn("no credential", buf.getvalue())
+            self.assertNotIn(FAKE, buf.getvalue())
 
     def test_whoami_never_returns_the_key(self):
         os.environ["KAGGLE_USERNAME"], os.environ["KAGGLE_KEY"] = "someone", FAKE
