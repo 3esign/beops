@@ -1342,3 +1342,66 @@ than what I was about to add. An absence in one file is not a fact about the sys
 **Nothing observed was changed.** No stored row was touched; the 20,175 S146 rows keep their labels
 exactly as the source served them, as does every correction the collector had already written beside
 them. The change is to which of the two the baseline layer reads.
+
+## C-041 — three false alarms in four hours, all of them the same lookup
+
+**2026-09-10, 09:00–11:40 UTC.** Not a defect in the instrument. A defect in the operator, recorded
+because it repeated three times in one session and each repetition was reported to the editor of
+record as a finding before it was checked.
+
+**The three.**
+
+1. **The clock note.** Looked for `source_clock_note` in `SOURCE_REGISTRY.json`, found nothing, and
+   reported that the correction mechanism for S146 existed but had never been switched on and that
+   nothing was being corrected. It was in `COLLECTORS.json`, where collector behaviour belongs, and it
+   was more careful than what was about to be added — it named the offset, the evidence row and the
+   date the clocks change.
+2. **The ledger's numbering.** Counted the correction ids that appear anywhere in `CORRECTIONS.md`
+   and wrote into C-038 that the sequence is missing C-026. It is missing **C-026, C-027 and C-028** —
+   three corrections that were made, are cited by other entries, and were never filed. Corrected in
+   C-039, which also had to state what one entry *is*, because five counting rules gave four answers.
+3. **The robots parser.** Re-checked four hosts with a script built on `urllib.robotparser`, saw it
+   call a wildcard-forbidden path allowed, and raised an alarm that the project's permission verdicts
+   might be permissive — against the one claim this record cannot afford to be wrong about.
+   `tools/legal_capture.py` has carried a correct RFC 9309 matcher from the beginning, with a comment
+   saying it exists *because* `urllib.robotparser` does not do this, and it stores the **stricter** of
+   the two verdicts. The blindness was in the throwaway script, not in the tool.
+
+**The shape, which is identical in all three.** Consult one artefact. Find an absence in it. Report
+the absence as a property of the system. In none of the three was a second place checked before the
+report went out, and in all three the second place held the answer, already written down, usually
+better than what was about to replace it.
+
+This is **C-035** with the roles exchanged. There, a claim that named its source in words resolved to
+nothing and the scorer wrote it off as unverifiable — the failure was reading "no match" as "no such
+thing". Here the lookup is a human-shaped one and the conclusion is the same error: *an absence in one
+file is not a fact about the system.*
+
+**Why it is worse than the defects it was chasing.** Each of the three reports was more alarming than
+anything actually wrong, and two of them named the project's central claims. A record whose value is
+that it does not say more than it can support was, for a few minutes at a time, saying considerably
+more. That the reports were corrected within minutes is the mechanism working; that they went out at
+all is the failure.
+
+**What changes.** Not a rule about care - there was no shortage of care. A rule about ORDER: before a
+defect is reported, the claim that the thing is missing is itself checked in the place it would live
+if it existed. For this repository that means the registry AND the collectors file; the ledger's
+headings AND its ids; the throwaway probe AND the tool that does the job in production. The check is
+cheap and it is the same check the instrument performs on every source it polls before believing it.
+
+**What survives as work, and it is real.** The third alarm was false and the question underneath it
+was not: the guard asserts "no named refusal is polled" from the **registry** - from what was written
+down when the permission was checked - and nothing re-derived that verdict from the **bytes** the
+publisher served. A verdict recorded on 6 September was believed on 10 September because it was
+written down, which is precisely the difference between permission as memory and permission as bytes
+that this project claims to have engineered away. `research/test_robots_bytes.py` closes it: every
+polled source's collected path is re-tested against the newest stored `robots.txt` with the RFC 9309
+matcher on every run, the matcher's behaviour is locked with the examples `urllib.robotparser` gets
+wrong, and a tripwire fails the suite the day the two parsers disagree about a path we collect.
+
+Measured while writing it: **all 28 polled sources are allowed under both parsers**, and 34 stored
+robots files use wildcard rules the standard library cannot read - five of them on hosts we poll,
+where the two verdicts happen to agree because the collected paths do not match those rules. Today
+that is luck rather than design. From today it is a test.
+
+**Nothing observed was changed.**
