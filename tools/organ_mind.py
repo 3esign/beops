@@ -140,6 +140,26 @@ def _nums(text: str) -> set:
     return {m.replace(",", ".") for m in re.findall(r"\d+(?:[.,]\d+)?", t)}
 
 
+_USUAL_CACHE: dict = {}
+
+
+def _usual(sid: str, station: str, parameter: str, hour: int) -> dict | None:
+    """What this station usually shows at this hour, from tools/baseline.py, or None. A layer that has
+    not been built yet is simply absent - the digest is smaller, nothing fails, and no entity is told
+    something the record cannot support."""
+    if sid not in _USUAL_CACHE:
+        try:
+            import baseline as _bl
+            _USUAL_CACHE[sid] = _bl.load(sid)
+        except Exception:      # noqa: BLE001 - an optional layer may not import on every body
+            _USUAL_CACHE[sid] = None
+    try:
+        import baseline as _bl
+        return _bl.usual(_USUAL_CACHE.get(sid), station, parameter, hour)
+    except Exception:          # noqa: BLE001
+        return None
+
+
 # ==================================================================== L0: program
 def digest(snap: dict, hours: int = 6, now: datetime | None = None, context: dict | None = None) -> dict:
     """The numbered facts the mind may think about. Every number it may say is here."""
@@ -200,6 +220,27 @@ def digest(snap: dict, hours: int = 6, now: datetime | None = None, context: dic
                             kind="spread", sid=sid, parameter=par, lo=round(lo[0]), hi=round(hi[0]), hour=last_t,
                             lo_station=lo[1], hi_station=hi[1], lo_ll=(lo[2].get("lat"), lo[2].get("lon")), hi_ll=(hi[2].get("lat"), hi[2].get("lon")))
                         spreads.append(facts[-1])
+                        # L0 the usual: what THIS station shows at THIS hour in our own record. The
+                        # entities see six hours, so without this they cannot notice anything a city
+                        # does daily - and almost everything a city does is daily. It is a median of
+                        # what we received, carrying its sample, and it is not a norm or a limit.
+                        bh = _p(last_t)
+                        ub = _usual(sid, hi[1], par, bh.hour) if bh else None
+                        if ub and ub.get("median") is not None:
+                            med, nd, nn = ub["median"], ub["days"], ub["n"]
+                            where = "" if ub.get("hour_is_the_measurement_s_own") else (
+                                " (taj čas je čas prijema, ne čas merenja)", " (that hour is the hour of arrival, not of measurement)")
+                            w_sr, w_en = (where if isinstance(where, tuple) else ("", ""))
+                            rel_sr = "iznad" if hi[0] > med else ("ispod" if hi[0] < med else "tačno na")
+                            rel_en = "above" if hi[0] > med else ("below" if hi[0] < med else "exactly at")
+                            add(f"Uobičajeno: {hi[1]} u {bh.hour:02d} h obično pokaže {med:.0f} {unit} {par} u našem zapisu "
+                                f"({nn} vrednosti kroz {nd} dana); sada je {hi[0]:.0f}, {rel_sr} toga.{w_sr} "
+                                f"To je činjenica o našem zapisu, ne granica ni norma.",
+                                f"The usual: {hi[1]} at {bh.hour:02d}h shows {med:.0f} {unit} of {par} in our record "
+                                f"({nn} values across {nd} days); it is {hi[0]:.0f} now, {rel_en} that.{w_en} "
+                                f"That is a fact about our record, not a limit or a standard.",
+                                kind="usual", sid=sid, parameter=par, station=hi[1], median=round(med),
+                                n=nn, days=nd, hour=bh.hour)
                         # L0 connection: how the city maximum moved since the previous labelled hour
                         if prev_t:
                             prev = [p["v"] for d, p in pts if d.get("parameter") == par and p.get("t") == prev_t and isinstance(p.get("v"), (int, float))]
@@ -1267,7 +1308,7 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
             conversation = list(latest_by.values())
             # what changed in the world since this entity last spoke - the nudge away from restating
             seen = set(ctx.get("last_facts", {}).get(name) or [])
-            fresh = [f for f in dg["facts"] if f["en"] not in seen and f["kind"] in ("reception", "spread", "connection", "link", "headlines", "silence", "context")]
+            fresh = [f for f in dg["facts"] if f["en"] not in seen and f["kind"] in ("reception", "spread", "connection", "link", "headlines", "silence", "context", "usual")]
             if seen and fresh:
                 dg = {**dg, "facts": dg["facts"] + [{"id": f"F{len(dg['facts']) + 1}", "kind": "fresh",
                       "sr": "Novo otkad si poslednji put govorio: " + "; ".join(f["id"] for f in fresh[:8]) + ".",

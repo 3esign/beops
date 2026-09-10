@@ -238,6 +238,39 @@ class ValidatorTests(unittest.TestCase):
         om.voice(row3, "Two stations [F1] reported.", self.dg, None, stubborn)
         self.assertEqual(row3["sr_state"], "no voice model")
 
+    def test_the_digest_carries_what_is_usual_here_at_this_hour_when_the_record_can_say(self):
+        """The entities see a six-hour window, so on their own they cannot notice anything a city does
+        daily. The usual is computed by the program from our own rows and handed over as a fact with
+        its sample size attached - and worded so that neither a person nor a model can read it as a
+        limit. Without the layer built, the digest is simply smaller and nothing fails."""
+        dg = om.digest(snapshot(), hours=6, now=NOW)
+        self.assertFalse([f for f in dg["facts"] if f.get("kind") == "usual"])   # no layer, no fact
+
+        spread = next(f for f in dg["facts"] if f.get("kind") == "spread")
+        fake = {"schema": "beops-baseline/v1", "sid": "S146", "buckets": {
+            "%s|%s|%02d" % (spread["hi_station"], spread["parameter"], int(spread["hour"][11:13])):
+            {"median": 12.0, "n": 30, "days": 5, "unit": "ug.m-3", "hour_is_the_measurement_s_own": True}}}
+        om._USUAL_CACHE.clear()
+        import baseline as bl
+        real_load, real_usual = bl.load, bl.usual
+        bl.load = lambda sid: fake if sid == "S146" else None
+        try:
+            dg2 = om.digest(snapshot(), hours=6, now=NOW)
+        finally:
+            bl.load, bl.usual = real_load, real_usual
+            om._USUAL_CACHE.clear()
+        u = [f for f in dg2["facts"] if f.get("kind") == "usual"]
+        self.assertTrue(u, "the usual did not reach the digest")
+        en = u[0]["en"].lower()
+        self.assertIn("in our record", en)
+        self.assertIn("not a limit or a standard", en)
+        self.assertIn("across 5 days", en)
+        self.assertIn("above", en)                    # 41 against a usual of 12
+        for forbidden in ("safe", "unsafe", "exceeds the limit", "dangerous", "unhealthy"):
+            self.assertNotIn(forbidden, en)
+        # and its numbers are in the digest, so an entity may repeat them without being refused
+        self.assertIn("12", dg2["numbers"])
+
     def test_an_utterance_that_speaks_the_validators_language_is_refused(self):
         """C-037. Measured 2026-09-10 at 01:45: the skeptic copied a line of its own notebook into its
         utterance, refusal and all - "... between 08:00 and 09:00 UTC, as indicated by the ' -> REFUSED
