@@ -18,7 +18,8 @@ FAKE = "k" * 40
 
 class Credential(unittest.TestCase):
     def setUp(self):
-        self.saved = {k: os.environ.get(k) for k in ("KAGGLE_USERNAME", "KAGGLE_KEY", "KAGGLE_CONFIG_DIR", "HOME", "USERPROFILE")}
+        self.saved = {k: os.environ.get(k) for k in ("KAGGLE_USERNAME", "KAGGLE_KEY", "KAGGLE_CONFIG_DIR",
+                                                    "SVEMIR_HOME", "SVEMIR_SECRETS", "HOME", "USERPROFILE")}
 
     def tearDown(self):
         for k, v in self.saved.items():
@@ -38,6 +39,34 @@ class Credential(unittest.TestCase):
             os.environ["KAGGLE_CONFIG_DIR"] = d
             (pathlib.Path(d) / "kaggle.json").write_text(json.dumps({"username": "someone", "key": FAKE}), encoding="utf-8")
             self.assertEqual(ka.credential(), ("someone", FAKE))
+
+    def test_the_machines_own_secret_store_is_read_when_it_carries_the_pair(self):
+        """The key must be able to arrive through the channel that already holds every other key on
+        this body, so that nothing has to be typed into this repository to make Kaggle work."""
+        for k in ("KAGGLE_USERNAME", "KAGGLE_KEY", "KAGGLE_CONFIG_DIR"):
+            os.environ.pop(k, None)
+        with tempfile.TemporaryDirectory() as d:
+            os.environ["HOME"] = os.environ["USERPROFILE"] = d
+            store = pathlib.Path(d) / "data"
+            store.mkdir()
+            # a store holds many things; only the pair is looked for, by name
+            (store / "secrets.json").write_text(json.dumps(
+                {"something_else": "untouched", "kaggle_username": "someone", "kaggle_key": FAKE}), encoding="utf-8")
+            os.environ["SVEMIR_HOME"] = d
+            try:
+                self.assertEqual(ka.credential(), ("someone", FAKE))
+                # the nested shape too
+                (store / "secrets.json").write_text(json.dumps(
+                    {"kaggle": {"username": "someone", "key": FAKE}, "other": {"key": "not this one"}}), encoding="utf-8")
+                self.assertEqual(ka.credential(), ("someone", FAKE))
+                # a store with no pair says which NAMES it looked for, never what it found
+                (store / "secrets.json").write_text(json.dumps({"other": {"key": "not this one"}}), encoding="utf-8")
+                with self.assertRaises(ka.NoCredential) as cm:
+                    ka.credential()
+                self.assertIn("kaggle_key", str(cm.exception))
+                self.assertNotIn("not this one", str(cm.exception))
+            finally:
+                os.environ.pop("SVEMIR_HOME", None)
 
     def test_no_credential_says_what_to_do_and_does_not_crash_the_caller(self):
         for k in ("KAGGLE_USERNAME", "KAGGLE_KEY", "KAGGLE_CONFIG_DIR"):

@@ -6,10 +6,15 @@ acquire one for an HTTP call. Installing it here also failed twice on this body 
 externally managed; then `rpds-py` needed a rust build that does not complete), so the dependency
 would have cost more than it saved. The Kaggle API is HTTP with Basic authentication.
 
-Where the credential lives: `KAGGLE_USERNAME` + `KAGGLE_KEY` in the environment, or the file Kaggle
-itself hands out - `~/.kaggle/kaggle.json` - which is what "Create New Token" downloads. Nothing in
-this repository ever writes that file, and nothing here ever prints the key: `whoami()` returns the
-username and the key's length, never the key.
+Where the credential lives, in this order: `KAGGLE_USERNAME` + `KAGGLE_KEY` in the environment; the
+file Kaggle itself hands out (`~/.kaggle/kaggle.json`, what "Create New Token" downloads); or the
+secret store this machine already keeps, named by `SVEMIR_SECRETS` (a file) or `SVEMIR_HOME` (whose
+`data/secrets.json` is read). The last one exists so a key can arrive through the channel that already
+holds every other key on this body, instead of being typed into this repository.
+
+Nothing here ever WRITES a credential and nothing here ever prints one: `whoami()` returns the username
+and the key's LENGTH, an HTTP error carries the server's message and never the header, and a store that
+holds no pair is reported by the KEY NAMES that were looked for, never by what it contained.
 
 WHAT LEAVES THE MACHINE, EXACTLY. The observatory's own rule is that collection, the record and the
 permission evidence never leave this body, and that stays true: this tool is used by the model bench
@@ -43,24 +48,79 @@ class NoCredential(RuntimeError):
     pass
 
 
+# The shapes a store may use. A key is looked for BY NAME; nothing else in the file is touched, and
+# no value from it is ever returned except the pair itself.
+FLAT = (("username", "key"), ("kaggle_username", "kaggle_key"), ("KAGGLE_USERNAME", "KAGGLE_KEY"))
+NESTED = ((("kaggle", "username"), ("kaggle", "key")),)
+
+
+def _dig(d: dict, path: tuple):
+    cur = d
+    for step in path:
+        if not isinstance(cur, dict):
+            return None
+        cur = cur.get(step)
+    return cur if isinstance(cur, str) else None
+
+
+def _pair_from(d: dict) -> tuple[str, str] | None:
+    for un, kn in FLAT:
+        u, k = d.get(un), d.get(kn)
+        if isinstance(u, str) and isinstance(k, str) and u.strip() and k.strip():
+            return u.strip(), k.strip()
+    for upath, kpath in NESTED:
+        u, k = _dig(d, upath), _dig(d, kpath)
+        if u and k and u.strip() and k.strip():
+            return u.strip(), k.strip()
+    return None
+
+
+def stores() -> list[pathlib.Path]:
+    """Every place a credential may be kept, in the order it is trusted. Paths only - this list is
+    printable, and printing it reveals nothing."""
+    out: list[pathlib.Path] = []
+    cfg = os.environ.get("KAGGLE_CONFIG_DIR")
+    if cfg:
+        out.append(pathlib.Path(cfg) / "kaggle.json")
+    out.append(pathlib.Path.home() / ".kaggle" / "kaggle.json")
+    sec = os.environ.get("SVEMIR_SECRETS")
+    if sec:
+        out.append(pathlib.Path(sec))
+    home = os.environ.get("SVEMIR_HOME")
+    if home:
+        out.append(pathlib.Path(home) / "data" / "secrets.json")
+    return out
+
+
 def credential() -> tuple[str, str]:
-    """(username, key) from the environment or from the file Kaggle downloads. Never logged."""
+    """(username, key) from the environment, from the file Kaggle downloads, or from the secret store
+    this machine already keeps. Never logged, never written, never returned anywhere but here."""
     u, k = os.environ.get("KAGGLE_USERNAME"), os.environ.get("KAGGLE_KEY")
     if u and k:
         return u.strip(), k.strip()
-    for p in (pathlib.Path(os.environ.get("KAGGLE_CONFIG_DIR", "")) / "kaggle.json" if os.environ.get("KAGGLE_CONFIG_DIR") else None,
-              pathlib.Path.home() / ".kaggle" / "kaggle.json"):
-        if p and p.exists():
-            try:
-                d = json.loads(p.read_text(encoding="utf-8"))
-            except ValueError as e:
-                raise NoCredential(f"{p} is not valid JSON ({e})") from None
-            u, k = str(d.get("username") or "").strip(), str(d.get("key") or "").strip()
-            if u and k:
-                return u, k
-            raise NoCredential(f"{p} has no username/key pair")
-    raise NoCredential("no Kaggle credential: set KAGGLE_USERNAME and KAGGLE_KEY, or put the "
-                       "kaggle.json that 'Create New Token' downloads in ~/.kaggle/")
+    looked: list[str] = []
+    for p in stores():
+        if not p.exists():
+            continue
+        looked.append(str(p))
+        try:
+            d = json.loads(p.read_text(encoding="utf-8"))
+        except ValueError:
+            continue                 # a store may hold anything at all; a bad parse is not our business
+        if not isinstance(d, dict):
+            continue
+        got = _pair_from(d)
+        if got:
+            return got
+    names = ", ".join(sorted({n for pair in FLAT for n in pair}
+                             | {".".join(p) for up, kp in NESTED for p in (up, kp)}))
+    if looked:
+        raise NoCredential("a store exists but carries no Kaggle pair. These key names were looked "
+                           "for: " + names + ". Add the pair to the store you already use, or set "
+                           "KAGGLE_USERNAME and KAGGLE_KEY.")
+    raise NoCredential("no Kaggle credential: set KAGGLE_USERNAME and KAGGLE_KEY, put the "
+                       "kaggle.json that 'Create New Token' downloads in ~/.kaggle/, or point "
+                       "SVEMIR_SECRETS at the store this machine already keeps.")
 
 
 def _req(path: str, method: str = "GET", body: dict | None = None, timeout: int = 60) -> dict | list:
@@ -84,7 +144,8 @@ def _req(path: str, method: str = "GET", body: dict | None = None, timeout: int 
 def whoami() -> dict:
     """Prove the credential works without revealing it. Returns the username and the key's LENGTH."""
     u, k = credential()
-    out = {"username": u, "key_length": len(k), "key": "not shown"}
+    out = {"username": u, "key_length": len(k), "key": "not shown",
+           "stores_searched": [str(p) for p in stores()]}
     try:
         _req("/kernels/list?user=" + urllib.parse.quote(u) + "&pageSize=1")
         out["authenticated"] = True
