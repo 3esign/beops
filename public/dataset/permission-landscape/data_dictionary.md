@@ -1,6 +1,6 @@
 # Data dictionary — the permission landscape of a European capital
 
-Version 1.0, generated 2026-09-10T10:44:26.693788Z.
+Version 1.1, generated 2026-09-10T12:24:36.901191Z.
 
 ## sources.csv
 
@@ -9,7 +9,7 @@ Version 1.0, generated 2026-09-10T10:44:26.693788Z.
 | `source_id` | this project's internal identifier, stable across versions |
 | `theme` | the subject the source concerns, as this project classified it |
 | `kind` | what sort of thing the source is (a feed, a register, a catalogue, a refusal) |
-| `status` | **this project's reading of what the publisher's site said on the day it was read.** Not a legal characterisation and not a score. `probe_ok` the endpoint answered and nothing forbade us; `primary_page` the site was read but the specific local feed was not validated; `lead` recorded but not independently verified in this pass; `opted_out` the publisher declined; `no_coverage` the source exists but holds nothing for Belgrade; `needs_decision` an unresolved conflict, and therefore not collected; `collected` in the record |
+| `status` | **this project's reading of what the publisher's site said on the day it was read.** It is not a legal characterisation of any organisation, not a compliance score, and not a ranking. `probe_ok` the endpoint answered and nothing forbade us; `primary_page` the site was read but the specific local feed was not validated; `lead` recorded but not independently verified in this pass; `opted_out` the publisher declined; `no_coverage` the source exists but holds nothing for Belgrade; `needs_decision` an unresolved conflict, and therefore not collected; `collected` in the record |
 | `is_polled` | whether a collector actually asks this source on a schedule |
 | `has_stored_permission_evidence` | whether the bytes served when permission was checked are held on file with a hash |
 | `host` | the hostname, so rows can be grouped by publisher |

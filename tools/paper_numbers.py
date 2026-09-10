@@ -33,11 +33,25 @@ def load(p):
     return json.loads((ROOT / p).read_text(encoding="utf-8"))
 
 
+NO_VALUE = "(none written)"
+
+
+def named(c):
+    """A Counter's categories, with the absent one named rather than left as null.
+
+    Both of these tallies had a `None` key, so the paper's figures carried a category called `null`:
+    215 sources by status, and every derived drop by state. A reader cannot act on `null` - it does
+    not say whether the field was empty, absent, or never part of the vocabulary. Missing is not
+    zero, and it is not a category either; it is a thing nobody wrote down, and it gets said so.
+    """
+    return {(NO_VALUE if k is None else str(k)): v for k, v in c.most_common()}
+
+
 def registry():
     d = load("research/SOURCE_REGISTRY.json")
     c = Counter(s.get("status") for s in d["sources"])
     return {"records": len(d["sources"]), "reviewed_at": d.get("reviewed_at"),
-            "by_status": dict(c.most_common()), "opted_out": c.get("opted_out", 0),
+            "by_status": named(c), "opted_out": c.get("opted_out", 0),
             "needs_decision": c.get("needs_decision", 0)}
 
 
@@ -99,7 +113,7 @@ def mind():
                 continue
     total = sum(c.values())
     spoken = c.get("thought", 0) + c.get("rejected", 0)
-    return {"drops": total, "by_state": dict(c.most_common()),
+    return {"drops": total, "by_state": named(c),
             "refusal_rate_of_utterances": round(c.get("rejected", 0) / spoken, 3) if spoken else None}
 
 

@@ -46,7 +46,36 @@ OUT = ROOT / "public" / "dataset" / "permission-landscape"
 REG = ROOT / "research" / "SOURCE_REGISTRY.json"
 COLLECTORS = ROOT / "research" / "COLLECTORS.json"
 LEDGER = ROOT / "research" / "08-provenance" / "LEDGER.jsonl"
-VERSION = "1.0"
+VERSION = "1.1"
+
+# The sentence the dataset turns on. It is written once and quoted into both the dictionary and the
+# README, because when it lived in two places the two copies had already drifted: the README said
+# "not a compliance score, and not a ranking" and the dictionary said only "not a score".
+NOT_A_SCORE = ("not a legal characterisation of any organisation, not a compliance score, "
+               "and not a ranking")
+
+# Every version that was ever generated, and why it is not the previous one. A published dataset
+# whose text changes while its version does not is a quiet edit, which is the thing this project
+# exists to refuse.
+# Exactly what this dataset is. The manifest is built from this list and not from whatever happens
+# to be lying in the directory: v1.0 published a working note that had been left there, because the
+# manifest was a directory listing. A file in the folder that is not named here stops the build.
+PUBLISHED = ("sources.csv", "refusals.csv", "captures.csv", "data_dictionary.md",
+             "README.md", "CHANGES.md", "zenodo.json")
+
+CHANGES = [
+    ("1.1", "2026-09-10",
+     "Three corrections, none of them to a row. (a) The data dictionary's caveat on `status` was "
+     "shorter than the README's and had lost \"compliance score\" and \"ranking\"; both now quote "
+     "one sentence held in one place. (b) `zenodo.json` was written by hand while stating that it "
+     "had been generated from the record; it is now generated from the record, and carries the "
+     "version it describes, which it did not before. (c) v1.0's manifest was a listing of the "
+     "directory, so a working note left in that folder was published as part of the dataset; the "
+     "manifest is now built from a declared list and a file that is not on it stops the build. "
+     "The CSVs of 1.1 are byte-identical to those of 1.0, verified by hash."),
+    ("1.0", "2026-09-10", "First publication: 215 sources reviewed, the refusals named, the "
+     "permission captures listed by hash."),
+]
 
 LICENCE = "CC BY 4.0"
 CITE = ("Golubović Matić, D., & Poturak, S. (2026). The permission landscape of a European capital: "
@@ -129,7 +158,7 @@ Version {VERSION}, generated {made}.
 | `source_id` | this project's internal identifier, stable across versions |
 | `theme` | the subject the source concerns, as this project classified it |
 | `kind` | what sort of thing the source is (a feed, a register, a catalogue, a refusal) |
-| `status` | **this project's reading of what the publisher's site said on the day it was read.** Not a legal characterisation and not a score. `probe_ok` the endpoint answered and nothing forbade us; `primary_page` the site was read but the specific local feed was not validated; `lead` recorded but not independently verified in this pass; `opted_out` the publisher declined; `no_coverage` the source exists but holds nothing for Belgrade; `needs_decision` an unresolved conflict, and therefore not collected; `collected` in the record |
+| `status` | **this project's reading of what the publisher's site said on the day it was read.** It is {NOT_A_SCORE}. `probe_ok` the endpoint answered and nothing forbade us; `primary_page` the site was read but the specific local feed was not validated; `lead` recorded but not independently verified in this pass; `opted_out` the publisher declined; `no_coverage` the source exists but holds nothing for Belgrade; `needs_decision` an unresolved conflict, and therefore not collected; `collected` in the record |
 | `is_polled` | whether a collector actually asks this source on a schedule |
 | `has_stored_permission_evidence` | whether the bytes served when permission was checked are held on file with a hash |
 | `host` | the hostname, so rows can be grouped by publisher |
@@ -181,8 +210,9 @@ Status breakdown: {', '.join(f'{k} {v}' for k, v in sorted(counts.items(), key=l
 
 ## Files
 
-`sources.csv` · `refusals.csv` · `captures.csv` · `data_dictionary.md` — **read the data dictionary
-before the CSVs.** It says what a status is and, more importantly, what it is not.
+{' · '.join('`' + n + '`' for n in PUBLISHED)} — and `MANIFEST.json`, which holds the sha256 and
+byte length of each. **Read the data dictionary before the CSVs.** It says what a status is and, more
+importantly, what it is not. `CHANGES.md` says what each version is not, relative to the one before it.
 
 ## How to cite
 
@@ -190,8 +220,8 @@ before the CSVs.** It says what a status is and, more importantly, what it is no
 
 ## What this is honest about
 
-- A status is a reading of what a site said on one day, in the reviewer's words. It is not a legal
-  characterisation of any organisation, not a compliance score, and not a ranking.
+- A status is a reading of what a site said on one day, in the reviewer's words. It is
+  {NOT_A_SCORE}.
 - The source list is incomplete and its gaps are not random: it was assembled by reading robots files
   and terms pages rather than by reading the statute, and it under-represents official publishers,
   who are exactly the ones whose material is least encumbered.
@@ -205,7 +235,68 @@ The dataset is offered under **{LICENCE}**. It contains this project's own descr
 It contains no third-party content, no measurement values, and no personal data.
 """, encoding="utf-8")
 
-    files = sorted(p for p in OUT.iterdir() if p.is_file() and p.name != "MANIFEST.json")
+    (OUT / "CHANGES.md").write_text(
+        "# Changes\n\nEach version of this dataset says what it is not, relative to the one before "
+        "it. Older versions are not rewritten.\n\n"
+        + "\n".join(f"## {v} — {d}\n\n{what}\n" for v, d, what in CHANGES),
+        encoding="utf-8")
+
+    (OUT / "zenodo.json").write_text(json.dumps(
+        {"metadata": {
+            "upload_type": "dataset",
+            "title": ("The permission landscape of a European capital: "
+                      f"{len(srcs)} public data sources reviewed for a city observatory"),
+            "version": VERSION,
+            "publication_date": made[:10],
+            "creators": [
+                {"name": "Golubović Matić, Darinka",
+                 "affiliation": "Univerzitet Union — Nikola Tesla, Belgrade"},
+                {"name": "Poturak, Semir",
+                 "affiliation": "Univerzitet Union — Nikola Tesla, Belgrade"}],
+            "description": (
+                "<p>A city-scale evidence instrument can be built for nothing. What cannot be bought"
+                " is permission. This dataset is the measurement of that: every public source"
+                " considered for the Belgrade Evidence Observatory for Public Signals (BEOPS), what"
+                " was decided about it, why, and whether the bytes that justified the decision are on"
+                f" file.</p><p>It contains {len(srcs)} reviewed sources with the reviewer's own"
+                f" written reason for each, the {len(refusals)} that declined on their own, and one"
+                f" row per stored permission capture ({len(ledger)}) with its SHA-256. It contains no"
+                " captured bytes (third-party content held as evidence, not as publication), no"
+                " headline text, no personal data and no measurement values.</p><p><strong>What a"
+                " status is not.</strong> A status is this project's reading of what a publisher's"
+                f" site said on the day it was read. It is {NOT_A_SCORE}; <em>opted_out</em> means an"
+                " organisation declined to be a source for this project, and several of those are"
+                " routine terms-of-use statements never addressed to us. Read"
+                " <code>data_dictionary.md</code> before the CSVs.</p><p><strong>Known bias, stated"
+                " against our own interest.</strong> The source list is incomplete and its gaps are"
+                " not random: it was assembled by reading robots files and terms pages rather than by"
+                " reading the statute, and it under-represents official publishers, whose material is"
+                " least encumbered.</p>"),
+            "access_right": "open",
+            "license": "cc-by-4.0",
+            "language": "eng",
+            "keywords": ["urban observatory", "open data", "data access",
+                         "web scraping permission", "robots.txt", "provenance", "Belgrade",
+                         "Serbia", "research data governance", "city dashboards", "ISO 37120"],
+            "related_identifiers": [{"identifier": "https://github.com/3esign/beops",
+                                     "relation": "isSupplementTo", "resource_type": "software"}],
+            "notes": ("Generated by tools/export_permission_dataset.py from the observatory's own"
+                      " registry, provenance ledger and collector configuration. Every figure in it"
+                      " is read from the files that hold it; none is typed by hand."),
+        }}, ensure_ascii=False, indent=1), encoding="utf-8")
+
+    stray = sorted(p.name for p in OUT.iterdir()
+                   if p.is_file() and p.name != "MANIFEST.json" and p.name not in PUBLISHED)
+    if stray:
+        raise SystemExit(
+            "export_permission_dataset: %s is in the dataset folder and not in PUBLISHED. "
+            "v1.0 published a working note this way. Either add it to PUBLISHED deliberately or "
+            "move it out of public/." % ", ".join(stray))
+    missing = [n for n in PUBLISHED if not (OUT / n).exists()]
+    if missing:
+        raise SystemExit("export_permission_dataset: declared but not written: %s" % ", ".join(missing))
+
+    files = [OUT / n for n in PUBLISHED]
     manifest = {"schema": "beops-dataset/v1", "name": "permission-landscape", "version": VERSION,
                 "generated_at": made, "licence": LICENCE, "cite_as": CITE,
                 "counts": {"sources": len(srcs), "refusals": len(refusals), "captures": len(ledger),

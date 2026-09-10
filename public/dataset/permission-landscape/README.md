@@ -1,7 +1,7 @@
 # The permission landscape of a European capital
 
 **215 public data sources reviewed for a city observatory, with the reasons.**
-Version 1.0 · generated 2026-09-10T10:44:26.693788Z · licence **CC BY 4.0**
+Version 1.1 · generated 2026-09-10T12:24:36.901191Z · licence **CC BY 4.0**
 
 A city-scale evidence instrument can be built for nothing. What cannot be bought is permission. This
 dataset is the measurement of that: every source considered for the Belgrade Evidence Observatory,
@@ -19,17 +19,18 @@ Status breakdown: probe_ok 119, primary_page 27, lead 26, opted_out 14, no_cover
 
 ## Files
 
-`sources.csv` · `refusals.csv` · `captures.csv` · `data_dictionary.md` — **read the data dictionary
-before the CSVs.** It says what a status is and, more importantly, what it is not.
+`sources.csv` · `refusals.csv` · `captures.csv` · `data_dictionary.md` · `README.md` · `CHANGES.md` · `zenodo.json` — and `MANIFEST.json`, which holds the sha256 and
+byte length of each. **Read the data dictionary before the CSVs.** It says what a status is and, more
+importantly, what it is not. `CHANGES.md` says what each version is not, relative to the one before it.
 
 ## How to cite
 
-> Golubović Matić, D., & Poturak, S. (2026). The permission landscape of a European capital: 215 public data sources reviewed for a city observatory (v1.0) [Data set]. Belgrade Evidence Observatory for Public Signals (BEOPS).
+> Golubović Matić, D., & Poturak, S. (2026). The permission landscape of a European capital: 215 public data sources reviewed for a city observatory (v1.1) [Data set]. Belgrade Evidence Observatory for Public Signals (BEOPS).
 
 ## What this is honest about
 
-- A status is a reading of what a site said on one day, in the reviewer's words. It is not a legal
-  characterisation of any organisation, not a compliance score, and not a ranking.
+- A status is a reading of what a site said on one day, in the reviewer's words. It is
+  not a legal characterisation of any organisation, not a compliance score, and not a ranking.
 - The source list is incomplete and its gaps are not random: it was assembled by reading robots files
   and terms pages rather than by reading the statute, and it under-represents official publishers,
   who are exactly the ones whose material is least encumbered.
