@@ -55,6 +55,22 @@ def proj(lat: float, lon: float) -> tuple[float, float]:
     return cx + (lon - BB["lo0"]) * kx * s, cy + (BB["la1"] - lat) * s
 
 
+def inside(lat: float, lon: float) -> bool:
+    """Whether an instrument falls within the drawn frame.
+
+    One Sensor.Community sensor does not. It sits north of the window the pulse map uses, projects
+    twelve pixels above the top edge, and was counted in the legend while being invisible on the
+    page: the map said one number and showed one fewer. An instrument outside the frame is not
+    dropped from the counts - it exists - but it is now said out loud instead of quietly clipped.
+    """
+    x, y = proj(lat, lon)
+    return 0 <= x <= W and 0 <= y <= H
+
+
+def off_frame(pts: list, sid: str = None) -> int:
+    return sum(1 for p in pts if (sid is None or p["sid"] == sid) and not inside(p["lat"], p["lon"]))
+
+
 def esc(s: str) -> str:
     return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
@@ -127,14 +143,18 @@ def map_instruments(bm: dict, snap: dict, pts: list[dict]) -> str:
     body = [base_layers(bm)]
     # citizen sensors first (small), then parking (square), then SEPA (large, named)
     for p in pts:
+        if not inside(p["lat"], p["lon"]):
+            continue
         x, y = proj(p["lat"], p["lon"])
         if p["sid"] == "S04":
             body.append(f"<circle cx='{x:.1f}' cy='{y:.1f}' r='2.6' fill='{INK60}'/>")
     for p in pts:
+        if not inside(p["lat"], p["lon"]):
+            continue
         x, y = proj(p["lat"], p["lon"])
         if p["sid"] == "S10":
             body.append(f"<rect x='{x-3:.1f}' y='{y-3:.1f}' width='6' height='6' fill='none' stroke='{INK}' stroke-width='1.2'/>")
-    sepa = [p for p in pts if p["sid"] == "S146"]
+    sepa = [p for p in pts if p["sid"] == "S146" and inside(p["lat"], p["lon"])]
     for p in sepa:
         x, y = proj(p["lat"], p["lon"])
         body.append(f"<circle cx='{x:.1f}' cy='{y:.1f}' r='5' fill='{PAPER}' stroke='{INK}' stroke-width='1.6'/>")
@@ -155,13 +175,16 @@ def map_instruments(bm: dict, snap: dict, pts: list[dict]) -> str:
             body.append(f"<line x1='{x:.1f}' y1='{y:.1f}' x2='{lx - 2:.1f}' y2='{ty - 3:.1f}' stroke='{INK30}' stroke-width='.8'/>")
         body.append(f"<text x='{lx:.1f}' y='{ty:.1f}' {FONT} font-size='10.5' fill='{INK}' paint-order='stroke' stroke='{PAPER}' stroke-width='3' stroke-linejoin='round'>{esc(p['station'])}</text>")
     n = {k: sum(1 for p in pts if p["sid"] == k) for k in ("S146", "S04", "S10")}
+    off = {k: off_frame(pts, k) for k in ("S146", "S04", "S10")}
+    def _off(k):
+        return f" - {off[k]} outside this frame, not drawn" if off[k] else ""
     legend = [
         f"<circle cx='22' cy='24' r='5' fill='{PAPER}' stroke='{INK}' stroke-width='1.6'/><circle cx='22' cy='24' r='1.6' fill='{INK}'/>",
-        f"<text x='34' y='28' {FONT} font-size='12' fill='{INK}'>SEPA air-quality station ({n['S146']}) - hourly means, measurement interval published</text>",
+        f"<text x='34' y='28' {FONT} font-size='12' fill='{INK}'>SEPA air-quality station ({n['S146']}){_off('S146')} - hourly means, measurement interval published</text>",
         f"<circle cx='22' cy='46' r='2.6' fill='{INK60}'/>",
-        f"<text x='34' y='50' {FONT} font-size='12' fill='{INK}'>Sensor.Community citizen sensor ({n['S04']}) - one reading every few minutes, timestamp published</text>",
+        f"<text x='34' y='50' {FONT} font-size='12' fill='{INK}'>Sensor.Community citizen sensor ({n['S04']}){_off('S04')} - one reading every few minutes, timestamp published</text>",
         f"<rect x='19' y='63' width='6' height='6' fill='none' stroke='{INK}' stroke-width='1.2'/>",
-        f"<text x='34' y='71' {FONT} font-size='12' fill='{INK}'>Parking Servis lot ({n['S10']}) - displayed free spaces, NO measurement time published</text>",
+        f"<text x='34' y='71' {FONT} font-size='12' fill='{INK}'>Parking Servis lot ({n['S10']}){_off('S10')} - displayed free spaces, NO measurement time published</text>",
     ]
     body.append(f"<g transform='translate(0 {H - 74 - 44 - 8})'><rect x='8' y='8' width='640' height='74' fill='{PAPER}' fill-opacity='.94' stroke='{INK12}'/>" + "".join(legend) + "</g>")
     body.append(caption([f"Instruments the observatory listens to, at the coordinates their operators publish  ·  snapshot {snap['as_of'][:16]}Z  ·  WGS84",
@@ -189,7 +212,11 @@ def map_coverage(bm: dict, snap: dict, pts: list[dict]) -> str:
         y += step
     for b, dots in sorted(buckets.items()):
         body.append(f"<g fill='{INK}' fill-opacity='{(b + .5) / 8 * 0.22:.3f}'>" + "".join(dots) + "</g>")
+    # P stays whole for the distance field - an instrument just outside the frame still covers ground
+    # inside it - but only the marks that fit are drawn, and the caption says how many did not.
     for px, py in P:
+        if not (0 <= px <= W and 0 <= py <= H):
+            continue
         body.append(f"<circle cx='{px:.1f}' cy='{py:.1f}' r='1.8' fill='{INK30}'/>")
     # scale bar: 5 km at this latitude
     km5 = (5 / (111.32 * math.cos(44.8 * math.pi / 180))) * (proj(44.8, 20.5)[0] - proj(44.8, 20.4)[0]) / 0.1
@@ -199,7 +226,10 @@ def map_coverage(bm: dict, snap: dict, pts: list[dict]) -> str:
     body.append(f"<rect x='8' y='8' width='560' height='52' fill='{PAPER}' fill-opacity='.92' stroke='{INK12}'/>")
     body.append(f"<text x='18' y='28' {FONT} font-size='12' font-weight='700' fill='{INK}'>Where the observatory can and cannot hear the city</text>")
     body.append(f"<text x='18' y='46' {FONT} font-size='11.5' fill='{INK60}'>Stipple density rises with distance to the nearest instrument ({len(pts)} instruments). Computed from our own coordinates only - no borrowed cartography.</text>")
-    body.append(caption([f"Coverage field  ·  {len(pts)} instruments with a published coordinate  ·  snapshot {snap['as_of'][:16]}Z  ·  WGS84",
+    n_off = off_frame(pts)
+    body.append(caption([f"Coverage field  ·  {len(pts)} instruments with a published coordinate"
+                         + (f", {n_off} outside this frame, counted and not drawn" if n_off else "")
+                         + f"  ·  snapshot {snap['as_of'][:16]}Z  ·  WGS84",
                          "Ground: Natural Earth 1:10m (public domain) - generalised, orientation not measurement"]))
     return svg("\n".join(body), "Map 2 - Coverage")
 
@@ -210,9 +240,13 @@ def map_last24h(bm: dict, snap: dict, pts: list[dict]) -> str:
     heard = [p for p in pts if p["rx"] > 0]
     silent = [p for p in pts if p["rx"] == 0]
     for p in silent:
+        if not inside(p["lat"], p["lon"]):
+            continue
         x, y = proj(p["lat"], p["lon"])
         body.append(f"<circle cx='{x:.1f}' cy='{y:.1f}' r='3.2' fill='none' stroke='{INK30}' stroke-width='1' stroke-dasharray='2 2'/>")
     for p in heard:
+        if not inside(p["lat"], p["lon"]):
+            continue
         x, y = proj(p["lat"], p["lon"])
         col = UNTIMED if p["untimed"] else SIGNAL
         r = 5 if p["sid"] == "S146" else 3.2
@@ -235,7 +269,10 @@ def map_last24h(bm: dict, snap: dict, pts: list[dict]) -> str:
         L.append(f"<text x='18' y='{y}' {MONO} font-size='10.5' fill='{INK60}'>{esc(r)}</text>")
         y += 16
     body.append(f"<g transform='translate(0 {H - bh - 44 - 8})'>" + "".join(L) + "</g>")
-    body.append(caption([f"Receptions in the 24 h to {snap['as_of'][:16]}Z  ·  {len(heard)} instruments heard, {len(silent)} silent  ·  a silence is a record, not a zero",
+    n_off = off_frame(pts)
+    body.append(caption([f"Receptions in the 24 h to {snap['as_of'][:16]}Z  ·  {len(heard)} instruments heard, {len(silent)} silent"
+                         + (f"  ·  {n_off} outside this frame, counted and not drawn" if n_off else "")
+                         + "  ·  a silence is a record, not a zero",
                          "Ground: Natural Earth 1:10m (public domain) - generalised, orientation not measurement"]))
     return svg("\n".join(body), "Map 3 - The last 24 hours")
 
@@ -298,7 +335,9 @@ def main() -> int:
     meta = {"made_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "snapshot_as_of": snap["as_of"], "basemap": bm.get("note"), "basemap_source": bm.get("source"),
             "instruments": len(pts), "by_source": {k: sum(1 for p in pts if p["sid"] == k) for k in sorted({p["sid"] for p in pts})},
-            "heard": sum(1 for p in pts if p["rx"] > 0), "silent": sum(1 for p in pts if p["rx"] == 0), "files": made,
+            "heard": sum(1 for p in pts if p["rx"] > 0), "silent": sum(1 for p in pts if p["rx"] == 0),
+            "outside_frame": off_frame(pts),
+            "outside_frame_by_source": {k: off_frame(pts, k) for k in sorted({p["sid"] for p in pts})}, "files": made,
             "context_population": (json.loads(CONTEXT_POP.read_text(encoding="utf-8")).get("source") if CONTEXT_POP.exists() else None),
             "rule": "Nothing drawn that basemap-belgrade.json and live-snapshot.json do not contain."}
     (OUT / "MAPS.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1), encoding="utf-8")

@@ -12,23 +12,22 @@ declared, because a state nobody wrote down is a state nobody decided.
 """
 import json
 import pathlib
+import sys
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "tools"))
+import record  # noqa: E402
 DECL = ROOT / "research" / "STATES.json"
 LIVE = ROOT / "data" / "live"
 SNAP = ROOT / "public" / "live-snapshot.json"
 
 
 def rows(p):
+    """Streamed, never slurped: one of these files is 41 MB and reading it whole once cost the
+    publish gate a MemoryError on a machine with 592 MB free."""
     for f in sorted(p.glob("*.jsonl")) if p.exists() else []:
-        for ln in f.read_text(encoding="utf-8", errors="replace").splitlines():
-            ln = ln.strip()
-            if ln.startswith("{"):
-                try:
-                    yield json.loads(ln)
-                except ValueError:
-                    continue
+        yield from record.objects(f)
 
 
 class Declared(unittest.TestCase):

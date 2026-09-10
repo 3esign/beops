@@ -21,6 +21,7 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
+import record  # noqa: E402
 
 REG = ROOT / "research" / "SOURCE_REGISTRY.json"
 NAMES = ROOT / "research" / "REFUSER_NAMES.json"
@@ -101,14 +102,7 @@ class Rule(unittest.TestCase):
             if not d.is_dir() or d.name in self.refusers:
                 continue
             for f in sorted(d.glob("*.jsonl")):
-                for ln in f.read_text(encoding="utf-8", errors="replace").splitlines():
-                    ln = ln.strip()
-                    if not ln.startswith("{"):
-                        continue
-                    try:
-                        r = json.loads(ln)
-                    except ValueError:
-                        continue
+                for r in record.objects(f):
                     if r.get("parameter") != "headline":
                         continue
                     if any(n in fold(r.get("result") or "") for n in self.watch):

@@ -19,10 +19,13 @@ assertion, written as a property of any source rather than as a fact about SEPA:
 """
 import json
 import pathlib
+import sys
 import unittest
 from datetime import datetime
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "tools"))
+import record  # noqa: E402
 ROWS = ROOT / "data" / "live" / "rows"
 COLLECTORS = ROOT / "research" / "COLLECTORS.json"
 
@@ -52,14 +55,7 @@ def scan():
             continue
         c = {"timed": 0, "early": 0, "corrected": 0, "estimated": 0}
         for f in sorted(d.glob("*.jsonl")):
-            for ln in f.read_text(encoding="utf-8", errors="replace").splitlines():
-                ln = ln.strip()
-                if not ln.startswith("{"):
-                    continue
-                try:
-                    r = json.loads(ln)
-                except ValueError:
-                    continue
+            for r in record.objects(f):
                 if r.get("phenomenonTimeUnknown"):
                     continue
                 pt = r.get("phenomenonTime")

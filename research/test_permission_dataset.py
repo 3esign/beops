@@ -16,6 +16,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 import export_permission_dataset as ex  # noqa: E402
+import record  # noqa: E402
 
 OUT = ROOT / "public" / "dataset" / "permission-landscape"
 
@@ -64,14 +65,7 @@ class Dataset(unittest.TestCase):
             if not d.is_dir():
                 continue
             for f in sorted(d.glob("*.jsonl")):
-                for ln in f.read_text(encoding="utf-8", errors="replace").splitlines()[:400]:
-                    ln = ln.strip()
-                    if not ln.startswith("{"):
-                        continue
-                    try:
-                        r = json.loads(ln)
-                    except ValueError:
-                        continue
+                for r in record.objects(f, limit=400):     # it wanted 400 lines and read 41 MB
                     if r.get("parameter") == "headline" and isinstance(r.get("result"), str) and len(r["result"]) > 30:
                         heads.append(r["result"])
             if len(heads) > 25:

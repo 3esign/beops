@@ -2147,3 +2147,112 @@ a real run may append to is not a record of runs.
 I raised this as a suspicion at the end of C-052 and it did not survive contact with the measurement.
 Flagging something as unaudited is not the same as finding it wrong, and the entry that flagged it was
 written in a half-hour when two other things had just turned out to be wrong. The number was fine.
+
+## C-054 — the map counted an instrument it did not draw, and 47 KB of drawing code had no test
+
+**Written at the commit that carries this entry.** The C-050 sweep listed `make_layers.py` (28 KB) and
+`make_maps.py` (19 KB) as the largest surfaces in the project that nothing tested. They draw the
+scheme on the landing page and the three maps cited in the paper. Both now have tests, and writing
+them found a defect on the first run.
+
+### What the maps were doing
+
+**The legend said 53 citizen sensors. The map drew 52.**
+
+One Sensor.Community sensor sits north of the window the maps use. Its coordinate projects to twelve
+pixels above the top edge of the frame, so the browser clipped it and nobody saw it go. The legend
+counted it, because the legend counts the register; the ground did not show it, because the ground
+only shows what fits. A reader counting dots and reading the legend gets two different numbers and no
+way to find out which is right.
+
+The same mark was drawn off-frame on the coverage map. On the last-24-hours map it was counted among
+the instruments heard and not drawn either.
+
+This is the failure this project is least entitled to make: **a number in a picture that the picture
+does not support.** It is C-028's family — the drawing was 1108×831 and the city used the middle third
+of it — and the reason it survived is that nobody reads a picture the way they read a table.
+
+### Correction
+
+An instrument outside the frame is **not dropped from the counts** — it exists, it is in the record,
+and a map that quietly shrinks its own subject is worse than one that admits an edge. It is said out
+loud instead:
+
+- the legend now reads `Sensor.Community citizen sensor (53) - 1 outside this frame, not drawn`
+- the coverage and last-24-hours captions state how many were counted and not drawn
+- `MAPS.json` records `outside_frame` and `outside_frame_by_source`
+- the coverage field still uses every instrument, including the one outside: a sensor just beyond the
+  edge still covers ground inside it, and pretending otherwise would put a false hole in the field
+
+### The tests
+
+`research/test_make_maps.py` — every point drawn is an instrument with a coordinate the snapshot
+publishes; every name beside a dot is that instrument's own; the legend's counts are the marks
+actually on the ground; a hollow mark means nothing was received and is counted as such; **no mark is
+drawn outside the frame, and anything outside is stated on the face of the map**; every map names the
+ground it is drawn on and the refusal that removed the boundaries; the same files draw the same map
+twice; an empty snapshot draws nothing rather than inventing a dot.
+
+`research/test_make_layers.py` — the polled sources are split between live and periodic without being
+double-counted or dropped; one clock per periodic source and one ring per live source; the record
+count written under the slab is the registry's; the static-layer count in the label is the register's;
+the five states and no sixth, checked against `STATES.json`; every label exists in both languages and
+no label belongs to neither; the ground and the census are named where they are drawn; the drawing is
+well-formed and identical from identical registers; and **nothing overhangs the law** — the editor's
+rule of 9 September, checked as geometry against the polygons actually emitted.
+
+### Two things the tests got wrong first, worth recording
+
+The law test looked for plates with `class="top"` and found none, because a plate is `top plain` or
+`top accent`; it reported "no stratum plate is in the drawing" about a drawing full of them. And the
+test for the registry count searched the SVG for a phrase that is plainly on the page — the drawing
+wraps a line at 66 characters into separate elements, so the phrase exists on screen and in no single
+element. **A test that reads an artefact has to read it the way it is written, not the way it looks.**
+
+## C-055 — the gate can be killed by the size of the record it guards
+
+**Written at the commit that carries this entry.** Found by the publish gate refusing a correct
+commit: six tests died with `MemoryError`, none of them because anything was wrong.
+
+### What was measured
+
+`data/live/rows` is **78.5 MB across 28 files**. Two of them carry almost all of it: 41.3 MB for the
+citizen sensors and 31.2 MB for the SEPA stations. The machine had **592 MB of 8.3 GB free** when the
+suite ran.
+
+Five tests read those files with `read_text(...).splitlines()` or `read_bytes().splitlines()`, which
+holds the whole file *and* a list of every line in it — several hundred megabytes for one 41 MB file,
+repeated for each test. One of them, in the permission-dataset test, wanted **the first 400 lines**
+and read all 41 MB to get them.
+
+### Why this matters more than the day it happened
+
+The gate refused, nothing was committed and nothing was published, which is the right direction to
+fail in. But the reason it refused had nothing to do with whether the commit was correct.
+
+**A gate that fails for reasons unrelated to correctness is a gate whose refusals stop meaning
+something.** If it cries wolf often enough, the habit becomes to re-run it until it passes — and the
+run that finally passes is the one that proves nothing. This one would have started doing that on its
+own: the row files grow every ten minutes, so the only question was which month.
+
+The record outgrowing the tools that read it is not a bug in any one line. It is what happens to an
+instrument that keeps running.
+
+### Correction
+
+`tools/record.py` — one place that knows how to read a record larger than memory: `lines`,
+`count_lines`, `objects` (with an optional limit that stops reading at the limit), `files` and
+`all_objects`. Nothing in it holds a whole row file, and nothing holds a list of its lines.
+
+Converted to stream: `test_source_clock.py`, `test_states.py`, `test_refusal_route.py`,
+`test_paper_numbers.py`, `test_permission_dataset.py`, and `paper_numbers.mind()`.
+`paper_numbers.rows_on_disk()` was already streaming and is left alone.
+
+### What is not fixed
+
+**Why the machine had 592 MB free is not a code question and is not answered here.** It is on the
+open list, and it is worth answering: an instrument that shares a machine with whatever else is
+running on it can be stopped by that other thing at any time, and today it was.
+
+Nor is there yet a test that the suite runs within a memory bound. The suite is now much cheaper to
+run, which is not the same as being bounded.

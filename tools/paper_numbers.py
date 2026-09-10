@@ -104,14 +104,10 @@ def history():
 
 def mind():
     c = Counter()
+    import record
     for p in (ROOT / "data" / "live" / "derived" / "mind").rglob("*.jsonl"):
-        for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
-            if not line.strip():
-                continue
-            try:
-                c[json.loads(line).get("state")] += 1
-            except ValueError:
-                continue
+        for r in record.objects(p):
+            c[r.get("state")] += 1
     total = sum(c.values())
     spoken = c.get("thought", 0) + c.get("rejected", 0)
     return {"drops": total, "by_state": named(c),

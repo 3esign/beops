@@ -23,6 +23,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 import paper_numbers as pn  # noqa: E402
+import record  # noqa: E402
 
 
 def flat(v, prefix=""):
@@ -83,7 +84,7 @@ class Figures(unittest.TestCase):
         never be larger than what is on disk by more than the record could have grown."""
         n = 0
         for f in (ROOT / "data" / "live" / "rows").rglob("*.jsonl"):
-            n += sum(1 for line in f.read_bytes().splitlines() if line.strip())
+            n += record.count_lines(f)
         self.assertIn("rows", pn.LIVE, "the row count is read from a record that is still being written")
         drift = n - self.out["rows"]["rows"]
         self.assertGreaterEqual(drift, 0, "the record on disk is smaller than the figure claims")
