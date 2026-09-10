@@ -1,7 +1,7 @@
 # The permission landscape of a European capital
 
 **215 public data sources reviewed for a city observatory, with the reasons.**
-Version 1.1 · generated 2026-09-10T19:56:13.900080Z · licence **CC BY 4.0**
+Version 1.1 · generated 2026-09-10T20:04:49.902726Z · licence **CC BY 4.0**
 
 A city-scale evidence instrument can be built for nothing. What cannot be bought is permission. This
 dataset is the measurement of that: every source considered for the Belgrade Evidence Observatory,
