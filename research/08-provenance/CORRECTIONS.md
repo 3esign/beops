@@ -1522,3 +1522,92 @@ every hand-typed figure in this project eventually has.
 
 **Nothing observed was changed.** No stored row was touched, and no headline was removed, reworded or
 withheld.
+
+## C-044 — C-026, C-027 and C-028 were written down, in the code they fixed, and never carried here
+
+**2026-09-10, 13:20 UTC.** Filed late and dated today. Nothing here is back-dated, and nothing below is
+reconstructed from memory: every quotation is taken verbatim from the comment that has been sitting in
+the published files since the fix, and every commit is named.
+
+**What C-039 got wrong, and it is the fourth time today the same shape has appeared.** That entry said
+three ids were "referenced by other entries and heading none of their own", and the pre-paper addendum
+called them "corrections that were made, and cited, and never written down". They *were* written
+down — as comments in the code they fixed, which is where a reader of that code will find them and
+where the fix cannot drift away from its reason. What they were never given is an entry **here**, in
+the ledger, which is the record's public claim about its own failures. A comment in a built HTML file
+is not that claim.
+
+So the defect is narrower and more interesting than "three corrections went missing": **the project has
+two places where a correction can be recorded, and only one of them is the record.**
+
+### C-026 — a frame that gains a scrollbar changes its own width, and everything centred in it slides
+
+First in `4ac26ee`, extended in `212e82d` and `8b0a40b`. The comment, still in `docs/index.html`,
+`monolog.html`, `podaci.html`, `sada.html` and `traka.html`:
+
+> *"a frame whose own document gains or loses a scrollbar changes its content width, and anything
+> centred inside it slides sideways. Reserve the gutter so the picture only moves when the data
+> moves."*
+
+And in `index.html`, the last of it:
+
+> *"Switching a parameter changes how many stations have a value, so the table under the map gets
+> longer or shorter, so the frame reports a different height, so the page crosses the height at which
+> the window scrollbar appears…"*
+
+A chain of four consequences from one hidden cause, which is why it took three commits to finish.
+`scrollbar-gutter: stable` on the root of every frame and of the page.
+
+### C-027 — the map is the rectangle, and the feed was reading three lines at a time
+
+`027f972`. Two halves, both still commented in `podaci.html` and `monolog-puls.html`:
+
+> *"The map is the rectangle, not a square inside it. The drawing box now takes the whole width and
+> gets its height from the ground it draws: the basemap's own bounds, measured once, become the box's
+> aspect ratio."*
+
+> *"The feed and the three minds were reading three lines at a time because the frame's height is
+> whatever its content asks for, and they were asking for very little. They ask for a proper column
+> now, and the reader can change it."*
+
+Cited later by **C-030**, which recorded that the theme was verified after C-027 by measuring the
+background colour each frame resolved to — a check that was correct in both themes and blind to the
+defect C-030 then found.
+
+### C-028 — the drawing was 1108×831 and the city used the middle third of it
+
+`81865a3`. Still commented in `podaci.html` and `monolog-puls.html`:
+
+> *"The drawing was 1108x831 and the city used the middle third of it: the frame's bounds run to
+> 44.98 N, but nothing we hear is north of Zemun and nothing south of Obrenovac. So the box is a 1.85
+> rectangle now — shorter than the ground it draws."*
+
+### And a mis-citation inside this ledger, which is the reason to check rather than to tidy
+
+**C-029 says:** *"C-028 fixed every tile in the NOW panel to one height and recorded that the panel no
+longer changes height with the range."*
+
+That is not what C-028 was. The tile-height fix is `275b9b7` — *"every tile has one height in every
+range"* — and it carries **no id at all**, in the code or anywhere else. It also landed **before** the
+string `C-028` existed in this repository: `git log -S"C-028"` puts its first appearance in `81865a3`,
+eleven commits later. So C-029 reached for the id of the commit immediately before it and attached it
+to a different fix.
+
+**C-029 is left exactly as written.** This entry is the correction to it, which is what an append-only
+file is for. What follows from it:
+
+- the tile-height fix of `275b9b7` has never had an id and does not get one now — inventing one today
+  to fill a gap would be the same act as back-dating;
+- **C-028 means the map rectangle**, on the evidence of the code and the commit order, and any future
+  reader who follows C-029's sentence will land in the wrong place unless they read this;
+- the pre-paper's open item is closed, and its wording — *"write them from the commits, dated today,
+  marked late"* — is what was done, except that the commits turned out to be the second-best source and
+  the code comments the first.
+
+**The rule this leaves behind.** A correction may be commented in the code it fixes — it should be, and
+these three are better documented in place than most entries here are. But **the ledger is the record**,
+and a correction that exists only in a comment has not been admitted to anyone who is not reading that
+file. Where the two disagree, the code is the evidence and the ledger is the claim, and it is the claim
+that has to be fixed.
+
+**Nothing observed was changed.** No code, no comment and no earlier entry was touched.
