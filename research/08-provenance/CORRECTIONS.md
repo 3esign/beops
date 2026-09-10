@@ -2868,3 +2868,79 @@ that buffers, so the run said nothing at all until it ended, and by then the loc
 The next time it happens the guard will say so within fifteen minutes — which is the difference
 between a fault that can be investigated and one that can only be inferred afterwards from a refusal
 message.
+
+## C-066 — a check I wrote would have stopped the city's record because a language model had not marked its own homework
+
+**Written at the commit that carries this entry.** Found by looking, on purpose, for anything with a
+clock on it — not by the fault firing. It had not fired yet. It was due to fire at
+**2026-09-10T21:25:54Z**, about four hours after it was written.
+
+### What happened
+
+An hour earlier I added `test_no_prediction_is_quietly_forgotten` to `research/test_record_shape.py`.
+Its subject is real and worth keeping: the mind writes predictions into a claims register, each with a
+`due` time, and a register that keeps only the predictions that came true is not a register of
+predictions. So the test failed if any claim was more than three hours past due with no outcome
+written.
+
+**The subject was right and the consequence was wrong.** The suite is the publish gate — nothing is
+copied, committed or pushed until it passes — so a failing test does not merely report a fault, it
+stops the record of the city's air from being published. That test therefore said: *if the language
+layer forgets to score its own claim, the air measurements stop going out.* Those are two different
+organs. One of them has nothing to do with the other.
+
+### What was actually true at the time
+
+At **2026-09-10T17:41:38Z** the register held **31 claims**, two of them open:
+
+```
+OPEN  entity=observer   due=2026-09-10T18:43:54Z   the suite starts failing at 21:43:54Z
+OPEN  entity=connector  due=2026-09-10T18:25:54Z   the suite starts failing at 21:25:54Z
+```
+
+And the scorer's own record, over the 29 claims it has settled:
+
+```
+gap between due and settled_at:  n=29 | min 0.1 min | median 14.5 | max 24.0
+over the 3 h grace: 0
+```
+
+So the tripwire had never been crossed, and on this evidence was unlikely to be crossed tonight. That
+is not a defence. **A consequence that is wrong is wrong before it fires**, and the only reason it had
+not yet done damage is that the thing it watches happens to have been reliable for 29 samples. Both
+claims were in fact scored within two minutes of that reading: the guard at 17:43:38Z reported *"31
+claims on file, every one past its due time scored"*.
+
+### Correction
+
+The check moved out of the suite and into the guard, as `predictions()` in `tools/guard.py`, with
+`CLAIM_GRACE_H = 3.0`. It reports `WARN` when a claim is more than three hours past due and unscored,
+naming the entity and how late it is; `OK` with the count otherwise; `UNKNOWN` if the register cannot
+be read; and it is **never `STOP`** — the guard's own docstring now says why, so that the next person
+tempted to promote it has to read the reason first.
+
+Five tests in `research/test_guard_checks.py` (`Predictions`): a claim four hours past due warns and
+names it; a claim one hour past due is silent; a scored late claim is silent; an unreadable register
+is `UNKNOWN`, not `OK`; and no input produces `STOP`. The test in `test_record_shape.py` that used to
+fail the suite now asserts the opposite property — that this check exists in the guard and cannot
+return `STOP`.
+
+### The general shape
+
+This is the second time in one day that a check has been written with the wrong blast radius, and it
+is worth naming as its own family, next to the blind check:
+
+> **The right question wired to the wrong consequence.** Every check answers a question and then
+> decides what happens when the answer is bad. Those are two separate decisions and the second one is
+> the one that gets made carelessly, because it is invisible until the day the answer is bad. The test
+> for it: *whose work stops when this fires, and did they cause it?* If the answer is no, it is a
+> warning, not a stop.
+
+### Honest verdict
+
+Nothing false was ever published because of this, and no publish was ever blocked by it — the fault
+was found and removed roughly four hours before its first possible firing. What it cost is what every
+near miss costs: it says the check I write is not automatically safer than the code it checks, and
+that a stop condition deserves the same scrutiny as the measurement it guards. I do not have a rule
+that would have caught this at the moment of writing. The rule above is written now, after the fact,
+which is exactly the sequence this file exists to record.
