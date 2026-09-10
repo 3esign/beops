@@ -2031,3 +2031,66 @@ reason or hash changed. What changed is what the dataset says about itself.
 The dataset was published at 11:53 UTC and this was found at 12:15 UTC — twenty-two minutes, on the
 public record, with a false provenance claim inside it. Nobody read it in that window as far as I can
 tell, and that is luck, not process.
+
+## C-052 — the ledger of corrections was wrong about when it was written, by up to six and a half hours
+
+**Written at the commit that carries this entry. Nobody typed a time into this line, and that is the
+correction.** Found by looking up the format of a heading and noticing that the entry above it was
+stamped 15:40 UTC when the clock said 12:18.
+
+### What was measured
+
+Thirteen entries in `CORRECTIONS.md` carried a hand-typed line of the form `**2026-09-10, 15:40 UTC.**`
+Against the commit that introduced each one:
+
+| entry | stated | written | out by |
+|---|---|---|---|
+| C-033 | 06:50 | 00:22 | **+6h28** |
+| C-037 | 01:45 | 02:20 | −35 min |
+| C-039 | 09:00 | 09:02 | −2 min |
+| C-040 | 09:30 | 09:19 | +11 min |
+| C-042 | 10:00 | 09:58 | +2 min |
+| C-043 | 12:40 | 10:13 | +2h26 |
+| C-044 | 13:20 | 10:21 | +2h58 |
+| C-045 | 12:41 | 10:44 | +1h56 |
+| C-046 | 13:10 | 10:58 | +2h12 |
+| C-047 | 13:50 | 11:21 | +2h28 |
+| C-048 | 14:25 | 11:25 | +3h00 |
+| C-049 | 14:55 | 11:36 | +3h19 |
+| C-050 | 15:40 | 12:01 | **+3h38** |
+
+Ten of the thirteen are wrong. **The offsets are not constant, so this is not a timezone** — a
+timezone would put every entry out by the same amount. It is a person typing a plausible-looking time
+and drifting further from the clock as the hours went on. C-045 is stamped *earlier* than C-044 while
+having been written twenty-three minutes *later*, so the ledger's own order contradicts the record it
+sits in.
+
+The other thirty-eight entries carry no time at all.
+
+This is the file whose subject is that this project is honest about what it knows and when. It holds
+C-025, *"the page prints UTC and the reader's clock does not, and nobody told the reader"*. It is
+published, and the site counts from it.
+
+### Correction
+
+**A correction's time is the commit that introduced it. It is not typed.** `tools/correction_times.py`
+reads that from the repository in one pass and writes `research/08-provenance/CORRECTION_TIMES.json`:
+every entry, the commit that introduced it, the true UTC time, the typed time where one exists, and
+the difference between them.
+
+**The ten wrong stamps stay exactly where they are.** Corrections are appended, never edited, and that
+rule does not stop applying because the error is embarrassing. They are named in
+`correction_times.KNOWN_WRONG`, and `research/test_correction_times.py` fails if one of them leaves
+that list — which is what would happen if a stamp were quietly tidied or the history rewritten.
+
+The test also fails if any entry from C-052 onward types a time at all; if the entries are not in the
+order they were made; if a time anywhere does not name the clock it is on; or if more than one entry
+lacks a commit. **An entry may lack a time, but only the newest one, and only until it is committed:**
+a correction that has not entered the record has no time, and saying so is more accurate than giving
+it one.
+
+### What this does not fix
+
+The pre-papers carry the same kind of line — *"Figures verified 2026-09-09 19:07 UTC"* — typed by the
+same hand and never checked against anything. That number has not been audited and is not asserted to
+be right. It goes on the open list.
