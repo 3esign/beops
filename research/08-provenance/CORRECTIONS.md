@@ -1199,3 +1199,52 @@ actually broken. `research/eval_mind_effect.py` exists so that a correction to t
 until the two halves of the record have been counted across it.
 
 **Nothing observed was changed.** The tool reads and prints; it writes nothing.
+
+## C-038 — the frame asked for the theme before anything was listening, three times
+
+**2026-09-10, 07:40–08:35 UTC.** Four attempts at one race, each of which looked correct when it was
+written and each of which was refuted by the page.
+
+**The symptom.** The public page carries five embedded studies — the now-panel, the data panel, the
+live ribbon and the two monologue panels. The page owns the theme and the language; a frame is a
+separate document and owns neither, so both are pushed to it by `postMessage`. On a dark page, a frame
+came up light for as long as it took the message to arrive — and often it never arrived at all.
+
+**Attempt 1 — the parent announces on `load`.** Refuted: the parent's `load` fires before the frame's
+own script has registered a `message` handler. A message delivered before its handler exists is not a
+late message; it is a lost one, and nothing in the browser reports it.
+
+**Attempt 2 — the frame asks, once, as soon as it parses.** `postMessage({beopsAsk:true})` to the
+parent. Refuted: at that instant the parent had not yet installed the answerer, so the question was
+lost in the other direction. Two components each scheduled against their own readiness, and neither
+schedule was a fact about the other.
+
+**Attempt 3 — the frame keeps asking until an answer arrives.** A retry loop with a `got` flag, and a
+small listener registered at parse time to set that flag. Refuted, and worse than refuted: **that early
+listener consumed the parent's answer, set `got`, and cancelled every retry — while the real handler,
+the one that actually applies the theme, did not yet exist.** The answer arrived, was counted as
+received, was applied by nobody, and the retry that would have asked again was switched off by its own
+arrival. The bug went quiet without going away.
+
+**Attempt 4 — correct.** The ask is issued on the line immediately after the real handler is
+registered, so the only listener that can consume the answer is the one that uses it. The parent
+answers `beopsAsk` with the theme and both language values. Verified live in both directions — dark
+page → frame arrives dark, light page → frame arrives light — on all five frames.
+
+**The principle this leaves behind.** *Every schedule is a guess about when the handler exists.*
+Readiness is not a time; it is the presence of the thing that will act. And a flag that records "an
+answer arrived" is not the same object as "the answer was applied" — attempt 3 is the general shape of
+a monitor that says OK because a message was received, which is the same error this record writes about
+its sources under the name **received ≠ measured**.
+
+**How it was found.** Not by reading the code — three readings of the code produced three wrong fixes.
+By four live experiments on the running page, each of which was allowed to refute the previous one.
+
+**Two notes on this file itself, recorded rather than tidied away.** The sequence has no **C-026**; the
+ledger does not say why, and this note records the gap rather than closing it. The measurement entry
+immediately above — *"C-033…C-037 measured, and one of them made the numbers worse"* — carries no id of
+its own; it is left as written, because renumbering an append-only file is the kind of quiet edit this
+file exists to make impossible.
+
+**Nothing observed was changed.** No stored row, state or receipt was touched; the change is to the
+order of two lines of page script.
