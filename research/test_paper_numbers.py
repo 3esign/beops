@@ -112,8 +112,11 @@ class Figures(unittest.TestCase):
     def test_the_json_form_is_the_same_numbers_as_the_printed_form(self):
         """The paper is built from --json; a person reads the printed block. Two renderings of one
         set is exactly the 'no second copy of a number' rule, applied to this tool."""
-        again = {name: pn.safe(fn) for name, fn in pn.FIGURES}
-        still = [k for k in again if k not in pn.LIVE]
+        # Only the figures this test is about. Recomputing all ten meant a second full pass over
+        # 100,000 rows and the whole corrections file in order to check six numbers that do not read
+        # them, which made this the second most expensive module in the suite (C-064).
+        again = {name: pn.safe(fn) for name, fn in pn.FIGURES if name not in pn.LIVE}
+        still = list(again)
         self.assertEqual(json.dumps({k: again[k] for k in still}, sort_keys=True, default=str),
                          json.dumps({k: self.out[k] for k in still}, sort_keys=True, default=str),
                          "two runs of paper_numbers.py disagree about a figure that reads a record "
@@ -123,7 +126,7 @@ class Figures(unittest.TestCase):
         """Four of these figures count a record the observatory is still appending to. The tool used
         to print them with no time at all, so the paper cited a row count that was true at an instant
         nobody could name. A number without its instant cannot be checked by anyone."""
-        out = {name: pn.safe(fn) for name, fn in pn.FIGURES}
+        out = dict(self.out)          # already computed once in setUpClass; a third pass buys nothing
         out["taken_at"], out["live_figures"] = pn.taken_at(), list(pn.LIVE)
         t = dt.datetime.fromisoformat(out["taken_at"].replace("Z", "+00:00"))
         self.assertLess(abs((dt.datetime.now(dt.timezone.utc) - t).total_seconds()), 300,

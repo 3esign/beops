@@ -1,0 +1,128 @@
+{
+ "schema": "beops-record-shape/v1",
+ "written": "2026-09-10",
+ "why_this_file_exists": "Nine of the corrections written on 10 September were one defect: a check that reported success while reading less than it was believed to read. The sharpest of them, C-057, was a test that listed one directory level while the record nests, so it scanned two files out of eight and never opened either file carrying the thing it existed to catch. The fix there was one character of glob. This file is the fix for the class: the shape of the record is written down, so that a reader scanning one level is making a DECLARED choice against a stated shape rather than an assumption nobody wrote, and so that the day the record starts nesting somewhere it did not, the suite says so instead of a test quietly getting narrower.",
+ "how_to_use_it": "Before writing anything that enumerates the record, look up the tree here. If it says flat, one level is correct and cheap. If it says it nests, walk it - or state, in the code, which nested part you are deliberately leaving out and why it costs nothing. research/test_record_shape.py checks this file against the disk on every run.",
+ "trees": [
+  {
+   "path": "data/live/rows",
+   "nests": false,
+   "max_depth": 2,
+   "shape": "one directory per source, one file per month inside it",
+   "enumerate": "one level per source directory is CORRECT and complete",
+   "readers_that_scan_one_level": [
+    "agreement.py",
+    "apply_retention.py",
+    "baseline.py",
+    "build_history.py",
+    "latency.py",
+    "record.py",
+    "watchman.py",
+    "test_permission_dataset.py",
+    "test_refusal_route.py",
+    "test_source_clock.py"
+   ],
+   "why_that_is_safe": "nothing is written below the month file, so a level is the whole tree"
+  },
+  {
+   "path": "data/live/derived",
+   "nests": true,
+   "max_depth": 3,
+   "shape": "one directory per organ; the organ's own month file at the top, and beneath it the entity notebooks and the benchmark runs",
+   "enumerate": "walk it, unless you are deliberately reading only the organ's own stream",
+   "nested_parts": {
+    "mind/notebook/*.jsonl": "each entity's own copy of what it said and what the validator did with it, read back to it at the next conversation. For the states `thought` and `rejected` these rows DUPLICATE the utterance rows in the month file - which is why a one-level reader of the mind loses nothing about acceptance - and the duplication is checked by test_record_shape.py rather than believed.",
+    "mind/voice_bench/*.jsonl": "one line per rendering in a benchmark run, made by hand and not part of the record's stream. This is where the undeclared state `failed` lives (C-057)."
+   },
+   "registers_inside_it": {
+    "mind/claims.jsonl": "the settlements register: one row per settled claim, carrying `claim`, `entity`, `due`, `settled_at` and an `outcome` of true / false / unverifiable. It carries no `state`, and that is correct rather than an omission: a settled claim is not a derived row passing through an organ, it is an entry in a register with an outcome vocabulary of its own. Every settlement also appears as a `claim_settled` line in the entity's notebook, in prose, because the entity is told what happened to its prediction; the register is the record and the notebook line is the telling."
+   }
+  },
+  {
+   "path": "research/evidence",
+   "nests": true,
+   "max_depth": 4,
+   "shape": "one directory per source, one per capture timestamp beneath it, and the captured bytes with their MANIFEST.json beneath that",
+   "enumerate": "walk it; the capture tools read `*/MANIFEST.json` under a known source directory, which is the same thing said precisely",
+   "why_it_matters": "this is the tree that holds the permission evidence, the one part of the record that cannot be recreated"
+  },
+  {
+   "path": "public/dataset",
+   "nests": false,
+   "max_depth": 2,
+   "shape": "one directory per published dataset, its files directly inside",
+   "enumerate": "one level, and only the files the dataset's own manifest declares - never a listing of the directory, which is how v1.0 of the permission dataset published a working note (C-051)"
+  },
+  {
+   "path": "data/live/raw",
+   "nests": false,
+   "max_depth": 2,
+   "shape": "one directory per source, one gzipped capture per poll inside it, named by the instant it was taken",
+   "enumerate": "one level per source directory",
+   "what_it_is": "the bytes each collector actually received, kept compressed. It is the only part of the record that is DELETED rather than kept: retention rule R2 holds a raw news capture for 90 days and then removes the file, while the row derived from it survives. apply_retention.py is what removes them, and it is the one reader that must never miss a directory here.",
+   "written_by": "collect_daemon.py",
+   "read_by": [
+    "apply_retention.py"
+   ],
+   "found_by": "the first run of test_record_shape.py, which asked what on disk no declared tree covered and answered with this - 778 files under a legal retention obligation, undeclared (C-063)"
+  },
+  {
+   "path": "data/live/receipts",
+   "nests": false,
+   "max_depth": 2,
+   "shape": "one directory per source, one receipt per poll inside it, named by the instant it was attempted",
+   "enumerate": "one level per source directory",
+   "what_it_is": "the tree the whole 'missing is not zero' rule rests on. Every poll writes a receipt whether or not it got anything, so a source that answered NOTHING four minutes ago and a source nobody asked are different objects on disk rather than the same silence. The watchman's three refusals - silence is not a fault, blindness is not success, and it vouches for nothing it slept through - are only possible because this tree exists.",
+   "written_by": "collect_daemon.py",
+   "read_by": [
+    "watchman.py",
+    "guard.py",
+    "latency.py",
+    "eval_mind_effect.py",
+    "write_izvestaj.py"
+   ],
+   "required_keys": [
+    "attempted_at",
+    "completed_at",
+    "headers_of_interest",
+    "http_status",
+    "name",
+    "network_requests",
+    "permission_capture",
+    "rows",
+    "rows_missing",
+    "schema",
+    "sid",
+    "state",
+    "transport",
+    "url"
+   ],
+   "state_vocabulary": {
+    "captured": "the source was asked and answered, whether or not it had anything to give",
+    "failed": "the attempt did not complete; the receipt carries the error"
+   },
+   "found_by": "the second run of test_record_shape.py (C-063). 2,738 receipts, undeclared."
+  }
+ ],
+ "files_directly_in_data_live": {
+  "why_this_is_here": "the same blindness one level up: a ledger that appears beside the trees and is never declared is a part of the record nobody enumerates. These are append-only ledgers and receipts, not trees.",
+  "files": {
+   "guard-ledger.jsonl": "one line per guard run: every check, its state and its reason, appended and never edited",
+   "watch-ledger.jsonl": "one line per watchman reading, including the gaps between readings",
+   "paper-numbers-runs.jsonl": "one line per run of the figure tool: the instant and a hash of the figures it produced, so a stamp in a paper can be matched to a run that happened (C-053)",
+   "publish-receipt.json": "not a ledger - the single most recent publish attempt, whether the suite passed, and what was published. The guard reads it to answer whether the site is being kept stale (C-046).",
+   "guard.log": "the guard's report in the words a person reads, written beside the machine-readable ledger on every run. Not a second copy of the verdict: the ledger is the record and this is the reading of it."
+  }
+ },
+ "the_field_name_collision": {
+  "what": "The key `state` carries FOUR vocabularies in this record, not the two C-050 named.",
+  "measured_2026_09_10": {
+   "epistemic": "observed / untimed / estimated / forecast / unavailable - what is known about a MEASUREMENT. Declared in STATES.json.",
+   "pipeline": "thought / rejected / retracted / organelle / claim_settled / voiced / refused / organ_silent / organ_failed / derived / nothing_to_do / paused / failed - what HAPPENED to a derived row. Declared in STATES.json.",
+   "voice_bench": "voiced / refused / failed - what happened to one Serbian rendering in a benchmark run. This is where `failed` entered the record (C-057).",
+   "live_receipt": "captured / failed - whether a poll completed. 2,729 captured and 9 failed as measured on 2026-09-10."
+  },
+  "why_it_is_not_renamed_today": "Renaming a published field changes something other people may already read, and it is worth doing deliberately rather than in the hour it was noticed. It is written here so that it is a known defect rather than an unnoticed one - and the count has now gone from two to four, which is itself the argument for fixing it.",
+  "the_sharp_edge": "`failed` means two different things in two of the four: in a voice benchmark the rendering failed, in a receipt the poll did not complete. Anything that counts states across the whole record without knowing which tree it is in will add them together."
+ }
+}

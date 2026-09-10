@@ -2684,3 +2684,144 @@ compressor, the permission dataset, the two drawing tools, the figure tool, the 
 static-layer fetcher, the capture backlog and the migration. `tls_test.py` remains without one, and
 deliberately: it is a diagnostic script that opens four sockets and prints what happened, and the
 honest thing is to describe it as a diagnostic rather than to wrap it in assertions.
+
+## C-063 — the shape of the record was never written down, and three parts of it were not written down either
+
+**Written at the commit that carries this entry.** Not a defect found and patched: an attempt to fix
+the *class* of defect that produced nine of the nineteen corrections between pre-paper v4 and v5.
+
+### What was planned, and why the plan was wrong
+
+The intended fix was a lint: forbid `glob("*.jsonl")` anywhere in the project, since C-057 was caused
+by a test listing one directory level while the record nests, and force everything through the
+walking helper.
+
+**Simulating it against the real files killed it.** There are 51 non-recursive glob call sites and 8
+recursive ones. Measured against the disk, almost every one of the 51 is **correct**: `data/live/rows`
+holds every file at exactly one level below its source directory, so a level is the whole tree. A ban
+would have produced fifty forced exceptions with no reason behind them, which is the precise
+anti-pattern C-057 was written against — *an exception in a test is a declaration nobody can find*.
+
+The real defect is not the glob. It is that **nobody could tell, from anything written down, which
+trees are flat and which nest.** Both readings were guesses; most guesses happened to be right.
+
+### The correction
+
+`research/RECORD_SHAPE.json` declares, for every directory the record writes to: whether it nests, how
+deep, what the nested parts are, who writes it, who reads it, and therefore which enumeration is
+correct. A one-level scan becomes a **declared choice against a stated shape** instead of an
+assumption. `research/test_record_shape.py` checks the declaration against the disk on every run, so
+the day the record starts nesting where it did not, the suite says so — rather than a test getting
+quietly narrower for months.
+
+### What the declaration found, on its first three runs
+
+The test that asks *"what on disk does no declared tree cover?"* answered three times, and each answer
+was a part of the record nobody had written down:
+
+| found | what it is |
+|---|---|
+| **`data/live/raw`** | **778 gzipped captures**, 4.0 MB, the bytes each collector actually received — and **the only part of the record that is deleted rather than kept**, under retention rule R2. `apply_retention.py` is the one reader that must never miss a directory here. |
+| **`data/live/receipts`** | **2,738 receipts**, one per poll, whether or not anything came back. This is the tree the whole *missing is not zero* rule rests on: it is what makes "answered nothing" and "was never asked" two different objects on disk rather than one silence. The watchman's entire design depends on it. |
+| **`data/live/guard.log`** | the guard's report in the words a person reads, beside its machine-readable ledger. |
+
+Two and a half thousand files carrying the project's most load-bearing invariant, and a tree under a
+legal retention obligation, both undeclared. Neither was broken. Both were **unaccounted for**, which
+is the state every one of this week's nine blind checks began in.
+
+### Four vocabularies, not two
+
+C-050 named two vocabularies sharing the field name `state` and called the collision a known defect.
+Counted properly across the whole record, there are **four**:
+
+| under the key `state` | values | where |
+|---|---|---|
+| epistemic | observed / untimed / estimated / forecast / unavailable | what is known of a measurement |
+| pipeline | thought / rejected / organelle / claim_settled / … | what happened to a derived row |
+| voice benchmark | voiced / refused / **failed** | one Serbian rendering in a benchmark run |
+| live receipt | captured / **failed** | whether a poll completed — 2,729 and 9 |
+
+**`failed` means two different things in two of them.** Anything that counts states across the record
+without knowing which tree it is standing in will add them together. Still not renamed, for the reason
+C-050 gave — but the count going from two to four is itself the argument, and it is now on the record
+rather than in memory.
+
+### Four beliefs turned into checks
+
+Things this project has been running on without ever asserting:
+
+- **the entity notebooks duplicate the month file** for the states that get counted — so a one-level
+  reader of the mind loses nothing about acceptance. Measured: 121 accepted and 147 refused either
+  way, a rate of 0.451 identical to three places. Now a test, so the day it stops being true, every
+  acceptance figure computed from the month file alone becomes suspect on that day.
+- **the settlements register is complete**: 29 settlements recorded, 29 told to the entities.
+- **a settled claim carries an `outcome` and no `state`** — which answers the question C-057 left
+  open. It is not an omission: a settlement is not a derived row passing through an organ, it is an
+  entry in a register with a closed vocabulary of its own (true 15, unverifiable 11, false 3).
+- **a receipt for a source that answered nothing still exists and still says when it finished.** The
+  rule is now tested at its source rather than downstream of it.
+
+### The honest part
+
+The first version of this test walked every file under every tree to measure depth: 41 seconds, on a
+suite the publish gate runs every ten minutes, growing with the record. **That is exactly the defect
+C-055 recorded — a gate killed by the size of the record it guards — re-created inside the test
+written to catch that family, in the same session.** It walks directories now, which bound file depth
+and are two orders of magnitude fewer: 1.7 seconds. And there is a test that fails if it ever goes
+back to walking files.
+
+## C-064 — the test written to stop the gate being killed by the record became the most expensive thing in the suite
+
+**Written at the commit that carries this entry.** Found by measuring the suite immediately after
+adding to it, which is not a habit this project had until today.
+
+### What was measured
+
+The suite had grown from 224 tests taking 12 seconds this morning to 473 taking 52. The publish gate
+runs it on every publish, and a publish happens every ten minutes, so the question is not academic:
+**a suite that grows past its own publish interval means publishes queue behind each other for ever.**
+
+First measurement, per test: 26.7 seconds of 52. The other half was invisible, because per-test timing
+does not see `setUpClass` — **the instrument was reading a narrower slice than the thing it measured**,
+which is this week's whole subject appearing inside my own tooling. Measured again per module, in
+separate processes, the picture was plain:
+
+| module | seconds | tests |
+|---|---|---|
+| **test_record_shape** | **11.62** | 16 |
+| **test_paper_numbers** | **6.98** | 13 |
+| test_md2pdf | 3.41 | 13 |
+| test_paper_stamps | 2.41 | 6 |
+| test_states | 2.10 | 7 |
+
+The two most expensive modules in the project were **the file written an hour earlier to catch
+C-055 — a gate killed by the size of the record it guards — and the file that had already been fixed
+once for reading the record wastefully.**
+
+### What they were doing
+
+`test_record_shape.py` walked all five declared trees **four separate times**: once in each of three
+tests, and a fourth time in the test that measures how long walking takes. It also read forty receipts
+from each of eight source directories, for invariants that are about the *shape* of a receipt and not
+about how many exist.
+
+`test_paper_numbers.py` computed all ten figures in `setUpClass`, **all ten again** to check that two
+runs agree, and **all ten a third time** to check the timestamp — three full passes over 100,000 rows,
+the corrections file and the provenance index, in order to check six numbers that do not read any of
+them.
+
+### Correction
+
+The shape is walked once and shared. The timing test measures that one walk rather than performing
+another. Three receipts per source instead of forty, plus the oldest, which exercises every invariant
+the forty did. The determinism check recomputes only the figures it is about — the six that do not
+read the growing record — and the timestamp check reuses what `setUpClass` already computed.
+
+**45.8 seconds to 24.1 seconds across the whole suite, a 47 % cut**, and neither of those two modules
+is in the slowest nine any more. Nothing was removed: 473 tests before, 473 after.
+
+### The rule this leaves behind
+
+A test earns its place by what it can catch, and pays for it in the time of every publish that runs
+it. Neither number was ever looked at until today. **Measure the suite when you add to it** — and
+measure it in a way that can see setup, because the obvious instrument cannot.
