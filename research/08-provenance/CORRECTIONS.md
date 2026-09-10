@@ -1118,3 +1118,39 @@ empty, and only then was the receipt read — where the reason had been sitting 
 three-quarters of an hour.
 
 **Nothing observed was changed.** No stored utterance, state or receipt was edited.
+
+## C-037 — the notebook fed the refusal back into the utterance
+
+**2026-09-10, 01:45 UTC.** The skeptic (qwen2.5:1.5b) produced, as a thought about the city:
+
+> "The city's maximum values of PM10 and NO2 have significantly increased between 08:00 and 09:00 UTC,
+> as indicated by the ' -> REFUSED (number not in digest: 08; number not in digest (hypothesis): 08).
+> The city's maximum values of PM2.5 have also increased, moving from 27 to 21 µg/m³ ..."
+
+A line of its own notebook, copied into an observation with the refusal text attached.
+
+**The loop.** No weights change in this organ; learning is verbal — each entity's notebook (what it
+said, whether it was refused and why) is read back at the next conversation. The reason was handed back
+as the validator wrote it, and a reason contains the numbers that caused the refusal — numbers that are
+by construction absent from the digest. A model that copies that line therefore uses a number that
+cannot pass, is refused again, and gets a longer string to copy. The smallest model was circulating its
+own error messages, and every utterance it produced looked like nonsense from outside.
+
+**Correction, two parts.**
+
+`reason_category()` renders a refusal as a sentence with no digits — "you used a number that is not in
+the facts", "you named an hour outside the window you were given", "you cited a fact id that does not
+exist". The entity's own sentence is still quoted back verbatim, because those are its words and that
+is the feedback; only the validator's arithmetic is withheld.
+
+`NOTEBOOK_VOCAB` refuses any utterance that speaks the validator's language — `-> REFUSED`, `number not
+in digest`, `time outside the window`, `cites nothing`, `restates the conversation`, `claim malformed`
+— as *echoed its own notebook*. An utterance that talks about the checks is not an observation of a
+city, and the loop cannot re-form quietly.
+
+**Why it stayed invisible.** The output was refused, and refused output is not read. The record kept
+every one of these rows on disk from the first night, in plain text, and nobody — including this
+system's own weekly review — had cause to open them, because a refusal reads as a fact about the model.
+
+**Nothing observed was changed.** Stored rows are read as written; the change is to what the next
+prompt contains and to what the validator accepts.

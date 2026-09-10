@@ -82,7 +82,7 @@ SNAPSHOT = ROOT / "public" / "live-snapshot.json"
 CONTEXT_POP = ROOT / "public" / "context-population.json"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "mind"
-ORGAN_VERSION = "0.4.2"
+ORGAN_VERSION = "0.4.3"
 OUT_DIR = LIVE / "derived" / "mind"
 ORCHESTRATIONS = ("council", "relay")   # for `run`; the scheduled mode is the drip (see STEPS)
 
@@ -526,6 +526,37 @@ def stale_numbers_blanked(text: str, dg: dict) -> str:
     return "".join(pt if pt.startswith("[F") else re.sub(r"(?<![A-Za-z0-9])\d+(?:[.,]\d+)?(?![0-9])", rep, pt) for pt in parts)
 
 
+REASON_CATEGORY = [
+    ("number not in digest", "you used a number that is not in the facts"),
+    ("number not in the cited facts", "you used a number from a fact you did not cite"),
+    ("time outside the window", "you named an hour outside the window you were given"),
+    ("unknown fact ids", "you cited a fact id that does not exist"),
+    ("cites nothing", "you did not cite a fact inside the sentence"),
+    ("restates the conversation", "you restated what had already been said"),
+    ("echoed its own notebook", "you repeated your own feedback instead of speaking about the city"),
+    ("echoed the prompt", "you repeated the instructions"),
+    ("claim names a source", "your claim named a source that is not in the facts"),
+    ("claim", "your claim was not in one of the allowed shapes"),
+    ("hypothesis stated as fact", "you stated a hypothesis as if it were a fact"),
+    ("prediction stated as fact", "you predicted in the text instead of in the claim field"),
+    ("too short", "it was too short"),
+    ("too long", "it was too long"),
+    ("not English", "it was not in English"),
+]
+
+
+def reason_category(reason) -> str:
+    """What the entity is told went wrong - in words, without the numbers. C-037: the raw reason is a
+    string containing digits that are, by construction, not in the digest. Handing it back verbatim
+    gave the model a sentence to copy that could only ever be refused again."""
+    s = "; ".join(reason) if isinstance(reason, (list, tuple)) else str(reason or "")
+    out = []
+    for key, said in REASON_CATEGORY:
+        if key.lower() in s.lower() and said not in out:
+            out.append(said)
+    return "; ".join(out[:3]) or "it did not pass the check"
+
+
 def prompt_for(ent: dict, dg: dict, memory: list[dict], conversation: list[dict]) -> str:
     others = " and ".join(e["en"] for e in ENTITIES if e["id"] != ent["id"])
     facts = "\n".join(f"{f['id']}: {f['en']}" for f in dg["facts"])
@@ -536,7 +567,13 @@ def prompt_for(ent: dict, dg: dict, memory: list[dict], conversation: list[dict]
             if m.get("state") == "claim_settled":
                 lines.append(f"- {m.get('at', '')[:16]}: your claim {m.get('text', '')[:120]} -> {m.get('claim_outcome')}")
             else:
-                lines.append(f"- {m.get('at', '')[:16]}: \"{(m.get('text') or '')[:120]}\" -> {'RETRACTED' if m.get('state') == 'retracted' else 'REFUSED'} ({m.get('reason')})")
+                # Your own words come back to you - that is the feedback. The REASON comes back as a
+                # sentence without digits (C-037): handed back verbatim it was a string containing
+                # numbers that are by construction not in the digest, and the smallest model copied
+                # the whole line into its next utterance, refusal text and all.
+                what = "withdrawn" if m.get("state") == "retracted" else "refused"
+                lines.append(f"- {m.get('at', '')[:16]}: you said \"{(m.get('text') or '')[:120]}\" and it was "
+                             f"{what} because {reason_category(m.get('reason'))}. Do not say it again.")
         if lines:
             mem = "\nYour notebook (what went wrong before - do not repeat it):\n" + "\n".join(lines) + "\n"
     conv = ""
@@ -570,6 +607,17 @@ SR_WORDS = re.compile(r" (je|su|i|u|na|ne|se|da|od|do|za|sa|što|koji|ali|nema|i
 EN_WORDS = re.compile(r" (the|is|are|and|of|in|no|not|at|with|for|that|from|has|have|was|were|while|but|to|a|an|up|by|on|as|it|we|this|between) ")
 PROMPT_FRAGMENTS = ["You notice.", "You doubt.", "You connect.", "Rules (a program checks", "You may use only numbers", "Answer only JSON",
                     "Do not repeat these instructions", "Ti primećuješ", "Ti sumnjaš", "Ti povezuješ"]
+
+# C-037. The notebook is read back to each entity as verbal feedback, and on 2026-09-10 at 01:45 the
+# skeptic (qwen2.5:1.5b) copied a notebook line into its own utterance, refusal and all:
+#   "... between 08:00 and 09:00 UTC, as indicated by the ' -> REFUSED (number not in digest: 08 ...)"
+# The refusal text became a sentence about the city, and it carries numbers that are by definition not
+# in the digest - so the refusal reproduced itself, and the smallest model was locked in a loop of its
+# own error messages. An utterance that speaks the validator's language is not an observation.
+NOTEBOOK_VOCAB = re.compile(
+    r"->\s*(REFUSED|RETRACTED)|number not in digest|number not in the cited facts|time outside the window|"
+    r"cites nothing|unknown fact ids|restates the conversation|claim names a source|claim malformed|"
+    r"hypothesis stated as fact|Your notebook|as indicated by the '", re.I)
 
 # --- semantic guards ----------------------------------------------------------------------------
 # Everything above is arithmetic: it asks whether a token appears where it should. It cannot ask
@@ -805,6 +853,10 @@ def validate(answer: dict, dg: dict, previous: list[str] | None = None) -> tuple
         if frag in text or any(frag in str(h) for h in (answer.get("hypotheses") or []) + (answer.get("questions") or [])):
             reasons.append("echoed the prompt: " + frag[:40])
             break
+    everything = " ".join([text] + [str(h) for h in (answer.get("hypotheses") or []) + (answer.get("questions") or [])])
+    m_nb = NOTEBOOK_VOCAB.search(everything)
+    if m_nb:
+        reasons.append("echoed its own notebook: " + m_nb.group(0)[:40])
     for h in answer.get("hypotheses") or []:
         if not isinstance(h, str):
             reasons.append("hypothesis not a string")

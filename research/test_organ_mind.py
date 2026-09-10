@@ -238,6 +238,41 @@ class ValidatorTests(unittest.TestCase):
         om.voice(row3, "Two stations [F1] reported.", self.dg, None, stubborn)
         self.assertEqual(row3["sr_state"], "no voice model")
 
+    def test_an_utterance_that_speaks_the_validators_language_is_refused(self):
+        """C-037. Measured 2026-09-10 at 01:45: the skeptic copied a line of its own notebook into its
+        utterance, refusal and all - "... between 08:00 and 09:00 UTC, as indicated by the ' -> REFUSED
+        (number not in digest: 08 ...)". The refusal text became a sentence about the city, and it
+        carries numbers that are by construction NOT in the digest, so the refusal reproduced itself and
+        the smallest model was locked in a loop of its own error messages."""
+        dg = om.digest(snapshot(), hours=6, now=NOW)
+        fid = next(f["id"] for f in dg["facts"] if f.get("sid") == "S146")
+        bad = {"text": f"SEPA reported [{fid}], as indicated by the ' -> REFUSED (number not in digest: 08).",
+               "cites": [fid], "hypotheses": [], "questions": [], "next_check": "", "claim": None}
+        ok, why = om.validate(bad, dg)
+        self.assertFalse(ok)
+        self.assertTrue(any("echoed its own notebook" in r for r in why), why)
+        clean = {"text": f"SEPA has been reporting through the window [{fid}].", "cites": [fid],
+                 "hypotheses": [], "questions": [], "next_check": "", "claim": None}
+        self.assertTrue(om.validate(clean, dg)[0])
+
+    def test_the_notebook_gives_back_the_words_but_not_the_numbers_of_the_refusal(self):
+        """The entity must see WHAT it said - those are its own words. It must not be handed the
+        refusal string, whose digits are guaranteed to be absent from the digest."""
+        self.assertEqual(om.reason_category(["number not in digest: 08"]),
+                         "you used a number that is not in the facts")
+        self.assertEqual(om.reason_category("time outside the window: 08:00"),
+                         "you named an hour outside the window you were given")
+        self.assertEqual(om.reason_category([]), "it did not pass the check")
+        dg = om.digest(snapshot(), hours=6, now=NOW)
+        mem = [{"at": "2026-09-09T00:05:00Z", "state": "rejected",
+                "text": "PM10 up to 41 [F4] across 7777 stations.",
+                "reason": ["number not in digest: 7777", "time outside the window: 08:00"]}]
+        p = om.prompt_for(om.ENTITIES[2], dg, mem, [])
+        self.assertIn("7777 stations", p)                       # its own sentence, quoted back
+        self.assertIn("a number that is not in the facts", p)   # the reason, in words
+        self.assertNotIn("number not in digest: 7777", p)       # never the raw reason
+        self.assertNotIn("-> REFUSED", p)
+
     def test_a_model_that_will_not_answer_hands_the_step_to_the_next_one(self):
         """C-036. The body has 8 GB and the preferred thinker is 3.4 GB. When free memory dips the
         daemon cannot load it, the call times out, and the step used to record silence and move on.
