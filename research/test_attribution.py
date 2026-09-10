@@ -62,9 +62,11 @@ class Attribution(unittest.TestCase):
                         long_ones.append(f"{src.get('sid')}.{k} ({len(v)} chars)")
         self.assertEqual(long_ones[:6], [], "a long text field travels with a headline: " + ", ".join(long_ones[:6]))
 
-    def test_the_registry_states_a_ground_and_not_only_the_absence_of_an_objection(self):
-        """A source justified only by 'nobody objected' is a source with no case behind it. Every
-        polled news feed must name the article of the Act it stands on."""
+    def test_the_registry_states_a_reading_and_not_only_the_absence_of_an_objection(self):
+        """A source justified only by 'nobody objected' has no case written down at all. Every news
+        feed must name the article it is read to stand on - and that reading is marked as pending
+        counsel wherever it appears, because a firmer footing asserted wrongly is worse than a modest
+        one asserted rightly. This test checks that the reading is WRITTEN, never that it is right."""
         reg = json.loads((ROOT / "research" / "SOURCE_REGISTRY.json").read_text(encoding="utf-8"))
         srcs = reg["sources"] if isinstance(reg, dict) and "sources" in reg else reg
         feeds = [s for s in srcs if s.get("kind") in ("news_feed", "municipal_feed")]
@@ -73,7 +75,12 @@ class Attribution(unittest.TestCase):
                    if "art. 43" not in json.dumps(s, ensure_ascii=False).lower()
                    and "art. 6" not in json.dumps(s, ensure_ascii=False).lower()
                    and "art. 49" not in json.dumps(s, ensure_ascii=False).lower()]
-        self.assertEqual(without, [], "news sources with no legal ground stated: " + ", ".join(map(str, without)))
+        self.assertEqual(without, [], "news sources with no legal reading stated: " + ", ".join(map(str, without)))
+        # and nowhere is the reading allowed to read as settled law
+        unmarked = [s.get("id") for s in feeds
+                    if "legal_recomb_2026_09_10" in s
+                    and not str(s["legal_recomb_2026_09_10"]).startswith("READING TO BE CONFIRMED")]
+        self.assertEqual(unmarked, [], "a legal reading stated as if settled: " + ", ".join(map(str, unmarked)))
 
 
 if __name__ == "__main__":
