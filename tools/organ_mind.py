@@ -652,8 +652,23 @@ def prompt_for(ent: dict, dg: dict, memory: list[dict], conversation: list[dict]
                 # numbers that are by construction not in the digest, and the smallest model copied
                 # the whole line into its next utterance, refusal text and all.
                 what = "withdrawn" if m.get("state") == "retracted" else "refused"
-                lines.append(f"- {m.get('at', '')[:16]}: you said \"{(m.get('text') or '')[:120]}\" and it was "
-                             f"{what} because {reason_category(m.get('reason'))}. Do not say it again.")
+                said = str(m.get("text") or "")
+                if NOTEBOOK_VOCAB.search(said):
+                    # C-037 rendered the REASON without digits and stopped the echo reaching the page.
+                    # It left the loop running. The refused sentence still went into the notebook and
+                    # was still quoted back - and quoting back a sentence that was refused FOR
+                    # CONTAINING THE VALIDATOR'S WORDS is the copy. Measured 2026-09-10: the skeptic
+                    # repeated one such sentence in rounds 369, 375, 381, 387 and 393, each time with
+                    # the newer, digit-free wording pasted into it.
+                    # So a sentence refused as an echo is never handed back. The entity is told what
+                    # happened and asked for a new one; it is not shown the thing it must not copy.
+                    lines.append(f"- {m.get('at', '')[:16]}: your sentence was {what} because "
+                                 f"{reason_category(m.get('reason'))}. It is deliberately not repeated here, "
+                                 f"so that you cannot copy it. Write a NEW sentence about the city, using only "
+                                 f"the facts below.")
+                else:
+                    lines.append(f"- {m.get('at', '')[:16]}: you said \"{said[:120]}\" and it was "
+                                 f"{what} because {reason_category(m.get('reason'))}. Do not say it again.")
         if lines:
             mem = "\nYour notebook (what went wrong before - do not repeat it):\n" + "\n".join(lines) + "\n"
     conv = ""
@@ -699,10 +714,22 @@ PROMPT_FRAGMENTS = ["You notice.", "You doubt.", "You connect.", "Rules (a progr
 # The refusal text became a sentence about the city, and it carries numbers that are by definition not
 # in the digest - so the refusal reproduced itself, and the smallest model was locked in a loop of its
 # own error messages. An utterance that speaks the validator's language is not an observation.
+# C-047. The list above was written by hand against the RAW refusal strings, and C-037 then changed
+# what the entity is actually told - to a digit-free sentence from REASON_CATEGORY. The vocabulary was
+# never updated to match, so the loop measured on 2026-09-10 was caught only by the unrelated fragment
+# "as indicated by the '"; an echo of the new wording without that fragment would have passed. The
+# vocabulary is therefore DERIVED from the same table the validator speaks from, and cannot drift from
+# it again. The short, ordinary keys ("claim", "too short") are deliberately left out: they are common
+# English and matching them would refuse observations for containing a word.
+_VALIDATOR_KEYS = ["number not in digest", "number not in the cited facts", "time outside the window",
+                   "unknown fact ids", "cites nothing", "restates the conversation",
+                   "claim names a source", "claim malformed", "hypothesis stated as fact",
+                   "echoed its own notebook", "echoed the prompt", "prediction stated as fact"]
+_VALIDATOR_SAYS = [said for _key, said in REASON_CATEGORY] + ["it did not pass the check"]
 NOTEBOOK_VOCAB = re.compile(
-    r"->\s*(REFUSED|RETRACTED)|number not in digest|number not in the cited facts|time outside the window|"
-    r"cites nothing|unknown fact ids|restates the conversation|claim names a source|claim malformed|"
-    r"hypothesis stated as fact|Your notebook|as indicated by the '", re.I)
+    r"->\s*(REFUSED|RETRACTED)|Your notebook|as indicated by the '|Do not say it again|"
+    r"deliberately not repeated here|"
+    + "|".join(re.escape(x) for x in _VALIDATOR_KEYS + _VALIDATOR_SAYS), re.I)
 
 # --- semantic guards ----------------------------------------------------------------------------
 # Everything above is arithmetic: it asks whether a token appears where it should. It cannot ask

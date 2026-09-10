@@ -74,11 +74,31 @@ def report(cut: str) -> int:
 
     print("=== utterances: accepted vs refused ===")
     print("  (a correction that makes the CHECKS stricter lowers this on purpose - read it with the next block)")
+    print("  an utterance the model never produced is NOT a refusal: it is counted separately, because")
+    print("  a rate that mixes 'said something unsupportable' with 'said nothing at all' measures two")
+    print("  different failures as one. 16 of 47 refusals on 2026-09-10 were empty strings.")
     for h in ("before", "after"):
         m = [r for r in ut if half(r.get("derivedTime")) == h and r.get("state") in ("thought", "rejected") and r.get("entity")]
-        th = [r for r in m if r.get("state") == "thought"]
-        print("  %-6s utterances %4d | accepted %4d (%5.1f%%) | refused %4d"
-              % (h, len(m), len(th), 100.0 * len(th) / max(1, len(m)), len(m) - len(th)))
+        empty = [r for r in m if not str(r.get("en") or "").strip()]
+        said = [r for r in m if str(r.get("en") or "").strip()]
+        th = [r for r in said if r.get("state") == "thought"]
+        print("  %-6s utterances %4d | produced nothing %3d | of what was SAID: accepted %4d (%5.1f%%) | refused %4d"
+              % (h, len(m), len(empty), len(th), 100.0 * len(th) / max(1, len(said)), len(said) - len(th)))
+
+    print("\n=== which model spoke, and how it fared ===")
+    print("  (C-036's fallback means the smaller model speaks when the larger one has failed, so this")
+    print("   rate falls when the machine is under memory pressure - a fact about the body, not the checks)")
+    for h in ("before", "after"):
+        m = [r for r in ut if half(r.get("derivedTime")) == h and r.get("state") in ("thought", "rejected")
+             and str(r.get("en") or "").strip()]
+        by: dict = {}
+        for r in m:
+            k = str(r.get("model") or "?")
+            a, b = by.get(k, (0, 0))
+            by[k] = (a + (1 if r.get("state") == "thought" else 0), b + 1)
+        parts = ["%s %d/%d (%.0f%%)" % (k, v[0], v[1], 100.0 * v[0] / max(1, v[1]))
+                 for k, v in sorted(by.items(), key=lambda x: -x[1][1])]
+        print("  %-6s %s" % (h, " | ".join(parts) or "nothing"))
 
     print("\n=== why they were refused ===")
     for h in ("before", "after"):

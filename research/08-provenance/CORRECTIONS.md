@@ -1710,3 +1710,62 @@ a day. When it is slow enough to matter, the gate is what will notice first, and
 to weaken it.
 
 **Nothing observed was changed.**
+
+## C-047 — the loop was not broken, it was muted; and a third of the "refusals" were the model saying nothing
+
+**2026-09-10, 13:50 UTC.** Both found by reading the refused rows again — the method that found C-034,
+C-035 and C-037 this morning, applied a second time now that the checks are correct.
+
+### The acceptance rate was measuring two failures as one
+
+**16 of the 47 refusals since the cut have `text: ""` and `cites: []`**, refused as *"too short; cites
+nothing inside the text"*. The gate is right to refuse an empty string. But the model **produced
+nothing** — that is not the same event as producing something the record cannot support, and the
+acceptance rate had been counting them together. Separated, acceptance since the cut is **19 of 50
+that were actually said = 38%**, not 28.8%.
+
+C-036 gave the organ a chain so that a model failing to answer is not silence. This is the neighbouring
+case it does not cover: **the model answers, and the answer is empty.** No receipt calls that anything,
+and until now no measurement did either. `eval_mind_effect.py` now counts *produced nothing* on its own
+line and reports acceptance over what was actually said.
+
+### The notebook loop reformed around its own fix
+
+C-037's correction rendered the refusal reason as a sentence with no digits, so that a model copying it
+could not import numbers that are by construction absent from the digest. It stopped the echo reaching
+the page. **It did not stop the loop.** The refused sentence still went into the notebook, and the
+notebook still quoted it back:
+
+> `you said "The city's maximum values of PM10 and NO2 have significantly increased between 08:00 and
+> 09:00 UTC, as indicated by the ' and it was refused because you named an hour outside the window you
+> were given. Do not say it again." and it was refused because …`
+
+The bolded half of that is **the new, digit-free wording itself**, pasted into the entity's sentence and
+then handed back to it again. Measured: the skeptic (`qwen2.5:1.5b`) repeated this in rounds **369,
+375, 381, 387 and 393** — five rounds of one sentence, each refused, each fed back.
+
+**Quoting a sentence back to a model is not neutral. It is the copy.** For a sentence that was refused
+*for containing the validator's words*, it is the whole mechanism.
+
+**Correction.** A sentence refused as an echo is **never handed back**. The entity is told what
+happened, in the digit-free wording, and told plainly that its sentence is deliberately not repeated so
+that it cannot copy it — and asked for a new one from the facts. Everything that was not an echo is
+still quoted verbatim, because for those the entity's own words *are* the feedback.
+
+**The general form, which is the part worth keeping.** In any verbal feedback loop, the critic's
+message and the model's own rejected output are both material the model will read as text to continue.
+C-037 sanitised the first. This sanitises the second. *A rejected output may not be shown to the thing
+that produced it when the reason for rejection was the output's form.*
+
+### And one thing that is not a defect, but changes how the rate should be read
+
+By model since the cut, over what was actually said: `qwen3.5:4b` **18 accepted of 48 (37.5%)**;
+`qwen2.5:1.5b` **1 accepted of 17 (5.9%)**. The small model is almost never accepted — and C-036's
+fallback chain means the small model speaks *precisely when the larger one has failed*, which is when
+the machine is short of memory. **So the acceptance rate falls when the body is under pressure**, and
+C-042 read that movement as a fact about the checks. `eval_mind_effect.py` now prints the per-model
+split beside the rate and says so, because a number that moves for three different reasons has to name
+them.
+
+**Nothing observed was changed.** No stored utterance, reason or receipt was edited; the change is to
+what the next prompt contains and to how the measurement is reported.
