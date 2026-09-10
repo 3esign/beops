@@ -62,7 +62,20 @@ git -C $pub add -A -f docs
 $snap = Join-Path $src 'public\live-snapshot.json'
 $asof = if (Test-Path $snap) { try { (Get-Content $snap -Raw | ConvertFrom-Json).as_of } catch { '' } } else { '' }
 $msg = if ($asof) { "Live snapshot $asof (export of $head)" } else { "Publish export of local commit $head ($(Get-Date -Format 'yyyy-MM-dd HH:mm') local)" }
-$changed = (git -C $pub status --porcelain) -ne $null
+# On 2026-09-10 this said "nothing changed since the last publish" and exited 0 while seventeen
+# files sat staged in the export, so the site stayed a commit behind until somebody ran it by hand.
+# The check could not tell an EMPTY status from an UNREADABLE one - git returning nothing because
+# there is nothing to say, and git returning nothing because it failed (an index.lock held by the
+# scheduled publish running at the same moment reads exactly like a clean tree). That is the
+# watchman's second lie - calling blindness success - committed by the publish path.
+# So the exit code is consulted, and a status that could not be read is never reported as clean.
+$status = git -C $pub status --porcelain 2>&1
+$rc = $LASTEXITCODE
+if ($rc -ne 0) {
+  Write-Output "STOP: could not read the export status (git exit $rc). Nothing was published, and this is NOT 'nothing changed'."
+  exit 2
+}
+$changed = @($status | Where-Object { $_ -ne $null -and "$_".Trim() -ne '' }).Count -gt 0
 if (-not $changed) { Write-Output 'nothing changed since the last publish'; exit 0 }
 git -C $pub -c user.name='Semir Poturak' -c user.email='scumutator@gmail.com' commit -q -m $msg
 if (-not (git -C $pub remote | Select-String -SimpleMatch 'origin')) { git -C $pub remote add origin $remote }

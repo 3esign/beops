@@ -1611,3 +1611,51 @@ file. Where the two disagree, the code is the evidence and the ledger is the cla
 that has to be fixed.
 
 **Nothing observed was changed.** No code, no comment and no earlier entry was touched.
+
+## C-045 — the publish said "nothing changed" while seventeen files sat staged
+
+**2026-09-10, 12:41 UTC.** Found by checking whether the work of the previous hour had actually
+reached the public repository, rather than by trusting the line that said it had.
+
+**What happened.** `tools/publish_github.ps1` ran, printed *"nothing changed since the last publish"*
+and exited 0. The export repository at that moment held **seventeen staged files** — the new frame,
+its two data files, its test and a rebuilt `index.html` — none of them committed and none pushed. The
+public site stayed one commit behind for five minutes, until the publish was run again by hand and
+pushed `c1ad277..87bfddb`.
+
+**The defect, which is more interesting than the incident.** The check was:
+
+```powershell
+$changed = (git -C $pub status --porcelain) -ne $null
+if (-not $changed) { Write-Output 'nothing changed since the last publish'; exit 0 }
+```
+
+It cannot tell an **empty** status from an **unreadable** one. Git returning nothing because there is
+nothing to say, and git returning nothing because it failed, are the same value here — and a failure
+is entirely plausible in this exact spot: the scheduled publish task runs every ten minutes and takes
+an `index.lock` on the same repository, and a `git status` that loses that race writes to stderr and
+gives the caller an empty stdout. **A clean tree and a locked one read identically.**
+
+This is the watchman's second lie — *it calls blindness success* — committed by the publish path,
+which is the one part of this project that had no watchman over it. `research/STABILITY_REVIEW` had
+already recorded that the automatic publish runs no tests; it had not noticed that the publish also
+cannot tell whether it looked.
+
+**Correction.** The exit code is consulted. A status that could not be read is reported as
+`STOP: could not read the export status (git exit N). Nothing was published, and this is NOT
+'nothing changed'.` and exits 2, so a caller that greps for the word *published* sees a failure rather
+than a reassurance. The emptiness test is also made explicit rather than resting on PowerShell's
+array-versus-null behaviour, which is where the ambiguity got in.
+
+**What is honestly still not fixed.** Two publish paths — the scheduled task and a ship batch — still
+run against one export repository with no coordination, so they can still race. The race is now loud
+instead of silent, which is the part that mattered; making it impossible needs a lock this project has
+not written, and that goes on the open list rather than into this entry as a claim.
+
+**And the thing that found it.** Not a test. A check of the public repository's own log against what
+had just been committed locally, done because the publish line came back blank in a ship batch and a
+blank line is not a confirmation. **An exit code of 0 is evidence that something finished, never that
+it happened** — rule 9 of the method, which this record has now had to apply to its own publisher.
+
+**Nothing observed was changed.** No row, no entry and no published artefact was edited; one commit
+that should have been pushed was pushed.
