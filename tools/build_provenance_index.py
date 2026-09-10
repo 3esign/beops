@@ -107,6 +107,19 @@ def header_refusals(entry: dict) -> dict:
     return out
 
 
+def name_of(sid: str, entry: dict, registry: dict) -> str:
+    """The source's name for a row of the index, from the capture, then the registry, then said to be
+    absent.
+
+    It used to be `entry['name']`, so a single ledger line written without that key took down the
+    generation of the whole provenance index - the file the paper's permission figures are read out
+    of. One malformed line is not a reason for a record to become unreadable, and an index that shows
+    a row with its name missing is more use than an index that does not exist.
+    """
+    return (entry.get("name") or (registry.get(sid) or {}).get("name")
+            or (registry.get(sid) or {}).get("title") or "(name not recorded in the capture)")
+
+
 def main() -> int:
     ledger = load_ledger()
     registry = load_registry()
@@ -185,7 +198,7 @@ def main() -> int:
                 why.append("; ".join(f"`{k}: {v}`" for k, v in sig.items()))
             if last.get("manual_verdict") == "refused":
                 why.append(last.get("manual_reason") or "refused by decision")
-            A(f"| {sid} | {last['name']} | {' · '.join(why) or 'see capture'} | "
+            A(f"| {sid} | {name_of(sid, last, registry)} | {' · '.join(why) or 'see capture'} | "
               f"[{last['captured_at_utc']}]({rel(last['evidence_dir'])}/) |")
         A("")
 
@@ -204,7 +217,7 @@ def main() -> int:
         codes = sorted({str(c) for c in last.get("status_by_url", {}).values()})
         cs = {k: v for sg in (last.get("content_signal") or {}).values() for k, v in sg.items()}
         cst = ", ".join(f"{k}={v}" for k, v in sorted(cs.items())) if cs else "—"
-        A(f"| {sid} | {last['name']} | {rb} | {', '.join(codes) or '—'} | {cst} | "
+        A(f"| {sid} | {name_of(sid, last, registry)} | {rb} | {', '.join(codes) or '—'} | {cst} | "
           f"[{len(caps)} capture{'s' if len(caps) > 1 else ''}]({rel(last['evidence_dir'])}/) | "
           f"{last['captured_at_utc']} |")
     A("")
@@ -221,7 +234,7 @@ def main() -> int:
         A("|---|---|---|---|")
         for sid, caps in sorted(undecided):
             last = caps[-1]
-            A(f"| {sid} | {last['name']} | {(last.get('manual_reason') or '')[:150]} | "
+            A(f"| {sid} | {name_of(sid, last, registry)} | {(last.get('manual_reason') or '')[:150]} | "
               f"[{last['captured_at_utc']}]({rel(last['evidence_dir'])}/) |")
         A("")
 
@@ -244,7 +257,7 @@ def main() -> int:
                 why.append(f"unreachable: {u}")
             if not why:
                 why.append("verdict unknown")
-            A(f"| {sid} | {last['name']} | {'; '.join(why)[:160]} | "
+            A(f"| {sid} | {name_of(sid, last, registry)} | {'; '.join(why)[:160]} | "
               f"[{last['captured_at_utc']}]({rel(last['evidence_dir'])}/) |")
         A("")
 
