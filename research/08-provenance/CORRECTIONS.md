@@ -1032,3 +1032,53 @@ choice, and it was the wrong one. The scrollbar was the tell and it sat there un
 
 **Nothing observed was changed.** The utterances, their states and the validator's reasons are read as
 stored; none was edited, and none is newly excluded.
+
+## C-033, C-034, C-035 — the mind was being refused for the wrong reasons
+
+**2026-09-10.** Read out of the organ's own 300 rows, not out of its design.
+
+### C-034 — a clock was read as a quantity
+
+`number not in digest: 08` is the commonest reason an utterance was ever thrown away: 17 occurrences,
+followed by `09` (9), `02` (8), `23` (5), `03` (4). Every one of those is an hour. The entity wrote
+"between 08:00 and 09:00 UTC"; `_nums()` extracted `08` and `09` as numbers, the digest's number set
+did not contain them, and a correct sentence was refused.
+
+**Correction.** `_clocks()` reads times of day as `HH:MM`; `_nums()` strips them before extracting
+quantities; the digest carries `clock` — every time its facts name, plus every whole hour of the window
+it covers, because the window is precisely what the entity was given. A time outside the window is
+refused as `time outside the window: HH:MM`. The check is now about the right kind of thing.
+
+### C-035 — a claim that named its source could not be settled
+
+Every claim that was ever settled named `S146`. Every claim returned `unverifiable` named `SEPA`,
+`RHMZ automatic stations` or `Sensor.Community` — 10 of 19. The scorer resolves a source by id
+(`by_sid.get(claim["sid"])`), so a name never matched and the claim was written off as unverifiable,
+which read as "the mind predicts unfalsifiable things" when what happened is that it spelled the
+source in words.
+
+**Correction.** `resolve_sid()` maps a name to its id against every name the source carries in this
+window (registry label, snapshot name, Serbian label); `validate()` normalises `claim["sid"]` in place
+so the row that is stored is the row the scorer can settle; a name that resolves to nothing is refused
+with the reason, which the entity reads back from its notebook next round. The prompt lists the
+available ids and says a name cannot be scored.
+
+### C-033 — the refused Serbian was deleted
+
+27 renderings were refused and 0 of them kept their text: `voice()` set `row["sr"] = ""`. The utterance
+had exactly one Serbian sentence and the program erased it. This contradicts the record's own rule —
+evidence is immutable, corrections are appended.
+
+**Correction.** The refused text is kept as `sr_refused` (with its hypotheses and questions), carried
+through the export, and shown on the page as a refused card with the validator's reason. `sr` still
+holds validated text only, so nothing downstream can present a refusal as a voiced sentence.
+
+### What this trio is actually about
+
+The failure rate was being read as a fact about the models. It was largely a fact about the checks: one
+refused sentences for citing the clock, another made half of all predictions unscoreable, and the third
+threw away the evidence of the failure. No model changed and nothing was retrained. Before any
+comparison of models means anything, the measurement has to be measuring the model.
+
+**Nothing observed was changed.** The stored utterances, their states and reasons are read as written;
+`sr_refused` only stops a future deletion.

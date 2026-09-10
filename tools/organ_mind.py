@@ -82,7 +82,7 @@ SNAPSHOT = ROOT / "public" / "live-snapshot.json"
 CONTEXT_POP = ROOT / "public" / "context-population.json"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "mind"
-ORGAN_VERSION = "0.4.0"
+ORGAN_VERSION = "0.4.1"
 OUT_DIR = LIVE / "derived" / "mind"
 ORCHESTRATIONS = ("council", "relay")   # for `run`; the scheduled mode is the drip (see STEPS)
 
@@ -124,8 +124,20 @@ def _p(s: str | None) -> datetime | None:
         return None
 
 
+CLOCK = re.compile(r"\b([01]?\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?\b")
+
+
+def _clocks(text: str) -> set:
+    """Times of day written on the clock, as HH:MM. A time is not a quantity: 08:00 is a fact about
+    WHEN, and checking it against the digest's set of numbers refuses the sentence for looking at the
+    clock. Measured before this existed: `number not in digest: 08` was the single most common reason
+    an utterance was thrown away (17 of them), with 09, 02, 23 and 03 close behind - every one an hour."""
+    return {"%02d:%s" % (int(h), m) for h, m in CLOCK.findall(text or "")}
+
+
 def _nums(text: str) -> set:
-    return {m.replace(",", ".") for m in re.findall(r"\d+(?:[.,]\d+)?", re.sub(r"\[F\d+\]", "", text or ""))}
+    t = CLOCK.sub(" ", re.sub(r"\[F\d+\]", "", text or ""))
+    return {m.replace(",", ".") for m in re.findall(r"\d+(?:[.,]\d+)?", t)}
 
 
 # ==================================================================== L0: program
@@ -147,9 +159,11 @@ def digest(snap: dict, hours: int = 6, now: datetime | None = None, context: dic
     status = {s["sid"]: s for s in snap.get("status", {}).get("sources", [])}
     spreads: list[dict] = []
     headlines: list[dict] = []
+    src_names: dict = {}
     for src in snap.get("sources", []):
         sid = src["sid"]
         lab_en = SRC_LABEL.get(sid, src["name"])
+        src_names[sid] = [x for x in (lab_en, src.get("name"), SRC_LABEL_SR.get(sid)) if x]
         lab_sr = SRC_LABEL_SR.get(sid, lab_en)
         st = status.get(sid, {})
         ds = src.get("datastreams", [])
@@ -257,9 +271,24 @@ def digest(snap: dict, hours: int = 6, now: datetime | None = None, context: dic
                         f"Context: about {k} thousand people live within 1 km of the {st_name} station (Kontur 2022, a modelled estimate, not a census).",
                         kind="context", station=st_name, people_thousands=k)
     nums: set = set()
+    clock: set = set()
     for f in facts:
         nums |= _nums(f["sr"]) | _nums(f["en"])
-    return {"as_of": iso(now), "window_hours": hours, "facts": facts, "numbers": sorted(nums), "headlines": headlines}
+        clock |= _clocks(f["sr"]) | _clocks(f["en"])
+    # Every whole hour inside the window is a legitimate thing to name: the window IS the six hours
+    # the entity was given, so naming one of them is naming the given, not inventing a number.
+    for k in range(hours + 1):
+        clock.add((now - timedelta(hours=k)).strftime("%H:00"))
+    # sid -> label, so a claim that names "SEPA" can be settled like one that says S146. Only sources
+    # this window actually mentions: a claim about a source the entity was never shown is not a claim.
+    sids = {}
+    for f in facts:
+        sd = f.get("sid")
+        if sd and sd not in sids:
+            sids[sd] = (src_names.get(sd) or [sd])[0]
+    names = {sd: src_names.get(sd) or [sids[sd]] for sd in sids}
+    return {"as_of": iso(now), "window_hours": hours, "facts": facts, "numbers": sorted(nums),
+            "clock": sorted(clock), "sids": sids, "sid_names": names, "headlines": headlines}
 
 
 def _people_near(lat: float, lon: float, km: float, ctx: dict) -> int:
@@ -384,6 +413,7 @@ Rules (a program checks them, not you):
    "SEPA reported 32 instruments 1 min ago [F2], while Kurir has been silent all day [F15]."
    Do not repeat these instructions or your temperament - speak about the city.
 6. If you wish, give ONE checkable claim in "claim" in exactly one of these shapes, otherwise an empty object {{}}:
+   "sid" must be one of the ids listed under Sources below - a name like "SEPA" cannot be scored.
    {{"kind":"reception","sid":"S146","within_minutes":90}}  - the source will report again within that time
    {{"kind":"spread","sid":"S146","parameter":"PM10","lo":10,"hi":40,"within_minutes":120}} - the highest value of that parameter in SEPA's next hour will lie between lo and hi
    A claim is scored when reality arrives, and the outcome is read back to you.
@@ -391,6 +421,9 @@ Rules (a program checks them, not you):
 8. If the other entities already said something, do NOT restate it - answer it, dispute it, or add
    what they did not see. Two entities saying the same sentence is a failure of the conversation.
 {memory}{conversation}
+Sources you may name in a claim:
+{sources}
+
 Facts:
 {facts}
 
@@ -468,7 +501,12 @@ def voice(row: dict, text: str, dg: dict, voice_model: str | None, chat, rec: di
             if rec is not None:
                 rec["voiced"] = rec.get("voiced", 0) + 1
             return row
+        # C-033: keep what was refused. `sr` stays empty so that nothing downstream can mistake an
+        # unvalidated sentence for a validated one, but the sentence itself is not destroyed - it is
+        # the only Serbian this thought ever had, and the record does not delete, it appends.
         row["sr"], row["hypotheses_sr"], row["questions_sr"] = "", [], []
+        row["sr_refused"] = sr_text
+        row["hypotheses_sr_refused"], row["questions_sr_refused"] = h_sr, q_sr
         row["sr_state"] = "refused: " + "; ".join(vwhy)[:160]
         feedback = "Prethodni pokušaj je odbijen (" + "; ".join(vwhy)[:200] + "). Ispravi to i piši isključivo ekavicom."
     if rec is not None:
@@ -507,7 +545,9 @@ def prompt_for(ent: dict, dg: dict, memory: list[dict], conversation: list[dict]
         conv = ("\nWhat the other entities just said (answer them - agree, dispute or refine, always with the facts). "
                 "They spoke over an EARLIER version of the facts: a number in their sentences that is not in the facts below "
                 "is stale - do not repeat it, say instead what the facts say now:\n" + "\n".join(lines) + "\n")
-    return PROMPT.format(name=ent["en"], others=others, role=ent["role_en"], memory=mem, conversation=conv, facts=facts)
+    srcs = "\n".join(f"- {sid} = {label}" for sid, label in sorted((dg.get("sids") or {}).items())) or "- (none in this window)"
+    return PROMPT.format(name=ent["en"], others=others, role=ent["role_en"], memory=mem, conversation=conv,
+                         sources=srcs, facts=facts)
 
 
 def ollama_chat(model: str, prompt: str, schema: dict | None = None, num_predict: int = 1000, temperature: float = 0.5, timeout: int = 600) -> dict:
@@ -651,6 +691,35 @@ def ijekavian_hits(text: str) -> list[str]:
 CLAIM_KINDS = {"reception": {"sid", "within_minutes"}, "spread": {"sid", "parameter", "lo", "hi", "within_minutes"}}
 
 
+def _sidkey(s: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", str(s or "").lower())
+
+
+def resolve_sid(sid: str, dg: dict) -> str | None:
+    """A claim can only be settled against a source id. Measured: every claim that was ever settled
+    named `S146`; every claim that came back `unverifiable` named `SEPA`, `RHMZ automatic stations` or
+    `Sensor.Community` - 10 of 19, and not one of them because reality was unclear. The entity was
+    right about the source and wrong about how to spell it, so the program spells it."""
+    sids = dg.get("sids") or {}
+    if sid in sids:
+        return sid
+    want = _sidkey(sid)
+    if not want:
+        return None
+    names = dg.get("sid_names") or {}
+    for k in sids:
+        if _sidkey(k) == want:
+            return k
+    for k in sids:
+        for lab in list(names.get(k) or [sids[k]]) + [SRC_LABEL.get(k, ""), SRC_LABEL_SR.get(k, "")]:
+            l = _sidkey(lab)
+            if not l:
+                continue
+            if l == want or (len(want) >= 4 and (want in l or l.startswith(want))):
+                return k
+    return None
+
+
 def ensure_citations(text: str, dg: dict) -> tuple[str, str]:
     """A small model often thinks correctly and forgets to write [F..]. If the text carries no inline
     citation, the PROGRAM binds it: every number the text uses is looked up in the facts, and the facts
@@ -722,6 +791,9 @@ def validate(answer: dict, dg: dict, previous: list[str] | None = None) -> tuple
             reasons.append(f"number not in digest: {m}")
         elif textual and m not in bound:
             reasons.append(f"number not in the cited facts: {m}")
+    for hhmm in _clocks(text):
+        if hhmm not in set(dg.get("clock") or []):
+            reasons.append(f"time outside the window: {hhmm}")
     bad = sorted(c for c in (inline | listed) if c not in ids)
     if bad:
         reasons.append("unknown fact ids: " + ", ".join(bad)[:120])
@@ -756,6 +828,15 @@ def validate(answer: dict, dg: dict, previous: list[str] | None = None) -> tuple
                 reasons.append("claim range malformed")
             elif not isinstance(claim.get("within_minutes"), int) or not 5 <= claim["within_minutes"] <= 24 * 60:
                 reasons.append("claim horizon must be 5..1440 minutes")
+            else:
+                # The claim is well formed; make it SETTLEABLE. A source named rather than identified
+                # is resolved here, once, and what gets stored is the id the scorer can look up.
+                if dg.get("sids"):
+                    got = resolve_sid(claim.get("sid"), dg)
+                    if got:
+                        claim["sid"] = got
+                    else:
+                        reasons.append("claim names a source that is not in these facts: " + str(claim.get("sid"))[:40])
     reasons += semantic_reasons(text, cited)
     return (not reasons), reasons
 

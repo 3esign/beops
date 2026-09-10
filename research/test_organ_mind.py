@@ -229,9 +229,59 @@ class ValidatorTests(unittest.TestCase):
         om.voice(row2, "Two stations [F1] reported, the highest at 41.", self.dg, "fake-voice", stubborn)
         self.assertTrue(row2["sr_state"].startswith("refused: ijekavian"), row2["sr_state"])
         self.assertEqual((row2["sr"], row2["hypotheses_sr"], row2["voice_attempts"], len(calls)), ("", [], 2, 2))
+        # C-033. `sr` stays empty so nothing downstream can show an unvalidated sentence as validated,
+        # but the sentence is KEPT: it is the only Serbian this thought ever had. Measured before this:
+        # 27 refused renderings, 0 of them with their text still in the row.
+        self.assertIn("Dvije stanice", row2["sr_refused"])
+        self.assertEqual(row2["hypotheses_sr_refused"], ["vjerojatno pada"])
         row3 = {"hypotheses": [], "questions": []}
         om.voice(row3, "Two stations [F1] reported.", self.dg, None, stubborn)
         self.assertEqual(row3["sr_state"], "no voice model")
+
+    def test_a_clock_is_a_time_not_a_number(self):
+        """C-034. `number not in digest: 08` was the commonest reason an utterance was thrown away -
+        17 of them, with 09, 02, 23 and 03 behind it, every one an HOUR. The entity wrote "between
+        08:00 and 09:00 UTC", the validator pulled 08 and 09 out as quantities, did not find them
+        among the digest's numbers, and refused a sentence that was right."""
+        dg = om.digest(snapshot(), hours=6, now=NOW)
+        self.assertIn("clock", dg)
+        self.assertNotIn("08", om._nums("between 08:00 and 09:00 UTC"))
+        self.assertEqual(om._clocks("between 08:00 and 09:00 UTC"), {"08:00", "09:00"})
+        self.assertIn("22:00", dg["clock"])       # a fact's own hour
+        self.assertIn("00:00", dg["clock"])       # a whole hour of the window
+        fid = next(f["id"] for f in dg["facts"] if "41" in om._nums(f["en"]))
+        ok, why = om.validate({"text": f"The highest PM10 was 41 in the hour ending 23:00 [{fid}].", "cites": [fid],
+                               "hypotheses": [], "questions": [], "next_check": "", "claim": None}, dg)
+        self.assertTrue(ok, why)
+        ok2, why2 = om.validate({"text": f"The highest PM10 was 41 at 05:00 [{fid}].", "cites": [fid],
+                                 "hypotheses": [], "questions": [], "next_check": "", "claim": None}, dg)
+        self.assertTrue(any("time outside the window" in r for r in why2), why2)
+
+    def test_a_claim_that_names_its_source_is_resolved_to_the_id_that_can_be_settled(self):
+        """C-035. Every claim ever settled named S146; every `unverifiable` one named SEPA, RHMZ
+        automatic stations or Sensor.Community - 10 of 19, none of them because reality was unclear.
+        The scorer looks a source up by id, so the id is what has to be stored."""
+        dg = om.digest(snapshot(), hours=6, now=NOW)
+        self.assertEqual(om.resolve_sid("S146", dg), "S146")
+        self.assertEqual(om.resolve_sid("SEPA", dg), "S146")
+        self.assertEqual(om.resolve_sid("sepa", dg), "S146")
+        self.assertIsNone(om.resolve_sid("Elektrodistribucija", dg))
+        fid = next(f["id"] for f in dg["facts"] if f.get("sid") == "S146")
+        answer = {"text": f"SEPA has been reporting through the window [{fid}].", "cites": [fid], "hypotheses": [], "questions": [],
+                  "next_check": "", "claim": {"kind": "reception", "sid": "SEPA", "within_minutes": 90}}
+        ok, why = om.validate(answer, dg)
+        self.assertTrue(ok, why)
+        self.assertEqual(answer["claim"]["sid"], "S146")   # normalised in place, so the scorer can find it
+        answer2 = dict(answer); answer2["claim"] = {"kind": "reception", "sid": "the weather people", "within_minutes": 90}
+        ok2, why2 = om.validate(answer2, dg)
+        self.assertTrue(any("not in these facts" in r for r in why2), why2)
+
+    def test_the_prompt_tells_the_entity_which_source_ids_exist(self):
+        dg = om.digest(snapshot(), hours=6, now=NOW)
+        p = om.prompt_for(om.ENTITIES[0], dg, [], [])
+        self.assertIn("Sources you may name in a claim:", p)
+        self.assertIn("S146 = ", p)
+        self.assertIn("cannot be scored", p)
 
     def test_voice_must_be_faithful_and_serbian(self):
         en = "Two stations [F1] reported, the highest at 41."

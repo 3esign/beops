@@ -100,7 +100,8 @@ main{display:grid;grid-template-columns:minmax(360px,5fr) minmax(360px,7fr);min-
 .mind .stack{flex:0 0 auto;height:var(--feedh,460px);overflow:auto;
   display:flex;flex-direction:column;gap:calc(var(--u)*4);padding-right:calc(var(--u)*3)}
 .mind .card.refused{border-left-style:dashed}
-.mind .card.refused .say{color:var(--ink60);font-style:italic;font-size:14px}
+.mind .card.refused .say{color:var(--ink60);font-size:14px}
+.mind .card.refused .hyp{font-style:italic}
 .line{display:grid;grid-template-columns:8ch 14px 1fr;gap:calc(var(--u)*2);padding:calc(var(--u)*2) calc(var(--u)*6);border-bottom:1px solid var(--ink06);align-items:start}
 .line .t{font-family:var(--mono);font-size:12px;color:var(--ink60);padding-top:3px}
 .line .g{width:10px;height:10px;margin-top:6px;border-radius:50%;background:var(--signal)}
@@ -624,14 +625,24 @@ function setPressed(){ document.getElementById('play').setAttribute('aria-presse
 // quiet when what happened is that the translation was refused.
 const ENT=[['observer','Posmatrač','Observer'],['skeptic','Sumnjalo','Skeptic'],['connector','Povezivač','Connector']];
 function voicedIn(th){ return LANG==='sr' ? !!(th.sr_state==='voiced'&&th.sr) : !!th.en; }
+// Serbian counts in three shapes, and 12 takes the same shape as 15, not the same as 2.
+function plSr(n,one,few,many){ const a=Math.abs(n)%100, b=a%10;
+  if(a>=11&&a<=14) return many; if(b===1) return one; if(b>=2&&b<=4) return few; return many; }
 function mindCard(th,fresh){
   const el=document.createElement('div');
   const stamp='<div class="who"><span class="t" data-ago="'+esc(th.t)+'">'+esc(fmtD(th.t))+' UTC</span></div>';
   if(!voicedIn(th)){
     const why=String(th.sr_state||'').replace(/^refused at export: /,'').replace(/^refused: /,'').replace(/^failed: /,'');
+    // C-033. The refused Serbian is shown, marked as refused. It was written and it is the only
+    // Serbian this thought ever had; showing only the reason threw the sentence away twice - once
+    // in the record and once on the page. What it may never be is shown as if it had passed.
+    const raw=String(th.sr_refused||'').trim();
     el.className='card refused';
     el.innerHTML=stamp
-      +'<div class="say">'+esc(LANG==='sr'?'Misao je izgovorena, ali nije puštena na srpskom.':'This utterance has no voice in this language.')+'</div>'
+      +(raw?'<div class="say">'+esc(raw)+'</div>':'')
+      +'<div class="hyp">'+esc(LANG==='sr'
+         ?(raw?'Ovo nije prošlo proveru prevoda i ne stoji kao izgovorena rečenica.':'Misao postoji, ali srpski prevod nije sačuvan.')
+         :(raw?'This did not pass the translation check and does not stand as a voiced sentence.':'The utterance exists; this language has no saved rendering.'))+'</div>'
       +'<div class="meta">'+esc(LANG==='sr'?'provera prevoda: ':'translation check: ')+esc(why)+(th.model?' · '+esc(th.model):'')+'</div>';
     return el;
   }
@@ -659,8 +670,8 @@ function renderMind(){
     const name=LANG==='sr'?nsr:nen;
     const count=LANG==='sr' ? (mine.length+' · '+voiced+' sr') : String(mine.length);
     const full=LANG==='sr'
-      ? (mine.length+' misli u prozoru, '+voiced+' izgovorenih na srpskom')
-      : (mine.length+' utterances in the window');
+      ? (mine.length+' '+plSr(mine.length,'misao','misli','misli')+' u prozoru, '+voiced+' '+plSr(voiced,'izgovorena','izgovorene','izgovorenih')+' na srpskom')
+      : (mine.length+(mine.length===1?' utterance':' utterances')+' in the window');
     col.innerHTML='<div class="entname"><b>'+esc(name)+'</b><span class="n" title="'+esc(full)+'">'+esc(count)+'</span></div>';
     const stack=document.createElement('div'); stack.className='stack';
     if(!mine.length){
