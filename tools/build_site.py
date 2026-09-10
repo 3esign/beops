@@ -757,6 +757,14 @@ function render(){ live(); chips(); stats(); rows(); filter(); prov(); corr();
   b.addEventListener('click',function(){ apply(ORDER[(ORDER.indexOf(read())+1)%3]); });
   // a frame that loads later has to be told too
   document.querySelectorAll('iframe').forEach(function(f){ f.addEventListener('load',tell); });
+  // ...and one that loads later still, or that installed its listener after the broadcast, ASKS.
+  // C-039: the load event is the parent's idea of when a frame is ready; only the frame knows.
+  window.addEventListener('message',function(ev){
+    var d=ev&&ev.data; if(!d||!d.beopsAsk) return;
+    var t=document.documentElement.getAttribute('data-theme')||'';
+    var l=(document.body.className.match(/lang-([a-z]{2})(?!.*lang-)/)||[])[1]||'';
+    try{ ev.source.postMessage({beopsTheme:t, beopsLang:(LANG||'sr'), beopsLang4:(l||'sr')},'*'); }catch(e){}
+  });
 })();
 (function language(){
   var box=document.getElementById('lang'); if(!box) return;
