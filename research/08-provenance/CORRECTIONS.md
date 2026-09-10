@@ -1154,3 +1154,48 @@ system's own weekly review — had cause to open them, because a refusal reads a
 
 **Nothing observed was changed.** Stored rows are read as written; the change is to what the next
 prompt contains and to what the validator accepts.
+
+## C-033…C-037 measured, and one of them made the numbers worse
+
+**2026-09-10, 06:50 UTC**, 4½ hours after the corrections went live, read out of the organ's own 381
+rows and 428 receipts by `research/eval_mind_effect.py`.
+
+| | before | after |
+|---|---|---|
+| model steps that ended in silence | 16.3 % of 300 | **0.0 % of 56** |
+| a clock refused as a quantity | 62 reasons | **5** |
+| `time outside the window` (the precise reason) | 4 | **12** |
+| stored utterances quoting a refusal | 2 | **0** |
+| refused as an echo of its own notebook | — | **8 caught** |
+| voiced in Serbian | 62.3 % | **90.9 %** (n=11) |
+| claims naming a source in words rather than by id | 10 of 19 | **0 of 2** |
+| claims settled | 6 true, 3 false, **10 unverifiable** | **2 true, 0 unverifiable** |
+| **utterances accepted** | **47.8 %** | **32.4 %** |
+
+**The fallback fired once in the wild.** 05:09:56, the skeptic: `qwen2.5:1.5b` returned a
+`JSONDecodeError`, the chain moved to `qwen3.5:4b`, and the step produced a sentence that was then
+judged on its merits. Before C-036 that step was silence.
+
+**The notebook loop had been running for seven hours.** The same corrupted sentence — "…as indicated by
+the ' -> REFUSED (number not in digest: 08…" — appears at 18:17 on 09-09 and again at 01:45 on 09-10.
+Both were refused, so neither reached the page, but the line was circulating through the notebook
+between those two points.
+
+**The acceptance rate fell, and that is the honest headline.** 20 of the 23 refusals since the fix come
+from two reasons that did not exist before it: `time outside the window` (12) and `echoed its own
+notebook` (8). The corrections did not make the entities produce more; they made the refusals correct.
+The rate should be read together with the reasons, which is why `eval_mind_effect.py` prints them
+side by side and says so.
+
+**What is a prediction and not a result.** Until 2026-09-10 the feedback an entity received was the raw
+refusal string, whose digits are by construction absent from the digest — so adaptation was
+structurally impossible, not merely absent. It is now possible. Whether the acceptance rate recovers is
+therefore a claim about the next days, and it will be settled by running this same tool again, not by
+asserting it here.
+
+**Why this file now contains a measurement at all.** The pattern this record keeps repeating is a fix
+asserted rather than measured — C-028 declared the panel stable without measuring the range that was
+actually broken. `research/eval_mind_effect.py` exists so that a correction to the mind is not finished
+until the two halves of the record have been counted across it.
+
+**Nothing observed was changed.** The tool reads and prints; it writes nothing.
