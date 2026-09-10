@@ -205,7 +205,8 @@
    "access": "news-list probe found 10K notice; changes-list parser returned no candidates, so completeness is not established",
    "reuse": "not verified",
    "next": "Either an official data route from the Secretariat (a request under the Free Access to Information Act) or nothing: rendering the page in a browser to extract what the publisher chose not to serve as HTML is not a route this project takes. S15 carries the same notices meanwhile.",
-   "live_layer_2026_09_09": "NOT collectable by this collector, and the reason is now measured rather than assumed: the fetched HTML of /vesti and /linije/aktuelne-izmene contains the navigation and nothing else - no notice, no title, no date. The lists are assembled in the browser (Alpine.js x-data), so a listing parser has nothing to parse and this collector does not execute JavaScript. The plan's estimate that a `city_listing`-style parser would do it was wrong. The same notices reach the record through the City portal (S15), which serves them as HTML."
+   "live_layer_2026_09_09": "NOT collectable by this collector, and the reason is now measured rather than assumed: the fetched HTML of /vesti and /linije/aktuelne-izmene contains the navigation and nothing else - no notice, no title, no date. The lists are assembled in the browser (Alpine.js x-data), so a listing parser has nothing to parse and this collector does not execute JavaScript. The plan's estimate that a `city_listing`-style parser would do it was wrong. The same notices reach the record through the City portal (S15), which serves them as HTML.",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 6(1)-(2) - regulations and official materials of state bodies and of bodies exercising a public function are not copyright works at all. Art. 43 applies in addition for anything that is a press report rather than an official material. Art. 41 attribution is kept either way."
   },
   {
    "id": "S15",
@@ -221,7 +222,8 @@
    "next": "Parsed by collect_daemon.py `city_listing` from 2026-09-09 (title, link, day); the transport notices of the City - the official counterpart of BG Prevoz (S14).",
    "news_audit_2026_09_09": "beograd.rs is the City's own portal: its news (Beoinfo vesti, /lat/beoinfo-vesti) and service notices (/lat/servisne-informacije) are official materials of a body exercising public function - Copyright Act Art. 6(2), not copyright works. Terms (/lat/uslovi-koriscenja, read 2026-09-09): source documents may be downloaded without restriction with attribution and a link to www.beograd.rs; the design, logos, photographs and content carried from other sources are excluded. robots.txt DISALLOWS /feed/ (so the RSS route is refused) and permits the listing pages. Route for v1: poll the listing pages, keep title + link + date. Needs an HTML listing parser (not RSS). Political framing of the Beoinfo stream is real; service notices are the value.",
    "documentation": "https://www.beograd.rs/lat/uslovi-koriscenja",
-   "measured_2026_09_09": "captured with --allow-shared-host (S31/S64 share the portal host): listing pages 200, terms captured; the /feed/ route is disallowed in the stored robots.txt and stays refused"
+   "measured_2026_09_09": "captured with --allow-shared-host (S31/S64 share the portal host): listing pages 200, terms captured; the /feed/ route is disallowed in the stored robots.txt and stays refused",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 6(1)-(2) - regulations and official materials of state bodies and of bodies exercising a public function are not copyright works at all. Art. 43 applies in addition for anything that is a press report rather than an official material. Art. 41 attribution is kept either way."
   },
   {
    "id": "S16",
@@ -899,7 +901,8 @@
    "next": "Best single feed found: pre-filtered Belgrade wire. Carried the 10K transport-regime change the day BEFORE the race. State-owned - weight political framing, administrative notices are low risk.",
    "measurement_time": "yes - pubDate",
    "news_audit_2026_09_09": "CORRECTION: not a state agency. The impressum (tanjug.rs/stranice/9/impresum, read 2026-09-09) names the publisher as Tacno d.o.o., Decanska 12/7, Beograd - a private company operating the Tanjug brand since the state agency was wound up (2021). Footer: 'Sva prava zadrzana - Tanjug (c) 2015-2026'; no reuse statement, no automated-access clause found. Editorial alignment with the government is documented by media research; the earlier note 'state-owned' is replaced by 'private, government-aligned'. Headline + link + pubDate only, as before.",
-   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S69",
@@ -914,7 +917,8 @@
    "next": "OWNERSHIP UNDER CHANGE: part of United Group / Adria News Network, being sold to Alpac Capital as of Aug 2026 with the European Board for Media Services reviewing for concentration. Editorial independence is now an open question, not an assumption.",
    "measurement_time": "yes",
    "news_audit_2026_09_09": "Ownership change (Adria News / Alpac Capital) still in review; re-captured 2026-09-09 from the PC. No reuse statement; headline+link only.",
-   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S70",
@@ -929,7 +933,8 @@
    "next": "Government-aligned per documented media research; use for service content (traffic, weather, incidents), not politics.",
    "measurement_time": "yes",
    "news_audit_2026_09_09": "Registered and captured, NOT polled (COLLECTORS.json enabled=false): government-aligned tabloid; v1 does not need three of them for service content when Tanjug, Studio B, Beta and Novosti-Beograd carry it. Kept as a captured option, not a stream.",
-   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S71",
@@ -944,7 +949,8 @@
    "next": "ISO 8601 timestamps.",
    "measurement_time": "yes",
    "news_audit_2026_09_09": "Registered and captured, NOT polled (COLLECTORS.json enabled=false): government-aligned tabloid; v1 does not need three of them for service content when Tanjug, Studio B, Beta and Novosti-Beograd carry it. Kept as a captured option, not a stream.",
-   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S72",
@@ -959,7 +965,8 @@
    "next": "Government-aligned; service content only.",
    "measurement_time": "yes",
    "news_audit_2026_09_09": "Registered and captured, NOT polled (COLLECTORS.json enabled=false): government-aligned tabloid; v1 does not need three of them for service content when Tanjug, Studio B, Beta and Novosti-Beograd carry it. Kept as a captured option, not a stream.",
-   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S73",
@@ -974,7 +981,8 @@
    "next": "Same Alpac Capital sale as S69. Title and URL only, no summary.",
    "measurement_time": "yes - news:publication_date",
    "news_audit_2026_09_09": "A Google-News sitemap is a crawl aid addressed to search engines; robots.txt permits it for every agent and we take only title, link and publication date. Recorded as an edge case (08-provenance/EDGE_CASES.md). Not polled in v1 (no summary field needed; Danas of the same group is).",
-   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S74",
@@ -989,7 +997,8 @@
    "next": "Construction and infrastructure - a direct sense of the city changing physically, and apolitical.",
    "measurement_time": "yes",
    "news_audit_2026_09_09": "The feed answers with X-Robots-Tag: noindex, follow. Decision: 'noindex' addresses search-engine indexing of the feed document; BEOPS neither indexes nor republishes the feed, it keeps a headline, the link and the time and links back to the article - 'follow' is exactly that. Recorded as a decision, not as a permission; revisited if the publisher adds an AI signal. Verdict stays permitted.",
-   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal (X-Robots-Tag noindex, follow unchanged)"
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal (X-Robots-Tag noindex, follow unchanged)",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S75",
@@ -1003,7 +1012,8 @@
    "reuse": "no statement",
    "next": "City operations: station closures, transit detours. Municipally linked - reliable for did-this-happen, weak for scrutiny of the administration.",
    "measurement_time": "yes",
-   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S76",
@@ -1018,7 +1028,8 @@
    "next": "Most editorially neutral verified feed; good as a cross-check baseline.",
    "measurement_time": "yes",
    "news_audit_2026_09_09": "Beta Press d.o.o.; the public RSS is the free teaser of a paid wire and BEOPS is non-commercial research - fine for v1; a product would need Beta's licence. Footer '(c) 1994-2026 Beta Press d.o.o.', no reuse statement on the site.",
-   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal",
+   "legal_recomb_2026_09_10": "CORRECTION 2026-09-10 (NEWS_LEGAL_RECOMB_v1): the earlier note justified this source by BEOPS being 'non-commercial research'. There is no such exception in the Serbian Copyright Act - Art. 43 draws no commercial/non-commercial line and no text-and-data-mining provision exists in the Act at all. Beta stands on Art. 43(1)(4) and 43(1)(2) like every other outlet, with Art. 41 attribution. The subscription concerns the paid wire, not the public feed; what changes for a product is the risk of a commercial counterparty objecting, which is a business question and not a copyright one."
   },
   {
    "id": "S77",
@@ -1033,7 +1044,8 @@
    "next": "Where city-is-about-to-be-harmed stories surface first: illegal construction legalisations, land-deal irregularities.",
    "measurement_time": "yes",
    "news_audit_2026_09_09": "CORRECTION: this record named three outlets (KRIK, Cenzolovka, Masina) but carries one host and one capture (krik.rs). Split: S77 is KRIK only; Cenzolovka is S200, Masina is S201, each with its own capture.",
-   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S78",
@@ -1047,7 +1059,8 @@
    "reuse": "no statement",
    "next": "Explicitly forward-looking: weekend listings, markets, weather. Service journalism, low editorial risk.",
    "measurement_time": "yes",
-   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S79",
@@ -1062,7 +1075,8 @@
    "next": "THE ONLY ONE of Belgrade's 17 municipalities with a working feed. Ten more were checked and confirmed to have none; five were unreachable.",
    "measurement_time": "yes",
    "news_audit_2026_09_09": "Municipal news feed - official materials of a body exercising public function (Copyright Act Art. 6(2)); the only municipal feed found. Not polled in v1; candidate for the official-materials layer together with S15/S81.",
-   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal"
+   "measured_2026_09_09": "re-captured from the PC 2026-09-09: allowed, 200, no new signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 6(1)-(2) - regulations and official materials of state bodies and of bodies exercising a public function are not copyright works at all. Art. 43 applies in addition for anything that is a press report rather than an official material. Art. 41 attribution is kept either way. CORRECTION: the 2026-09-09 note called this 'the only municipal feed found'. Checked 2026-09-10 from the cloud: Novi Beograd, Zvezdara and Stari grad all serve live WordPress feeds (Palilula does not at /feed/). Four of seventeen city municipalities were looked at; the claim was an artefact of where the audit stopped."
   },
   {
    "id": "S80",
@@ -2968,7 +2982,8 @@
    "measurement_time": "yes - pubDate",
    "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
    "documentation": "https://www.rts.rs/page/stories/sr/rss.html",
-   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S196",
@@ -2984,7 +2999,8 @@
    "measurement_time": "yes - pubDate",
    "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
    "documentation": "https://www.novosti.rs/rss",
-   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S197",
@@ -3000,7 +3016,8 @@
    "measurement_time": "yes - pubDate",
    "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
    "documentation": "https://www.euronews.rs/rss",
-   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S198",
@@ -3015,7 +3032,8 @@
    "next": "Fast general feed; service content. Enable at 30 min.",
    "measurement_time": "yes - pubDate",
    "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
-   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S199",
@@ -3030,7 +3048,8 @@
    "next": "Investigative cadence like KRIK (S77): where a harm to the city surfaces first. Enable at 60 min.",
    "measurement_time": "yes - pubDate",
    "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
-   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S200",
@@ -3045,7 +3064,8 @@
    "next": "Media-freedom watchdog; split out of S77. Enable at 60 min if the capture measures the feed.",
    "measurement_time": "yes - pubDate",
    "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
-   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S201",
@@ -3060,7 +3080,8 @@
    "next": "Labour and social reporting; split out of S77. Enable at 60 min if the capture measures the feed.",
    "measurement_time": "yes - pubDate",
    "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
-   "measured_2026_09_09": "permission capture from the PC: allowed; the feed answers X-Robots-Tag: noindex (without 'follow') - the E-011 decision applies (a search-indexing directive on a feed document we neither index nor republish); recorded, permitted, revisited on any AI signal"
+   "measured_2026_09_09": "permission capture from the PC: allowed; the feed answers X-Robots-Tag: noindex (without 'follow') - the E-011 decision applies (a search-indexing directive on a feed document we neither index nor republish); recorded, permitted, revisited on any AI signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S202",
@@ -3075,7 +3096,8 @@
    "next": "Fact-checking of public statements; a claim-outcome source for the mind's scoring in a later version. Enable at 60 min if measured.",
    "measurement_time": "yes - pubDate",
    "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
-   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S203",
@@ -3090,7 +3112,8 @@
    "next": "National, not Belgrade; the official-materials layer. Enable at 60 min; the Belgrade filter is the news-sorter's job.",
    "measurement_time": "yes - pubDate",
    "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
-   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal"
+   "measured_2026_09_09": "permission capture from the PC: robots.txt served, allowed for our agent and for *, feed 200, no opt-out signal",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 6(1)-(2) - regulations and official materials of state bodies and of bodies exercising a public function are not copyright works at all. Art. 43 applies in addition for anything that is a press report rather than an official material. Art. 41 attribution is kept either way."
   },
   {
    "id": "S204",
@@ -3120,7 +3143,8 @@
    "next": "Not enabled. Same group as Danas (S69) and N1 (S73): a third stream of one newsroom adds little.",
    "measurement_time": "yes - pubDate",
    "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
-   "measured_2026_09_09": "from the PC both https://nova.rs/ and https://nova.rs/feed/ answer 200 (the redirect loop was a property of the cloud reader, not of the site); still not enabled - third stream of one newsroom"
+   "measured_2026_09_09": "from the PC both https://nova.rs/ and https://nova.rs/feed/ answer 200 (the redirect loop was a property of the cloud reader, not of the site); still not enabled - third stream of one newsroom",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S206",
@@ -3135,7 +3159,8 @@
    "next": "Needs an HTML listing parser; state-road conditions around Belgrade (bypass, motorways). Not in v1.",
    "measurement_time": "notice date",
    "news_audit_2026_09_09": "added by the news audit of 2026-09-09; pre-screened from the cloud (robots.txt and feed read), permission capture from the PC in the same commit",
-   "measured_2026_09_09": "capture from the PC: no robots.txt (404), site 200; lead, needs a listing parser"
+   "measured_2026_09_09": "capture from the PC: no robots.txt (404), site 200; lead, needs a listing parser",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 6(1)-(2) - regulations and official materials of state bodies and of bodies exercising a public function are not copyright works at all. Art. 43 applies in addition for anything that is a press report rather than an official material. Art. 41 attribution is kept either way."
   },
   {
    "id": "S207",
@@ -3151,7 +3176,8 @@
    "reuse": "Ringier; no reuse statement found; headline+link only",
    "next": "A second Belgrade-only feed of a national daily (with Novosti S196). Enable at 30 min if the capture measures the feed.",
    "measurement_time": "yes - pubDate",
-   "news_audit_2026_09_09": "the cloud reader is not allowed to read this host; fetched and captured from the PC"
+   "news_audit_2026_09_09": "the cloud reader is not allowed to read this host; fetched and captured from the PC",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 43(1)(4) of the Copyright Act - free use of daily information and news having the nature of a press report - is the primary basis for a headline; Art. 43(1)(2) covers the shape (short extracts and summaries in a press review); Art. 49 (quotation) is the fallback for a headline original enough to be a work. All three are conditioned by Art. 41: the source is named and the origin stated, which is why the outlet and the link travel with every headline. Before this the entry was justified only by the absence of an objection."
   },
   {
    "id": "S208",
@@ -3167,7 +3193,8 @@
    "reuse": "official materials of a body exercising public function - Copyright Act Art. 6(2); terms permit downloading source documents with attribution and a link",
    "next": "Parsed by collect_daemon.py `city_listing` (title, link, day - a date, not an instant). The mayor's PR stream is real; the water/transport/works notices in it are the value. Enable at 30 min.",
    "measurement_time": "yes - publication day only",
-   "news_audit_2026_09_09": "split from the S15 extension: S15 keeps the transport service notices (its original URL), S208 is the Beoinfo listing; both captured with --allow-shared-host"
+   "news_audit_2026_09_09": "split from the S15 extension: S15 keeps the transport service notices (its original URL), S208 is the Beoinfo listing; both captured with --allow-shared-host",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 6(1)-(2) - regulations and official materials of state bodies and of bodies exercising a public function are not copyright works at all. Art. 43 applies in addition for anything that is a press report rather than an official material. Art. 41 attribution is kept either way."
   },
   {
    "id": "S209",
@@ -3223,7 +3250,8 @@
    "reuse": "public enterprise notices, Art. 6(2)",
    "next": "Capture the feed route; low value until delays are published.",
    "measurement_time": "pubDate",
-   "live_layer_2026_09_09": "news/utilities discovery of the afternoon"
+   "live_layer_2026_09_09": "news/utilities discovery of the afternoon",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 6(1)-(2) - regulations and official materials of state bodies and of bodies exercising a public function are not copyright works at all. Art. 43 applies in addition for anything that is a press report rather than an official material. Art. 41 attribution is kept either way."
   },
   {
    "id": "S213",
@@ -3237,7 +3265,8 @@
    "reuse": "public enterprise notices, Art. 6(2)",
    "next": "Billing and utility-fee notices; low rhythm; capture the feed route when the utilities layer grows.",
    "measurement_time": "pubDate",
-   "live_layer_2026_09_09": "news/utilities discovery of the afternoon"
+   "live_layer_2026_09_09": "news/utilities discovery of the afternoon",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 6(1)-(2) - regulations and official materials of state bodies and of bodies exercising a public function are not copyright works at all. Art. 43 applies in addition for anything that is a press report rather than an official material. Art. 41 attribution is kept either way."
   },
   {
    "id": "S214",
@@ -3252,6 +3281,62 @@
    "next": "Re-probe in a week; a 403 to an honest agent is not permission.",
    "measurement_time": "n/a",
    "live_layer_2026_09_09": "news/utilities discovery of the afternoon"
+  },
+  {
+   "theme": "official",
+   "name": "Sluzbeni list grada Beograda - the City's official gazette",
+   "url": "https://www.sllistbeograd.rs/",
+   "status": "lead",
+   "kind": "official_gazette",
+   "rhythm": "issues; archive 2002-2026",
+   "access": "pre-screened from the cloud 2026-09-10: robots.txt is 'User-Agent: * / Allow: /'; front page carries no copyright or terms statement; HTML only, no feed - needs a listing parser. PERMISSION CAPTURE FROM THE MACHINE STILL REQUIRED before anything is collected.",
+   "reuse": "Art. 6(1)-(2): acts of the City, of its municipalities, of the Constitutional Court and of the public utility enterprises are regulations and official materials - not copyright works.",
+   "next": "The most legally solid source available to a Belgrade evidence observatory and absent from 211 registered sources. Publisher: Grad Beograd - Gradska uprava - Sekretarijat za informisanje.",
+   "id": "S215",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 6(1)-(2) - regulations and official materials of state bodies and of bodies exercising a public function are not copyright works at all. Art. 43 applies in addition for anything that is a press report rather than an official material. Art. 41 attribution is kept either way.",
+   "found_2026_09_10": "added by the legal re-comb of 2026-09-10; pre-screened from the cloud only. Nothing is collected from a lead: the permission capture happens on the machine."
+  },
+  {
+   "theme": "official",
+   "name": "GO Novi Beograd - news RSS",
+   "url": "https://www.novibeograd.rs/feed/",
+   "status": "lead",
+   "kind": "municipal_feed",
+   "rhythm": "several per week",
+   "access": "pre-screened from the cloud 2026-09-10: RSS 2.0, 10 items, channel 'Gradska Opstina Novi Beograd', newest 2026-09-09T14:01Z. PERMISSION CAPTURE FROM THE MACHINE STILL REQUIRED.",
+   "reuse": "Art. 6(2) - official materials of a body exercising a public function.",
+   "next": "A city municipality publishes the service facts first and under no copyright; better ground than taking the same notice from a newspaper.",
+   "id": "S216",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 6(1)-(2) - regulations and official materials of state bodies and of bodies exercising a public function are not copyright works at all. Art. 43 applies in addition for anything that is a press report rather than an official material. Art. 41 attribution is kept either way.",
+   "found_2026_09_10": "added by the legal re-comb of 2026-09-10; pre-screened from the cloud only. Nothing is collected from a lead: the permission capture happens on the machine."
+  },
+  {
+   "theme": "official",
+   "name": "GO Zvezdara - news RSS",
+   "url": "https://zvezdara.rs/feed/",
+   "status": "lead",
+   "kind": "municipal_feed",
+   "rhythm": "several per week",
+   "access": "pre-screened from the cloud 2026-09-10: RSS 2.0, 10 items, channel 'GO Zvezdara', newest 2026-09-09T14:02Z ('Deo Zvezdare bez vode zbog planiranih radova 10. septembra'). PERMISSION CAPTURE FROM THE MACHINE STILL REQUIRED.",
+   "reuse": "Art. 6(2) - official materials of a body exercising a public function.",
+   "next": "The newest item at the check is exactly the class of fact this record exists for, published by the body that caused it.",
+   "id": "S217",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 6(1)-(2) - regulations and official materials of state bodies and of bodies exercising a public function are not copyright works at all. Art. 43 applies in addition for anything that is a press report rather than an official material. Art. 41 attribution is kept either way.",
+   "found_2026_09_10": "added by the legal re-comb of 2026-09-10; pre-screened from the cloud only. Nothing is collected from a lead: the permission capture happens on the machine."
+  },
+  {
+   "theme": "official",
+   "name": "GO Stari grad - news RSS",
+   "url": "https://www.starigrad.org.rs/feed/",
+   "status": "lead",
+   "kind": "municipal_feed",
+   "rhythm": "weekly-ish",
+   "access": "pre-screened from the cloud 2026-09-10: RSS 2.0, 10 items, channel 'Stari grad', newest 2026-09-02T13:41Z. PERMISSION CAPTURE FROM THE MACHINE STILL REQUIRED.",
+   "reuse": "Art. 6(2) - official materials of a body exercising a public function.",
+   "next": "Thirteen of the seventeen city municipalities are still unchecked.",
+   "id": "S218",
+   "legal_recomb_2026_09_10": "Ground stated 2026-09-10 (NEWS_LEGAL_RECOMB_v1): Art. 6(1)-(2) - regulations and official materials of state bodies and of bodies exercising a public function are not copyright works at all. Art. 43 applies in addition for anything that is a press report rather than an official material. Art. 41 attribution is kept either way.",
+   "found_2026_09_10": "added by the legal re-comb of 2026-09-10; pre-screened from the cloud only. Nothing is collected from a lead: the permission capture happens on the machine."
   }
  ]
 }
