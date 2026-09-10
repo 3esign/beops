@@ -1082,3 +1082,39 @@ comparison of models means anything, the measurement has to be measuring the mod
 
 **Nothing observed was changed.** The stored utterances, their states and reasons are read as written;
 `sr_refused` only stops a future deletion.
+
+## C-036 — the organ was alive and saying nothing
+
+**2026-09-10.** Between 00:38 and 01:22 the mind produced no utterance. The scheduler ticked every four
+minutes throughout, so nothing looked broken: eleven receipts, of which three `organ_silent` ("model
+daemon not answering") and three `organ_failed` (`TimeoutError`).
+
+**Cause.** The body has 8 GB of RAM (2.7 GB free at the time) and the preferred thinking model is
+3.4 GB. When free memory dips below what the load needs, the daemon thrashes and stops answering — at
+the worst moments not even `/api/tags`. Diagnosed live: the process was up, the port listening,
+`/api/tags` answered 200 in 8 s, and `/api/ps` reported **no model resident**. It had been evicted and
+could not be reloaded.
+
+**What the code did with that.** It picked the first available model from the register's ordered list
+and, when the call failed, recorded silence. The order had been in the register since the organ was
+built — `observer: qwen3.5:4b, qwen2.5:3b, qwen2.5:1.5b` — and was never walked. A 1 GB model that was
+already pulled sat unused while the organ said nothing.
+
+**Correction.** `_chain()` returns every listed model that is present, in the register's order;
+`chat_chain()` asks each in turn and returns the answer together with the model that produced it. The
+stored row credits the model that actually spoke, never the one asked first, and the receipt carries
+`fell_back_from` so a stretch of degraded thinking is legible as degraded. Both the drip and the
+on-demand conversation take this path.
+
+**The principle.** A smaller model is a worse thought; no thought is not a thought at all. An
+observatory whose claim is that it keeps listening cannot go quiet because its preferred model is too
+large for the machine it runs on.
+
+**Not fixed here.** The daemon should be told to hold one model rather than juggle several. That is a
+setting on the daemon, not code in this repository.
+
+**How it was found, honestly.** Not by monitoring. A measurement of an earlier correction came back
+empty, and only then was the receipt read — where the reason had been sitting in plain words for
+three-quarters of an hour.
+
+**Nothing observed was changed.** No stored utterance, state or receipt was edited.

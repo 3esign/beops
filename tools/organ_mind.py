@@ -82,7 +82,7 @@ SNAPSHOT = ROOT / "public" / "live-snapshot.json"
 CONTEXT_POP = ROOT / "public" / "context-population.json"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "mind"
-ORGAN_VERSION = "0.4.1"
+ORGAN_VERSION = "0.4.2"
 OUT_DIR = LIVE / "derived" / "mind"
 ORCHESTRATIONS = ("council", "relay")   # for `run`; the scheduled mode is the drip (see STEPS)
 
@@ -937,6 +937,38 @@ def _pick(avail: list[str], pref: list[str] | None, allow_cloud: bool) -> str | 
     return pick_model(avail, pref or [], allow_cloud=allow_cloud) if pref else None
 
 
+def _chain(avail: list[str], pref: list[str] | None, allow_cloud: bool, limit: int = 3) -> list[str]:
+    """EVERY model from the register's list that is present, in the register's order - not just the
+    first. C-036: the body has 8 GB and the preferred thinker is 3.4 GB, so when free memory dips the
+    daemon cannot load it, the call times out, and the step recorded silence and moved on. Measured on
+    2026-09-10: from 00:38 to 01:22 every model step failed that way and the mind said nothing for 44
+    minutes, while a 1 GB model that was already pulled sat unused. A smaller model is a worse thought;
+    no thought is not a thought at all."""
+    out: list[str] = []
+    for pr in (pref or []):
+        got = pick_model(avail, [pr], allow_cloud=allow_cloud)
+        if got and got not in out:
+            out.append(got)
+    return out[:limit]
+
+
+def chat_chain(chain: list[str], prompt: str, chat, rec: dict | None = None, **kw) -> tuple[dict | None, str | None, list[str]]:
+    """Ask each model in turn until one answers. Returns (answer, the model that answered, what the
+    others did). The model that actually spoke is what gets recorded - the record never credits a
+    thought to a model that did not produce it."""
+    tried: list[str] = []
+    for m in chain:
+        try:
+            answer = chat(m, prompt, **kw)
+        except Exception as e:  # noqa: BLE001
+            tried.append(f"{m}: {type(e).__name__}")
+            continue
+        if rec is not None:
+            rec["calls"] = rec.get("calls", 0) + 1
+        return answer, m, tried
+    return None, None, tried
+
+
 # -------------------------------------------------------------------- run
 def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=ollama_embed, snap: dict | None = None,
         context: dict | None = None, orchestration: str | None = None) -> dict:
@@ -966,7 +998,8 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=o
         publish(receipt_path, rec)
         return rec
     allow_cloud = bool(reg.get("allow_cloud", False))
-    models = {e["id"]: _pick(avail, reg.get("models_by_entity", {}).get(e["id"]) or reg["models_preferred"], allow_cloud) for e in ENTITIES}
+    chains = {e["id"]: _chain(avail, reg.get("models_by_entity", {}).get(e["id"]) or reg["models_preferred"], allow_cloud) for e in ENTITIES}
+    models = {k: (v[0] if v else None) for k, v in chains.items()}
     if not all(models.values()):
         rec["state"], rec["reason"] = "organ_silent", "no local model from the register for: " + ", ".join(k for k, v in models.items() if not v)
         publish(receipt_path, rec)
@@ -1001,11 +1034,10 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=o
     def speak(ent: dict, rnd: int, conversation: list[dict]) -> dict | None:
         prompt = prompt_for(ent, dg, notebook(ent["id"]), conversation)
         prompt_sha = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
-        try:
-            answer = chat(models[ent["id"]], prompt)
-            rec["calls"] += 1
-        except Exception as e:  # noqa: BLE001
-            errors.append(f"{ent['id']} r{rnd}: {type(e).__name__}: {str(e)[:120]}")
+        answer, spoke, tried = chat_chain(chains[ent["id"]], prompt, chat, rec)
+        if tried:
+            errors.append(f"{ent['id']} r{rnd} fell back from " + "; ".join(tried))
+        if answer is None:
             return None
         text, bound_by = ensure_citations(answer.get("text"), dg)
         answer["text"] = text
@@ -1013,7 +1045,7 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=o
         claim = answer.get("claim") if ok and isinstance(answer.get("claim"), dict) and answer.get("claim") else None
         row = {"schema": "beops-derived-row/v1", "state": "thought" if ok else "rejected", "organ": ORGAN_ID,
                "organ_version": ORGAN_VERSION, "conversation": conv_id, "orchestration": orch, "round": rnd, "cites_bound_by": bound_by,
-               "entity": ent["id"], "entity_sr": ent["sr"], "entity_en": ent["en"], "model": models[ent["id"]],
+               "entity": ent["id"], "entity_sr": ent["sr"], "entity_en": ent["en"], "model": spoke,
                "prompt_sha256": prompt_sha, "digest_sha256": digest_sha, "ai_generated": True, "derivedTime": iso(now),
                "replies_to": [c["entity"] for c in conversation],
                "en": text, "sr": "", "sr_state": "pending", "voice_model": None,
@@ -1031,7 +1063,7 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=o
                  "reason": "; ".join(reasons) if reasons else None, "claim": claim})
         if claim:
             _append(OUT_DIR / "claims.jsonl", {"at": iso(now), "conversation": conv_id, "orchestration": orch, "entity": ent["id"],
-                                                "model": models[ent["id"]], "claim": claim,
+                                                "model": spoke, "claim": claim,
                                                 "due": iso(now + timedelta(minutes=int(claim["within_minutes"]))), "outcome": None, "settled_at": None})
         if ok:
             accepted.append(row)
@@ -1160,7 +1192,8 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
                                    "rejected_because": None, "ratings": ratings})
     else:   # an entity speaks, answering the other entities' last accepted utterances of this and the previous cycle
         ent = ENT[name]
-        model = _pick(avail, reg.get("models_by_entity", {}).get(name) or reg["models_preferred"], allow_cloud)
+        chain = _chain(avail, reg.get("models_by_entity", {}).get(name) or reg["models_preferred"], allow_cloud)
+        model = chain[0] if chain else None
         voice_model = _pick(avail, reg.get("voice_models"), allow_cloud)
         rec["model"] = model
         if not model:
@@ -1185,12 +1218,13 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
             previous = [c["en"] for c in (ctx.get("conversation") or [])]
             prompt = prompt_for(ent, dg, notebook(name), conversation)
             prompt_sha = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
-            try:
-                answer = chat(model, prompt)
-                rec["calls"] = 1
-            except Exception as e:  # noqa: BLE001
-                answer = None
-                rec["state"], rec["reason"] = "organ_failed", f"{type(e).__name__}: {str(e)[:120]}"
+            answer, model, tried = chat_chain(chain, prompt, chat, rec)
+            if tried:
+                rec["fell_back_from"] = tried
+            if answer is None:
+                rec["state"], rec["reason"] = "organ_failed", "; ".join(tried)[:160] or "no model answered"
+            else:
+                rec["model"] = model
             if answer is not None:
                 text, bound_by = ensure_citations(answer.get("text"), dg)
                 answer["text"] = text

@@ -238,6 +238,37 @@ class ValidatorTests(unittest.TestCase):
         om.voice(row3, "Two stations [F1] reported.", self.dg, None, stubborn)
         self.assertEqual(row3["sr_state"], "no voice model")
 
+    def test_a_model_that_will_not_answer_hands_the_step_to_the_next_one(self):
+        """C-036. The body has 8 GB and the preferred thinker is 3.4 GB. When free memory dips the
+        daemon cannot load it, the call times out, and the step used to record silence and move on.
+        Measured 2026-09-10: from 00:38 to 01:22 every model step failed that way and the mind said
+        nothing for 44 minutes, while a 1 GB model that was already pulled sat unused. The register
+        lists the models in order for exactly this reason; now the order is used."""
+        avail = ["qwen3.5:4b", "qwen2.5:1.5b", "llama3.2:1b"]
+        chain = om._chain(avail, ["qwen3.5:4b", "qwen2.5:1.5b", "llama3.2:1b"], False)
+        self.assertEqual(chain, avail)
+        self.assertEqual(om._chain(avail, ["qwen3.5:4b"], False), ["qwen3.5:4b"])
+        seen = []
+
+        def dead_then_alive(model, prompt, **kw):
+            seen.append(model)
+            if model == "qwen3.5:4b":
+                raise TimeoutError("timed out")
+            return {"text": "ok"}
+        rec = {}
+        answer, spoke, tried = om.chat_chain(chain, "p", dead_then_alive, rec)
+        self.assertEqual((answer, spoke), ({"text": "ok"}, "qwen2.5:1.5b"))
+        self.assertEqual(tried, ["qwen3.5:4b: TimeoutError"])
+        self.assertEqual(rec["calls"], 1)          # the call that worked, not the one that did not
+        self.assertEqual(seen, ["qwen3.5:4b", "qwen2.5:1.5b"])
+
+        def all_dead(model, prompt, **kw):
+            raise TimeoutError("timed out")
+        answer2, spoke2, tried2 = om.chat_chain(chain, "p", all_dead, {})
+        self.assertIsNone(answer2)
+        self.assertIsNone(spoke2)                  # nothing spoke, so nothing is credited
+        self.assertEqual(len(tried2), 3)
+
     def test_a_clock_is_a_time_not_a_number(self):
         """C-034. `number not in digest: 08` was the commonest reason an utterance was thrown away -
         17 of them, with 09, 02, 23 and 03 behind it, every one an HOUR. The entity wrote "between
