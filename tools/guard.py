@@ -330,6 +330,48 @@ def refusal_route() -> list[dict]:
     return out
 
 
+def publish_gate() -> list[dict]:
+    """Did the last publish run the tests, and did they pass.
+
+    Until 2026-09-10 the scheduled publish rebuilt the site and pushed it without running a single
+    test: the gate protected the manual path and not the one that fires every ten minutes. The gate
+    now lives inside the publisher, and this check reads the receipt it leaves - because a gate that
+    stops the site silently has only exchanged one failure for a quieter one. That is the lesson
+    C-036 bought for the organs, applied to the publisher.
+
+    A suite that has just failed is a WARN: one flake should not scream. Half an hour of it - three
+    ticks - is a STOP, because by then the public page is being kept deliberately stale and somebody
+    has to know."""
+    p = LIVE / "publish-receipt.json"
+    if not p.exists():
+        return [{"check": "the publish is gated", "state": UNKNOWN,
+                 "why": "no publish receipt yet: the publisher has not run since the gate was added"}]
+    try:
+        r = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:                       # noqa: BLE001
+        return [{"check": "the publish is gated", "state": UNKNOWN, "why": "receipt unreadable: %s" % type(e).__name__}]
+    at = r.get("at") or ""
+    try:
+        age_h = (now() - datetime.fromisoformat(str(at).replace("Z", "+00:00"))).total_seconds() / 3600.0
+    except ValueError:
+        age_h = None
+    out = []
+    if r.get("tests_ok"):
+        out.append({"check": "the publish is gated", "state": OK,
+                    "why": "last publish ran the suite and it passed (%s)" % (r.get("tests") or "no summary")})
+    else:
+        state = STOP if (age_h is not None and age_h >= 0.5) else WARN
+        out.append({"check": "the publish is gated", "state": state,
+                    "why": "THE SUITE DID NOT PASS, so nothing has been published%s: %s"
+                           % (" for %.1f h" % age_h if age_h is not None else "",
+                              (r.get("why") or "")[:160])})
+    if age_h is not None and age_h > 1.0 and r.get("tests_ok"):
+        out.append({"check": "the publisher is still running", "state": WARN,
+                    "why": "the last publish receipt is %.1f h old; the site may be frozen for a reason "
+                           "this check cannot see" % age_h})
+    return out
+
+
 def run(dry: bool = False) -> dict:
     checks, repairs = [], []
     for name in TASKS:
@@ -339,7 +381,7 @@ def run(dry: bool = False) -> dict:
             d = task_state(name)
             d["repaired"] = True
         checks.append(d)
-    legal = permission_invariants() + refusal_route()
+    legal = permission_invariants() + refusal_route() + publish_gate()
     organs = organ_output()
     states = [c["state"] for c in checks] + [c["state"] for c in legal] + [c["state"] for c in organs]
     verdict = STOP if STOP in states else (UNKNOWN if UNKNOWN in states else

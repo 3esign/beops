@@ -34,6 +34,22 @@ $notPublic = @('PISMA','LETTER','WORKING_DOCUMENT','INTERNAL','DRAFT','PRESEK','
 $keep = $keep | Where-Object { $n = (Split-Path $_ -Leaf).ToUpper(); -not ($notPublic | Where-Object { $n.Contains($_) }) }
 Write-Output ("source commit {0}: {1} tracked files, {2} exported" -f $head, $files.Count, $keep.Count)
 if ($DryRun) { $keep | Select-Object -First 40; exit 0 }
+# C-045 left this open: two publish paths - the scheduled tick and any ship batch - run against one
+# export repository with no coordination, and the loser of a race for git's index.lock read exactly
+# like a clean tree. The race is now refused rather than lost silently. A lock older than fifteen
+# minutes is treated as abandoned, because a publish that takes that long has died.
+$lockFile = Join-Path $src 'runtime\publish.lock'
+if (Test-Path $lockFile) {
+  $age = (Get-Date) - (Get-Item $lockFile).LastWriteTime
+  if ($age.TotalMinutes -lt 15) {
+    Write-Output ("STOP: another publish holds the lock (taken {0:N1} min ago). NOTHING WAS PUBLISHED." -f $age.TotalMinutes)
+    exit 4
+  }
+  Write-Output ("note: a publish lock {0:N1} min old was abandoned and is being taken over." -f $age.TotalMinutes)
+}
+Set-Content -Path $lockFile -Value ("pid $PID at " + (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')) -Encoding UTF8
+try {
+
 if (-not (Test-Path $pub)) { New-Item -ItemType Directory -Path $pub | Out-Null; git -C $pub init -q -b main }
 # clear the export tree (never the .git of the export repo)
 Get-ChildItem -Path $pub -Force | Where-Object { $_.Name -ne '.git' } | Remove-Item -Recurse -Force
@@ -44,6 +60,67 @@ foreach ($f in $keep) { $d = Split-Path (Join-Path $pub $f); if (-not (Test-Path
 & $py -X utf8 -B tools\build_site.py
 # the three maps of the document, regenerated from the snapshot the site is about to serve
 & $py -X utf8 -B tools\make_maps.py --out docs | Out-Null
+
+# ---------------------------------------------------------------- PUBLISH GATE
+# Every ship batch ran the full suite and refused to commit when it failed. The scheduled publish
+# fired every ten minutes, rebuilt the site and pushed it without running a single test - so the gate
+# protected the rare path and not the common one, and the common one is how the public site actually
+# updates. The gate lives here, after the site is built and before anything is copied, committed or
+# pushed, so that THE THING THAT PUBLISHES IS THE THING THAT CHECKS and no future caller can publish
+# by forgetting.
+#
+# On failure nothing is copied into the export, nothing is committed and nothing is pushed: the
+# published site stays exactly as it was. The export working tree may be left half-rebuilt, which is
+# harmless because every publish clears and rebuilds it from scratch - but the LAST PUBLISHED COMMIT
+# is untouched, which is the part that matters.
+#
+# A frozen site must not be a quiet site. Every run writes data/live/publish-receipt.json and
+# tools/guard.py reads it, so a suite that has been failing for half an hour becomes a STOP rather
+# than a silence - the lesson C-036 bought for the organs, applied to the publisher.
+$testsOut = Join-Path $src 'runtime\publish-tests.txt'
+$null = New-Item -ItemType Directory -Path (Join-Path $src 'runtime') -Force
+# $py is C:\Svemir\python.cmd, which points at the Python bundled with Inkscape. It runs the site
+# build fine, but the suite is verified green under the codex runtime interpreter that every ship
+# batch uses, and a gate that decides whether the city's page updates should not introduce a second
+# interpreter as a variable. Prefer that one; fall back to $py if it is not on this machine.
+$gatePy = Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
+if (-not (Test-Path $gatePy)) { $gatePy = $py }
+$prevEAP = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+& $gatePy -X utf8 -B -m unittest discover -s research -p "test_*.py" *> $testsOut
+$testsRc = $LASTEXITCODE
+$ErrorActionPreference = $prevEAP
+$summary = ''
+if (Test-Path $testsOut) {
+  $summary = ((Get-Content $testsOut | Select-String -Pattern '^Ran |^OK$|^FAILED') -join ' ').Trim()
+}
+$receipt = [ordered]@{
+  schema      = 'beops-publish-receipt/v1'
+  at          = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+  source_head = $head
+  tests_ok    = ($testsRc -eq 0)
+  tests       = $summary
+  published   = $false
+  why         = ''
+}
+if ($testsRc -ne 0) {
+  $first = ''
+  if (Test-Path $testsOut) {
+    $raw = Get-Content $testsOut -Raw
+    $i = $raw.IndexOf('FAIL:'); if ($i -lt 0) { $i = $raw.IndexOf('ERROR:') }
+    if ($i -ge 0) { $first = $raw.Substring($i, [Math]::Min(400, $raw.Length - $i)) }
+  }
+  $receipt.why = "the suite did not pass, so nothing was published. $first"
+  $receipt | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $src 'data\live\publish-receipt.json') -Encoding UTF8
+  Write-Output "STOP: the suite did not pass ($summary). NOTHING WAS PUBLISHED and the site stays as it was."
+  Write-Output $first
+  # PowerShell does not run a finally block on `exit`, and a lock left behind by a failing gate would
+  # block every publish for the next fifteen minutes - a second outage caused by the first.
+  Remove-Item $lockFile -Force -ErrorAction SilentlyContinue
+  exit 3
+}
+Write-Output "gate: $summary"
+# ------------------------------------------------------------ END PUBLISH GATE
 if (Test-Path (Join-Path $src 'docs')) { Copy-Item -LiteralPath (Join-Path $src 'docs') -Destination $pub -Recurse -Force }
 # evidence placeholder so links in the index explain themselves
 $note = "# research/evidence`n`nThe captured pages, headers, robots.txt files and hashes (585 MB) that prove each permission live on the authors' own machine and are not republished: they are third-party content kept as evidence, not as publication. Every capture is listed with its SHA-256 in `research/08-provenance/INDEX.md` and `LEDGER.jsonl`; a reviewer may request any capture by id.`n"
@@ -76,8 +153,20 @@ if ($rc -ne 0) {
   exit 2
 }
 $changed = @($status | Where-Object { $_ -ne $null -and "$_".Trim() -ne '' }).Count -gt 0
-if (-not $changed) { Write-Output 'nothing changed since the last publish'; exit 0 }
+if (-not $changed) {
+  $receipt.published = $false
+  $receipt.why = 'nothing changed since the last publish'
+  $receipt | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $src 'data\live\publish-receipt.json') -Encoding UTF8
+  Write-Output 'nothing changed since the last publish'
+  Remove-Item $lockFile -Force -ErrorAction SilentlyContinue
+  exit 0
+}
 git -C $pub -c user.name='Semir Poturak' -c user.email='scumutator@gmail.com' commit -q -m $msg
 if (-not (git -C $pub remote | Select-String -SimpleMatch 'origin')) { git -C $pub remote add origin $remote }
 git -C $pub push -u origin main
+$receipt.published = $true
+$receipt.why = $msg
+$receipt | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $src 'data\live\publish-receipt.json') -Encoding UTF8
 Write-Output "published: $msg"
+
+} finally { Remove-Item $lockFile -Force -ErrorAction SilentlyContinue }

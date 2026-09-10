@@ -1659,3 +1659,54 @@ it happened** — rule 9 of the method, which this record has now had to apply t
 
 **Nothing observed was changed.** No row, no entry and no published artefact was edited; one commit
 that should have been pushed was pushed.
+
+## C-046 — the gate protected the rare path and not the one the public sees
+
+**2026-09-10, 13:10 UTC.** Not a false statement. A gate in the wrong place, which is the same thing
+one publish later.
+
+**What was true.** Every ship batch in this project builds, runs all 267 tests, and refuses to commit
+if any fails. That gate fired twice today and was right both times.
+
+**What was also true and had not been noticed.** `Beops_Publish` fires **every ten minutes**. It
+exports the snapshot, rebuilds the history, runs `publish_github.ps1` — which rebuilds the whole site —
+and pushes it. **It ran no tests at all.** So the check protected the path taken a few times a day by
+hand, and not the path that produces almost every version of the page the public actually sees. On a
+day like this one, that is roughly forty unchecked publishes against six checked ones.
+
+**What reading the file changed about the fix, twice.** The first plan put the tests in
+`publish_tick.bat`, before calling the publish script. Reading the script refuted it: `build_site.py`
+runs *inside* `publish_github.ps1`, so tests placed before it would have checked **yesterday's page**
+and passed it while today's went out untested — a gate that reports green on the wrong artefact is
+worse than none. The second plan added a `-NoBuild` switch so the tick could build, test, then publish
+what it had tested. That became unnecessary the moment the gate moved **inside the publisher**: the
+thing that publishes is now the thing that checks, and every caller — the scheduled tick, any ship
+batch, a person running it by hand — is gated by construction rather than by remembering.
+
+**Correction.** The gate sits after the site is built and before anything is copied, committed or
+pushed. On failure nothing is published and the live site stays exactly as it was; the export working
+tree may be left half-rebuilt, which is harmless because every publish clears and rebuilds it, and the
+last published commit is untouched. It runs under the same interpreter the suite is verified green
+with, rather than the Inkscape-bundled Python the script otherwise uses, because a gate deciding
+whether the city's page updates should not introduce a second interpreter as a variable.
+
+**And the gate does not get to be silent.** Every run writes `data/live/publish-receipt.json`, and
+`tools/guard.py` reads it: a suite that has just failed is a **warn**, one that has been failing for
+half an hour — three ticks — is a **STOP**, because by then the public page is being kept deliberately
+stale and somebody has to be told. A gate that stops the site quietly has exchanged one failure for a
+better-hidden one, which is precisely what C-036 cost.
+
+**The lock C-045 left open is closed too.** Two publish paths, one export repository: the second one
+now refuses with `another publish holds the lock` and exits 4, instead of losing the race for git's
+`index.lock` and reading an unreadable status as a clean tree. A lock older than fifteen minutes is
+taken over, because a publish that takes that long has died. And because PowerShell does not run a
+`finally` block on `exit`, the failing-gate path releases the lock explicitly — otherwise the first
+outage would have caused a second one lasting fifteen minutes.
+
+**What is honestly still weak.** The gate makes a failing suite freeze the public site. That is the
+right trade — better stale than wrong — but it means a flaky or environment-dependent test can freeze
+publication, and the suite already reads every row in the record and has grown from 6 to 13 seconds in
+a day. When it is slow enough to matter, the gate is what will notice first, and the answer will not be
+to weaken it.
+
+**Nothing observed was changed.**
