@@ -2416,3 +2416,68 @@ Because the paper cites it. §4.7 of pre-paper v5 names the blind-check family a
 above; §9 states the rate-measures-attention rule as the thing v5 must not be allowed to imply. Both
 sentences are claims about this record, and a claim about this record belongs in this record first,
 where it can be checked against the entries rather than against a document that summarises them.
+
+## C-059 — the same rule fixed twice, in one file each time, and a PDF tool that had never run on this machine
+
+**Written at the commit that carries this entry.** Found by the publish gate refusing pre-paper v5.
+
+### The rule that existed in a file instead of in a function
+
+Pre-paper v5's §2.6 quotes the format it abolishes — a hand-typed verification stamp — as an example
+of what was wrong with the ledger. `tools/paper_stamps.py` read that quotation as **v5 stating its own
+verification time**, computed it as 74 minutes *after* the commit that introduced the document, and
+called it impossible. Which it would have been.
+
+The gate refused the publish. Nothing untrue reached the site, and the commit stands with the document
+in it.
+
+**The uncomfortable part is that this was already fixed.** Four hours earlier, `correction_times.py`
+had exactly this defect — C-052's own entry quotes the stamp format, and the rule that abolishes typed
+stamps read the quotation as a typed stamp and refused the entry that introduced it. The fix there was
+one line: strip inline code spans before looking. **It was written into that file.** `paper_stamps.py`
+was written afterwards, by the same hand, on the same afternoon, without it — and with a document that
+quotes in italics and quotation marks rather than in backticks, so even a copied line would not have
+been enough.
+
+*A rule that exists in one file is a rule the next tool will not have.*
+
+`tools/prose.py` is that rule, once: `claims(line)` returns what a line asserts in its own voice, with
+code spans and quoted runs blanked — blanked rather than deleted, so a caller reporting a column is
+still right about where it looked. Both tools import it. `research/test_prose.py` asserts that neither
+tool has grown its own copy again, by reading their source for the pattern.
+
+### The tool that had never worked here
+
+`tools/md2pdf.py` renders these working documents to PDF. It named exactly one font directory — the
+Debian one — and this project runs on Windows. **It could never have produced a PDF on the machine
+that holds the record**, and nobody found out until a document was handed to it, four pre-paper
+versions after it was written. It was on the C-050 list of tools nothing tests.
+
+The font is not cosmetic. Serbian is written with č, ć, ž, š and đ, and a font without those letters
+draws boxes — reportlab substitutes silently and says nothing.
+
+So the tool now searches an explicit override, four Unix locations, matplotlib's bundled copy, any
+font directory inside the local runtimes, and both Windows font directories; and it decides what to
+use by three rules in this order:
+
+1. **A font is never trusted because of its name.** Its character map is read and it must actually
+   contain the ten letters. A test proves a Python file and a symbol font both fail this.
+2. **Any family that passes may be used**, not only DejaVu.
+3. **Among those, the family that can draw the most of the seven faces wins.** The first version of
+   this fix preferred DejaVu unconditionally and produced a document **with no bold at all**, because
+   the only DejaVu on this machine is a single regular face bundled inside a PDF utility — in a set of
+   documents where the load-bearing sentence of every section is bold.
+
+What it chose is printed on every run: *Calibri/Consolas/Times (7 of 7 faces)*, with a note saying
+DejaVu was not complete here. A converter that swaps a font without saying so changes a document
+quietly.
+
+`research/test_md2pdf.py` covers all of it, including that the PDF written is a PDF and large enough
+to hold the document.
+
+### Honest note
+
+Both halves of this entry are the same mistake at different scales. A fix that lives in one file does
+not reach the next file; a search that names one directory does not reach the next machine. **Neither
+was found by a test, and both were found by the gate refusing something correct** — which is the third
+time today the gate has been the thing that noticed.
