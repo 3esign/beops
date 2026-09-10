@@ -33,7 +33,8 @@ LED_CLEAN = [{"sid": "S01"}, {"sid": "S02"}]
 
 @contextlib.contextmanager
 def world(reg=None, col=None, ledger=LED_CLEAN, snapshot=None, names=None,
-          receipt=None, statics=None, docs=None, no_collectors=False, ledger_is_a_dir=False):
+          receipt=None, statics=None, docs=None, no_collectors=False, ledger_is_a_dir=False,
+          claims=None):
     """A whole small BEOPS on disk, with the guard pointed at it."""
     with tempfile.TemporaryDirectory() as d:
         root = pathlib.Path(d)
@@ -59,6 +60,10 @@ def world(reg=None, col=None, ledger=LED_CLEAN, snapshot=None, names=None,
                 json.dumps(receipt, ensure_ascii=False), encoding="utf-8")
         if statics is not None:
             w("research/STATIC_LAYERS.json", statics)
+        if claims is not None:
+            (root / "data" / "live" / "derived" / "mind").mkdir(parents=True, exist_ok=True)
+            (root / "data" / "live" / "derived" / "mind" / "claims.jsonl").write_text(
+                "\n".join(json.dumps(x) for x in claims), encoding="utf-8")
         for name, body in (docs or {}).items():
             (root / "docs" / name).write_text(body, encoding="utf-8")
         old = (g.ROOT, g.RESEARCH, g.LIVE)
@@ -252,6 +257,45 @@ class PublishGate(unittest.TestCase):
         self.assertEqual(c["state"], g.WARN)
 
 
+class Predictions(unittest.TestCase):
+    """A prediction that fell due and was never scored. The guard warns; it never stops the record."""
+
+    def claim(self, hours_late, outcome=None):
+        due = g.now() - timedelta(hours=hours_late)
+        return {"at": g.iso(due - timedelta(hours=1)), "entity": "observer",
+                "claim": {"kind": "spread"}, "due": g.iso(due),
+                "outcome": outcome, "settled_at": g.iso(due) if outcome else None}
+
+    def test_a_claim_still_within_its_grace_is_not_reported(self):
+        with world(claims=[self.claim(1.0)]):
+            c = by(g.predictions(), "no prediction was left unscored")
+        self.assertEqual(c["state"], g.OK)
+
+    def test_a_claim_long_past_due_and_unscored_warns_and_names_it(self):
+        with world(claims=[self.claim(9.0)]):
+            c = by(g.predictions(), "no prediction was left unscored")
+        self.assertEqual(c["state"], g.WARN)
+        self.assertIn("observer", c["why"])
+        self.assertIn("9.0 h ago", c["why"])
+
+    def test_it_never_stops_the_record(self):
+        """The whole point of moving this out of the test suite: the record of the city's air has
+        nothing to do with whether the language layer scored its own claim."""
+        with world(claims=[self.claim(500.0), self.claim(400.0)]):
+            for c in g.predictions():
+                self.assertNotEqual(c["state"], g.STOP)
+
+    def test_a_scored_claim_is_never_late(self):
+        with world(claims=[self.claim(99.0, outcome="false")]):
+            c = by(g.predictions(), "no prediction was left unscored")
+        self.assertEqual(c["state"], g.OK)
+        self.assertIn("1 claims on file", c["why"])
+
+    def test_no_register_at_all_says_nothing(self):
+        with world():
+            self.assertEqual(g.predictions(), [])
+
+
 class StaticLayers(unittest.TestCase):
     LAYER = {"layers": [{"file": "public/context-population.json", "sha256": None,
                          "must_carry": ["source", "licence"],
@@ -324,7 +368,7 @@ class EveryCheckIsDriven(unittest.TestCase):
             "the publish is gated", "the publisher is still running", "a publish is not stuck",
             "static layers", "static layers are present and still the file we accepted",
             "every static layer is named where it is shown",
-            "somebody should look for a newer release",
+            "somebody should look for a newer release", "no prediction was left unscored",
         }
         src = (ROOT / "tools" / "guard.py").read_text(encoding="utf-8")
         import re

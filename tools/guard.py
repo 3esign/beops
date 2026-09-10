@@ -405,6 +405,55 @@ def publish_gate() -> list[dict]:
     return out
 
 
+# A prediction is scored within 24 minutes of falling due, over the 29 settled so far, and never
+# later. Three hours is seven times the worst observed lag: past it, nobody scored it.
+CLAIM_GRACE_H = 3.0
+
+
+def predictions() -> list[dict]:
+    """Whether any prediction the mind made fell due and was never scored.
+
+    A record that keeps only the predictions that came true is not a record of predictions, so this
+    is worth watching. It is a WARN and never a STOP, and the reason is the architecture: the organs
+    are separate, and the record of the city's air has nothing to do with whether the language layer
+    scored its own claim. A check that stopped publishing over an unscored prediction would be doing
+    more damage than the fault it reports (C-066).
+    """
+    p = ROOT / "data" / "live" / "derived" / "mind" / "claims.jsonl"
+    if not p.exists():
+        return []
+    open_late, n = [], 0
+    try:
+        with open(p, encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line.startswith("{"):
+                    continue
+                try:
+                    r = json.loads(line)
+                except ValueError:
+                    continue
+                n += 1
+                if r.get("outcome") is not None:
+                    continue
+                try:
+                    due = datetime.fromisoformat(str(r.get("due")).replace("Z", "+00:00"))
+                except ValueError:
+                    continue
+                late_h = (now() - due).total_seconds() / 3600.0
+                if late_h > CLAIM_GRACE_H:
+                    open_late.append("%s due %s (%.1f h ago)" % (r.get("entity"), r.get("due"), late_h))
+    except OSError as e:                                     # noqa: BLE001
+        return [{"check": "no prediction was left unscored", "state": UNKNOWN,
+                 "why": "the claims register could not be read: %s" % type(e).__name__}]
+    if not n:
+        return []
+    return [{"check": "no prediction was left unscored",
+             "state": WARN if open_late else OK,
+             "why": ("UNSCORED: " + "; ".join(sorted(open_late)[:4])) if open_late
+                    else "%d claims on file, every one past its due time scored" % n}]
+
+
 def static_layers() -> list[dict]:
     """The layers that are not a stream: a basemap and a population grid, each a dated RELEASE of
     somebody else's dataset.
@@ -493,7 +542,7 @@ def run(dry: bool = False) -> dict:
             d = task_state(name)
             d["repaired"] = True
         checks.append(d)
-    legal = permission_invariants() + refusal_route() + publish_gate() + static_layers()
+    legal = permission_invariants() + refusal_route() + publish_gate() + static_layers() + predictions()
     organs = organ_output()
     states = [c["state"] for c in checks] + [c["state"] for c in legal] + [c["state"] for c in organs]
     verdict = STOP if STOP in states else (UNKNOWN if UNKNOWN in states else
