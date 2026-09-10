@@ -1,6 +1,6 @@
 # Data dictionary — the permission landscape of a European capital
 
-Version 1.1, generated 2026-09-10T17:52:02.398319Z.
+Version 1.1, generated 2026-09-10T18:01:28.114830Z.
 
 ## sources.csv
 

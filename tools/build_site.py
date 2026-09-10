@@ -26,6 +26,7 @@ import sys
 import pathlib
 import re
 import shutil
+import prose
 from datetime import datetime, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -87,14 +88,15 @@ def corrections() -> list:
     except OSError:
         return []
     out = []
-    for m in re.finditer(r"^## (C-\d+) — (.+?)$(.*?)(?=^## C-|\Z)", txt, re.M | re.S):
-        body = m.group(3)
+    for m in re.finditer(r"^## (C-\d+(?:\s*,\s*C-\d+)*) — (.+?)$(.*?)(?=^## C-|\Z)", prose.outside_fences(txt), re.M | re.S):
+        body = txt[m.start(3):m.end(3)]  # offsets survive the blanking
         said = re.search(r"\*\*What it said[.:]?\*\*\s*(.+?)(?:\n\n|\*\*)", body, re.S)
         what = re.search(r"\*\*What (?:was actually true|happened)[.:]?\*\*\s*(.+?)(?:\n\n|\*\*)", body, re.S)
         rule = re.search(r"\*\*(?:Generalisation|Rule|The fix)[^*]*\*\*[.:]?\s*(.+?)(?:\n\n|\*\*)", body, re.S)
         def clean(x):
             return re.sub(r"\s+", " ", re.sub(r"`|\*\*|\[|\]\([^)]*\)", "", x.group(1))).strip()[:400] if x else ""
-        out.append({"id": m.group(1), "title": re.sub(r"`", "", m.group(2)).strip(),
+        out.append({"id": m.group(1), "ids": re.findall(r"C-\d+", m.group(1)),
+                    "title": re.sub(r"`", "", m.group(2)).strip(),
                     "said": clean(said), "true": clean(what), "rule": clean(rule)})
     return out
 

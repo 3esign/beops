@@ -2944,3 +2944,75 @@ near miss costs: it says the check I write is not automatically safer than the c
 that a stop condition deserves the same scrutiny as the measurement it guards. I do not have a rule
 that would have caught this at the moment of writing. The rule above is written now, after the fact,
 which is exactly the sequence this file exists to record.
+
+## C-067 — three corrections were in the ledger and not in the list the public reads
+
+**Written at the commit that carries this entry.** Found while checking a number the build prints
+about itself: the publish said *"60 corrections"*, and the ledger's numbering had just reached C-066.
+
+### What happened
+
+The page says of its list of failures: *"That list is never deleted."* That promise is about removal,
+and it was kept — nothing has ever been removed. What was quietly not true is the weaker thing the
+sentence lets a reader assume: that everything written into the ledger arrives in the list at all.
+
+`corrections()` in the site builder matched headings with this pattern:
+
+```
+^## (C-\d+) — (.+?)$
+```
+
+One id, then an em dash. Three corrections do not have a heading of that shape:
+
+```
+## C-033, C-034, C-035 — the mind was being refused for the wrong reasons
+```
+
+The pattern did not match it, so it produced no row, and **C-033, C-034 and C-035 were absent from
+the public list from the day they were written.** No error, no warning, no shorter output that anyone
+would notice — a list of sixty looks exactly like a list of sixty-three.
+
+### What was actually true
+
+Counted three ways, before the fix: 62 headings in the ledger, 66 numbers used, 60 rows published.
+Three different numbers for the same thing, and nothing in the system compared them.
+
+After the fix: **61 rows, 63 numbers published.** The only numbers now absent are C-026, C-027 and
+C-028, and those are not a parsing failure — C-044 records that they were written down in the code
+they fixed and never carried into the ledger at all. A declared hole is a different thing from a
+silent one.
+
+### Correction
+
+The heading pattern now accepts a comma-separated list of ids, and each entry carries `ids` alongside
+the id as written, so a heading that covers three corrections publishes as one row that all three
+numbers can be found in — which is how the ledger wrote it and how it should read.
+
+The fix that matters more is `research/test_corrections_published.py`, six tests, and one of them is
+the check that would have caught this on the day it happened:
+
+> for every number from C-001 to the highest one published, that number is either in the public list
+> or named in a short declared list of numbers that were never written — and each excused number must
+> appear in the ledger's own text, so this file cannot invent an exception.
+
+The others: the parser produced something at all; no number published twice; a combined heading
+publishes all of its numbers; every row carries a title.
+
+### The shape
+
+This is the blind check again, turned around. §4.7 of the pre-paper names a verifier that reports
+success while reading less than it was believed to read. This is a *producer* that reports success
+while writing less than it was believed to write, and the reader cannot tell, because a list that
+holds everything and a list that quietly holds less are both just a list. The remedy is the same in
+both directions: **something outside the parser has to know how many there should be.**
+
+A heading written with a plain hyphen instead of an em dash would still vanish. That is now a loud
+failure rather than a silent one, which is the only part of it worth having.
+
+### Honest verdict
+
+Three of this project's own recorded failures were missing from the page whose entire purpose is to
+show its failures, for as long as they have existed, and it was found by noticing that a build log
+number disagreed with a ledger number — not by any check. The system had no idea. It counted its
+corrections in three incompatible ways and never once compared them, which is precisely the fault
+this project accuses other people's dashboards of.

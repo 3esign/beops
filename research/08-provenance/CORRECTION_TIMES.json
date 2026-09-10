@@ -1,10 +1,10 @@
 {
  "schema": "beops-correction-times/v1",
- "generated_at": "2026-09-10T17:51:48Z",
+ "generated_at": "2026-09-10T18:01:19Z",
  "rule": "A correction's time is the time of the commit that introduced it, read from the repository. It is not typed. Entries before C-52 carry a typed time as well; where the two disagree, the commit is the record and the typed time is the error.",
  "tolerance_minutes": 15,
  "typed_era_ends_before": 52,
- "count": 66,
+ "count": 67,
  "typed_and_wrong": [
   "C-033",
   "C-037",
@@ -29,7 +29,9 @@
   "C-049",
   "C-050"
  ],
- "not_yet_in_the_record": [],
+ "not_yet_in_the_record": [
+  "C-067"
+ ],
  "note_on_the_newest": "The newest entry has no time until the commit that introduces it exists. A correction that has not entered the record has no time, and saying so is more accurate than giving it one.",
  "git_readable": true,
  "entries": [
@@ -493,6 +495,13 @@
    "stated_in_ledger_utc": null,
    "commit": "f69fcaa",
    "written_utc": "2026-09-10T17:51:32Z",
+   "stated_minus_written_minutes": null
+  },
+  {
+   "id": "C-067",
+   "stated_in_ledger_utc": null,
+   "commit": null,
+   "written_utc": null,
    "stated_minus_written_minutes": null
   }
  ]

@@ -38,3 +38,32 @@ def quotes(line: str) -> list[str]:
     """Everything the line quotes, in order. The inverse of claims(), for a caller that wants to
     check what was quoted rather than ignore it."""
     return [m.group(0) for m in CODE_SPAN.finditer(line)] + [m.group(0) for m in QUOTED.finditer(line)]
+
+
+FENCE = re.compile(r"^\s*(```|~~~)")
+
+
+def outside_fences(text: str) -> str:
+    """The document's own structure, with the contents of fenced code blocks blanked.
+
+    Same rule as claims(), one level up. claims() asks what a LINE asserts as opposed to quotes;
+    this asks what a DOCUMENT is as opposed to shows. A heading inside a fence is a document
+    displaying a heading, not a document having one - and a tool that cannot tell the difference
+    reads an example as structure.
+
+    That is not hypothetical: the entry describing C-067 quoted the very heading whose shape had
+    broken the site builder, and the builder - the one just fixed - parsed the quotation as a second
+    copy of that entry (caught by the test written in the same commit, before anything was
+    committed).
+
+    Every character offset is preserved, so a caller can match against the result and slice the
+    original text with the same indices.
+    """
+    out, inside = [], False
+    for line in text.split("\n"):
+        if FENCE.match(line):
+            inside = not inside
+            out.append(" " * len(line))
+        else:
+            out.append(" " * len(line) if inside else line)
+    return "\n".join(out)
