@@ -1248,3 +1248,43 @@ file exists to make impossible.
 
 **Nothing observed was changed.** No stored row, state or receipt was touched; the change is to the
 order of two lines of page script.
+
+## C-039 — the correction about the ledger's gaps was itself wrong, and there is no definition of "a correction"
+
+**2026-09-10, 09:00 UTC**, twenty minutes after C-038 was appended. C-038 closed with a note saying
+the sequence "has no **C-026**", recorded as a gap rather than closed. That note was written from a
+list of the ids that appear anywhere in this file. It is wrong in the direction that flatters us.
+
+**What the file actually contains,** counted three ways on the file itself:
+
+| Counting rule | Answer |
+|---|---|
+| Headings that begin with an id (`## C-0NN — …`) | **34** |
+| Ids that head an entry (one heading covers C-033, C-034 and C-035) | **35** |
+| Ids that appear anywhere in the file | **38** |
+| **Ids referenced by other entries and heading none of their own** | **C-026, C-027, C-028** |
+| The number the public site prints | **32** |
+
+So three corrections are *cited* in this ledger — C-028 is quoted inside the C-033…C-037 measurement
+as the entry that "declared the panel stable without measuring the range that was actually broken" —
+and none of the three was ever written down here. They were made; they were referred to; they have no
+entry. C-038 named one of them and missed two.
+
+**The deeper defect, which is the one worth keeping.** Five counting rules were available and four
+different numbers came out. Nowhere in this project is it written what *one correction* is. A record
+whose whole premise is that a figure must come from the file that holds it has been publishing a count
+of its own corrections without a stated definition of the thing being counted — the same class of
+error it writes about its sources under *received ≠ measured*.
+
+**The definition, stated here so that it can be tested rather than assumed.** *An entry is a heading.
+An id is a claim that an entry exists.* By that rule this file holds **34 entries** carrying **35 ids**,
+and **three ids are claims with no entry behind them**.
+
+**What is not being done.** The three missing entries are not being reconstructed now from the commit
+history and back-dated into an append-only file; that would be a fabrication with a helpful motive.
+They are added to the open list in the pre-paper: write them from the commits that made them, dated
+today and saying plainly that they are late. And the public site's counter is left alone until it can
+be pointed at the stated definition rather than quietly re-tuned to agree with it.
+
+**Nothing observed was changed.** C-038 stays exactly as written, wrong sentence included; this entry
+is what a correction to a correction looks like in a file that may not be edited.
