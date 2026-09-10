@@ -225,6 +225,10 @@ def digest(snap: dict, hours: int = 6, now: datetime | None = None, context: dic
                 last_t = hours_seen[-1] if hours_seen else ""
                 prev_t = hours_seen[-2] if len(hours_seen) > 1 else None
                 tc = max((p.get("tc") or "" for _, p in pts), default="")
+                # The baseline layer buckets a corrected source by the CORRECTED hour, so the lookup
+                # has to use the corrected label of this same hour - not the source's label, and not
+                # the newest correction in the window. Reading them off two clocks was the defect.
+                last_tc = max((p.get("tc") or "" for _, p in pts if p.get("t") == last_t), default="")
                 add(f"SEPA-in poslednji sat po oznaci izvora završava se {last_t[11:16]} UTC" + (f"; naša procena stvarnog UTC je {tc[11:16]} (izvor označava lokalno vreme kao Z)." if tc else "."),
                     f"SEPA's last labelled hour ends {last_t[11:16]} UTC" + (f"; our estimate of true UTC is {tc[11:16]} (the source labels local time as Z)." if tc else "."),
                     kind="clock_note", sid=sid)
@@ -242,7 +246,7 @@ def digest(snap: dict, hours: int = 6, now: datetime | None = None, context: dic
                         # entities see six hours, so without this they cannot notice anything a city
                         # does daily - and almost everything a city does is daily. It is a median of
                         # what we received, carrying its sample, and it is not a norm or a limit.
-                        bh = _p(last_t)
+                        bh = _p(last_tc or last_t)
                         ub = _usual(sid, hi[1], par, bh.hour) if bh else None
                         if ub and ub.get("median") is not None:
                             med, nd, nn = ub["median"], ub["days"], ub["n"]

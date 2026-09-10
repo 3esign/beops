@@ -1288,3 +1288,57 @@ be pointed at the stated definition rather than quietly re-tuned to agree with i
 
 **Nothing observed was changed.** C-038 stays exactly as written, wrong sentence included; this entry
 is what a correction to a correction looks like in a file that may not be edited.
+
+## C-040 — the layer that says what is usual was reading the one clock we know is wrong
+
+**2026-09-10, 09:30 UTC.** Found while surveying what the permissions already held would allow that
+had never been computed — that is, while looking for something else.
+
+**What was already right, and is the reason this is small.** S146 (SEPA's HVD air-quality API) labels
+Belgrade local time as `Z` in three fields whose names end in `_utc`. That was found on 2026-09-08 by
+reading a row, and handled properly: `COLLECTORS.json` carries a `source_clock_note` naming the offset,
+the evidence row and the date the clocks change; `parse_sepa_hvd` keeps the label exactly as served and
+writes `phenomenonTimeCorrected` / `resultTimeCorrected` beside it, marked `estimated`; the snapshot
+carries `tc` next to `t`; and the mind says it out loud in both languages every round — *"SEPA's last
+labelled hour ends HH:MM UTC; our estimate of true UTC is HH:MM (the source labels local time as Z)."*
+
+**What was wrong.** `tools/baseline.py` was the one consumer that never read the correction. `_hour_of()`
+took `phenomenonTime` — the label — and the file it writes calls that hour UTC. For S146 it is Belgrade
+local. The layer was internally consistent, because `organ_mind` looked the bucket up by the same label,
+so today's comparisons were like-for-like; it breaks the moment an S146 bucket is set beside another
+source's bucket, which is exactly what a "what is usual at this hour" layer invites.
+
+**Nothing wrong reached anyone.** The baseline layer has published zero buckets — 12,726 candidates, all
+withheld for having fewer than three days behind them — so the defect was found before its first
+publication. That is the only comfortable sentence in this entry.
+
+**Correction.** `_hour_of()` now returns which of three clocks the hour came from — `measured` (the
+source's own label, taken as served), `corrected` (our estimate of the true UTC, where the collector
+wrote one), `arrival` (no measurement time published at all) — and prefers the correction where it
+exists. Every bucket carries `hour_read_from`; every source file carries the list of clocks its buckets
+were built on and the source's clock note. `organ_mind` looks the bucket up by the corrected label of
+the same hour rather than by the source's label, so the two ends of the comparison are read off one
+clock.
+
+**The general form, which is the part worth keeping.** The note is hand-written prose about one source.
+Nothing asserted that a source delivering values which arrive *before their own measurement window has
+closed* must be declared at all — so a second source with the same defect would have been silently
+wrong in the same way, and would have been found by luck again or not at all.
+`research/test_source_clock.py` is that assertion, written as a property of any source: a source may
+have a wrong clock, it may not have one quietly; a note that names an offset must actually produce a
+corrected time, so a note cannot be decorative; a corrected time must be marked as our estimate, because
+it is our reading of somebody else's clock and never their statement; and if a second source ever earns
+a clock note, the suite fails and asks for the pre-paper's clock paragraph to be re-read rather than
+silently generalised.
+
+**The operator's part, recorded because it is the larger error.** Before finding the real defect I
+reported to the editor of record that the correction mechanism existed but had never been switched on,
+and that nothing was being corrected. That was false. I had looked for `source_clock_note` in
+`SOURCE_REGISTRY.json`, found nothing, and read the absence as the answer — the same shape as **C-035**,
+where a claim naming its source in words resolved to nothing and was written off as unverifiable. The
+note was in `COLLECTORS.json`, which is where collector behaviour belongs, and it was better written
+than what I was about to add. An absence in one file is not a fact about the system.
+
+**Nothing observed was changed.** No stored row was touched; the 20,175 S146 rows keep their labels
+exactly as the source served them, as does every correction the collector had already written beside
+them. The change is to which of the two the baseline layer reads.

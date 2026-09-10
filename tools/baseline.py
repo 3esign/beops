@@ -49,18 +49,35 @@ def _p(s):
         return None
 
 
-def _hour_of(row: dict) -> tuple[int | None, bool]:
-    """(hour UTC, was it the measurement's own hour). A source that publishes no measurement time is
-    bucketed by when it ARRIVED - which is a different thing and is marked as such, never quietly
-    treated as the hour of the reading."""
+def _hour_of(row: dict) -> tuple[int | None, bool, str]:
+    """(hour UTC, was it the measurement's own hour, which clock that hour came from).
+
+    Three frames, and the bucket has to say which one it is in, because an hour is only comparable
+    to an hour read off the same clock:
+
+      "measured"  - the source published a measurement time and we take it as served;
+      "corrected" - the source published a measurement time whose label is wrong (it stamps local
+                    time as UTC), the collector wrote our ESTIMATE of the true UTC beside it, and we
+                    bucket by the estimate. The bucket is our reading of the source's clock, not the
+                    source's own statement, and says so;
+      "arrival"   - the source publishes no measurement time at all, so the bucket is the hour the
+                    value ARRIVED, which is a different thing and is marked as such.
+
+    Reading the label when a correction exists is the error this layer is built against: two sources
+    bucketed on two different clocks look comparable and are not."""
+    pc = row.get("phenomenonTimeCorrected")
+    if isinstance(pc, dict) and pc.get("end") and not row.get("phenomenonTimeUnknown"):
+        d = _p(pc["end"])
+        if d:
+            return d.astimezone(timezone.utc).hour, True, "corrected"
     pt = row.get("phenomenonTime")
     end = pt.get("end") if isinstance(pt, dict) else pt
     if end and not row.get("phenomenonTimeUnknown"):
         d = _p(end)
         if d:
-            return d.astimezone(timezone.utc).hour, True
+            return d.astimezone(timezone.utc).hour, True, "measured"
     d = _p(row.get("receivedTime"))
-    return (d.astimezone(timezone.utc).hour, False) if d else (None, False)
+    return (d.astimezone(timezone.utc).hour, False, "arrival") if d else (None, False, "arrival")
 
 
 def build_source(sid: str, now: datetime | None = None) -> dict | None:
@@ -71,6 +88,8 @@ def build_source(sid: str, now: datetime | None = None) -> dict | None:
     seen: dict[tuple, list] = {}
     days: dict[tuple, set] = {}
     timed: dict[tuple, bool] = {}
+    frames: dict[tuple, str] = {}
+    clock_note = None
     units: dict[tuple, str] = {}
     names: dict[str, str] = {}
     first = last = None
@@ -90,15 +109,18 @@ def build_source(sid: str, now: datetime | None = None) -> dict | None:
             rx = _p(r.get("receivedTime"))
             if not rx or (now - rx).days > MAX_DAYS:
                 continue
-            hour, own = _hour_of(r)
+            hour, own, frame = _hour_of(r)
             if hour is None:
                 continue
+            if r.get("sourceClockNote"):
+                clock_note = str(r["sourceClockNote"])
             st = str(r.get("station_name") or r.get("station_id") or "?")
             names[str(r.get("station_id"))] = st
             k = (st, str(par), hour)
             seen.setdefault(k, []).append(float(val))
             days.setdefault(k, set()).add(rx.date().isoformat())
             timed[k] = own
+            frames[k] = frame
             if r.get("unit"):
                 units[k] = str(r["unit"])
             first = rx if first is None or rx < first else first
@@ -118,6 +140,7 @@ def build_source(sid: str, now: datetime | None = None) -> dict | None:
             "p75": round(vals[(3 * len(vals)) // 4], 2),
             "min": round(vals[0], 2), "max": round(vals[-1], 2),
             "unit": units.get(k), "hour_is_the_measurement_s_own": bool(timed[k]),
+            "hour_read_from": frames.get(k, "measured"),
         }
     return {"schema": SCHEMA, "sid": sid, "made_at": now.isoformat().replace("+00:00", "Z"),
             "record_from": first.isoformat().replace("+00:00", "Z") if first else None,
@@ -128,11 +151,17 @@ def build_source(sid: str, now: datetime | None = None) -> dict | None:
             "what_this_is": "the median of what this record received from this station at this hour of "
                             "the day. A fact about the observatory, not a norm, a limit or a health "
                             "threshold, and not usable as one.",
+            "clocks": sorted({v for v in frames.values()}),
+            "source_clock_note": clock_note,
             "stations": names, "buckets": buckets}
 
 
 def usual(base: dict | None, station: str, parameter: str, hour: int) -> dict | None:
-    """What this station usually shows at this hour, or None when the record cannot yet say."""
+    """What this station usually shows at this hour, or None when the record cannot yet say.
+
+    `hour` must be read off the same clock the buckets were built on - for a source whose labels are
+    corrected, that is the corrected hour, never the label. The caller is given `hour_read_from` on
+    every bucket so a mismatch is visible rather than silent."""
     if not base:
         return None
     return (base.get("buckets") or {}).get("|".join((str(station), str(parameter), "%02d" % int(hour))))
