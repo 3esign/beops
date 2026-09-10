@@ -378,6 +378,10 @@ addEventListener('message',function(ev){
   var l=d.beopsLang4||d.beopsLang;
   if(l&&IDX[l]!==undefined&&l!==LANG){ LANG=l; render(); }
 });
+// C-039, fourth: the ask is sent HERE, on the line after the handler exists, because every
+// schedule is a guess about when that happens and all three guesses were wrong.
+try{ if(window.parent&&window.parent!==window) window.parent.postMessage({beopsAsk:true},'*'); }catch(e){}
+
 })();
 </script>
 

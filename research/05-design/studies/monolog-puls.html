@@ -731,6 +731,10 @@ window.addEventListener('message',ev=>{
     else document.documentElement.removeAttribute('data-theme');
   }
   if(d.beopsLang&&d.beopsLang!==LANG){ LANG=d.beopsLang; relang(); } });
+// C-039, fourth: the ask is sent HERE, on the line after the handler exists, because every
+// schedule is a guess about when that happens and all three guesses were wrong.
+try{ if(window.parent&&window.parent!==window) window.parent.postMessage({beopsAsk:true},'*'); }catch(e){}
+
 Promise.all([loadBasemap(),loadPeople()]).then(()=>load()).then(snap=>{ if(!snap){document.getElementById('clock').textContent='no snapshot';return;} SNAP=snap; T1=P(snap.as_of); T0=T1-snap.window_hours*3600e3; EVENTS=build(snap); document.getElementById('mapnote').textContent=(snap.as_of.slice(0,19))+'Z'; speedLabel(); showLatest(); renderMind();
   // Paint once, straight away, before the animation loop starts. requestAnimationFrame does not
   // fire while a document is hidden, so a frame that loads out of view - a background tab, a

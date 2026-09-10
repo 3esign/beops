@@ -412,6 +412,10 @@ load().then(snap=>{
     setTimeout(function(){ try{ render(); }catch(e){} },0);
   }
  if(ev&&ev.data&&ev.data.beopsLang) setLang(ev.data.beopsLang); });
+// C-039, fourth: the ask is sent HERE, on the line after the handler exists, because every
+// schedule is a guess about when that happens and all three guesses were wrong.
+try{ if(window.parent&&window.parent!==window) window.parent.postMessage({beopsAsk:true},'*'); }catch(e){}
+
 });
 })();
 </script>
