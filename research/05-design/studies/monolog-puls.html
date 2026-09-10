@@ -742,9 +742,18 @@ Promise.all([loadBasemap(),loadPeople()]).then(()=>load()).then(snap=>{ if(!snap
   requestAnimationFrame(frame); });
 })();
 
-// C-039: a frame that finishes loading after the parent has already broadcast the theme never hears
-// it, and sits in the wrong one until something else happens. Measured live 2026-09-10: on a dark
-// page the reading frame came up LIGHT. So the frame asks instead of waiting to be told - the only
-// side that knows when it is ready is this one.
-try{ if(window.parent && window.parent!==window) window.parent.postMessage({beopsAsk:true},'*'); }catch(e){}
+// C-039. A frame that loads after the parent's broadcast never hears it; a frame that asks before the
+// parent is listening is not heard either. Measured live twice on 2026-09-10: the reading frame came
+// up LIGHT on a dark page both times, once with the load event as the only mechanism and once with a
+// single ask. Two one-shot mechanisms with opposite race conditions are not two chances, they are two
+// ways to miss. So the ask REPEATS on a short, finite schedule and stops the moment an answer arrives.
+(function(){
+  var got = false;
+  addEventListener('message', function(ev){ var d = ev && ev.data; if (d && d.beopsTheme !== undefined) got = true; });
+  function ask(){
+    if (got) return;
+    try { if (window.parent && window.parent !== window) window.parent.postMessage({beopsAsk:true}, '*'); } catch(e){}
+  }
+  [0, 120, 400, 1200, 3000].forEach(function(ms){ setTimeout(ask, ms); });
+})();
 </script>
