@@ -2527,3 +2527,84 @@ could not start on this machine since the day it was written. There is no way to
 such faults are behind the tools on the C-050 list that still have no test — `fetch_static.py`,
 `build_provenance_index.py`, `migrate_structure.py`, `capture_backlog.py`, `compress_large_evidence.py`
 — except by running them.
+
+## C-061 — the tool that compresses stored evidence deleted the original before reading the copy back
+
+**Written at the commit that carries this entry.** Found by reading the last of the untested tools on
+the C-050 list, before any test was written for it.
+
+### What it did
+
+Evidence is the one thing this project cannot replace. A capture is the bytes a publisher actually
+served on a day that will not come again; if it is lost, the permission it evidences is gone with it.
+
+`tools/compress_large_evidence.py` gzips captures above a size threshold. In order:
+
+```
+write path.gz
+os.remove(path)            <- the original, gone
+update the manifest
+```
+
+**Nothing read the archive back.** A gzip written to a full disk, interrupted, or truncated would
+have left the only copy of a captured page destroyed and a manifest pointing at a file that no longer
+exists. The window is small and the loss is total, and the whole point of the surrounding design is
+that this class of loss cannot happen.
+
+Two more, in the same fifty lines:
+
+- **Manifests were rewritten in directories where nothing changed.** The counter was global, so one
+  compression anywhere caused every directory holding a manifest to have that manifest re-serialised
+  — a modification to an immutable record, for no reason and with no record of why.
+- **It was top-level code with no function**, so it did its work on import. It could not be imported,
+  tested, or asked what it would do without doing it. That is why it had no test, and the reason is
+  worth stating: **an unstructured script is not merely untested, it is untestable, and the two are
+  usually the same file.**
+
+### Correction
+
+`compress_file()` hashes the original, writes the archive, **decompresses the archive and hashes what
+comes out**, and removes the original only if the two match. If they do not, it raises, keeps both
+copies, and the run reports the file as failed. The manifest keeps the original's sha256 and byte
+length — that is what was served and what a reader verifies against — and gains the compressed size
+and a note saying how to check it. Change is tracked per directory. There is a `--dry-run`. It is a
+module with functions and a `main()`.
+
+`research/test_compress_evidence.py`, 8 tests, the first of which is the one that matters: **a failed
+round trip must leave the original on disk.** Also: the manifest's original hash and length are
+unchanged; a manifest in a quiet directory is byte-identical afterwards; a second run does nothing; a
+dry run changes nothing; and importing the module compresses nothing.
+
+### And the index the paper's figures come from
+
+`tools/build_provenance_index.py` renders the provenance index, and `tools/paper_numbers.py` reads the
+figures back out of that Markdown **with regular expressions** — so the chain that produces "313
+captures, 169 passed, 11 refused, 26 undocumented" in a paper runs ledger → generator → prose → regex
+→ figure, and nothing tested either end.
+
+`research/test_provenance_index.py`, 15 tests, drives the generator on a constructed ledger and then
+reads its output back with the figure tool: the four verdicts partition the sources with evidence; an
+unfinished capture is *incomplete* and never *passed*; a refusal outranks a note that says otherwise;
+the newest capture decides and the older ones are still counted; a source with no capture is listed
+rather than hidden; C-010 is kept, so `noindex` and `index, follow` do not refuse while `noai`,
+`TDM-Reservation: 1` and `Content-Usage: ai=n` do; and `ai-train=no` is honoured without stopping
+reading, because this record reads and does not train.
+
+The last of those tests is the one with teeth: **every figure the paper prints must equal the rows the
+index holds**, checked by running both programs over the same constructed world. If the header
+sentence is ever reworded so that a regular expression stops matching, the paper prints `None` and the
+suite fails, rather than the paper printing a number that came from a different sentence.
+
+Writing it found one more defect: the generator read `entry['name']` directly, so **a single ledger
+line written without that key raised and the whole index was not generated** — the file the paper's
+permission figures come from, taken down by one malformed line. The name now falls back to the
+registry and then to a visible "(name not recorded in the capture)". A record that cannot be read is
+worse than one that says a field is missing.
+
+### What is left on that list
+
+`fetch_static.py`, `capture_backlog.py` and `migrate_structure.py` still have no test. `tls_test.py`
+is a diagnostic script rather than a tool and is better described as one than tested. The three that
+remain all touch the network or move files, so testing them means separating what they decide from
+what they do — which is the same shape of work the compressor needed, and the same reason they were
+skipped.
