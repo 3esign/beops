@@ -2825,3 +2825,46 @@ is in the slowest nine any more. Nothing was removed: 473 tests before, 473 afte
 A test earns its place by what it can catch, and pays for it in the time of every publish that runs
 it. Neither number was ever looked at until today. **Measure the suite when you add to it** — and
 measure it in a way that can see setup, because the obvious instrument cannot.
+
+## C-065 — a publisher that has stopped is noticed; one that is stuck was not
+
+**Written at the commit that carries this entry.** Found by a publish being refused: *"another publish
+holds the lock (taken 13.6 min ago)"*.
+
+### What happened, and what nothing said
+
+The publish lock exists because two publishes must not rebuild and push the export tree at once, and
+it is taken over after a quarter of an hour so that a dead publisher cannot freeze the site for ever.
+Both of those worked. The commit published normally a few minutes later.
+
+**What nothing did was mention it.** A publish had held the lock for more than thirteen minutes —
+longer than the ten minutes between publishes — so publishes were queueing behind it, and the queue
+was invisible. The guard has a check for a publisher that has *stopped*: it warns when the last
+receipt is over an hour old. It had nothing at all to say about a publisher that is *stuck*, because
+the receipt from the previous, successful publish was only twenty minutes old and looked fine.
+
+Those are different faults with different shapes. A stopped publisher leaves an ageing receipt. A
+stuck one leaves a fresh receipt and a held lock, and the sentence *"the site publishes every ten
+minutes"* quietly stops being true while every check says ok.
+
+### Correction
+
+`publish_gate()` reads the lock. If it is held for longer than the interval between publishes, the
+guard says so, with the age and the word *queueing*; past the takeover it adds that the next publish
+will step over it. It is a **WARN and never a STOP** — nothing here is unlawful, the takeover
+self-heals, and a check that stops the record over a slow publish would be worse than the fault.
+
+A lock a minute old is a publish doing its job and is not reported. A check that speaks every quarter
+of an hour is a check nobody reads.
+
+Four tests in `research/test_guard_checks.py`: a lock held fourteen minutes warns and says how long; a
+lock past the takeover says the next publish will step over it; a fresh lock is silent; no lock is
+silent.
+
+### What is still not known
+
+**Why that publish took thirteen minutes is not answered here.** Its output was piped through a filter
+that buffers, so the run said nothing at all until it ended, and by then the lock had been released.
+The next time it happens the guard will say so within fifteen minutes — which is the difference
+between a fault that can be investigated and one that can only be inferred afterwards from a refusal
+message.
