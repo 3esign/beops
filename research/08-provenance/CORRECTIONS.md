@@ -2377,3 +2377,42 @@ goes on the open list rather than being decided in the hour it was noticed.
 
 And the field-name collision named in C-050 is now three-deep: the voice benchmark writes a
 rendering's outcome under `state` too. Still not renamed, still named.
+
+## C-058 — nineteen corrections in eight hours, and what the count actually measures
+
+**Written at the commit that carries this entry.** Not a defect: a reading of the ledger itself,
+recorded here because pre-paper v5 makes a claim about this record's own correction rate and that
+claim needs to be in the record before it is in a paper.
+
+### What was counted
+
+Between pre-paper v4 and pre-paper v5 — eight hours — nineteen entries were added: C-039 to C-057.
+Read together rather than one at a time, they are three kinds, and the proportions are the finding:
+
+| kind | entries | share |
+|---|---|---|
+| a check that reported success while reading less than it was believed to read | C-041, C-043, C-046, C-049, C-050, C-051, C-054, C-056, C-057 | **9 of 19** |
+| the record making a false statement about itself | C-051 (a hand-written file declaring itself machine-generated), C-052 (ten timestamps wrong by up to 6h28) | 2 of 19 |
+| everything else — arithmetic, ordering, encoding, memory, and one audit that cleared what it was sent to find | C-039, C-040, C-042, C-044, C-045, C-047, C-048, C-053, C-055 | 9 of 19 |
+
+C-051 is in two rows because it is both.
+
+### What the number means, and what it does not
+
+**The rate of corrections measures how hard anybody looked, not how much was wrong.** Nineteen in
+eight hours is not a project falling apart and it is not unusual diligence. It is what one day of
+reading outputs and asking what they counted produces on a record of this size. Every one of the nine
+blind checks had been passing for days or weeks; none was found by a monitor, an alert, or a failing
+test.
+
+A record that publishes its correction count therefore has to publish that sentence beside it, in the
+same way the acceptance rate is published beside the reasons for the refusals. A reader who takes
+either number without the sentence next to it will draw the opposite conclusion, and in both
+directions: a high rate reads as chaos, a low rate reads as quality, and neither reading is supported.
+
+### Why this is a ledger entry rather than a paragraph in the paper
+
+Because the paper cites it. §4.7 of pre-paper v5 names the blind-check family and rests on the count
+above; §9 states the rate-measures-attention rule as the thing v5 must not be allowed to imply. Both
+sentences are claims about this record, and a claim about this record belongs in this record first,
+where it can be checked against the entries rather than against a document that summarises them.

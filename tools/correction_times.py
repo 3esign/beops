@@ -42,7 +42,10 @@ def _num(cid):
     return int(cid.split("-")[1])
 
 
-CODE_SPAN = re.compile(r"`[^`]*`")
+import prose
+
+# One place, shared with paper_stamps.py. See tools/prose.py for why this is not a line in this file.
+CODE_SPAN = prose.CODE_SPAN
 
 
 def stated_times():
@@ -58,7 +61,7 @@ def stated_times():
         if m:
             cur = m.group(1)
             continue
-        s = STAMP.search(CODE_SPAN.sub("", ln))
+        s = STAMP.search(prose.claims(ln))
         if s and cur and cur not in out:
             out[cur] = s.group(1) + "T" + s.group(2) + ":00Z"
     return out

@@ -29,7 +29,13 @@ RUNS = ROOT / "data" / "live" / "paper-numbers-runs.jsonl"
 OUT = PAPERS / "PAPER_STAMPS.json"
 
 STAMP = re.compile(r"(\d{4}-\d\d-\d\d)[ ,]+(\d\d:\d\d)(?::\d\d)?\s*UTC")
-CODE_SPAN = re.compile(r"`[^`]*`")
+
+# What a line claims, as opposed to what it quotes, lives in one place now. It did not, and this file
+# was written without the fix that `correction_times.py` already had: pre-paper v5 quotes the stamp
+# format it abolishes, this tool read the quotation as v5's own claim, and the publish gate refused a
+# correct document. A rule that exists in one file is a rule the next tool will not have.
+import prose
+CODE_SPAN = prose.CODE_SPAN
 
 # The run log did not exist before this. A stamp in a document added before it can be checked for
 # possibility and plausibility, but not for evidence, and saying so is the honest verdict.
@@ -93,7 +99,7 @@ def build():
         rel = str(p.relative_to(ROOT)).replace("\\", "/")
         added = _added(rel)
         for i, ln in enumerate(p.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
-            bare = CODE_SPAN.sub("", ln)
+            bare = prose.claims(ln)
             for m in STAMP.finditer(bare):
                 stated = datetime.fromisoformat(f"{m.group(1)}T{m.group(2)}:00+00:00")
                 delta = round((stated - added).total_seconds() / 60) if added else None
@@ -154,5 +160,8 @@ if __name__ == "__main__":
     print("  %d papers | %d typed times | %d recorded runs"
           % (d["papers_scanned"], d["stamps"], d["recorded_runs"]))
     for e in d["entries"]:
-        print("   %-32s line %-5d %s  (%+d min vs commit)  %s"
-              % (e["file"], e["line"], e["stated_utc"], e["stated_minus_committed_minutes"], e["verdict"]))
+        d = e["stated_minus_committed_minutes"]
+        print("   %-32s line %-5d %s  (%s)  %s"
+              % (e["file"], e["line"], e["stated_utc"],
+                 "%+d min vs commit" % d if d is not None else "not yet in the record",
+                 e["verdict"]))

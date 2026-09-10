@@ -10,8 +10,10 @@ quietly loses a sentence is worse than one that prints it badly.
 from __future__ import annotations
 
 import html
+import os
 import re
 import sys
+import pathlib
 from pathlib import Path
 
 from reportlab.lib import colors
@@ -24,12 +26,141 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (BaseDocTemplate, Frame, HRFlowable, KeepTogether, PageTemplate,
                                 Paragraph, Spacer, Table, TableStyle)
 
-FD = "/usr/share/fonts/truetype/dejavu"
-for name, file in (("DJ", "DejaVuSans.ttf"), ("DJ-B", "DejaVuSans-Bold.ttf"),
-                   ("DJ-I", "DejaVuSans-Oblique.ttf"), ("DJ-BI", "DejaVuSans-BoldOblique.ttf"),
-                   ("DJM", "DejaVuSansMono.ttf"), ("DJS", "DejaVuSerif.ttf"),
-                   ("DJS-B", "DejaVuSerif-Bold.ttf")):
-    pdfmetrics.registerFont(TTFont(name, f"{FD}/{file}"))
+# Where the font actually is. The first version of this file named one directory - the Debian one -
+# and this project runs on Windows, so the tool could never have produced a PDF on the machine that
+# holds the record. It was one of the tools nothing tested, and the failure surfaced only when a
+# document was handed to it, four pre-paper versions after it was written.
+#
+# The font is not cosmetic. Serbian is written with c-caron, c-acute, z-caron, s-caron and d-stroke,
+# and a font without those letters draws boxes. So the rule here is: prefer DejaVu; accept any other
+# family that PROVABLY has the letters, checked against the font's own character map rather than
+# assumed from its name; and refuse to write a PDF at all if nothing does.
+
+SERBIAN = "\u010d\u0107\u017e\u0161\u0111\u010c\u0106\u017d\u0160\u0110"   # čćžšđ ČĆŽŠĐ
+
+FACES = ("DJ", "DJ-B", "DJ-I", "DJ-BI", "DJM", "DJS", "DJS-B")
+
+# family -> the file for each of the seven roles, in the order of FACES. A None means the family has
+# no such face and the chain below substitutes one it does have.
+FAMILIES = [
+    ("DejaVu", ("DejaVuSans.ttf", "DejaVuSans-Bold.ttf", "DejaVuSans-Oblique.ttf",
+                "DejaVuSans-BoldOblique.ttf", "DejaVuSansMono.ttf", "DejaVuSerif.ttf",
+                "DejaVuSerif-Bold.ttf")),
+    ("Calibri/Consolas/Times", ("calibri.ttf", "calibrib.ttf", "calibrii.ttf", "calibriz.ttf",
+                                "consola.ttf", "times.ttf", "timesbd.ttf")),
+    ("Segoe UI/Consolas/Times", ("segoeui.ttf", "segoeuib.ttf", "segoeuii.ttf", "segoeuiz.ttf",
+                                 "consola.ttf", "times.ttf", "timesbd.ttf")),
+    ("Verdana/Courier/Times", ("verdana.ttf", "verdanab.ttf", "verdanai.ttf", "verdanaz.ttf",
+                               "cour.ttf", "times.ttf", "timesbd.ttf")),
+]
+
+# When a face is missing, use one that is present: an upright italic is a cosmetic loss, a missing
+# letter is a wrong document.
+SUBSTITUTE = {"DJ-B": "DJ", "DJ-I": "DJ", "DJ-BI": "DJ-B", "DJM": "DJ", "DJS": "DJ", "DJS-B": "DJS"}
+
+
+def font_dirs() -> list:
+    d = [os.environ.get("BEOPS_FONT_DIR"),                  # an explicit answer beats any search
+         "/usr/share/fonts/truetype/dejavu", "/usr/share/fonts/dejavu",
+         "/usr/local/share/fonts/dejavu", "/Library/Fonts",
+         os.path.expanduser("~/Library/Fonts")]
+    try:                                                    # matplotlib ships DejaVu when it is here
+        import matplotlib
+        d.append(str(pathlib.Path(matplotlib.__file__).parent / "mpl-data" / "fonts" / "ttf"))
+    except Exception:                                       # noqa: BLE001 - a missing library is not an error
+        pass
+    home = pathlib.Path(os.path.expanduser("~"))
+    d += [str(q) for q in sorted(home.glob(".cache/codex-runtimes/*/dependencies/native/*/Library/share/fonts"))]
+    d += [os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts"),
+          str(home / "AppData" / "Local" / "Microsoft" / "Windows" / "Fonts")]
+    return [x for x in d if x]
+
+
+def find_font(file: str) -> str | None:
+    for d in font_dirs():
+        q = pathlib.Path(d) / file
+        if q.is_file():
+            return str(q)
+    return None
+
+
+def has_letters(path: str, letters: str = SERBIAN) -> bool:
+    """Whether a font actually contains the letters, read from its own character map. A font is not
+    trusted because of its name: reportlab draws a box for a glyph a font lacks and says nothing."""
+    try:
+        f = TTFont("probe", path)
+        m = getattr(f.face, "charToGlyph", None)
+        if not m:
+            return False
+        return all(ord(c) in m for c in letters)
+    except Exception:                                       # noqa: BLE001 - unreadable is not usable
+        return False
+
+
+def survey() -> list:
+    """Every family, with the faces it can actually supply. Read once, so the choice below is made
+    on what is on this machine rather than on what a name suggests."""
+    out = []
+    for family, files in FAMILIES:
+        paths = {name: find_font(f) for name, f in zip(FACES, files)}
+        usable = {n: p for n, p in paths.items() if p and has_letters(p)}
+        out.append((family, paths, usable))
+    return out
+
+
+def register_fonts(verbose: bool = True) -> dict:
+    """Register the seven roles from the family that can supply the most of them.
+
+    Not simply the first family that has the letters. DejaVu is the preference, but on this machine
+    only its regular face exists - it arrives bundled with a PDF utility rather than installed - so
+    preferring it unconditionally produced a document with no bold at all, in a set of documents where
+    the load-bearing sentence of every section is bold. The rule is therefore: any family that has the
+    Serbian letters is admissible, and among the admissible ones the one that can draw the most of the
+    seven roles wins, with the order of FAMILIES breaking ties. What is chosen is printed, so a
+    document that came out in a different face says so rather than looking like a design decision.
+    """
+    tried = []
+    ranked = []
+    for family, paths, usable in survey():
+        if "DJ" not in usable:
+            tried.append("%s (%s)" % (family, "not installed" if not paths.get("DJ")
+                                      else "installed, no Serbian letters"))
+            continue
+        ranked.append((len(usable), family, paths, usable))
+    ranked.sort(key=lambda r: (-r[0], [f for f, _ in FAMILIES].index(r[1])))
+    for _, family, paths, usable in ranked:
+        found, substituted = dict(usable), []
+        for name, path in usable.items():
+            pdfmetrics.registerFont(TTFont(name, path))
+        for name in FACES:                                  # resolve the chain, DJ is always present
+            if name in found:
+                continue
+            src = name
+            while src in SUBSTITUTE and SUBSTITUTE[src] not in found:
+                src = SUBSTITUTE[src]
+            src = SUBSTITUTE.get(src, "DJ") if src not in found else src
+            pdfmetrics.registerFont(TTFont(name, found.get(src, found["DJ"])))
+            found[name] = found.get(src, found["DJ"])
+            substituted.append(name)
+        if verbose:
+            print("fonts: %s (%d of %d faces) from %s"
+                  % (family, len(usable), len(FACES), pathlib.Path(found["DJ"]).parent))
+            if substituted:
+                print("  substituted (the face is not on this machine): %s" % ", ".join(substituted))
+            if family != "DejaVu":
+                print("  NOTE: DejaVu is not complete on this machine; %s was chosen because its "
+                      "character map contains the Serbian letters and it supplies more of the seven "
+                      "faces." % family)
+        found["_family"], found["_substituted"] = family, substituted
+        return found
+    raise SystemExit(
+        "md2pdf: no font with the Serbian letters was found. Tried: %s. Looked in: %s. Set "
+        "BEOPS_FONT_DIR to a directory holding DejaVuSans.ttf. This tool refuses to write a PDF "
+        "rather than write one in which cccc, zz, ss and d-stroke are boxes."
+        % ("; ".join(tried), "; ".join(font_dirs())))
+
+
+register_fonts()
 pdfmetrics.registerFontFamily("DJ", normal="DJ", bold="DJ-B", italic="DJ-I", boldItalic="DJ-BI")
 
 INK = colors.HexColor("#1a1a1a")
