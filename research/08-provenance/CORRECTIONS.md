@@ -1874,3 +1874,69 @@ true rather than deducing it from a prefix.
 
 **Nothing observed was changed.** No layer was refetched, edited or moved; what changed is that they
 are now described.
+
+## C-050 — rule 1 was never checked, and when it was checked it turned out to be two rules
+
+**2026-09-10, 15:40 UTC.** Found by a sweep asking, of each of the method's thirteen stated rules,
+which test enforces it — and of each of the guard's fifteen checks, which test names it.
+
+### What the sweep found
+
+**The guard: fifteen checks, three named in any test. `guard.run` tested by nobody. The string `STOP`
+in no test in the project.** Its own docstring promises that on a permission failure it *"does NOT
+repair — it says STOP, loudly"*. Nothing asserted that. A refactor making STOP unreachable, or letting
+an `unknown` resolve to `ok`, would have passed all 288 tests while the guard went on printing a clean
+verdict — the guard being exactly the thing that is supposed to notice when nothing else does.
+
+**Two stated rules with no test that mentions them:** *"five states, no sixth"* (rule 1) and *"a
+correction is not finished until it is measured across the record"* (rule 11, written this morning).
+
+**Eleven tools with nothing testing them**, including three that feed published figures:
+`build_provenance_index.py`, which generates the index `paper_numbers.py` parses for the 313 captures
+and 188 sources quoted in the pre-paper; `paper_numbers.py` itself, which produces **every figure** in a
+document that says of them *"Nothing in this table is typed by hand"*; and `export_permission_dataset.py`,
+the CC BY dataset published today. Also `make_maps.py` and `make_layers.py`, 47 KB that draw the
+published maps including the attribution checked by hand in C-049.
+
+### And rule 1 is kept, and is described wrongly
+
+Measured before writing the test: **95,015 measurement rows carry no `state` field at all.** There is
+no sixth state on rows because there is no state on rows — the epistemic state is computed where a
+value is rendered, from `phenomenonTime`, `phenomenonTimeUnknown`, `phenomenonTimeCorrected`,
+`resultQuality` and whether the result is null. That is a better design than a stored state, and it is
+not what the method says.
+
+**What the method says is that one vocabulary governs everything. There are two.** The epistemic one —
+observed, untimed, estimated, forecast, unavailable — about what is known of a measurement. And a
+pipeline one — thought, rejected, retracted, organelle, claim_settled, voiced, refused, organ_silent,
+organ_failed — about what happened to a derived row. **They share the field name `state`, and they meet
+in `public/live-snapshot.json`**, where a reader sees `"state": "estimated"` beside `"state": "thought"`
+and has no way to tell that the first is a claim about knowledge and the second a note about a process.
+
+So a reviewer checking rule 1 against the published artefact finds `organelle` and `organ_failed` under
+`state` and concludes the rule is broken. It is not broken. It is undescribed, which for a record whose
+value is its vocabulary is close enough to be worth fixing.
+
+### Correction
+
+`research/STATES.json` declares both vocabularies, every value with a sentence a stranger could act on,
+and states plainly which single value — `estimated` — belongs to both and why.
+`research/test_states.py` fails if either grows an undeclared value, if a measurement row ever gains a
+`state` field, or if the published snapshot shows a state nobody wrote down. **A state nobody wrote
+down is a state nobody decided.**
+
+`research/test_guard_verdict.py` drives the guard's verdict logic with its checks replaced: a STOP in
+any of the five groups reaches the verdict; an UNKNOWN can never report ok; STOP outranks UNKNOWN
+outranks WARN outranks OK; every emitted check carries a state from the guard's own four and a reason;
+the report prints the verdict it computed; and `REPAIRABLE` is still exactly `{disabled, not running}`,
+so the guard cannot quietly acquire permission to repair something that should stop it.
+
+### What is deliberately not fixed
+
+**The shared field name.** Renaming `state` in a published artefact changes something other people may
+already read, and it is worth doing on purpose rather than in the hour it was noticed. It is written
+into `STATES.json` as a named defect and asserted to stay named, so it is a known hole rather than an
+unnoticed one — and it goes on the open list with the other three items from this sweep.
+
+**Nothing observed was changed.** No row, no state and no vocabulary was altered; what changed is that
+both are now written down and checked.

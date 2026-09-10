@@ -1,0 +1,39 @@
+{
+ "schema": "beops-states/v1",
+ "written": "2026-09-10",
+ "why_this_file_exists": "The pre-paper's first rule reads 'five states, no sixth', as though one vocabulary governed everything this record holds. There are two, they share the field name 'state', and they meet in the published snapshot where a reader cannot tell them apart. Neither was written down anywhere, so neither could be asserted and a new value in either would have been nobody's decision. Both are written here so that adding a state is a deliberate act with a reason, and research/test_states.py fails if one appears that is not.",
+
+ "epistemic": {
+  "what_it_is": "What this record knows about a MEASUREMENT: how its time is known, and whether there is a value at all. This is the vocabulary the pre-paper's rule 1 is about, and the only one a reader of a number needs.",
+  "where_it_lives": "It is NOT a field on a row. A row in data/live/rows carries no 'state' at all: the epistemic state is derived from phenomenonTime, phenomenonTimeUnknown, phenomenonTimeCorrected, resultQuality and whether result is null. The state is computed where the value is rendered, which is why a row cannot carry a wrong one.",
+  "states": {
+   "observed": "the source published a measurement time and we take it as served",
+   "untimed": "we know the value and when it reached us, never when it was true, because the source publishes no measurement time",
+   "estimated": "a value or a time this record computed rather than received - including our correction of a source's clock, which is our reading and never the source's statement",
+   "forecast": "a value about a time that has not happened",
+   "unavailable": "there is no value. A state, not a blank, and never a zero"
+  },
+  "no_sixth": "A sixth would mean this record can know something about a measurement in a way it has not described. If one is ever needed, it is added here first, with a sentence saying what a reader is to understand by it."
+ },
+
+ "pipeline": {
+  "what_it_is": "What HAPPENED to a derived row on its way through an organ. It says nothing about the world and nothing about how well anything is known; it is the record of a process. It is a field on the row because it is a fact about that row.",
+  "where_it_lives": "data/live/derived/*/**.jsonl and the receipts beside them, and it travels into public/live-snapshot.json under the same key name as the epistemic state - which is the ambiguity this file names and does not yet fix.",
+  "states": {
+   "thought": "an utterance the validator accepted",
+   "rejected": "an utterance the validator refused, kept with its reason",
+   "retracted": "an utterance withdrawn after it was made",
+   "organelle": "an intermediate step in a conversation, not an utterance about the city",
+   "claim_settled": "a prediction reached its due time and was scored",
+   "voiced": "a Serbian rendering that passed its own validation",
+   "refused": "a Serbian rendering the validator refused, kept with its text since C-033",
+   "organ_silent": "the model daemon did not answer",
+   "organ_failed": "the call raised, and the receipt carries the exception",
+   "estimated": "the news organ's own classification of a headline - the ONE value that appears in both vocabularies, and it is the epistemic one: a category this record computed rather than received"
+  }
+ },
+
+ "the_ambiguity_named": "In public/live-snapshot.json both vocabularies appear under 'state'. A reader sees \"state\": \"estimated\" beside \"state\": \"thought\" and cannot tell that the first is a claim about knowledge and the second a note about a pipeline. This is not fixed today: renaming a published field is a change to something other people may already read, and it is worth doing deliberately rather than in the same hour it was noticed. It is written down here, and in the corrections ledger, so that it is a known defect rather than an unnoticed one.",
+
+ "how_to_add_a_state": "Add it here with a sentence a stranger could act on, then to the code, then run the suite. In that order: the record describes what it does before it does it, or the description is a reconstruction."
+}
