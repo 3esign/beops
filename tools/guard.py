@@ -347,7 +347,11 @@ def publish_gate() -> list[dict]:
         return [{"check": "the publish is gated", "state": UNKNOWN,
                  "why": "no publish receipt yet: the publisher has not run since the gate was added"}]
     try:
-        r = json.loads(p.read_text(encoding="utf-8"))
+        # The receipt is written by PowerShell, whose -Encoding UTF8 on 5.1 means UTF-8 WITH A BOM.
+        # Read as plain utf-8 the BOM survives as \ufeff and json refuses the first character, which
+        # is how this check reported "unknown" against a receipt that was perfectly well-formed on
+        # its very first run. utf-8-sig eats a BOM if there is one and is identical if there is not.
+        r = json.loads(p.read_text(encoding="utf-8-sig"))
     except (OSError, ValueError) as e:                       # noqa: BLE001
         return [{"check": "the publish is gated", "state": UNKNOWN, "why": "receipt unreadable: %s" % type(e).__name__}]
     at = r.get("at") or ""

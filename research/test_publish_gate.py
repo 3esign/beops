@@ -66,10 +66,37 @@ class Gate(unittest.TestCase):
 
 
 class Receipt(unittest.TestCase):
+    def test_nothing_reads_the_receipt_as_plain_utf8(self):
+        """The BOM again, asserted across the whole project rather than in the two places it bit."""
+        import re as _re
+        bad = []
+        me = pathlib.Path(__file__).name
+        for f in sorted((ROOT / "tools").glob("*.py")) + sorted((ROOT / "research").glob("test_*.py")):
+            # This file carries the pattern it is looking for, as the pattern. A scanner that reads
+            # its own regex as a finding has invented a defect, and inventing one is the same class
+            # of error as missing one.
+            if f.name == me:
+                continue
+            s = f.read_text(encoding="utf-8", errors="replace")
+            if "publish-receipt" not in s:
+                continue
+            for m in _re.finditer(r'read_text\(encoding="utf-8"\)', s):
+                seg = s[max(0, m.start() - 300):m.start()]
+                if "publish-receipt" in seg or "RECEIPT" in seg:
+                    bad.append(f.name)
+        self.assertEqual(sorted(set(bad)), [],
+                         "the publish receipt is read as plain utf-8 somewhere, and PowerShell writes it with a BOM: "
+                         + ", ".join(sorted(set(bad))))
+
     def test_the_receipt_if_present_says_whether_the_tests_passed(self):
         if not RECEIPT.exists():
             self.skipTest("the publisher has not run since the gate was added")
-        r = json.loads(RECEIPT.read_text(encoding="utf-8"))
+        # Written by PowerShell, whose -Encoding UTF8 means UTF-8 WITH A BOM. Reading it as plain
+        # utf-8 is what made the guard call a well-formed receipt unreadable on its first run, and
+        # this test repeated the same mistake one file later - which is the shape of C-018, C-020 and
+        # C-022: a fix applied where the symptom appeared rather than everywhere the pattern was
+        # written. The suite caught it before the commit.
+        r = json.loads(RECEIPT.read_text(encoding="utf-8-sig"))
         self.assertEqual(r.get("schema"), "beops-publish-receipt/v1")
         for k in ("at", "tests_ok", "published", "why"):
             self.assertIn(k, r, f"the receipt does not say {k}")
