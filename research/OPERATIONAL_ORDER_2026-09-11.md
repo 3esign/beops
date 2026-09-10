@@ -17,7 +17,7 @@ The one exception is runtime discovery of the currently available Python command
 
 ## Current scheduled clocks
 
-The canonical scheduler definition is `tools/register_tasks.ps1`. It registers:
+The canonical scheduler definition is `tools/beops_tasks.ps1`. `tools/register_tasks.ps1` registers it, and `tools/audit_tasks.ps1` reads the actual Windows Scheduler state without changing it. The canonical clocks are:
 
 - `Beops_Collect` every 5 minutes
 - `Beops_Mind` every 4 minutes
@@ -30,6 +30,8 @@ The canonical scheduler definition is `tools/register_tasks.ps1`. It registers:
 
 Single-task wrappers call the same registry with `-Only`, so they cannot drift into different actions, roots or settings.
 
+On this machine, changing scheduled tasks can return `Access is denied` from a non-elevated shell. In that case, run the audit first and treat the scheduler as an external state to reconcile, not as a file edit that already happened.
+
 ## Publish safety
 
 The publish lock lives in `runtime/publish.lock`, not `data/live`. It coordinates local execution and is not city data.
@@ -39,6 +41,7 @@ The public mirror is cleared and copied only after the publish gate passes. A fa
 ## Remaining known disorder
 
 - The project still uses two Python capabilities in practice: collection/build scripts prefer `C:\Svemir\python.cmd` when present, while the test gate can require the bundled Codex Python because of local package availability. This is now explicit, not solved.
+- The current Windows Scheduler state may lag behind the scripts. `tools/audit_tasks.ps1` distinguishes a harmless C/D root alias from a real action drift such as a task still calling Python directly instead of the tick wrapper.
 - Legacy one-shot probe, capture and commit helper scripts from earlier waves still contain hardcoded `D:\Svemir\!Projekti\Beops` paths. They are not canonical scheduler actions. Change them only when a new wave needs to reuse them, because some are historical trail helpers.
 - The source repository has generated dirty files from live clocks. They are data movement, not part of this operational cleanup, and must not be reverted casually.
 - Full `npm test` can mutate generated public/live artifacts. Use targeted tests for operational changes unless the goal is a full regeneration wave.
