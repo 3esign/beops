@@ -1769,3 +1769,53 @@ them.
 
 **Nothing observed was changed.** No stored utterance, reason or receipt was edited; the change is to
 what the next prompt contains and to how the measurement is reported.
+
+## C-048 — C-047's arithmetic was half-done, and it reached the ledger before the tests that would have stopped it
+
+**2026-09-10, 14:25 UTC.** Two things, and the second is about how this record writes itself.
+
+### The recount
+
+C-047 reported that separating the empty utterances from the refusals raises acceptance since the cut
+from 28.8% to **38.0%**, and let that stand as though it softened C-042's failed prediction. It does
+not, because **the before-half has to be recounted the same way and it rises too**:
+
+| | utterances | produced nothing | of what was said: accepted |
+|---|---|---|---|
+| before the corrections | 161 | 9 (5.6%) | 77 of 152 = **50.7%** |
+| after | 66 | 16 (24.2%) | 19 of 50 = **38.0%** |
+
+So the honest comparison is **50.7% → 38.0%**, a fall of 12.7 points — against the 13.9 points of the
+uncorrected reading. Separating the empties makes both halves larger and **explains essentially none of
+the fall.** C-047's own sentence, that the number "meant less than it was made to carry", was too
+generous by half, and the recount is what said so.
+
+**What the split does reveal is worse than what it was reported to soften.** The organ produces nothing
+**four times as often as it did** — 5.6% of utterances before, 24.2% after. That is a regression no
+check in this project can see, because from the outside the model answered. C-036 gave the organ a
+chain for a model that does not answer; there is nothing for a model that answers with an empty string,
+and this is now the largest single category in the refusal counts.
+
+### And the ledger was written before the check that would have stopped it
+
+The ship batch appends the correction to `CORRECTIONS.md`, then builds, then runs the suite, then
+commits. On this occasion the suite **failed** — three of my own errors — and nothing was committed,
+which is the gate working. But the ledger had already been appended to, and the ledger is append-only,
+so the uncorrected C-047 could not be taken back out. The corrected text was written a few minutes
+later and the appender, finding the entry already there, did nothing.
+
+**So an append-only record was mutated by a run that was otherwise refused in full.** Here it came
+right, because the fix was finished and committed twenty minutes later. Had it been abandoned, this
+file would now describe a correction that does not exist in the code — which is precisely the failure
+mode the ledger is supposed to make impossible.
+
+**Correction to the process, not to the code.** The ledger append moves after the suite passes and
+before the commit, in every ship batch, so that the only entries that reach it are the ones whose
+change is about to be committed. The gate already refuses to commit untested work; it must also refuse
+to *record* it.
+
+**Why this is not fixed by being more careful.** It is the same shape as C-018 and C-045: an action
+placed before its check, where the check's failure leaves the action standing. Ordering, not diligence.
+
+**Nothing observed was changed.** C-047 stays exactly as written, incomplete arithmetic included; this
+entry is the correction to it, which is what the file is for.
