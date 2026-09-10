@@ -1,0 +1,284 @@
+<meta charset="utf-8">
+<title>BEOPS Svedoci</title>
+<meta name="description" content="SVEDOCI — how old a value was when it reached us, and whether two independent sources describing the same hour said the same thing. Computed from rows already in the record; no source added, nobody asked for anything.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap">
+<style>
+/* ------------------------------------------------------------------
+   BEOPS · SVEDOCI study — two questions the record can answer about itself.
+   Grammar: research/05-design/UI_CONCEPTS_AND_COMPOSITION.md
+   stroke = a measured quantity · hatch = OUR share of it, which we cannot subtract
+   hollow = a positive mark of absence · nothing withheld is drawn as a small number
+   ------------------------------------------------------------------ */
+:root{
+  --u:4px;
+  --field:#FBFAF7; --ink:#111311; --ink60:rgba(17,19,17,.6); --ink30:rgba(17,19,17,.3); --ink12:rgba(17,19,17,.12); --ink06:rgba(17,19,17,.06);
+  --signal:#D93A16; --signal-untimed:#CC7A62; --signal-faint:rgba(217,58,22,.35);
+  --state:#8A8F8A; --state-faint:rgba(138,143,138,.35);
+  --sans:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --mono:"Source Code Pro",Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --field:#111311; --ink:#F2F1EC; --ink60:rgba(242,241,236,.62); --ink30:rgba(242,241,236,.32); --ink12:rgba(242,241,236,.12); --ink06:rgba(242,241,236,.06);
+  --signal:#F0532B; --signal-untimed:#D8836A; --signal-faint:rgba(240,83,43,.38);
+  --state:#8A8F8A; --state-faint:rgba(138,143,138,.35); }}
+:root[data-theme="dark"]{
+  --field:#111311; --ink:#F2F1EC; --ink60:rgba(242,241,236,.62); --ink30:rgba(242,241,236,.32); --ink12:rgba(242,241,236,.12); --ink06:rgba(242,241,236,.06);
+  --signal:#F0532B; --signal-untimed:#D8836A; --signal-faint:rgba(240,83,43,.38);
+  --state:#8A8F8A; --state-faint:rgba(138,143,138,.35); }
+/* C-026: reserve the gutter, so the picture only moves when the data moves.
+   C-030: and the scrollbar takes its colour from the page, not from the operating system. */
+html{scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:var(--ink30) transparent}
+html::-webkit-scrollbar{width:10px;height:10px}
+html::-webkit-scrollbar-track{background:transparent}
+html::-webkit-scrollbar-thumb{background:var(--ink30);border-radius:6px}
+*{box-sizing:border-box}
+/* A frame must not depend on the parent to know what language it is in. Same mechanism as the
+   monologue and the ribbon: paired spans, one CSS rule, and the parent only tells us which. */
+.lang-en .sr-only,.lang-sr .en-only{display:none}
+body{margin:0;background:var(--field);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header{padding:calc(var(--u)*6) calc(var(--u)*6) calc(var(--u)*3);border-bottom:1px solid var(--ink12)}
+header h1{font-size:16px;font-weight:600;margin:0;letter-spacing:.01em}
+header h1 span{font-weight:400;color:var(--ink60)}
+header p{margin:calc(var(--u)*2) 0 0;color:var(--ink60);max-width:78ch}
+section{border-bottom:1px solid var(--ink12);padding:calc(var(--u)*5) calc(var(--u)*6) calc(var(--u)*7)}
+section:last-of-type{border-bottom:0}
+h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink60);margin:0 0 calc(var(--u)*2);font-weight:600}
+.lede{margin:0 0 calc(var(--u)*4);max-width:78ch}
+.notthis{margin:0 0 calc(var(--u)*5);max-width:78ch;color:var(--ink60);border-left:2px solid var(--state);padding-left:calc(var(--u)*3)}
+.notthis b{color:var(--ink);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:calc(var(--u)*5);margin:0 0 calc(var(--u)*4);color:var(--ink60);font-size:13px;align-items:center}
+.legend i{display:inline-block;vertical-align:middle;margin-right:calc(var(--u)*1.5);height:10px}
+.legend .k1{width:26px;background:var(--signal)}
+.legend .k2{width:26px;background:var(--signal-faint)}
+.legend .k3{width:26px;background:repeating-linear-gradient(135deg,var(--ink30) 0 1px,transparent 1px 4px);border-top:1px solid var(--ink30);border-bottom:1px solid var(--ink30)}
+.legend .k4{width:26px;border:1px dashed var(--state);background:transparent}
+.rows{display:grid;gap:calc(var(--u)*1)}
+.row{display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr) 120px;gap:calc(var(--u)*3);align-items:center;padding:calc(var(--u)*1.5) 0;border-top:1px solid var(--ink06)}
+.row .lab{min-width:0}
+.row .lab b{font-weight:600;font-size:14px}
+.row .lab em{display:block;font-style:normal;color:var(--ink60);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track{position:relative;height:18px;min-width:0}
+.track .ours{position:absolute;left:0;top:0;bottom:0;background:repeating-linear-gradient(135deg,var(--ink30) 0 1px,transparent 1px 4px);border-top:1px solid var(--ink12);border-bottom:1px solid var(--ink12)}
+.track .p90{position:absolute;left:0;top:5px;height:8px;background:var(--signal-faint)}
+.track .med{position:absolute;left:0;top:5px;height:8px;background:var(--signal)}
+.track .med.alt{background:var(--signal-untimed)}
+.track .absent{position:absolute;left:0;right:0;top:3px;bottom:3px;border:1px dashed var(--state);border-radius:2px}
+.row .val{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;white-space:nowrap}
+.row .val small{display:block;color:var(--ink60);font-size:11px}
+.row.absent .val{color:var(--state)}
+.say{grid-column:1/-1;color:var(--ink60);font-size:12.5px;max-width:88ch;margin:2px 0 calc(var(--u)*2)}
+.scale{display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr) 120px;gap:calc(var(--u)*3);color:var(--ink60);font-size:11.5px;font-family:var(--mono)}
+.scale .t{position:relative;height:14px;border-bottom:1px solid var(--ink12)}
+.scale .t span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.par{margin:calc(var(--u)*5) 0 calc(var(--u)*1)}
+.par h3{margin:0;font-size:14px;font-weight:600}
+.par h3 small{font-weight:400;color:var(--ink60);margin-left:calc(var(--u)*2);font-family:var(--mono);font-size:12px}
+.par .where{color:var(--ink60);font-size:12px;margin:2px 0 calc(var(--u)*2)}
+.foot{padding:calc(var(--u)*4) calc(var(--u)*6) calc(var(--u)*6);color:var(--ink60);font-size:12.5px;max-width:88ch}
+.foot b{color:var(--ink);font-weight:600}
+.empty{color:var(--ink60);font-style:italic}
+@media (max-width:760px){
+  .row,.scale{grid-template-columns:minmax(0,1fr) 96px;}
+  .row .track,.scale .t{grid-column:1/-1;order:3}
+  .row .val,.scale > :last-child{text-align:right}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<body class="lang-sr">
+<header>
+  <h1>BEOPS <span>· SVEDOCI · <span class="sr-only">dva pitanja na koja zapis može da odgovori o samom sebi</span><span class="en-only">two questions the record can answer about itself</span></span></h1>
+  <p class="sr-only">Oba dela ispod su aritmetika nad redovima koje ovaj zapis već ima, pod dozvolama koje je već imao. Nijedan izvor nije dodat, niko ništa nije pitan, i ništa se ovde ne prikuplja — ovo je ono što priznanice već kažu, pročitano nazad.</p>
+  <p class="en-only">Both halves below are arithmetic over rows this record already holds, under permissions it already had. No source was added, nobody was asked for anything, and nothing here is collected — it is what the receipts already say, read back.</p>
+</header>
+
+<section id="kasnjenje">
+  <h2><span class="sr-only">Koliko je bilo staro kad je stiglo do nas</span><span class="en-only">How old it was when it reached us</span></h2>
+  <p class="lede sr-only">Pokrivenost kaže <em>da li</em> grad objavljuje neki signal. Ovo kaže <em>kada</em>. Vodostaj star četiri sata je drugi instrument od onog starog četiri minuta, i nijedan izdavač ne kaže koji je njegov.</p>
+  <p class="lede en-only">Coverage says <em>whether</em> a city publishes a signal. This says <em>when</em>. A river level four hours old is a different instrument from one four minutes old, and no publisher states which theirs is.</p>
+  <p class="notthis sr-only"><b>Ovo nije zakašnjenje izdavača.</b> Pitamo u stalnom taktu, pa vrednost objavljena sekund pošto smo pitali čeka ceo interval dok je ne vidimo. Svaka starost ispod sadrži zakašnjenje izdavača <em>plus</em> do jednog našeg intervala, i ovaj zapis to dvoje ne može da razdvoji. Šrafirana traka je naš sopstveni interval, nacrtan u razmeri: gde je šira od stubića, nijedan deo te starosti ne može da se pripiše izdavaču. Nije ni ocena kvaliteta — časovni prosek ne može da bude svežiji od pola sata i nije zbog toga lošiji.</p>
+  <p class="notthis en-only"><b>This is not the publisher's delay.</b> We ask on a fixed cadence, so a value published one second after we asked waits a whole interval before we see it. Every age below contains the publisher's delay <em>plus</em> up to one interval of ours, and this record cannot separate them. The hatched band is our own interval, drawn to scale: where it is wider than the bar, none of that age can be attributed to the publisher at all. It is also not a quality score — an hourly mean cannot be fresher than half an hour and is not worse for it.</p>
+  <div class="legend">
+    <span><i class="k1"></i><span class="sr-only">srednja starost</span><span class="en-only">median age</span></span>
+    <span><i class="k2"></i><span class="sr-only">90. percentil</span><span class="en-only">90th percentile</span></span>
+    <span><i class="k3"></i><span class="sr-only">naš interval pitanja — bilo koji deo starosti unutar njega može da bude naš</span><span class="en-only">our polling interval — any part of the age inside it may be ours</span></span>
+    <span><i class="k4"></i><span class="sr-only">vreme merenja se uopšte ne objavljuje</span><span class="en-only">no measurement time published at all</span></span>
+  </div>
+  <div class="scale" id="lscale"><span></span><div class="t" id="lticks"></div><span></span></div>
+  <div class="rows" id="lrows"><p class="empty"><span class="sr-only">čitam kašnjenje…</span><span class="en-only">reading latency…</span></p></div>
+</section>
+
+<section id="slaganje">
+  <h2><span class="sr-only">Da li dvojica od njih kažu isto</span><span class="en-only">Whether two of them say the same thing</span></h2>
+  <p class="lede sr-only">Ova opservatorija nema nijedan sopstveni senzor, pa nikada ne može da tvrdi tačnost: svaka vrednost nasleđuje tuđu kalibraciju i tuđi sat. Ali gde dva izvora koja nikome zajedničkom ne odgovaraju opisuju isti parametar u istom satu, razlika među njima je činjenica koju ovaj zapis može da izračuna, a nijedan izdavač je ne objavljuje.</p>
+  <p class="lede en-only">This observatory owns no sensor, so it can never state accuracy: every value inherits somebody else's calibration and somebody else's clock. But where two sources that answer to nobody in common describe the same parameter in the same hour, the difference between them is a fact this record can compute and neither publisher states.</p>
+  <p class="notthis sr-only"><b>Ovo nije mera greške i nije provera ikoga.</b> Izvori stoje na različitim mestima — pista, padina, balkon — pa svaki razmak ispod sadrži i stvarnu razliku po gradu i eventualno neslaganje instrumenata, a <b>ovaj zapis to dvoje ne može da razdvoji</b>. Širok razmak nije dokaz da neko greši. On je dokaz da „temperatura u Beogradu" nije jedan broj — što je upravo ono što skriva tabla koja ispiše jedan broj. Ništa se ovde ne koristi da se bilo čija vrednost podesi, uskladi ili pretpostavi drugoj.</p>
+  <p class="notthis en-only"><b>This is not an error bar and not a check of anyone.</b> The sources stand in different places — a runway, a hillside, a balcony — so every gap below contains real variation across the city as well as any instrumental disagreement, and <b>this record cannot separate the two</b>. A wide gap is not evidence that somebody is wrong. It is evidence that “the temperature in Belgrade” is not a single number, which is what a dashboard printing one number hides. Nothing here is used to adjust, reconcile or prefer any source's value.</p>
+  <div id="arows"><p class="empty"><span class="sr-only">čitam slaganje…</span><span class="en-only">reading agreement…</span></p></div>
+</section>
+
+<div class="foot" id="foot"></div>
+
+<script>
+(function(){
+"use strict";
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+var n1=function(v){return (Math.round(v*10)/10).toFixed(1);};
+
+function bust(u){return u+(u.indexOf('?')<0?'?':'&')+'v='+Date.now();}
+function grab(u){return fetch(bust(u),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}
+
+/* ---------- how old it was ---------- */
+function drawLatency(d){
+  var host=document.getElementById('lrows');
+  if(!d||!d.by_source){host.innerHTML='<p class="empty">no latency summary published yet.</p>';return null;}
+  var names=d.names||{}, by=d.by_source, sids=Object.keys(by).sort();
+  var max=0;
+  sids.forEach(function(s){
+    var b=by[s], abc=b.age_by_clock||{};
+    Object.keys(abc).forEach(function(c){ max=Math.max(max,abc[c].p90||0,abc[c].median||0); });
+    if(b.polling_interval_minutes) max=Math.max(max,b.polling_interval_minutes);
+  });
+  if(max<=0) max=10;
+  max=Math.ceil(max/10)*10;
+  var pct=function(v){return Math.max(0,Math.min(100,(v/max)*100));};
+
+  var ticks=document.getElementById('lticks'), step=max<=30?5:(max<=80?20:30), th=[];
+  for(var t=0;t<=max;t+=step) th.push('<span style="left:'+pct(t)+'%">'+t+'</span>');
+  ticks.innerHTML=th.join('');
+  document.getElementById('lscale').firstElementChild.textContent='minutes →';
+
+  var withTime=[], withoutTime=[];
+  sids.forEach(function(s){ (Object.keys(by[s].age_by_clock||{}).length?withTime:withoutTime).push(s); });
+  withTime.sort(function(a,b){
+    var A=by[a].age_by_clock, B=by[b].age_by_clock;
+    var ma=Math.max.apply(null,Object.keys(A).map(function(c){return A[c].median;}));
+    var mb=Math.max.apply(null,Object.keys(B).map(function(c){return B[c].median;}));
+    return mb-ma;
+  });
+
+  var out=[];
+  withTime.forEach(function(s){
+    var b=by[s], abc=b.age_by_clock, clocks=Object.keys(abc).sort();
+    clocks.forEach(function(c,i){
+      var a=abc[c], poll=b.polling_interval_minutes||0;
+      out.push('<div class="row">'
+        +'<div class="lab"><b>'+esc(s)+(clocks.length>1?' <span class="num" style="font-weight:400;color:var(--ink60)">'+esc(c)+'</span>':'')+'</b>'
+        +'<em>'+esc(names[s]||'')+'</em></div>'
+        +'<div class="track">'
+          +(poll?'<div class="ours" style="width:'+pct(poll)+'%" title="our polling interval: '+poll+' min"></div>':'')
+          +'<div class="p90" style="width:'+pct(a.p90)+'%"></div>'
+          +'<div class="med'+(c==='corrected'?' alt':'')+'" style="width:'+pct(a.median)+'%"></div>'
+        +'</div>'
+        +'<div class="val">'+n1(a.median)+' min<small>p90 '+n1(a.p90)+' · n '+a.n+'</small></div>'
+        +'</div>');
+      if(i===clocks.length-1&&clocks.length>1&&b.what_this_source_publishes)
+        out.push('<p class="say">'+esc(b.what_this_source_publishes)+'</p>');
+    });
+  });
+  withoutTime.forEach(function(s){
+    var b=by[s];
+    out.push('<div class="row absent">'
+      +'<div class="lab"><b>'+esc(s)+'</b><em>'+esc(names[s]||'')+'</em></div>'
+      +'<div class="track"><div class="absent"></div></div>'
+      +'<div class="val">—<small>'+(b.rows_without_a_measurement_time||0)+' rows</small></div>'
+      +'<p class="say">'+esc(b.what_this_source_publishes||'no measurement time is published: we know the value and when it reached us, never when it was true.')+'</p>'
+      +'</div>');
+  });
+  host.innerHTML=out.join('')||'<p class="empty">nothing to show yet.</p>';
+  return d;
+}
+
+/* ---------- do they agree ---------- */
+function drawAgreement(d){
+  var host=document.getElementById('arows');
+  if(!d||!d.parameters){host.innerHTML='<p class="empty">no agreement summary published yet.</p>';return null;}
+  var pars=Object.keys(d.parameters).sort(), out=[];
+  if(!pars.length){
+    out.push('<p class="empty">nothing is comparable yet: no parameter has two sources over enough shared hours.</p>');
+  }
+  pars.forEach(function(par){
+    var e=d.parameters[par], pairs=e.pairs||[], unit='';
+    (e.sources&&Object.keys(e.sources)||[]).forEach(function(s){ if(!unit&&e.sources[s].unit) unit=e.sources[s].unit; });
+    var shown=pairs.filter(function(p){return p.median_gap!=null;});
+    var max=0; shown.forEach(function(p){ max=Math.max(max,p.max_gap||0,p.p90_gap||0); });
+    if(max<=0) max=1;
+    var pct=function(v){return Math.max(0,Math.min(100,(v/max)*100));};
+    out.push('<div class="par"><h3>'+esc(par)+'<small>'+e.shared_hours+' shared hours · '+esc(e.geometry||'linear')+(unit?' · '+esc(unit):'')+'</small></h3>'
+             +'<p class="where">'+esc(e.these_are_different_places||'')+'</p></div>');
+    pairs.forEach(function(p){
+      if(p.median_gap==null){
+        out.push('<div class="row absent">'
+          +'<div class="lab"><b>'+esc(p.a)+' · '+esc(p.b)+'</b><em>'+esc(p.unit_a||'?')+' vs '+esc(p.unit_b||'?')+'</em></div>'
+          +'<div class="track"><div class="absent"></div></div>'
+          +'<div class="val">withheld<small>'+p.shared_hours+' h</small></div>'
+          +'<p class="say">'+esc(p.withheld||'')+'</p>'
+          +'</div>');
+        return;
+      }
+      out.push('<div class="row">'
+        +'<div class="lab"><b>'+esc(p.a)+' · '+esc(p.b)+'</b><em>'+esc((d.parameters[par].sources[p.a]||{}).places||'')+'</em></div>'
+        +'<div class="track">'
+          +'<div class="p90" style="width:'+pct(p.max_gap)+'%"></div>'
+          +'<div class="med" style="width:'+pct(p.median_gap)+'%"></div>'
+        +'</div>'
+        +'<div class="val">'+esc(String(p.median_gap))+'<small>p90 '+esc(String(p.p90_gap))+' · max '+esc(String(p.max_gap))+'</small></div>'
+        +'</div>');
+    });
+    (e.sources?Object.keys(e.sources).sort():[]).forEach(function(s){
+      var src=e.sources[s];
+      out.push('<p class="say"><b class="num">'+esc(s)+'</b> — '+esc((src.places||[]).join(', ').slice(0,110)||'no station named')
+               +' · clock: '+esc((src.clocks||[]).join(', ')||'—')+'</p>');
+    });
+  });
+  (d.withheld_too_few_shared_hours||[]).forEach(function(w){
+    out.push('<p class="say"><b>'+esc(w.parameter)+'</b> — withheld: '+w.shared_hours+' shared hours, the floor is '+d.min_shared_hours+'.</p>');
+  });
+  host.innerHTML=out.join('');
+  return d;
+}
+
+/* ---------- the frame protocol ----------------------------------------
+   C-027: declare `d` before reading it, or every message into this frame throws and the theme and
+   the language both die silently. C-038: register the handler FIRST and ask on the next line - a
+   message delivered before its handler exists is not late, it is lost. */
+function report(){
+  try{
+    var h=Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if(window.parent&&window.parent!==window) window.parent.postMessage({beops:'height',h:h},'*');
+  }catch(e){}
+}
+window.addEventListener('message',function(ev){
+  var d=ev&&ev.data; if(!d) return;
+  if(d.beopsTheme!==undefined){
+    if(d.beopsTheme) document.documentElement.setAttribute('data-theme',d.beopsTheme);
+    else document.documentElement.removeAttribute('data-theme');
+  }
+  var L=d.beopsLang4||d.beopsLang;
+  if(L){
+    document.documentElement.setAttribute('lang',L);
+    // The frame carries both languages and shows one. Anything other than Serbian falls back to
+    // English rather than vanishing, which is the same rule the page itself keeps.
+    document.body.className='lang-'+(L==='sr'?'sr':'en');
+  }
+  report();
+});
+try{ if(window.parent&&window.parent!==window) window.parent.postMessage({beopsAsk:true},'*'); }catch(e){}
+
+Promise.all([grab('latency.json'),grab('agreement.json')]).then(function(r){
+  var L=drawLatency(r[0]), A=drawAgreement(r[1]);
+  var f=[];
+  if(L) f.push('<b>'+L.sources_read+'</b> sources read; <b>'+L.sources_publishing_no_measurement_time
+               +'</b> of them publish no measurement time at all, so no age can be computed for them and none is shown.'
+               +(L.sources_on_more_than_one_clock?' <b>'+L.sources_on_more_than_one_clock+'</b> source is on more than one clock and gets one distribution per clock, never a blended number.':''));
+  if(A) f.push('Agreement needs <b>'+A.min_shared_hours+'</b> shared hours before it says anything, and a gap between two different units is withheld rather than printed with a warning attached — converting one to the other would be our arithmetic presented as their measurement.');
+  if(L&&L.made_at) f.push('Computed '+esc(String(L.made_at).slice(0,19))+'Z from the rows already in the record.');
+  f.push('<span class="sr-only">Rečenice koje dolaze iz samog sloja ispisane su onako kako ih je sloj napisao, na engleskom, bez prevoda — prevod bi bio naš tekst predstavljen kao njegov.</span>'
+        +'<span class="en-only">Sentences that come from the layer itself are printed as the layer wrote them, in English and untranslated — translating them would be our text presented as its own.</span>');
+  document.getElementById('foot').innerHTML=f.join(' ');
+  report(); setTimeout(report,200);
+});
+window.addEventListener('resize',report);
+})();
+</script>

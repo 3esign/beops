@@ -1,0 +1,283 @@
+{
+ "schema": "beops-agreement/v1",
+ "made_at": "2026-09-10T10:35:31.465428Z",
+ "min_shared_hours": 6,
+ "what_this_is": "the difference between what two independent sources said about the same parameter in the same hour. It contains instrumental disagreement AND real difference between the places they stand in, and this record cannot separate them. It is not an error bar, not a check of any source, and it is never used to adjust a value.",
+ "parameters": {
+  "humidity": {
+   "shared_hours": 24,
+   "widest_gap": {
+    "median": 5.03,
+    "min": 0.27,
+    "max": 9.36
+   },
+   "pairs": [
+    {
+     "a": "S01",
+     "b": "S04",
+     "shared_hours": 24,
+     "unit_a": "%",
+     "unit_b": "%",
+     "units_match": true,
+     "geometry": "linear",
+     "median_gap": 5.03,
+     "p90_gap": 7.5,
+     "max_gap": 9.36
+    }
+   ],
+   "sources": {
+    "S01": {
+     "clocks": [
+      "measured"
+     ],
+     "places": [
+      "Beograd",
+      "Košutnjak"
+     ],
+     "unit": "%"
+    },
+    "S04": {
+     "clocks": [
+      "measured"
+     ],
+     "places": [
+      "100726",
+      "100728",
+      "38848",
+      "40612",
+      "47428",
+      "54598",
+      "54946",
+      "62680"
+     ],
+     "unit": "%"
+    }
+   },
+   "these_are_different_places": "the sources below stand in different places, so part of every gap is the city itself and not the instruments.",
+   "geometry": "linear"
+  },
+  "pressure": {
+   "shared_hours": 24,
+   "widest_gap": null,
+   "pairs": [
+    {
+     "a": "S01",
+     "b": "S04",
+     "shared_hours": 24,
+     "unit_a": "hPa",
+     "unit_b": "Pa",
+     "units_match": false,
+     "geometry": "linear",
+     "median_gap": null,
+     "p90_gap": null,
+     "max_gap": null,
+     "withheld": "the two sources publish this parameter in different units (hPa and Pa); the difference between them is not a quantity and no gap is shown. Converting one to the other would be our arithmetic presented as their measurement."
+    }
+   ],
+   "sources": {
+    "S01": {
+     "clocks": [
+      "measured"
+     ],
+     "places": [
+      "Beograd",
+      "Košutnjak"
+     ],
+     "unit": "hPa"
+    },
+    "S04": {
+     "clocks": [
+      "measured"
+     ],
+     "places": [
+      "100726",
+      "100728",
+      "40612",
+      "54598",
+      "62680",
+      "66125",
+      "66176",
+      "82807"
+     ],
+     "unit": "Pa"
+    }
+   },
+   "widest_gap_withheld": "at least two of these sources publish this parameter in different units, so the spread across them is not a quantity.",
+   "these_are_different_places": "the sources below stand in different places, so part of every gap is the city itself and not the instruments.",
+   "geometry": "linear"
+  },
+  "temperature": {
+   "shared_hours": 24,
+   "widest_gap": {
+    "median": 2.6,
+    "min": 0.13,
+    "max": 4.46
+   },
+   "pairs": [
+    {
+     "a": "S01",
+     "b": "S03",
+     "shared_hours": 23,
+     "unit_a": "Cel",
+     "unit_b": "Cel",
+     "units_match": true,
+     "geometry": "linear",
+     "median_gap": 0.6,
+     "p90_gap": 1.5,
+     "max_gap": 2.1
+    },
+    {
+     "a": "S01",
+     "b": "S04",
+     "shared_hours": 24,
+     "unit_a": "Cel",
+     "unit_b": "Cel",
+     "units_match": true,
+     "geometry": "linear",
+     "median_gap": 2.08,
+     "p90_gap": 3.06,
+     "max_gap": 3.51
+    },
+    {
+     "a": "S03",
+     "b": "S04",
+     "shared_hours": 23,
+     "unit_a": "Cel",
+     "unit_b": "Cel",
+     "units_match": true,
+     "geometry": "linear",
+     "median_gap": 2.77,
+     "p90_gap": 4.3,
+     "max_gap": 4.46
+    }
+   ],
+   "sources": {
+    "S01": {
+     "clocks": [
+      "measured"
+     ],
+     "places": [
+      "Beograd",
+      "Košutnjak"
+     ],
+     "unit": "Cel"
+    },
+    "S03": {
+     "clocks": [
+      "measured"
+     ],
+     "places": [
+      "Belgrade/Tesla Arpt, BE, RS"
+     ],
+     "unit": "Cel"
+    },
+    "S04": {
+     "clocks": [
+      "measured"
+     ],
+     "places": [
+      "100726",
+      "100728",
+      "38848",
+      "40612",
+      "47428",
+      "54598",
+      "54946",
+      "62680"
+     ],
+     "unit": "Cel"
+    }
+   },
+   "these_are_different_places": "the sources below stand in different places, so part of every gap is the city itself and not the instruments.",
+   "geometry": "linear"
+  },
+  "wind_direction": {
+   "shared_hours": 23,
+   "widest_gap": {
+    "median": 29.78,
+    "min": 0.29,
+    "max": 156.89
+   },
+   "pairs": [
+    {
+     "a": "S01",
+     "b": "S03",
+     "shared_hours": 23,
+     "unit_a": "deg",
+     "unit_b": "deg",
+     "units_match": true,
+     "geometry": "circular_degrees",
+     "median_gap": 29.78,
+     "p90_gap": 63.66,
+     "max_gap": 156.89
+    }
+   ],
+   "sources": {
+    "S01": {
+     "clocks": [
+      "measured"
+     ],
+     "places": [
+      "Košutnjak"
+     ],
+     "unit": "deg"
+    },
+    "S03": {
+     "clocks": [
+      "measured"
+     ],
+     "places": [
+      "Belgrade/Tesla Arpt, BE, RS"
+     ],
+     "unit": "deg"
+    }
+   },
+   "these_are_different_places": "the sources below stand in different places, so part of every gap is the city itself and not the instruments.",
+   "geometry": "circular_degrees"
+  },
+  "wind_speed": {
+   "shared_hours": 23,
+   "widest_gap": null,
+   "pairs": [
+    {
+     "a": "S01",
+     "b": "S03",
+     "shared_hours": 23,
+     "unit_a": "m/s",
+     "unit_b": "kt",
+     "units_match": false,
+     "geometry": "linear",
+     "median_gap": null,
+     "p90_gap": null,
+     "max_gap": null,
+     "withheld": "the two sources publish this parameter in different units (m/s and kt); the difference between them is not a quantity and no gap is shown. Converting one to the other would be our arithmetic presented as their measurement."
+    }
+   ],
+   "sources": {
+    "S01": {
+     "clocks": [
+      "measured"
+     ],
+     "places": [
+      "Beograd",
+      "Košutnjak"
+     ],
+     "unit": "m/s"
+    },
+    "S03": {
+     "clocks": [
+      "measured"
+     ],
+     "places": [
+      "Belgrade/Tesla Arpt, BE, RS"
+     ],
+     "unit": "kt"
+    }
+   },
+   "widest_gap_withheld": "at least two of these sources publish this parameter in different units, so the spread across them is not a quantity.",
+   "these_are_different_places": "the sources below stand in different places, so part of every gap is the city itself and not the instruments.",
+   "geometry": "linear"
+  }
+ },
+ "withheld_too_few_shared_hours": []
+}
