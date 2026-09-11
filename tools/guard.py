@@ -77,6 +77,13 @@ def iso(t: datetime) -> str:
     return t.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def parse_iso(s: str) -> datetime | None:
+    try:
+        return datetime.fromisoformat(str(s).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
 def sh(args: list[str]) -> str:
     try:
         return subprocess.run(args, capture_output=True, text=True, timeout=45,
@@ -363,19 +370,20 @@ def publish_gate() -> list[dict]:
     except (OSError, ValueError) as e:                       # noqa: BLE001
         return [{"check": "the publish is gated", "state": UNKNOWN, "why": "receipt unreadable: %s" % type(e).__name__}]
     at = r.get("at") or ""
-    try:
-        age_h = (now() - datetime.fromisoformat(str(at).replace("Z", "+00:00"))).total_seconds() / 3600.0
-    except ValueError:
-        age_h = None
+    at_dt = parse_iso(str(at))
+    now_dt = now()
+    age_h = None if at_dt is None else (now_dt - at_dt).total_seconds() / 3600.0
     out = []
     if r.get("tests_ok"):
         out.append({"check": "the publish is gated", "state": OK,
                     "why": "last publish ran the suite and it passed (%s)" % (r.get("tests") or "no summary")})
     else:
-        state = STOP if (age_h is not None and age_h >= 0.5) else WARN
+        start_dt = publish_failure_started_at(at_dt)
+        fail_h = None if start_dt is None else (now_dt - start_dt).total_seconds() / 3600.0
+        state = STOP if (fail_h is not None and fail_h >= 0.5) else WARN
         out.append({"check": "the publish is gated", "state": state,
                     "why": "THE SUITE DID NOT PASS, so nothing has been published%s: %s"
-                           % (" for %.1f h" % age_h if age_h is not None else "",
+                           % (" for %.1f h" % fail_h if fail_h is not None else "",
                               (r.get("why") or "")[:160])})
     if age_h is not None and age_h > 1.0 and r.get("tests_ok"):
         out.append({"check": "the publisher is still running", "state": WARN,
@@ -405,6 +413,41 @@ def publish_gate() -> list[dict]:
                                   "; the next one will take the lock over" if held_m > LOCK_TAKEOVER_MIN
                                   else "")})
     return out
+
+
+def publish_failure_started_at(current_receipt_at: datetime | None) -> datetime | None:
+    """Return the start of the current continuous failed-publish streak, if visible."""
+    if current_receipt_at is None:
+        return None
+    started = current_receipt_at
+    p = LIVE / "guard-ledger.jsonl"
+    try:
+        lines = p.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return started
+    for line in reversed(lines):
+        line = line.strip()
+        if not line.startswith("{"):
+            continue
+        try:
+            row = json.loads(line)
+        except ValueError:
+            continue
+        check = None
+        for item in row.get("lawful", []):
+            if item.get("check") == "the publish is gated":
+                check = item
+                break
+        if not check:
+            continue
+        why = str(check.get("why") or "")
+        failed = check.get("state") in (WARN, STOP) and why.startswith("THE SUITE DID NOT PASS")
+        if not failed:
+            break
+        row_at = parse_iso(str(row.get("at") or ""))
+        if row_at is not None:
+            started = row_at
+    return started
 
 
 # A prediction is scored within 24 minutes of falling due, over the 29 settled so far, and never

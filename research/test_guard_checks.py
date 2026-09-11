@@ -34,7 +34,7 @@ LED_CLEAN = [{"sid": "S01"}, {"sid": "S02"}]
 @contextlib.contextmanager
 def world(reg=None, col=None, ledger=LED_CLEAN, snapshot=None, names=None,
           receipt=None, statics=None, docs=None, no_collectors=False, ledger_is_a_dir=False,
-          claims=None):
+          claims=None, guard_ledger=None):
     """A whole small BEOPS on disk, with the guard pointed at it."""
     with tempfile.TemporaryDirectory() as d:
         root = pathlib.Path(d)
@@ -65,6 +65,9 @@ def world(reg=None, col=None, ledger=LED_CLEAN, snapshot=None, names=None,
             (root / "data" / "live" / "derived" / "mind").mkdir(parents=True, exist_ok=True)
             (root / "data" / "live" / "derived" / "mind" / "claims.jsonl").write_text(
                 "\n".join(json.dumps(x) for x in claims), encoding="utf-8")
+        if guard_ledger is not None:
+            (root / "data" / "live" / "guard-ledger.jsonl").write_text(
+                "\n".join(json.dumps(x) for x in guard_ledger), encoding="utf-8")
         for name, body in (docs or {}).items():
             (root / "docs" / name).write_text(body, encoding="utf-8")
         old = (g.ROOT, g.RESEARCH, g.LIVE)
@@ -200,6 +203,37 @@ class PublishGate(unittest.TestCase):
             self.assertEqual(by(g.publish_gate(), "the publish is gated")["state"], g.WARN)
         with world(receipt={"at": old, "tests_ok": False, "why": "still failing"}):
             self.assertEqual(by(g.publish_gate(), "the publish is gated")["state"], g.STOP)
+
+    def test_fresh_failed_receipts_do_not_reset_the_failure_streak(self):
+        """Audit 08: every new failed publish wrote a fresh receipt, so the guard never reached STOP."""
+        rows = []
+        for minutes in (70, 55, 40):
+            rows.append({
+                "at": g.iso(g.now() - timedelta(minutes=minutes)),
+                "lawful": [{"check": "the publish is gated", "state": g.WARN,
+                            "why": "THE SUITE DID NOT PASS, so nothing has been published: old"}],
+            })
+        with world(receipt={"at": g.iso(g.now() - timedelta(minutes=2)), "tests_ok": False,
+                            "why": "still failing"},
+                   guard_ledger=rows):
+            c = by(g.publish_gate(), "the publish is gated")
+        self.assertEqual(c["state"], g.STOP)
+        self.assertIn("1.", c["why"])
+
+    def test_a_prior_success_breaks_the_failed_publish_streak(self):
+        rows = [
+            {"at": g.iso(g.now() - timedelta(minutes=70)),
+             "lawful": [{"check": "the publish is gated", "state": g.WARN,
+                         "why": "THE SUITE DID NOT PASS, so nothing has been published: old"}]},
+            {"at": g.iso(g.now() - timedelta(minutes=20)),
+             "lawful": [{"check": "the publish is gated", "state": g.OK,
+                         "why": "last publish ran the suite and it passed"}]},
+        ]
+        with world(receipt={"at": g.iso(g.now() - timedelta(minutes=2)), "tests_ok": False,
+                            "why": "new failure"},
+                   guard_ledger=rows):
+            c = by(g.publish_gate(), "the publish is gated")
+        self.assertEqual(c["state"], g.WARN)
 
     def test_a_receipt_written_by_powershell_with_a_bom_is_still_readable(self):
         """C-047: -Encoding UTF8 on PowerShell 5.1 writes a BOM, and this check reported unknown
