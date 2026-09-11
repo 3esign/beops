@@ -1,6 +1,8 @@
 # Beops — Knowledge Base
 
 # Greske
+- [2026-09-11T12:02] Provera stvarnih staged bajtova nasla je i CRLF u .gitattributes; normalizacija je prosirena na poznate tekstualne dotfiles. Povratak javnog mirrora vratio je tacne sacuvane bajtove, ali prvi Git status prijavio je public-links.json; direktna provera potvrdila je iste normalizovane bajtove i prazan diff. Rollback sada osvezava Gitov content pogled pre provere statusa. — izvor: tools/mirror_transaction.py
+- [2026-09-11T11:53] public-links.json nastajao je posle LF normalizacije uz podrazumevani Windows CRLF. Lokalni manifest je pratio CRLF, Git blob LF. Lek: eksplicitni LF i pre-commit provera svakog staged blob-a prema manifestu; regresija obuhvata i binarni fajl sa razmakom u imenu. — izvor: tools/verify_staged_export.py
 - [2026-09-11T11:32] Test nepromenljivog capture-a pretpostavljao je isti disk za privremeni direktorijum i ROOT. Na C/D junction-u produkcioni parser nije kriv: test sada preusmerava i ROOT u istu privremenu celinu. — izvor: research/test_recovery.py
 - [2026-09-11T11:30] Prva primena repair_record --root . na aktivnom junction-u stala je pre upisa jer je uporedjivala razreseni raw fajl sa nerazresenim korenom. Lek: fizicki resolve korena na ulazu i regresioni test relativnog korena; granica ostaje fail-closed. — izvor: tools/repair_record.py
 - [2026-09-11T11:23] Windows odbija Disable-ScheduledTask za sve postojece Beops zadatke sa Access is denied. Raspored nije promenjen; lek za bezbednu primenu koda je eksplicitna projektna MAINTENANCE pauza u zajednickom batch ulazu, cekanje postojecih procesa i zaseban administratorski korak za registraciju rasporeda. — izvor: tools/beops_env.bat

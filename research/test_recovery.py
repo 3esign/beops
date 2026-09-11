@@ -29,6 +29,24 @@ NOW = datetime(2026, 9, 11, 6, tzinfo=timezone.utc)
 
 
 class EntryPoints(unittest.TestCase):
+    def test_staged_manifest_refuses_git_newline_conversion(self):
+        import mirror_transaction as T
+        import verify_staged_export as V
+        with tempfile.TemporaryDirectory() as td:
+            root=pathlib.Path(td);(root/'docs').mkdir();T.git(root,'init','-q')
+            attributes=root/'.gitattributes';attributes.write_bytes(b'*.json text eol=lf\r\n*.pdf -text\r\n')
+            text=root/'docs/data.json';text.write_bytes(b'{\r\n "ok":true\r\n}')
+            binary=root/'docs/file with space.pdf';binary.write_bytes(b'%PDF fixture\x00\r\n')
+            def stage():
+                rows=[{'path':p.relative_to(root).as_posix(),'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in (text,binary,attributes,root/'docs/public-links.json') if p.exists()]
+                (root/'docs/export-manifest.json').write_text(json.dumps({'files':rows}),encoding='utf-8')
+                T.git(root,'add','--','.gitattributes','docs')
+            stage()
+            with self.assertRaisesRegex(ValueError,'staged bytes differ'):V.verify(root)
+            import validate_public_tree as P
+            P.validate(root);stage()
+            self.assertEqual(V.verify(root)['staged_files_verified'],4)
+
     def test_legacy_direct_baseline_task_respects_maintenance(self):
         with tempfile.TemporaryDirectory() as td:
             root=pathlib.Path(td);(root/'runtime').mkdir();(root/'runtime/MAINTENANCE').write_text('fixture')
@@ -40,15 +58,18 @@ class EntryPoints(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             root = pathlib.Path(td)/'public'; root.mkdir()
             T.git(root,'init','-q')
+            (root/'.gitattributes').write_bytes(b'*.txt text eol=lf\n')
             (root/'old.txt').write_bytes(b'original\r\n')
-            T.git(root,'add','old.txt')
+            T.git(root,'add','old.txt','.gitattributes')
             T.git(root,'-c','user.name=Semir Poturak','-c','user.email=scumutator@gmail.com','commit','-qm','fixture')
             saved = T.capture(root)
             (root/'old.txt').write_bytes(b'partial copy')
             (root/'new.txt').write_bytes(b'new content')
             T.git(root,'add','old.txt','new.txt')
             restored = T.restore(root,saved['archive'])
-            self.assertEqual((root/'old.txt').read_bytes(),b'original\r\n')
+            self.assertEqual((root/'old.txt').read_bytes(),b'original\n')
+            import zipfile
+            with zipfile.ZipFile(saved['archive']) as z:self.assertEqual(z.read('old.txt'),b'original\r\n')
             self.assertFalse((root/'new.txt').exists())
             self.assertEqual((pathlib.Path(restored['new_files_kept'])/'new.txt').read_bytes(),b'new content')
             self.assertEqual(T.git(root,'status','--porcelain'),'')

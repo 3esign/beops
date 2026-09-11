@@ -129,6 +129,9 @@ function Write-BeopsPublishReceipt {
   Move-Item -LiteralPath $tempReceipt -Destination $receiptPath -Force
 }
 function Release-BeopsPublishRun {
+  if ($receipt.published -and $script:copyRecovery -and (Test-Path -LiteralPath $script:copyRecovery)) {
+    Remove-Item -LiteralPath $script:copyRecovery -Force -ErrorAction SilentlyContinue
+  }
   if ($script:publishTestsOutRun -and (Test-Path $script:publishTestsOutRun)) {
     Remove-Item -LiteralPath $script:publishTestsOutRun -Force -ErrorAction SilentlyContinue
   }
@@ -161,6 +164,7 @@ function Invoke-BeopsSiteCheck {
   $siteRc = $LASTEXITCODE
   $ErrorActionPreference = $prevEAP
   $raw = if (Test-Path -LiteralPath $script:siteCheckOutRun) { Get-Content -LiteralPath $script:siteCheckOutRun -Raw } else { '' }
+  if (Test-Path -LiteralPath $script:siteCheckOutRun) { Copy-Item -LiteralPath $script:siteCheckOutRun -Destination (Join-Path $StateRoot 'runtime\publish-site-check-last.json') -Force }
   $site = $null
   try { if ($raw.Trim()) { $site = $raw | ConvertFrom-Json } } catch {}
   $receipt.site_checked_at = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
@@ -172,6 +176,7 @@ function Invoke-BeopsSiteCheck {
   }
   if ($siteRc -ne 0 -or -not $site -or -not $site.ok) {
     $detail = if ($raw.Trim()) { $raw.Trim() } else { 'no site verifier output' }
+    if ($site -and $site.errors) { $detail = @($site.errors) -join '; ' }
     throw "site verification failed after push with exit code ${siteRc}: $($detail.Substring(0, [Math]::Min(500, $detail.Length)))"
   }
 }
@@ -413,6 +418,7 @@ foreach ($f in @('docs') + $generatedPublicPaths) {
     Invoke-BeopsNative "git force-add $f" 'git' @('-C', $pub, 'add', '-A', '-f', $f)
   }
 }
+Invoke-BeopsNative 'verify staged export bytes against manifest' $py @('-X', 'utf8', '-B', 'tools\verify_staged_export.py', $pub)
 # On 2026-09-10 this said "nothing changed since the last publish" and exited 0 while seventeen
 # files sat staged in the export, so the site stayed a commit behind until somebody ran it by hand.
 # The check could not tell an EMPTY status from an UNREADABLE one - git returning nothing because

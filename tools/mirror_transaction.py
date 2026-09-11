@@ -23,6 +23,8 @@ def files(root):
     for p in root.rglob('*'):
         rel = p.relative_to(root)
         if rel.parts[0] == '.git': continue
+        if any(part.lower().startswith(('.env','secrets.','kaggle.')) for part in rel.parts):
+            raise ValueError('private configuration is not a public mirror input')
         if p.is_symlink() or p.is_junction(): raise ValueError('linked public path')
         p.resolve().relative_to(root)
         if p.is_file(): yield p, rel.as_posix()
@@ -66,9 +68,14 @@ def restore(root, archive):
             p = root/rel
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_bytes(z.read(rel))
-        git(root,'restore','--staged','--source='+m['head'],'--','.')
+        # Recreate tracked files using their declared Git text/binary rules.
+        # Exact pre-copy working bytes also remain in the recovery archive.
+        git(root,'restore','--staged','--worktree','--source='+m['head'],'--','.')
+        # Refresh Git's normalized-content view after restoring attributes and
+        # working bytes together (a CRLF working file may equal its LF blob).
+        git(root,'-c','core.fsmonitor=false','diff','--quiet','--no-ext-diff','--')
         if git(root,'status','--porcelain'): raise RuntimeError('rollback restored bytes but Git tree remains dirty')
-        return {'restored':len(m['files']), 'head':m['head'], 'new_files_kept':str(aside)}
+        return {'restored':len(m['files']), 'head':m['head'], 'new_files_kept':str(aside), 'original_working_bytes':str(archive)}
 
 
 if __name__ == '__main__':

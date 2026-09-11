@@ -12,7 +12,7 @@ def validate(root):
     for file in root.rglob('*'):
         if file.is_relative_to(root/'public/dataset'):
             continue  # Dataset editions have their own byte manifests and -text Git attributes.
-        if file.is_file() and '.git' not in file.parts and file.suffix.lower() in ('.py','.js','.html','.json','.jsonl','.md','.ps1','.bat','.cmd','.csv','.txt','.svg','.xml','.css'):
+        if file.is_file() and '.git' not in file.parts and (file.name in ('.gitattributes','.gitignore','.gitmodules','.editorconfig','.nojekyll') or file.suffix.lower() in ('.py','.js','.html','.json','.jsonl','.md','.ps1','.bat','.cmd','.csv','.txt','.svg','.xml','.css')):
             raw=file.read_bytes()
             if b'\r\n' in raw:
                 file.write_bytes(raw.replace(b'\r\n',b'\n'))
@@ -45,7 +45,7 @@ def validate(root):
             if len(payload)!=entry['bytes'] or hashlib.sha256(payload).hexdigest()!=entry['sha256']:
                 raise ValueError('dataset manifest mismatch: '+str(manifest))
     report={'schema':'beops-public-links/v1','private_links_removed':removed,'errors':errors}
-    (root/'docs/public-links.json').write_text(json.dumps(report,ensure_ascii=False,indent=1),encoding='utf-8')
+    (root/'docs/public-links.json').write_text(json.dumps(report,ensure_ascii=False,indent=1),encoding='utf-8',newline='\n')
     return report
 
 
