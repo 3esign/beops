@@ -14,6 +14,7 @@ file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md)
 
 - **_trail/AUDIT_DEEP_2026-09-11.md (private working record)** — fresh deep audit of source dc22db2: 63 findings (15 P1, 42 P2, 6 P3), complete byte inventory, evidence/hash checks, 535 passing isolated tests, adversarial and browser probes, and a sequenced remediation plan. Findings are not fixes. Evidence and reproduction notes: **_trail/audit-deep-20260911/README.md (private working record)**.
 - **_trail/AUDIT_ORDER_2026-09-11.md (private working record)** — detailed project-order audit: 39 findings, isolated failure reproductions, 519 passing offline tests, scheduler and browser checks; findings are not fixes.
+- **_trail/OPERATIONS_2026-09-11.md (private working record)** — operational repair record: publication lifecycle, monitoring, shared model capacity, complete title display, accessibility checks, activation evidence and remaining human checks.
 - **[STRUCTURE_CONTRACT_2026-09-11.md](STRUCTURE_CONTRACT_2026-09-11.md)** — current structure rule: public site as main surface, source/proof/live/generated/private zones, and how to name surplus and missing.
 - **[OPERATIONAL_ORDER_2026-09-11.md](OPERATIONAL_ORDER_2026-09-11.md)** — current operational order: active private repo vs public mirror, C/D path rule, scheduler source of truth and publish safety.
 - **[PROJECT_MAP_2026-09-09.md](PROJECT_MAP_2026-09-09.md)** — useful historical map of where things live; now superseded for structure by the contract above.
@@ -385,3 +386,4 @@ The historical manuscript is intentionally unchanged. No manuscript, conference 
 - _trail/REPAIR_2026-09-11.md (private working record): current recovery record, all 63 audit findings, implementation and application/rollback steps.
 - _trail/repair-20260911/status.json (private working record): machine-readable per-finding recovery status.
 - _trail/DOCUMENT_STATUS_2026-09-11.md (private working record): explicit historical/undesignated-document exceptions and inventory.
+- _trail/repair-20260911/operations/human-review/SUPERSEDED.md (private working record): preserved notice that routes reviewers to the corrected `human-review-v2` packet.

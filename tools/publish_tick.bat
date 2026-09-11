@@ -1,4 +1,6 @@
 @echo off
+rem Disk maintenance: pause only publishing before starting any release preparation.
+if exist "%~dp0..\runtime\PUBLISH_PAUSED" exit /b 0
 rem BEOPS publish tick - scheduled task Beops_Publish, every 10 minutes.
 rem Exports the current tree (without the captured evidence) and the generated docs/ to
 rem github.com/3esign/beops, so the public site shows the last receptions rather than a frozen day.

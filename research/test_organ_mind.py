@@ -497,6 +497,35 @@ class ConversationTests(LiveDir):
 
 
 class DripTests(LiveDir):
+    def test_busy_tags_does_not_advance_the_step(self):
+        def busy():raise om.local_models.ModelDeferred('capacity fixture')
+        rec=om.step(now=NOW,tags=busy,snap=snapshot())
+        self.assertEqual(rec['state'],'waiting_model')
+        self.assertEqual(rec['calls'],0)
+        self.assertEqual(om._context()['step'],0)
+
+    def test_busy_model_does_not_fall_through_the_model_chain(self):
+        called=[]
+        def busy(model,*args,**kwargs):called.append(model);raise om.local_models.ModelDeferred('capacity fixture')
+        with self.assertRaises(om.local_models.ModelDeferred):om.chat_chain(['first','second'],'prompt',busy,{})
+        self.assertEqual(called,['first'])
+
+    def test_busy_embedding_keeps_the_same_step_for_retry(self):
+        def busy(*args,**kwargs):raise om.local_models.ModelDeferred('capacity fixture')
+        rec=om.step(now=NOW,tags=lambda:MODELS,embed=busy,snap=snapshot())
+        self.assertEqual(rec['state'],'waiting_model')
+        self.assertEqual(om._context()['step'],0)
+
+    def test_busy_voice_preserves_english_without_spending_a_voice_attempt(self):
+        def busy(*args,**kwargs):raise om.local_models.ModelDeferred('capacity fixture')
+        row={'en':'The original English thought [F1].','sr':'','hypotheses':[],'questions':[]}
+        rec={'calls':1}
+        om.voice(row,row['en'],{},'fixture',busy,rec)
+        self.assertEqual(row['sr_state'],'waiting_model')
+        self.assertEqual(row['voice_attempts'],0)
+        self.assertEqual(row['en'],'The original English thought [F1].')
+        self.assertEqual(rec['calls'],1)
+
     def test_six_drops_make_one_cycle_and_context_fills(self):
         log = []
         chat = fake_chat_factory(log)

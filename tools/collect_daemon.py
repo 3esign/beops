@@ -48,6 +48,7 @@ import gzip
 import hashlib
 from contracts import finite, belgrade_local, belgrade_offset, content_id, exclusive
 import permission_policy
+import source_policy
 import transport
 import json
 import os
@@ -648,11 +649,7 @@ def load_config() -> dict:
 
 
 def render_url(src: dict, now: datetime) -> str:
-    """URL templates may ask for a window: {from_iso} = now - window_seconds."""
-    if "{from_iso}" in src["url"]:
-        frm = now - timedelta(seconds=int(src.get("window_seconds", 3 * 3600)))
-        return src["url"].replace("{from_iso}", frm.strftime("%Y-%m-%dT%H:%M:%SZ"))
-    return src["url"]
+    return source_policy.render_url(src, now)
 
 
 def is_due(src: dict, now: datetime) -> tuple[bool, str]:
@@ -675,8 +672,7 @@ def is_due(src: dict, now: datetime) -> tuple[bool, str]:
 
 
 def paused(sid: str) -> str | None:
-    p = LIVE / "receipts" / sid / "PAUSED"
-    return p.read_text(encoding="utf-8").strip() if p.exists() else None
+    return source_policy.pause_reason(LIVE, sid)
 
 
 # ---------------------------------------------------------------------- tick

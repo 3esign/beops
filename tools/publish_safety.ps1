@@ -232,6 +232,41 @@ function Enter-BeopsPublishLock {
   return [pscustomobject]@{ Acquired = $false; Recovered = $false; Reason = 'race'; AgeMinutes = 0; Message = 'another publish took the lock first' }
 }
 
+function Save-BeopsReleaseDiagnostic {
+  param([string]$SourceRoot, [string]$RunRoot, [string]$SourceOid, [string]$Outcome)
+  $folder = Join-Path $SourceRoot 'runtime\release-diagnostics'
+  New-Item -ItemType Directory -Path $folder -Force | Out-Null
+  $run = Split-Path $RunRoot -Leaf
+  if ($run -notmatch '^beops-release-[a-f0-9]{32}$') { throw 'unexpected release diagnostic name' }
+  $receiptFile = Join-Path $SourceRoot 'data\live\publish-receipt.json'
+  $lastReceipt = if (Test-Path -LiteralPath $receiptFile) { Get-Content -LiteralPath $receiptFile -Raw | ConvertFrom-Json } else { $null }
+  @{schema='beops-release-diagnostic/v1'; at=(Get-Date).ToUniversalTime().ToString('o'); source_oid=$SourceOid; workspace=$RunRoot; outcome=$Outcome; receipt=$lastReceipt} |
+    ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $folder ($run + '.json')) -Encoding UTF8
+  # This directory contains our diagnostics, not source/evidence. Keep ten runs.
+  $older = Get-ChildItem -LiteralPath $folder -File -Filter 'beops-release-*.json' | Sort-Object LastWriteTime -Descending | Select-Object -Skip 10
+  foreach ($item in $older) {
+    $record = Get-Content -LiteralPath $item.FullName -Raw | ConvertFrom-Json
+    if ($record.schema -eq 'beops-release-diagnostic/v1' -and $item.Name -match '^beops-release-[a-f0-9]{32}\.json$') { Remove-Item -LiteralPath $item.FullName -Force }
+  }
+}
+
+function Remove-BeopsGeneratedRelease {
+  param([string]$Path, [string]$SourceRoot, [string]$BaseRoot)
+  if (-not (Test-Path -LiteralPath $Path)) { return }
+  $full = Get-BeopsFullPath $Path
+  $base = Get-BeopsFullPath $BaseRoot
+  $source = Get-BeopsFullPath $SourceRoot
+  if ((Split-Path $full -Parent) -ne $base -or (Split-Path $full -Leaf) -notmatch '^beops-release-[a-f0-9]{32}$' -or (Test-BeopsSameOrInside -Parent $full -Child $source)) {
+    throw 'release cleanup boundary refused'
+  }
+  $marker = Join-Path $full '.beops-generated-workspace.json'
+  if (-not (Test-Path -LiteralPath $marker)) { return } # never touch an unowned directory
+  $owned = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
+  if ((Get-BeopsFullPath $owned.destination) -ne $full -or (Get-BeopsFullPath $owned.source) -ne $source) { throw 'release owner marker mismatch' }
+  if (Get-ChildItem -LiteralPath $full -Force -Recurse -Attributes ReparsePoint | Select-Object -First 1) { throw 'release cleanup contains a link' }
+  Remove-Item -LiteralPath $full -Recurse -Force -ErrorAction Stop
+}
+
 function Invoke-BeopsNative {
   param(
     [Parameter(Mandatory=$true)][string]$Name,
@@ -256,11 +291,29 @@ function Get-BeopsNativeOutput {
     [Parameter(Mandatory=$true)][string]$FilePath,
     [string[]]$ArgumentList = @()
   )
-  $out = & $FilePath @ArgumentList 2>&1
-  $rc = if ($LASTEXITCODE -ne $null) { [int]$LASTEXITCODE } else { 0 }
-  $text = (($out | ForEach-Object { "$_" }) -join "`n").Trim()
-  if ($rc -ne 0) {
-    throw "$Name failed with exit code ${rc}: $text"
+  # Windows PowerShell 5 turns native stderr into ErrorRecord objects. With
+  # Stop it can interrupt at the first traceback line, before the exit code.
+  # Keep streams separate: a successful command may warn and still emit JSON.
+  $null = Get-Command $FilePath -ErrorAction Stop
+  $capture = Join-Path ([IO.Path]::GetTempPath()) ('beops-native-' + [guid]::NewGuid())
+  $null = New-Item -ItemType Directory -Path $capture -ErrorAction Stop
+  $priorPreference = $ErrorActionPreference
+  try {
+    $stdout = Join-Path $capture 'stdout.txt'
+    $stderr = Join-Path $capture 'stderr.txt'
+    $ErrorActionPreference = 'Continue'
+    & $FilePath @ArgumentList 1> $stdout 2> $stderr
+    $rc = [int]$LASTEXITCODE
+    $ErrorActionPreference = $priorPreference
+    $text = [IO.File]::ReadAllText($stdout)
+    $errors = [IO.File]::ReadAllText($stderr)
+    if ($rc -ne 0) {
+      throw "$Name failed with exit code ${rc}: $($text.Trim())`n$($errors.Trim())"
+    }
+    return $text.Trim()
+  } finally {
+    $ErrorActionPreference = $priorPreference
+    # This GUID directory and its two files were created by this invocation.
+    Remove-Item -LiteralPath $capture -Recurse -Force -ErrorAction SilentlyContinue
   }
-  return $text
 }

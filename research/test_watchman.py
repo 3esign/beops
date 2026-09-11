@@ -8,6 +8,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -51,8 +52,12 @@ class Tree:
                 f.write(json.dumps({"sid": sid, "receivedTime": iso(when), "result": 1}) + "\n")
 
     def history(self, newest_hour, hours=23):
-        (self.dir / "public" / "history.json").write_text(json.dumps(
-            {"hours_of_history": hours, "history_ends": newest_hour, "series": []}), encoding="utf-8")
+        d = self.dir/'data/live'; d.mkdir(parents=True, exist_ok=True)
+        receipt = dict(published=True, pushed=True, site_verified=True, site_live_hash='a', site_local_hash='a',
+                       remote_head='commit', site_checked_at=iso(NOW), generated_as_of=iso(NOW),
+                       verified_history={'hours_of_history':hours, 'history_ends':newest_hour})
+        for name in ('publish-last-success.json', 'publish-receipt.json'):
+            (d/name).write_text(json.dumps(receipt), encoding='utf-8')
 
 
 class WatchmanTests(unittest.TestCase):
@@ -63,6 +68,9 @@ class WatchmanTests(unittest.TestCase):
         W.LIVE = self.t.dir / "data" / "live"
         W.LEDGER = W.LIVE / "watch-ledger.jsonl"
         W.PUBLIC = self.t.dir / "public" / "watch.json"
+        self.policy = patch.object(W.source_policy, 'decision', return_value=('allowed', 'fixture'))
+        self.policy.start()
+        self.addCleanup(self.policy.stop)
 
     def tearDown(self):
         W.ROOT, W.LIVE, W.LEDGER, W.PUBLIC = self._root, self._live, self._led, self._pub

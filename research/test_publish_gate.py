@@ -25,8 +25,11 @@ class Gate(unittest.TestCase):
         cls.safety = SAFETY.read_text(encoding="utf-8")
 
     def test_the_publisher_runs_the_suite(self):
-        self.assertIn("unittest discover", self.s,
+        self.assertIn(r"node tools\test-research.js", self.s,
                       "the publisher no longer runs the tests: every scheduled publish would go out unchecked")
+        runner = (ROOT / 'tools' / 'test-research.js').read_text(encoding='utf-8')
+        self.assertIn("'unittest', 'discover'", runner)
+        self.assertIn('timeout: 120000', runner)
 
     def test_direct_publisher_prefers_the_bundled_test_python(self):
         """The documented direct PowerShell command must not fall back to a random PATH python."""
@@ -42,12 +45,12 @@ class Gate(unittest.TestCase):
         """Tests placed before build_site.py would check yesterday's page and pass it while today's
         went out untested. That was the first design and reading the file refuted it."""
         build = self.s.find("build_site.py")
-        gate = self.s.find("unittest discover")
+        gate = self.s.find(r"node tools\test-research.js")
         self.assertGreater(build, -1)
         self.assertGreater(gate, build, "the gate runs before the site is built, so it checks the wrong page")
 
     def test_a_failing_suite_publishes_nothing_and_says_so(self):
-        gate = self.s.find("unittest discover")
+        gate = self.s.find(r"node tools\test-research.js")
         push = self.s.find("Invoke-BeopsNative 'git push public export'")
         self.assertGreater(push, gate, "the push happens before the gate")
         self.assertIn("NOTHING WAS PUBLISHED", self.s)

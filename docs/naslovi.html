@@ -5,6 +5,7 @@
 :root{color-scheme:light;--ink:#242d32;--paper:#f6f3ec}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:32px 24px}a{color:inherit;text-underline-offset:3px}h1{font-weight:500;font-size:clamp(28px,5vw,48px);line-height:1.15}.lead{max-width:78ch;color:#555}nav,.filters{display:flex;gap:16px;flex-wrap:wrap;align-items:center}label{display:grid;gap:4px;font-size:13px}input,select,button{font:inherit;padding:8px;border:1px solid #999;border-radius:2px;background:transparent;color:inherit}input[type=search]{width:min(85vw,380px)}.count{font-variant-numeric:tabular-nums}article{border-top:1px solid #cbc8c1;padding:16px 0}article h2{font-size:19px;font-weight:500;margin:4px 0;overflow-wrap:anywhere}article p{margin:4px 0;color:#666;font-size:13px}details{font:12px/1.5 ui-monospace,monospace;overflow-wrap:anywhere}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #357eb9;outline-offset:3px}#status{min-height:2em}
 .filters > label{min-width:0;max-width:100%}.filters select{width:min(80vw,380px);max-width:100%}input{max-width:100%}
 </style>
+<link rel="stylesheet" href="accessibility.css"><script defer src="accessibility.js"></script>
 <main>
 <nav><a href="index.html">BEOPS</a><a href="podaci.html">Podaci / Data</a><button id="lang" type="button">English</button></nav>
 <h1 id="heading">Svi sačuvani naslovi</h1>
@@ -19,21 +20,4 @@
 <p id="status" role="status" class="count"></p><div id="items" aria-busy="true"></div>
 <p><a href="headlines.json" download>JSON · cela arhiva / complete archive</a></p>
 </main>
-<script>
-'use strict';
-let en=false, data=null, generation=0;
-const $=id=>document.getElementById(id), say=(sr,eng)=>en?eng:sr;
-function safeURL(value){try{const u=new URL(value);return ['http:','https:'].includes(u.protocol)&&!u.username&&!u.password?u.href:null;}catch{return null;}}
-function stamp(value){return value?value.replace('T',' ').replace(/(?:\.\d+)?(?:Z|\+00:00)$/,' UTC'):say('nepoznato','unknown');}
-function labels(){document.documentElement.lang=en?'en':'sr';$('lang').textContent=en?'Srpski':'English';$('heading').textContent=say('Svi sačuvani naslovi','All retained headlines');$('lead').textContent=say('Cela prikupljena arhiva, sa izvornim naslovima, vezama i vremenima. Vreme objave nije vreme događaja. Izmenjeni naslovi ostaju kao posebne verzije. Tekst članaka se ne objavljuje. Naslovi se čuvaju bez automatskog brisanja; objavljene verzije ostaju i u Git istoriji.','The complete collected archive, with original headlines, links and timestamps. Publication time is not event time. Revised headlines remain separate versions. Article bodies are not published. Headlines have no automatic expiry; published versions also remain in Git history.');for(const [id,sr,eng] of [['search-label','Pretraga','Search'],['source-label','Izvor','Source'],['from-label','Od datuma (UTC)','From date (UTC)'],['to-label','Do datuma (UTC)','To date (UTC)'],['reset','Prikaži sve','Show all']])$(id).textContent=say(sr,eng);$('source').options[0].textContent=say('Svi izvori','All sources');}
-async function render(){
- labels();if(!data)return;const token=++generation,q=$('query').value.trim().toLocaleLowerCase(),sid=$('source').value,from=$('from').value,to=$('to').value;
- const rows=data.rows.filter(r=>{const day=(r.published||r.received||'').slice(0,10);return (!sid||r.sid===sid)&&(!q||(r.title+' '+r.source).toLocaleLowerCase().includes(q))&&(!from||day>=from)&&(!to||day<=to);});
- $('items').replaceChildren();$('items').setAttribute('aria-busy','true');$('status').textContent=say('Prikazano','Showing')+' '+rows.length+' / '+data.count+' · '+say('arhiva ažurirana','archive updated')+' '+stamp(data.as_of);
- for(let start=0;start<rows.length;start+=200){if(token!==generation)return;const fragment=document.createDocumentFragment();for(const r of rows.slice(start,start+200)){const article=document.createElement('article'),name=document.createElement('p'),h=document.createElement('h2'),times=document.createElement('p'),details=document.createElement('details'),summary=document.createElement('summary');name.textContent=r.source+' · '+r.sid;const url=safeURL(r.link);if(url){const a=document.createElement('a');a.href=url;a.rel='noopener noreferrer';a.textContent=r.title;h.append(a);}else h.textContent=r.title;times.textContent=say('Objavljeno: ','Published: ')+stamp(r.published)+' · '+say('Primljeno: ','Received: ')+stamp(r.received);summary.textContent=say('Poreklo zapisa','Record provenance');details.append(summary,document.createTextNode('ID: '+r.id+' · capture: '+(r.permission_capture||'unknown')+' · SHA-256: '+(r.raw_sha256||'unknown')));article.append(name,h,times,details);fragment.append(article);}$('items').append(fragment);await new Promise(requestAnimationFrame);}
- if(token===generation)$('items').setAttribute('aria-busy','false');
-}
-async function load(){try{const response=await fetch('headlines.json',{cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status);data=await response.json();const old=$('source').value;while($('source').options.length>1)$('source').remove(1);const names=new Map(data.rows.map(r=>[r.sid,r.source]));for(const [sid,name] of [...names].sort((a,b)=>a[1].localeCompare(b[1]))){const o=document.createElement('option');o.value=sid;o.textContent=name+' · '+sid;$('source').append(o);}$('source').value=old;render();}catch(e){$('status').textContent=say('Arhiva trenutno nije učitana: ','Archive could not be loaded: ')+e.message;$('items').setAttribute('aria-busy','false');}}
-for(const id of ['query','source','from','to'])$(id).addEventListener('input',render);
-$('reset').onclick=()=>{for(const id of ['query','source','from','to'])$(id).value='';render();};$('lang').onclick=()=>{en=!en;render();};labels();load();setInterval(()=>{if(!document.hidden)load();},60000);
-</script></html>
+<script src="headlines.js"></script></html>

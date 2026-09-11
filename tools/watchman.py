@@ -32,9 +32,11 @@ from __future__ import annotations
 
 import argparse
 import json
-from contracts import json_rows
+from contracts import json_rows, exclusive, atomic_json
 import pathlib
 import subprocess
+import permission_policy
+import source_policy
 from datetime import datetime, timedelta, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -44,7 +46,8 @@ PUBLIC = ROOT / "public" / "watch.json"
 CADENCE_MIN = 10                      # the watchman's own schedule, for judging its own gaps
 
 OK, LATE, STALLED, UNKNOWN = "ok", "late", "stalled", "unknown"
-RANK = {OK: 0, LATE: 1, UNKNOWN: 1, STALLED: 2}
+BLOCKED, PAUSED = 'blocked', 'paused'
+RANK = {OK: 0, LATE: 1, UNKNOWN: 1, STALLED: 2, BLOCKED: 1, PAUSED: 1}
 
 
 def now_utc() -> datetime:
@@ -112,11 +115,20 @@ def sources(now: datetime) -> list[dict]:
     except Exception as e:                                        # noqa: BLE001
         return [check("sources", UNKNOWN, f"the collector list could not be read ({type(e).__name__})")]
     out = []
+    try:
+        entries = permission_policy.latest(ROOT/'research/08-provenance/LEDGER.jsonl')
+    except (OSError, ValueError) as exc:
+        return [check('sources', UNKNOWN, f'permission record unreadable: {exc}')]
     for s in cfg["sources"]:
         if not s.get("enabled"):
             continue
         sid = s["sid"]
         cad = max(1, int(s.get("cadence_seconds") or 3600) // 60)
+        state, reason = source_policy.decision(ROOT, LIVE, s, entries, now)
+        if state != 'allowed':
+            out.append(check(f'source {sid}', state, f'collection {state}: {reason}', sid=sid,
+                             cadence_min=cad, network_requests=0))
+            continue
         rt, rerr = newest_receipt(sid)
         rowt, rowerr = newest_row(sid)
         if rt is None:
@@ -142,10 +154,25 @@ def sources(now: datetime) -> list[dict]:
     return out
 
 
+def last_success():
+    p = LIVE/'publish-last-success.json'
+    d = json.loads(p.read_text(encoding='utf-8-sig'))
+    if not all(d.get(k) is True for k in ('published', 'pushed', 'site_verified')):
+        raise ValueError('publication not verified')
+    if not d.get('site_live_hash') or d.get('site_live_hash') != d.get('site_local_hash'):
+        raise ValueError('publication hash evidence missing or mismatched')
+    if not d.get('remote_head') or not parse(d.get('site_checked_at')):
+        raise ValueError('verification time or commit missing')
+    return d
+
+
 def history(now: datetime) -> dict:
-    p = ROOT / "public" / "history.json"
     try:
-        d = json.loads(p.read_text(encoding="utf-8"))
+        if (ROOT/'runtime/release-inputs.json').is_file():
+            d = json.loads((ROOT/'public/history.json').read_text(encoding='utf-8'))
+        else:
+            receipt = last_success()
+            d = receipt['verified_history']
     except Exception as e:                                        # noqa: BLE001
         return check("history", UNKNOWN, f"history.json could not be read ({type(e).__name__})")
     ends = str(d.get("history_ends") or "")
@@ -178,25 +205,32 @@ def rows_total() -> dict:
 
 
 def published(now: datetime) -> dict:
-    pub = ROOT.parent / "Beops-public"
-    if not pub.is_dir():
-        return check("published", UNKNOWN, "the published working copy is not where it was")
+    if (ROOT/'runtime/PUBLISH_PAUSED').exists():
+        return check('published', PAUSED, 'publication explicitly paused by the operator; this is not a claim of current site data')
     try:
-        out = subprocess.run(["git", "log", "-1", "--format=%cI %h"], capture_output=True, text=True,
-                             cwd=pub, timeout=60).stdout.strip()
+        receipt = last_success()
     except Exception as e:                                        # noqa: BLE001
-        return check("published", UNKNOWN, f"git could not be asked ({type(e).__name__})")
-    t = parse(out.split(" ")[0]) if out else None
-    if t is None:
-        return check("published", UNKNOWN, "the published commit has no readable time")
+        return check('published', UNKNOWN, f'last verified publication unavailable: {type(e).__name__}')
+    t = parse(receipt.get('generated_as_of'))
+    if t is None or t > now + timedelta(minutes=5):
+        return check('published', UNKNOWN, 'publication has no valid input snapshot time')
     age = mins(now, t)
     if age > 60:
         state, said = STALLED, f"the public site is {age:.0f} min old - the publish is not publishing"
     elif age > 25:
         state, said = LATE, f"the public site is {age:.0f} min old, past two publish cadences"
     else:
-        state, said = OK, f"published {age:.0f} min ago"
-    return check("published", state, said, age_min=age, commit=out.split(" ")[-1] if out else None)
+        state, said = OK, f"last verified publication carries inputs {age:.0f} min old"
+    try:
+        attempt = json.loads((LIVE/'publish-receipt.json').read_text(encoding='utf-8-sig'))
+        if not attempt.get('published') and (parse(attempt.get('at')) or t) > parse(receipt['site_checked_at']):
+            state = STALLED if state == STALLED else LATE
+            said += '; newer attempt failed; details in the local publication receipt'
+    except (OSError, ValueError):
+        state = STALLED if state == STALLED else UNKNOWN
+        said += '; latest attempt unreadable'
+    return check('published', state, said, age_min=age, commit=receipt['remote_head'],
+                 verified_at=receipt['site_checked_at'])
 
 
 def mind(now: datetime) -> dict:
@@ -275,11 +309,15 @@ def run(now: datetime | None = None) -> dict:
         verdict = LATE
     elif UNKNOWN in states:
         verdict = UNKNOWN            # not "fine": we could not see, and that is its own answer
+    elif BLOCKED in states:
+        verdict = BLOCKED
+    elif PAUSED in states:
+        verdict = PAUSED
     else:
         verdict = OK
     figures = {"rows": rt.get("rows"), "hours": next((c.get("hours") for c in checks if c["check"] == "history"), None)}
     return {"schema": "beops-watch/v1", "at": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "verdict": verdict,
-            "counts": {s: sum(1 for c in checks if c["state"] == s) for s in (OK, LATE, STALLED, UNKNOWN)},
+            "counts": {s: sum(1 for c in checks if c["state"] == s) for s in RANK},
             "figures": figures,
             "not_current": sorted(c["check"] for c in checks if c["state"] != OK),
             "checks": checks}
@@ -288,7 +326,7 @@ def run(now: datetime | None = None) -> dict:
 def report(r: dict) -> str:
     L = [f"watchman {r['at']}  verdict: {r['verdict'].upper()}"]
     c = r["counts"]
-    L.append(f"  {c[OK]} current · {c[LATE]} late · {c[STALLED]} stalled · {c[UNKNOWN]} unknown")
+    L.append(f"  {c[OK]} current · {c[LATE]} late · {c[STALLED]} stalled · {c[UNKNOWN]} unknown · {c[BLOCKED]} blocked · {c[PAUSED]} paused")
     for x in r["checks"]:
         if x["state"] != OK:
             L.append(f"  [{x['state']:<7}] {x['check']}: {x['said']}")
@@ -309,12 +347,13 @@ def main() -> int:
     if not a.dry:
         LEDGER.parent.mkdir(parents=True, exist_ok=True)
         if not a.export:
-            with open(LEDGER, "a", encoding="utf-8") as f:
-                f.write(json.dumps({k: r[k] for k in ("schema", "at", "verdict", "counts", "figures", "not_current")},
-                                   ensure_ascii=False) + "\n")
+            with exclusive(LIVE/'.write.lock'):
+                with open(LEDGER, "a", encoding="utf-8") as f:
+                    f.write(json.dumps({k: r[k] for k in ("schema", "at", "verdict", "counts", "figures", "not_current")},
+                                       ensure_ascii=False) + "\n")
         PUBLIC.parent.mkdir(parents=True, exist_ok=True)
-        PUBLIC.write_text(json.dumps(r, ensure_ascii=False, indent=1), encoding="utf-8")
-    return 0 if a.export else {OK: 0, LATE: 1, UNKNOWN: 1, STALLED: 2}[r["verdict"]]
+        atomic_json(PUBLIC, r)
+    return 0 if a.export else RANK[r['verdict']]
 
 
 if __name__ == "__main__":

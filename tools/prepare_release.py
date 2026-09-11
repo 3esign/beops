@@ -23,14 +23,31 @@ def git(root, *args):
     env = os.environ.copy()
     for name in ('GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_COMMON_DIR'):
         env.pop(name, None)
-    return subprocess.run(['git', '-C', str(root), *args], env=env, check=True,
-        capture_output=True, text=True, encoding='utf-8', timeout=120).stdout.strip()
+    result = subprocess.run(['git', '-C', str(root), *args], env=env,
+        capture_output=True, text=True, encoding='utf-8', timeout=120)
+    if result.returncode:
+        raise RuntimeError(f'git {args[0]} failed ({result.returncode}): {result.stderr.strip()}')
+    return result.stdout.strip()
 
 
 def capture_inputs(source, dest):
     """Bound RAM with one temporary spool, then write destination files unlocked."""
-    with tempfile.TemporaryFile() as spool:
+    with tempfile.TemporaryFile(dir=dest.parent) as spool:
         return _capture_inputs(source, dest, spool)
+
+
+def archive_paths(source, oid):
+    """Evidence is captured once as input; scratch is never a release input.
+
+    Explicit Git tree paths avoid unsupported archive exclude pathspecs and keep
+    code selection tied to the fixed OID, even if the working tree changes.
+    """
+    paths = git(source, 'ls-tree', '--name-only', oid).splitlines()
+    if 'research' in paths:
+        paths.remove('research')
+        paths.extend('research/'+p for p in git(source, 'ls-tree', '--name-only', oid+':research').splitlines()
+                     if p not in ('evidence','_scratch'))
+    return paths
 
 
 def _capture_inputs(source, dest, spool):
@@ -82,7 +99,13 @@ def _capture_inputs(source, dest, spool):
             for path in sorted(directory.rglob('*')) if directory.exists() else []:
                 if path.is_file():
                     collect(path, False)
-        with exclusive(source/'data/live/.write.lock'):
+        # Timestamped model receipts and digests are immutable inputs too.
+        # Reading thousands of them under the live lock exceeded other writers'
+        # deadline. Inventory before locking; changed bytes still refuse release.
+        for path in sorted((source/'data/live/derived').rglob('*.json')):
+            if path.parent.name in ('receipts', 'digests') and path.is_file():
+                collect(path, False)
+        with exclusive(source/'data/live/.write.lock', timeout=120):
             started = time.monotonic()
             # Refresh only new immutable receipts after the writer boundary.
             for path in sorted((source/'data/live/receipts').glob('*/*.json')):
@@ -147,15 +170,27 @@ def prepare(source, destination, oid=None):
         raise FileExistsError('release workspace already exists')
     oid = git(source, 'rev-parse', '--verify', (oid or 'HEAD') + '^{commit}')
     tree = git(source, 'rev-parse', oid + '^{tree}')
-    dest.mkdir(parents=True)
-    # A physical .git prevents tests that initialize temporary repositories from sharing source metadata.
-    git(source, 'clone', '--bare', '--no-hardlinks', '--quiet', str(source), str(dest/'.git'))
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    # The spool and final input copy coexist. Refuse before allocating anything
+    # large; a publish must never consume the operating system's last free bytes.
+    input_bytes = sum(p.stat().st_size for folder in ('data/live', 'research/evidence', 'research/observations')
+                      for p in (source/folder).rglob('*') if p.is_file() and p.suffix not in ('.lock', '.tmp'))
+    required = 2 * input_bytes + 512 * 1024 * 1024
+    available = shutil.disk_usage(dest.parent).free
+    if available < required:
+        raise RuntimeError(f'release disk space insufficient: {available} free bytes, {required} required')
+    dest.mkdir()
+    atomic_json(dest/'.beops-generated-workspace.json', {'source':str(source),'destination':str(dest),'source_oid':oid})
+    # Independent Git metadata, read-only shared object store. This is a transient
+    # build, not a backup: cloning the entire private history every ten minutes
+    # filled the system disk. The fixed OID remains reachable in the source.
+    git(source, 'clone', '--bare', '--shared', '--quiet', str(source), str(dest/'.git'))
     git(dest, 'config', 'core.bare', 'false')
     git(dest, 'update-ref', 'refs/heads/release', oid)
     git(dest, 'symbolic-ref', 'HEAD', 'refs/heads/release')
     git(dest, 'read-tree', oid)
     archive = dest / 'release-source.tar'
-    git(source, 'archive', '--format=tar', '-o', str(archive), oid)
+    git(source, 'archive', '--format=tar', '-o', str(archive), oid, '--', *archive_paths(source, oid))
     with tarfile.open(archive) as tar:
         for member in tar.getmembers():
             path = (dest / member.name).resolve()

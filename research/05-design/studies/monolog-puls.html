@@ -1,8 +1,7 @@
-<meta charset="utf-8">
+<!doctype html><html lang="sr"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BEOPS Monolog</title>
 <meta name="description" content="MONOLOG + PULS — Belgrade speaks in receptions: a bilingual running monologue of what arrived, when, and what stayed silent, next to a map that pulses only when an instrument was actually read.">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap">
 <style>
 :root{
   --u:4px;
@@ -220,6 +219,7 @@ body.embedded .map .cv{min-height:0}
 
 @media(max-width:600px){.clocknote,.clock-note{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;}}
 </style>
+<link rel="stylesheet" href="accessibility.css"><script defer src="accessibility.js"></script>
 
 <header>
   <div>
@@ -246,7 +246,7 @@ body.embedded .map .cv{min-height:0}
       <span class="mono" id="mapnote"></span>
     </div>
   </section>
-<div class="grip" id="grip" role="separator" aria-orientation="horizontal" aria-label="Povuci da promeniš visinu · Drag to resize"></div>
+<div class="grip" id="grip" role="separator" tabindex="0" aria-orientation="horizontal" aria-label="Visina prikaza · Display height" aria-valuemin="180" aria-valuemax="1200" aria-valuenow="460"></div>
 <main>
   <section class="monolog">
     <h2><span class="sr-only">Monolog grada — šta je stiglo, kad, i šta ćuti</span><span class="en-only">The city's monologue — what arrived, when, and what stayed silent</span></h2>
@@ -549,6 +549,9 @@ function drawMap(now){
   var start=null;
   function cur(){ var v=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--feedh'),10);
     return isFinite(v)&&v>0?v:(document.body.classList.contains('embedded')?380:460); }
+  function resize(h){h=Math.max(180,Math.min(1200,h));document.documentElement.style.setProperty('--feedh',h+'px');g.setAttribute('aria-valuenow',h);}
+  g.setAttribute('aria-valuenow',cur());
+  g.addEventListener('keydown',function(e){if(!['ArrowUp','ArrowDown','Home','End','Enter'].includes(e.key))return;e.preventDefault();resize(e.key==='Home'?180:e.key==='End'?1200:e.key==='Enter'?460:cur()+(e.key==='ArrowUp'?-20:20));});
   g.addEventListener('pointerdown',function(e){
     start={y:e.clientY,h:cur()}; g.classList.add('on');
     try{ g.setPointerCapture(e.pointerId); }catch(err){} e.preventDefault();
@@ -556,11 +559,11 @@ function drawMap(now){
   g.addEventListener('pointermove',function(e){
     if(!start) return;
     var h=Math.max(180,Math.min(1200,start.h+(e.clientY-start.y)));
-    document.documentElement.style.setProperty('--feedh',h+'px');
+    resize(h);
   });
   function end(){ start=null; g.classList.remove('on'); }
   g.addEventListener('pointerup',end); g.addEventListener('pointercancel',end);
-  g.addEventListener('dblclick',function(){ document.documentElement.style.removeProperty('--feedh'); });
+  g.addEventListener('dblclick',function(){ document.documentElement.style.removeProperty('--feedh');g.setAttribute('aria-valuenow',cur()); });
 })();
 (function interactive(){
   const wrap=cv.parentElement; if(!wrap) return;
@@ -604,7 +607,7 @@ function drawMap(now){
   btn.addEventListener('click',function(){ VIEW={k:1,tx:0,ty:0}; clamp(); });
 })();
 
-function pulseFor(e){ const now=performance.now(); if(e.kind==='rx'){ for(const st of e.stations){ const pt=POINTS.find(p=>p.sid===e.sid&&p.station===st); if(pt) pulses.push({at:now,lat:pt.lat,lon:pt.lon,untimed:e.untimed>0}); } } }
+function pulseFor(e){ if(matchMedia('(prefers-reduced-motion: reduce)').matches)return; const now=performance.now(); if(e.kind==='rx'){ for(const st of e.stations){ const pt=POINTS.find(p=>p.sid===e.sid&&p.station===st); if(pt) pulses.push({at:now,lat:pt.lat,lon:pt.lon,untimed:e.untimed>0}); } } }
 // pulse rings live 1400 ms now: slower, softer
 
 // ---- replay clock -------------------------------------------------------------
@@ -623,7 +626,9 @@ function frame(ts){
   const live=!PLAY&&cursor>=EVENTS.length;
   document.getElementById('clock').textContent=mode+new Date(playT).toISOString().slice(0,16).replace('T',' ')+' UTC'
     +(live?(' \u00b7 '+agoText(playT)):'');   // a replay clock has no age: it is not now
-  drawMap(performance.now()); requestAnimationFrame(frame);
+  drawMap(performance.now());
+  if(!PLAY && matchMedia('(prefers-reduced-motion: reduce)').matches)setTimeout(()=>requestAnimationFrame(frame),1000);
+  else requestAnimationFrame(frame);
 }
 function setPressed(){ document.getElementById('play').setAttribute('aria-pressed',PLAY); document.getElementById('live').setAttribute('aria-pressed',!PLAY&&cursor>=EVENTS.length); }
 // ---- the mind: every checked utterance of each entity, newest first --------------------
@@ -699,7 +704,7 @@ function renderMind(){
 }
 function showLatest(){ PLAY=false; playT=T1; cursor=EVENTS.length; const box=document.getElementById('lines'); box.innerHTML=''; for(let i=Math.max(0,EVENTS.length-60);i<EVENTS.length;i++) addLine(EVENTS[i],false); setPressed(); }
 function startReplay(){ const first=EVENTS.find(e=>e.kind==='rx'||e.kind==='text'); playT=first?Math.max(T0,first.t-120e3):T0; cursor=0; document.getElementById('lines').innerHTML=''; PLAY=true; lastFrame=0; setPressed(); }
-function relang(){ document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); const box=document.getElementById('lines'); box.innerHTML=''; for(let i=Math.max(0,cursor-60);i<cursor;i++) addLine(EVENTS[i],false); speedLabel(); renderMind(); }
+function relang(){ document.documentElement.lang=LANG; document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); const box=document.getElementById('lines'); box.innerHTML=''; for(let i=Math.max(0,cursor-60);i<cursor;i++) addLine(EVENTS[i],false); speedLabel(); renderMind(); }
 document.getElementById('lang').addEventListener('click',()=>{LANG=LANG==='sr'?'en':'sr'; relang();});
 document.getElementById('play').addEventListener('click',()=>{ if(PLAY){ PLAY=false; setPressed(); } else startReplay(); });
 document.getElementById('live').addEventListener('click',showLatest);

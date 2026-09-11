@@ -10,23 +10,33 @@ import time
 import urllib.request
 from urllib.parse import urlsplit
 from contracts import exclusive
+from model_capacity import shared_slot, CapacityBusy
 
 _job = threading.local()
 LOCK = pathlib.Path(os.environ.get("BEOPS_MODEL_LOCK", "C:/Svemir/data/locks/beops-model.lock"))
 
 
-class ModelDeferred(TimeoutError):
+class ModelDeferred(CapacityBusy):
     """No inference request was sent: wait for capacity without spending a retry."""
 
 
 @contextlib.contextmanager
 def model_slot(timeout):
+    if getattr(_job, 'slot_held', False):
+        yield
+        return
+    started = time.monotonic()
     with contextlib.ExitStack() as stack:
         try:
             stack.enter_context(exclusive(LOCK, timeout=timeout))
+            stack.enter_context(shared_slot(max(0, timeout - (time.monotonic() - started))))
         except TimeoutError as exc:
-            raise ModelDeferred('local model capacity is busy') from exc
-        yield
+            raise ModelDeferred(str(exc) if isinstance(exc, CapacityBusy) else 'local model capacity is busy') from exc
+        _job.slot_held = True
+        try:
+            yield
+        finally:
+            _job.slot_held = False
 
 
 def endpoint(base):

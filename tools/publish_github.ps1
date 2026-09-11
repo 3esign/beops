@@ -36,6 +36,10 @@ function Resolve-BeopsTestPython {
 }
 $remote = 'https://github.com/3esign/beops.git'
 $src = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+if (-not $Isolated -and (Test-Path -LiteralPath (Join-Path $src 'runtime\PUBLISH_PAUSED'))) {
+  Write-Output 'Publication is explicitly paused by runtime/PUBLISH_PAUSED. Collectors are unaffected.'
+  exit 75
+}
 $projectParent = Split-Path $src -Parent
 $pub = if ($env:BEOPS_PUBLIC_ROOT) { $env:BEOPS_PUBLIC_ROOT } else { Join-Path $projectParent 'Beops-public' }
 $pub = Assert-BeopsPublicRootSafe -SourceRoot $src -PublicRoot $pub -ExpectedRemote $remote
@@ -43,7 +47,8 @@ $py = Resolve-BeopsPython
 $env:GIT_HTTP_USER_AGENT = (Get-BeopsNativeOutput 'workspace Git transport identity' 'node' @('-e', "const fs=require('node:fs');const p=[process.env.BEOPS_INCOGNITO,'C:/Svemir/lib/incognito.js','D:/Svemir/lib/incognito.js'].filter(Boolean).find(p=>fs.existsSync(p));if(!p)throw Error('Incognito provider missing');process.stdout.write(require(p).headers('https://github.com/3esign/beops.git')['User-Agent']);")).Trim()
 if (-not $Isolated -and -not $DryRun) {
   $oid = (Get-BeopsNativeOutput 'resolve release OID' 'git' @('-C', $src, 'rev-parse', '--verify', 'HEAD^{commit}')).Trim()
-  $runRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('beops-release-' + [guid]::NewGuid().ToString('N'))
+  $releaseBase = if ($env:BEOPS_RELEASE_ROOT) { Get-BeopsFullPath $env:BEOPS_RELEASE_ROOT } else { Join-Path (Split-Path (Get-BeopsFullPath $src) -Parent) '_runtime\beops-releases' }
+  $runRoot = Join-Path $releaseBase ('beops-release-' + [guid]::NewGuid().ToString('N'))
   try {
     $prepared = Get-BeopsNativeOutput 'prepare isolated release' $py @('-X', 'utf8', '-B', (Join-Path $src 'tools\prepare_release.py'), '--source', $src, '--destination', $runRoot, '--oid', $oid)
   } catch {
@@ -52,14 +57,31 @@ if (-not $Isolated -and -not $DryRun) {
     New-Item -ItemType Directory -Path (Split-Path $failurePath -Parent) -Force | Out-Null
     @{schema='beops-publish-receipt/v1';at=(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ');source_head=$oid;built=$false;tests_ok=$false;pushed=$false;site_verified=$false;published=$false;why=('release preparation failed: '+$_.Exception.Message)} | ConvertTo-Json | Set-Content -LiteralPath $failureTmp -Encoding UTF8
     Move-Item -LiteralPath $failureTmp -Destination $failurePath -Force
+    Save-BeopsReleaseDiagnostic -SourceRoot $src -RunRoot $runRoot -SourceOid $oid -Outcome 'preparation-failed'
+    Remove-BeopsGeneratedRelease -Path $runRoot -SourceRoot $src -BaseRoot $releaseBase
     throw
   }
   $capture = $prepared | ConvertFrom-Json
   $env:BEOPS_PUBLIC_ROOT = $pub
+  $env:TEMP = Join-Path $runRoot 'runtime\tmp'
+  $env:TMP = $env:TEMP
+  New-Item -ItemType Directory -Path $env:TEMP -Force | Out-Null
   $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $capture.workspace 'tools\publish_github.ps1'), '-Isolated', '-SourceOid', $oid, '-StateRoot', $src)
   if ($PrepareOnly) { $args += '-PrepareOnly' }
-  & powershell @args
-  exit $LASTEXITCODE
+  try {
+    & powershell @args
+    $publishExit = $LASTEXITCODE
+    $manifest = Join-Path $runRoot 'runtime\release-inputs.json'
+    if (Test-Path -LiteralPath $manifest) { Copy-Item -LiteralPath $manifest -Destination (Join-Path $src 'runtime\release-inputs-last.json') -Force }
+  } finally {
+    Save-BeopsReleaseDiagnostic -SourceRoot $src -RunRoot $runRoot -SourceOid $oid -Outcome $(if ($PrepareOnly) { 'prepared-retained' } else { 'publish-finished' })
+    if ($PrepareOnly) {
+      Write-Output ('Prepared release retained for review: ' + $runRoot)
+    } else {
+      Remove-BeopsGeneratedRelease -Path $runRoot -SourceRoot $src -BaseRoot $releaseBase
+    }
+  }
+  exit $publishExit
 }
 if (-not $StateRoot) { $StateRoot = $src }
 
@@ -119,6 +141,7 @@ $receipt = [ordered]@{
   site_local_hash   = ''
   site_route_count  = 0
   site_checked_at   = ''
+  verified_history  = $null
   published         = $false
   why               = ''
 }
@@ -127,6 +150,11 @@ function Write-BeopsPublishReceipt {
   $tempReceipt = $receiptPath + '.' + $PID + '.tmp'
   $receipt | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $tempReceipt -Encoding UTF8
   Move-Item -LiteralPath $tempReceipt -Destination $receiptPath -Force
+  if ($receipt.published -and $receipt.pushed -and $receipt.site_verified) {
+    $success = Join-Path $StateRoot 'data\live\publish-last-success.json'
+    $receipt | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath ($success + '.' + $PID + '.tmp') -Encoding UTF8
+    Move-Item -LiteralPath ($success + '.' + $PID + '.tmp') -Destination $success -Force
+  }
 }
 function Release-BeopsPublishRun {
   if ($receipt.published -and $script:copyRecovery -and (Test-Path -LiteralPath $script:copyRecovery)) {
@@ -146,7 +174,7 @@ function Release-BeopsPublishRun {
   }
 }
 function Get-BeopsTrackedDirtyStatus {
-  $dirty = Get-BeopsNativeOutput 'git tracked source status' 'git' @('-C', $src, 'status', '--porcelain', '--untracked-files=no', '--', 'tools', 'research/*.py', 'research/05-design/studies', 'public/*.html', 'package.json')
+  $dirty = Get-BeopsNativeOutput 'git tracked source status' 'git' @('-C', $src, 'status', '--porcelain', '--untracked-files=no', '--', 'tools', 'research/*.py', 'research/05-design/studies', 'public/*.html', 'package.json', ':(exclude)research/_scratch', ':(exclude)research/evidence')
   return ($dirty.Trim())
 }
 function Assert-BeopsTrackedSourceClean {
@@ -179,6 +207,8 @@ function Invoke-BeopsSiteCheck {
     if ($site -and $site.errors) { $detail = @($site.errors) -join '; ' }
     throw "site verification failed after push with exit code ${siteRc}: $($detail.Substring(0, [Math]::Min(500, $detail.Length)))"
   }
+  $history = Get-Content -LiteralPath (Join-Path $pub 'docs\history.json') -Raw | ConvertFrom-Json
+  $receipt.verified_history = @{history_ends=$history.history_ends;hours_of_history=$history.hours_of_history}
 }
 $lock = Enter-BeopsPublishLock -Path $lockFile -MaxAgeMinutes 15
 if (-not $lock.Acquired) {
@@ -226,10 +256,17 @@ $testsOut = Join-Path $src 'runtime\publish-tests.txt'
 $script:publishTestsOutRun = Join-Path $src ("runtime\publish-tests-{0}.txt" -f $PID)
 $gatePy = Resolve-BeopsTestPython
 $prevEAP = $ErrorActionPreference
-$ErrorActionPreference = 'Continue'
-& $gatePy -X utf8 -B -m unittest discover -s research -p "test_*.py" *> $script:publishTestsOutRun
-$testsRc = $LASTEXITCODE
-$ErrorActionPreference = $prevEAP
+$previousGatePython = $env:BEOPS_PYTHON
+try {
+  $ErrorActionPreference = 'Continue'
+  $env:BEOPS_PYTHON = $gatePy
+  # Use the same bounded suite runner as local verification (120 s maximum).
+  & node tools\test-research.js *> $script:publishTestsOutRun
+  $testsRc = $LASTEXITCODE
+} finally {
+  $ErrorActionPreference = $prevEAP
+  $env:BEOPS_PYTHON = $previousGatePython
+}
 $summary = ''
 if (Test-Path $script:publishTestsOutRun) {
   try {
@@ -237,7 +274,7 @@ if (Test-Path $script:publishTestsOutRun) {
   } catch {
     Write-Output ("note: could not update shared publish test transcript: {0}" -f $_.Exception.Message)
   }
-  $summary = ((Get-Content $script:publishTestsOutRun | Select-String -Pattern '^Ran |^OK$|^FAILED') -join ' ').Trim()
+  $summary = ((Get-Content $script:publishTestsOutRun | Select-String -CaseSensitive -Pattern '^Ran |^OK$|^FAILED') -join ' ').Trim()
 }
 $receipt.tests_ok = ($testsRc -eq 0)
 $receipt.tests = $summary

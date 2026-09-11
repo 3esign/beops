@@ -1,0 +1,15 @@
+/* Shared reading and keyboard affordances; visualizations retain their own composition. */
+html:root,html:root[data-theme]{--ink60:color-mix(in srgb,var(--ink,#242d32) 72%,var(--field,#f6f3ec));--ink55:var(--ink60);--state:var(--ink60);--signal:#c73513;--signal-untimed:#9d4934}
+@media(prefers-color-scheme:dark){html:root:not([data-theme="light"]){--signal:#f96f4c;--signal-untimed:#e49278}}
+html:root[data-theme="dark"]{--signal:#f96f4c;--signal-untimed:#e49278}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--signal,#165c8c)!important;outline-offset:3px}
+button,input,select,summary,[role="button"]{min-height:28px}
+button,[role="button"]{min-width:28px}
+.skip-link{position:fixed;left:12px;top:-120px;z-index:10000;padding:10px 16px;background:var(--field,#f6f3ec);color:var(--ink,#242d32);border:2px solid currentColor}
+.skip-link:focus{top:12px}
+.a11y-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+main,[role="main"]{min-width:0}
+th[scope="col"]{text-align:inherit}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation:none!important;transition:none!important}}
+@media(forced-colors:active){button,input,select,summary{border:1px solid ButtonText}canvas{border:1px solid CanvasText}}

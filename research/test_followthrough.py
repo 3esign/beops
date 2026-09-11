@@ -196,6 +196,13 @@ class SchedulerObservation(unittest.TestCase):
 
 
 class ModelCapacity(unittest.TestCase):
+    def setUp(self):
+        # These tests exercise transport and the private OS mutex. Interoperation
+        # with the real Svemir mutex is covered with isolated data in test_operations.
+        slot = patch.object(LM, 'shared_slot', side_effect=lambda timeout: contextlib.nullcontext())
+        slot.start()
+        self.addCleanup(slot.stop)
+
     def test_waiting_for_lock_never_sends_request_and_transport_timeout_is_not_deferral(self):
         @contextlib.contextmanager
         def busy(*a, **kw):
@@ -256,6 +263,40 @@ class ModelCapacity(unittest.TestCase):
 
 
 class ReleaseCapture(unittest.TestCase):
+    def test_model_receipts_and_digests_are_read_without_holding_live_writer(self):
+        with tempfile.TemporaryDirectory() as td:
+            source, dest = pathlib.Path(td)/'source', pathlib.Path(td)/'dest'
+            paths = [source/'data/live/derived/mind'/kind/'stamp.json' for kind in ('receipts', 'digests')]
+            for path in paths:
+                path.parent.mkdir(parents=True); path.write_bytes(b'{"v":1}')
+            dest.mkdir(); real_open = pathlib.Path.open; checked = []
+            def reader(path, *args, **kwargs):
+                if path in paths and 'r' in str(args[0] if args else kwargs.get('mode', 'r')):
+                    def live_writer():
+                        with C.exclusive(source/'data/live/.write.lock', timeout=.05):return True
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                        checked.append(pool.submit(live_writer).result())
+                return real_open(path, *args, **kwargs)
+            with patch.object(pathlib.Path, 'open', reader):manifest, _, _ = P.capture_inputs(source, dest)
+            self.assertEqual(len(checked), 2)
+            self.assertEqual(len(manifest), 2)
+            for path in paths:self.assertEqual((dest/path.relative_to(source)).read_bytes(), b'{"v":1}')
+
+    def test_changed_model_digest_refuses_release(self):
+        with tempfile.TemporaryDirectory() as td:
+            source, dest = pathlib.Path(td)/'source', pathlib.Path(td)/'dest'
+            digest = source/'data/live/derived/mind/digests/stamp.json'
+            mutable = source/'data/live/derived/mind/context.json'
+            digest.parent.mkdir(parents=True); dest.mkdir()
+            digest.write_bytes(b'{"v":1}'); mutable.write_bytes(b'{}')
+            real_open = pathlib.Path.open
+            def writer(path, *args, **kwargs):
+                if path.is_relative_to(dest) and 'w' in str(args[0] if args else kwargs.get('mode', 'r')):
+                    digest.write_bytes(b'{"v":222}')
+                return real_open(path, *args, **kwargs)
+            with patch.object(pathlib.Path, 'open', writer), self.assertRaisesRegex(RuntimeError, 'changed after capture'):
+                P.capture_inputs(source, dest)
+
     def test_writing_copies_releases_live_lock_and_preserves_one_mutable_snapshot(self):
         with tempfile.TemporaryDirectory() as td:
             source, dest = pathlib.Path(td)/'source', pathlib.Path(td)/'dest'

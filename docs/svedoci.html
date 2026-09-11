@@ -1,7 +1,7 @@
-<meta charset="utf-8">
+<!doctype html><html lang="sr"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BEOPS Svedoci</title>
 <meta name="description" content="SVEDOCI — how old a value was when it reached us, and whether two independent sources describing the same hour said the same thing. Computed from rows already in the record; no source added, nobody asked for anything.">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap">
 <style>
 /* ------------------------------------------------------------------
    BEOPS · SVEDOCI study — two questions the record can answer about itself.
@@ -65,7 +65,7 @@ h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink6
 .track .med.alt{background:var(--signal-untimed)}
 .track .absent{position:absolute;left:0;right:0;top:3px;bottom:3px;border:1px dashed var(--state);border-radius:2px}
 .row .val{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;white-space:nowrap}
-.row .val small{display:block;color:var(--ink60);font-size:11px}
+.row .val small{display:block;color:var(--ink60);font-size:11px;white-space:normal;overflow-wrap:anywhere}
 .row.absent .val{color:var(--state)}
 .say{grid-column:1/-1;color:var(--ink60);font-size:12.5px;max-width:88ch;margin:2px 0 calc(var(--u)*2)}
 .scale{display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr) 120px;gap:calc(var(--u)*3);color:var(--ink60);font-size:11.5px;font-family:var(--mono)}
@@ -87,6 +87,7 @@ h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink6
 
 @media(max-width:600px){.clocknote,.clock-note{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;}}
 </style>
+<link rel="stylesheet" href="accessibility.css"><script defer src="accessibility.js"></script>
 
 <body class="lang-sr">
 <header>
@@ -95,6 +96,7 @@ h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink6
   <p class="en-only">Both halves below are arithmetic over rows this record already holds, under permissions it already had. No source was added, nobody was asked for anything, and nothing here is collected — it is what the receipts already say, read back.</p>
 </header>
 
+<main>
 <section id="kasnjenje">
   <h2><span class="sr-only">Koliko je bilo staro kad je stiglo do nas</span><span class="en-only">How old it was when it reached us</span></h2>
   <p class="lede sr-only">Pokrivenost kaže <em>da li</em> grad objavljuje neki signal. Ovo kaže <em>kada</em>. Vodostaj star četiri sata je drugi instrument od onog starog četiri minuta, i nijedan izdavač ne kaže koji je njegov.</p>
@@ -122,6 +124,7 @@ h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink6
 
 <div class="foot" id="foot"></div>
 
+</main>
 <script>
 function beopsLoadJSON(name){
   try{if(parent!==window&&typeof parent.beopsJSON==='function')return parent.beopsJSON(name).catch(()=>null);}catch(e){}

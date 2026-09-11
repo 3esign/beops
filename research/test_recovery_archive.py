@@ -75,6 +75,17 @@ class RecoveryFiles(unittest.TestCase):
             self.assertEqual((base/'release/source.txt').read_text(),'first\n');self.assertEqual(result['source_oid'],oid)
             manifest=json.loads((base/'release/runtime/release-inputs.json').read_text());self.assertEqual(manifest['files'][0]['sha256'],hashlib.sha256((base/'release/data/live/rows/S01/value.json').read_bytes()).hexdigest())
 
+    def test_archive_does_not_copy_evidence_twice_or_include_scratch(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base=pathlib.Path(tmp);root=base/'source';self.repo(root)
+            for name in ('research/evidence/proof.txt','research/_scratch/unused.txt','research/code.txt'):
+                p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(name)
+            git(root,'add','research');git(root,'-c','user.name=Semir Poturak','-c','user.email=scumutator@gmail.com','commit','-qm','fixture')
+            prepare_release.prepare(root,base/'release')
+            self.assertEqual((base/'release/research/evidence/proof.txt').read_text(),'research/evidence/proof.txt')
+            self.assertTrue((base/'release/research/code.txt').exists())
+            self.assertFalse((base/'release/research/_scratch').exists())
+
     def test_backup_restore_checks_every_byte_and_never_overwrites(self):
         with tempfile.TemporaryDirectory() as tmp:
             base=pathlib.Path(tmp);root=base/'source';self.repo(root);atomic_json(root/'data/live/rows/S01/value.json',{'real':42})

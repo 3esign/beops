@@ -152,7 +152,6 @@ window.beopsJSON=(function(){
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BEOPS — Belgrade Evidence Observatory</title>
 <meta name="description" content="What Belgrade told us, when it told us, and where it went quiet. An evidence-first urban observatory: every value with its source, its three times, its unit and its permission; absence recorded, never zero.">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600&display=swap">
 <style>
 :root{
   --u:4px;
@@ -291,7 +290,7 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--field);border-colo
 .folded .secbody{display:none}
 /* folded-reads-as-folded: a control for a body that is not there is a broken-looking page */
 .folded .wlangs,.folded .stagelink,.folded .layerlink{display:none}
-.folded h2{opacity:.72}
+.folded h2{opacity:1}
 button.fold{border-radius:4px}
 .folded button.fold{color:var(--ink);border-color:var(--ink30)}
 .whatbar{border-bottom:1px solid var(--ink12);background:var(--panel);padding:calc(var(--u)*8) 0}
@@ -410,6 +409,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
   .nowpanel{height:520px} }
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important}}
 </style>
+<link rel="stylesheet" href="accessibility.css"><script defer src="accessibility.js"></script>
 </head>
 <body class="lang-sr">
 <header>
@@ -431,6 +431,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
   </div>
 </header>
 
+<main>
 <div id="top" class="hero">
   <div class="wrap herohead">
     <div>
@@ -629,6 +630,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
   </div>
 </section>
 
+</main>
 <footer>
   <div class="wrap fgrid">
     <div><b><span class="sr-only i18n">Autori i kontakt</span><span class="en-only i18n">Authors and contact</span><span class="zh-only">作者与联系方式</span><span class="de-only">Autoren und Kontakt</span></b>prof. dr Darinka Golubović Matić<br>doc. dr Semir Poturak<br><span class="sr-only i18n">Autori rada. Predaju na Univerzitetu Union – Nikola Tesla, gde se održava i konferencija kojoj se rad nudi; rad ne nastupa u ime ustanove i ustanova nije njegov nosilac ni naručilac.</span><span class="en-only i18n">Authors of the work. They teach at University Union – Nikola Tesla, where the conference the work is offered to is also held; the work does not act in the institution’s name and the institution is neither its owner nor its commissioner.</span><span class="zh-only">本作品的作者。他们任教于 Union – Nikola Tesla 大学，本作品所投的会议也在该校举行；本作品不以该机构的名义行事，该机构既非其所有者，也非其委托方。</span><span class="de-only">Die Autoren der Arbeit. Sie lehren an der Universität Union – Nikola Tesla, an der auch die Konferenz stattfindet, der die Arbeit angeboten wird; die Arbeit tritt nicht im Namen der Institution auf, und die Institution ist weder ihre Trägerin noch ihre Auftraggeberin.</span><br><a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a></div>
@@ -948,7 +950,10 @@ def main() -> int:
         html = html.replace(ph, cb.get(key, ""))   # the claim boundary is a register entry, not page copy
     html = html.replace("{stamp}", data["built"].replace(" ", "T").replace(":", "").replace("-", ""))   # the stage frame: a browser that cached yesterday's monolog.html must not show it today
     (DOCS / "index.html").write_text(html, encoding="utf-8")
-    for src, dst in [("research/05-design/studies/monolog-puls.html", "monolog.html"),
+    for src, dst in [("research/05-design/studies/accessibility.css", "accessibility.css"),
+                     ("research/05-design/studies/accessibility.js", "accessibility.js"),
+                     ("research/05-design/studies/headlines.js", "headlines.js"),
+                     ("research/05-design/studies/monolog-puls.html", "monolog.html"),
                      ("research/05-design/studies/podaci.html", "podaci.html"),
                      ("research/05-design/studies/sada.html", "sada.html"),
                      ("research/05-design/studies/slojevi.svg", "slojevi.svg"),

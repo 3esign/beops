@@ -1,8 +1,7 @@
-<meta charset="utf-8">
+<!doctype html><html lang="sr"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BEOPS Traka</title>
 <meta name="description" content="TRAKA — the ribbon: what Belgrade told us in the last 24 hours, when it told us, and where it went quiet. Drawn from the live collector's rows, nothing added.">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap">
 <style>
 /* ------------------------------------------------------------------
    BEOPS · TRAKA study, drawn from real rows (public/live-snapshot.json).
@@ -65,8 +64,8 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 300px}
 .gh h2 small{font-weight:400;color:var(--ink60);margin-left:calc(var(--u)*2)}
 .gh .meta{color:var(--ink60);font-size:13px}
 .quorum{display:flex;gap:2px;align-items:center;padding:0 calc(var(--u)*6) calc(var(--u)*2)}
-.quorum .cells{display:flex;gap:1px;flex:1}
-.quorum .cells i{flex:1;height:var(--u);display:block;border:1px solid var(--ink30);background:transparent}
+.quorum .cells{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:0;flex:1;min-width:0}
+.quorum .cells i{min-width:0;height:var(--u);display:block;box-shadow:inset 0 0 0 1px var(--ink30);background:transparent}
 .quorum .cells i.f{background:var(--ink);border-color:var(--ink)}
 .quorum .cells i.h{background:repeating-linear-gradient(135deg,var(--state) 0 1px,transparent 1px 3px);border-color:var(--state)}
 .quorum .cells i.x{border-color:var(--state);background:var(--state-faint)}
@@ -88,7 +87,9 @@ canvas{display:block;width:100%;height:100%}
   header{grid-template-columns:1fr;align-items:start;gap:calc(var(--u)*2)}
   .gh{grid-template-columns:1fr;gap:calc(var(--u)*1);padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*4)}
   .gh h2 small{margin-left:0;display:block}
-  .quorum{padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*4)}
+  .quorum{padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*4);flex-wrap:wrap}
+  .quorum .cells{flex-basis:100%}
+  .quorum .ql{margin-left:0;white-space:normal}
   .lane{grid-template-columns:124px minmax(0,1fr)}
   .ll{padding-left:calc(var(--u)*4);padding-right:calc(var(--u)*2);font-size:12.5px}
   .lane.sub .ll{padding-left:calc(var(--u)*6);font-size:12px}
@@ -140,6 +141,7 @@ button[aria-pressed="true"]:hover{background:var(--ink)}
 
 @media(max-width:600px){.clocknote,.clock-note{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;}}
 </style>
+<link rel="stylesheet" href="accessibility.css"><script defer src="accessibility.js"></script>
 
 <body class="lang-sr">
 <header>
@@ -352,7 +354,14 @@ function drawAxis(cv){
   const dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=cv.clientHeight; cv.width=w*dpr; cv.height=h*dpr; curW=w;
   const g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
   g.fillStyle=css('--ink60'); g.font='11px '+css('--mono'); g.textBaseline='middle';
-  for(let t=Math.ceil(T0/3600e3)*3600e3;t<=T1;t+=3600e3){const d=new Date(t); const hh=d.getUTCHours(); if(hh%2) continue; const s=String(hh).padStart(2,'0')+':00'; g.fillText(s,x(t)-g.measureText(s).width/2,h/2);}
+  let labelRight=-Infinity;
+  for(let t=Math.ceil(T0/3600e3)*3600e3;t<=T1;t+=3600e3){
+    const hh=new Date(t).getUTCHours(); if(hh%2) continue;
+    const s=String(hh).padStart(2,'0')+':00', size=g.measureText(s).width, left=x(t)-size/2;
+    // The time scale and every reading stay intact; label only where text fits.
+    if(left<0 || left+size>w || left<labelRight+8) continue;
+    g.fillText(s,left,h/2); labelRight=left+size;
+  }
   if(HAIR!==null){const xx=Math.round(x(HAIR))+.5; g.strokeStyle=css('--hair'); g.beginPath(); g.moveTo(xx,0); g.lineTo(xx,h); g.stroke();}
 }
 function drawAll(){ for(const l of lanes) l.draw(); }

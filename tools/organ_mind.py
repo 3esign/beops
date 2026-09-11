@@ -65,6 +65,7 @@ import hashlib
 from decimal import Decimal
 from contracts import finite, row_clock, belgrade_offset, exclusive, json_rows, content_id, atomic_json
 import local_models
+from model_capacity import receipt_scope
 from contracts import serialized, organ_pause_reason
 import claim_evidence
 import json
@@ -445,6 +446,8 @@ def surprise_ranker(dg: dict, model: str | None, chat) -> dict:
     prompt = RANK_PROMPT.format(items="\n".join(f"{f['id']}: {f['en']}" for f in items))
     try:
         ans = chat(model, prompt, schema=RANK_SCHEMA, num_predict=300, temperature=0.0)
+    except local_models.ModelDeferred:
+        raise
     except Exception:  # noqa: BLE001
         return {}
     ids = {f["id"] for f in items}
@@ -572,6 +575,13 @@ def voice(row: dict, text: str, dg: dict, voice_model: str | None, chat, rec: di
                      schema=VOICE_SCHEMA, num_predict=900, temperature=0.2 if attempt == 1 else 0.1)
             if rec is not None:
                 rec["calls"] = rec.get("calls", 0) + 1
+        except local_models.ModelDeferred as exc:
+            row['voice_attempts'] = attempt - 1
+            row['sr_state'] = 'waiting_model'
+            row['voice_wait_reason'] = str(exc)
+            if rec is not None:
+                rec['voice_waiting'] = rec.get('voice_waiting', 0) + 1
+            return row
         except Exception as e:  # noqa: BLE001
             row["sr_state"] = f"failed: {type(e).__name__}"
             return row
@@ -1162,6 +1172,8 @@ def chat_chain(chain: list[str], prompt: str, chat, rec: dict | None = None, **k
     for m in chain:
         try:
             answer = chat(m, prompt, **kw)
+        except local_models.ModelDeferred:
+            raise
         except Exception as e:  # noqa: BLE001
             tried.append(f"{m}: {type(e).__name__}")
             continue
@@ -1186,112 +1198,117 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=o
            "state": "nothing_to_do", "utterances": 0, "rejected": 0, "voiced": 0, "voice_refused": 0,
            "models": {}, "organelles": {}, "calls": 0, "reason": None}
     receipt_path = OUT_DIR / "receipts" / f"{conv_id}.json"
-    pause_reason = organ_pause_reason(reg, OUT_DIR)
-    if pause_reason:
-        rec["state"], rec["reason"] = "paused", pause_reason
-        publish(receipt_path, rec)
-        return rec
-    snap = snap or json.loads(SNAPSHOT.read_text(encoding="utf-8"))
-    dg0 = digest(snap, hours=int(reg.get("window_hours", 6)), now=now, context=context)
-    if len(dg0["facts"]) < 2:
-        rec["reason"] = "digest empty - nothing to think about"
-        publish(receipt_path, rec)
-        return rec
-    avail = tags()
-    if avail is None:
-        rec["state"], rec["reason"] = "organ_silent", "model daemon not answering"
-        publish(receipt_path, rec)
-        return rec
-    allow_cloud = bool(reg.get("allow_cloud", False))
-    chains = {e["id"]: _chain(avail, reg.get("models_by_entity", {}).get(e["id"]) or reg["models_preferred"], allow_cloud) for e in ENTITIES}
-    models = {k: (v[0] if v else None) for k, v in chains.items()}
-    if not all(models.values()):
-        rec["state"], rec["reason"] = "organ_silent", "no local model from the register for: " + ", ".join(k for k, v in models.items() if not v)
-        publish(receipt_path, rec)
-        return rec
-    voice_model = _pick(avail, reg.get("voice_models"), allow_cloud)
-    rank_model = _pick(avail, reg.get("ranker_models"), allow_cloud)
-    embed_model = _pick(avail, reg.get("embed_models"), allow_cloud)
-    rec["models"] = {**models, "voice": voice_model}
-    rec["organelles"] = {"embed-linker": embed_model, "surprise-ranker": rank_model}
+    with receipt_scope(rec, receipt_path, publish):
+        pause_reason = organ_pause_reason(reg, OUT_DIR)
+        if pause_reason:
+            rec["state"], rec["reason"] = "paused", pause_reason
+            publish(receipt_path, rec)
+            return rec
+        snap = snap or json.loads(SNAPSHOT.read_text(encoding="utf-8"))
+        dg0 = digest(snap, hours=int(reg.get("window_hours", 6)), now=now, context=context)
+        if len(dg0["facts"]) < 2:
+            rec["reason"] = "digest empty - nothing to think about"
+            publish(receipt_path, rec)
+            return rec
+        avail = tags()
+        if avail is None:
+            rec["state"], rec["reason"] = "organ_silent", "model daemon not answering"
+            publish(receipt_path, rec)
+            return rec
+        allow_cloud = bool(reg.get("allow_cloud", False))
+        chains = {e["id"]: _chain(avail, reg.get("models_by_entity", {}).get(e["id"]) or reg["models_preferred"], allow_cloud) for e in ENTITIES}
+        models = {k: (v[0] if v else None) for k, v in chains.items()}
+        if not all(models.values()):
+            rec["state"], rec["reason"] = "organ_silent", "no local model from the register for: " + ", ".join(k for k, v in models.items() if not v)
+            publish(receipt_path, rec)
+            return rec
+        voice_model = _pick(avail, reg.get("voice_models"), allow_cloud)
+        rank_model = _pick(avail, reg.get("ranker_models"), allow_cloud)
+        embed_model = _pick(avail, reg.get("embed_models"), allow_cloud)
+        rec["models"] = {**models, "voice": voice_model}
+        rec["organelles"] = {"embed-linker": embed_model, "surprise-ranker": rank_model}
 
-    # L1 - organelles annotate the digest
-    links = []
-    try:
-        links = embed_linker(dg0, embed_model, embed=embed, threshold=float(reg.get('link_threshold', 0.70))) if embed_model else []
-        rec["calls"] += 1 if embed_model and len(dg0.get("headlines", [])) >= 2 else 0
-    except Exception as e:  # noqa: BLE001
-        rec["organelles"]["embed-linker-error"] = f"{type(e).__name__}: {str(e)[:100]}"
-    dg1 = annotate(dg0, links, {}, rank_model, embed_model)
-    ratings = surprise_ranker(dg1, rank_model, chat) if rank_model else {}
-    rec["calls"] += 1 if rank_model and any(f.get("kind") in ("connection", "link") for f in dg1["facts"]) else 0
-    dg = annotate(dg0, links, ratings, rank_model, embed_model)
-    digest_sha = hashlib.sha256(json.dumps(dg, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
-    rec["facts"], rec["digest_sha256"] = len(dg["facts"]), digest_sha
-    rec["organelles"]["links"], rec["organelles"]["ratings"] = len(links), len(ratings)
-    (OUT_DIR / "digests").mkdir(parents=True, exist_ok=True)
-    (OUT_DIR / "digests" / f"{conv_id}.json").write_text(json.dumps(dg, ensure_ascii=False, indent=1), encoding="utf-8")
-    out_path = OUT_DIR / (now.strftime("%Y-%m") + ".jsonl")
-    accepted: list[dict] = []
-    errors: list[str] = []
+        # L1 - organelles annotate the digest
+        links = []
+        try:
+            links = embed_linker(dg0, embed_model, embed=embed, threshold=float(reg.get('link_threshold', 0.70))) if embed_model else []
+            rec["calls"] += 1 if embed_model and len(dg0.get("headlines", [])) >= 2 else 0
+        except local_models.ModelDeferred:
+            raise
+        except Exception as e:  # noqa: BLE001
+            rec["organelles"]["embed-linker-error"] = f"{type(e).__name__}: {str(e)[:100]}"
+        dg1 = annotate(dg0, links, {}, rank_model, embed_model)
+        ratings = surprise_ranker(dg1, rank_model, chat) if rank_model else {}
+        rec["calls"] += 1 if rank_model and any(f.get("kind") in ("connection", "link") for f in dg1["facts"]) else 0
+        dg = annotate(dg0, links, ratings, rank_model, embed_model)
+        digest_sha = hashlib.sha256(json.dumps(dg, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
+        rec["facts"], rec["digest_sha256"] = len(dg["facts"]), digest_sha
+        rec["organelles"]["links"], rec["organelles"]["ratings"] = len(links), len(ratings)
+        with exclusive(LIVE / '.write.lock'):
+            atomic_json(OUT_DIR / 'digests' / f'{conv_id}.json', dg)
+        out_path = OUT_DIR / (now.strftime("%Y-%m") + ".jsonl")
+        accepted: list[dict] = []
+        errors: list[str] = []
 
-    # L2 - one utterance
-    def speak(ent: dict, rnd: int, conversation: list[dict]) -> dict | None:
-        prompt = prompt_for(ent, dg, notebook(ent["id"]), conversation)
-        prompt_sha = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
-        answer, spoke, tried = chat_chain(chains[ent["id"]], prompt, chat, rec)
-        if tried:
-            errors.append(f"{ent['id']} r{rnd} fell back from " + "; ".join(tried))
-        if answer is None:
+        # L2 - one utterance
+        def speak(ent: dict, rnd: int, conversation: list[dict]) -> dict | None:
+            prompt = prompt_for(ent, dg, notebook(ent["id"]), conversation)
+            prompt_sha = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+            answer, spoke, tried = chat_chain(chains[ent["id"]], prompt, chat, rec)
+            if tried:
+                errors.append(f"{ent['id']} r{rnd} fell back from " + "; ".join(tried))
+            if answer is None:
+                return None
+            text, bound_by = ensure_citations(answer.get("text"), dg)
+            answer["text"] = text
+            ok, reasons = validate(answer, dg, previous=[a["en"] for a in accepted])
+            claim = answer.get("claim") if ok and isinstance(answer.get("claim"), dict) and answer.get("claim") else None
+            row = {"schema": "beops-derived-row/v1", "state": "thought" if ok else "rejected", "organ": ORGAN_ID,
+                   "organ_version": ORGAN_VERSION, "conversation": conv_id, "orchestration": orch, "round": rnd, "cites_bound_by": bound_by,
+                   "entity": ent["id"], "entity_sr": ent["sr"], "entity_en": ent["en"], "model": spoke,
+                   "prompt_sha256": prompt_sha, "digest_sha256": digest_sha, "ai_generated": True, "derivedTime": iso(now),
+                   "replies_to": [c["entity"] for c in conversation],
+                   "en": text, "sr": "", "sr_state": "pending", "voice_model": None,
+                   "cites": sorted(set(re.findall(r"\[(F\d+)\]", text))),
+                   "hypotheses": [h for h in (answer.get("hypotheses") or []) if isinstance(h, str)][:4],
+                   "questions": [q for q in (answer.get("questions") or []) if isinstance(q, str)][:4],
+                   "next_check": (answer.get("next_check") or "")[:300] if isinstance(answer.get("next_check"), str) else "",
+                   "claim": claim, "rejected_because": reasons or None}
+            # L3 - the voice: Serbian ekavica rendering of an accepted thought, validated against the original
+            if ok:
+                voice(row, text, dg, voice_model, chat, rec)
+            _append(out_path, row)
+            _append(OUT_DIR / "notebook" / f"{ent['id']}.jsonl",
+                    {"at": iso(now), "conversation": conv_id, "round": rnd, "state": row["state"], "text": text, "sr": row["sr"],
+                     "reason": "; ".join(reasons) if reasons else None, "claim": claim})
+            if claim:
+                _append(OUT_DIR / "claims.jsonl", {"at": iso(now), "conversation": conv_id, "orchestration": orch, "entity": ent["id"],
+                                                    "model": spoke, "round": rnd, "digest_sha256": digest_sha, "claim": claim,
+                                                    "due": iso(now + timedelta(minutes=int(claim["within_minutes"]))), "outcome": None, "settled_at": None})
+            if ok:
+                accepted.append(row)
+                rec['utterances'] = len(accepted)
+                return row
+            rec["rejected"] += 1
             return None
-        text, bound_by = ensure_citations(answer.get("text"), dg)
-        answer["text"] = text
-        ok, reasons = validate(answer, dg, previous=[a["en"] for a in accepted])
-        claim = answer.get("claim") if ok and isinstance(answer.get("claim"), dict) and answer.get("claim") else None
-        row = {"schema": "beops-derived-row/v1", "state": "thought" if ok else "rejected", "organ": ORGAN_ID,
-               "organ_version": ORGAN_VERSION, "conversation": conv_id, "orchestration": orch, "round": rnd, "cites_bound_by": bound_by,
-               "entity": ent["id"], "entity_sr": ent["sr"], "entity_en": ent["en"], "model": spoke,
-               "prompt_sha256": prompt_sha, "digest_sha256": digest_sha, "ai_generated": True, "derivedTime": iso(now),
-               "replies_to": [c["entity"] for c in conversation],
-               "en": text, "sr": "", "sr_state": "pending", "voice_model": None,
-               "cites": sorted(set(re.findall(r"\[(F\d+)\]", text))),
-               "hypotheses": [h for h in (answer.get("hypotheses") or []) if isinstance(h, str)][:4],
-               "questions": [q for q in (answer.get("questions") or []) if isinstance(q, str)][:4],
-               "next_check": (answer.get("next_check") or "")[:300] if isinstance(answer.get("next_check"), str) else "",
-               "claim": claim, "rejected_because": reasons or None}
-        # L3 - the voice: Serbian ekavica rendering of an accepted thought, validated against the original
-        if ok:
-            voice(row, text, dg, voice_model, chat, rec)
-        _append(out_path, row)
-        _append(OUT_DIR / "notebook" / f"{ent['id']}.jsonl",
-                {"at": iso(now), "conversation": conv_id, "round": rnd, "state": row["state"], "text": text, "sr": row["sr"],
-                 "reason": "; ".join(reasons) if reasons else None, "claim": claim})
-        if claim:
-            _append(OUT_DIR / "claims.jsonl", {"at": iso(now), "conversation": conv_id, "orchestration": orch, "entity": ent["id"],
-                                                "model": spoke, "round": rnd, "digest_sha256": digest_sha, "claim": claim,
-                                                "due": iso(now + timedelta(minutes=int(claim["within_minutes"]))), "outcome": None, "settled_at": None})
-        if ok:
-            accepted.append(row)
-            return row
-        rec["rejected"] += 1
-        return None
 
-    if orch == "council":
-        for ent in ENTITIES:
-            speak(ent, 1, [])
-        r1 = list(accepted)
-        for ent in ENTITIES:
-            speak(ent, 2, [c for c in r1 if c["entity"] != ent["id"]])
-    else:   # relay: Observer -> Skeptic answers -> Connector answers both -> Observer closes
-        o = speak(ENT["observer"], 1, [])
-        s = speak(ENT["skeptic"], 2, [o] if o else [])
-        c = speak(ENT["connector"], 3, [x for x in (o, s) if x])
-        speak(ENT["observer"], 4, [x for x in (s, c) if x])
-    rec["utterances"] = len(accepted)
-    rec["state"] = "derived" if accepted else ("organ_failed" if errors else "rejected")
-    rec["reason"] = "; ".join(errors) if errors else None
-    rec["output"] = str(out_path)
-    publish(receipt_path, rec)
+        if orch == "council":
+            for ent in ENTITIES:
+                speak(ent, 1, [])
+            r1 = list(accepted)
+            for ent in ENTITIES:
+                speak(ent, 2, [c for c in r1 if c["entity"] != ent["id"]])
+        else:   # relay: Observer -> Skeptic answers -> Connector answers both -> Observer closes
+            o = speak(ENT["observer"], 1, [])
+            s = speak(ENT["skeptic"], 2, [o] if o else [])
+            c = speak(ENT["connector"], 3, [x for x in (o, s) if x])
+            speak(ENT["observer"], 4, [x for x in (s, c) if x])
+        rec["utterances"] = len(accepted)
+        rec["state"] = "derived" if accepted else ("organ_failed" if errors else "rejected")
+        rec["reason"] = "; ".join(errors) if errors else None
+        rec["output"] = str(out_path)
+        publish(receipt_path, rec)
+        return rec
     return rec
 
 
@@ -1312,10 +1329,8 @@ def _context() -> dict:
 
 def _save_context(ctx: dict, now: datetime) -> None:
     ctx["updated"] = iso(now)
-    tmp = CONTEXT.with_suffix(".tmp")
-    CONTEXT.parent.mkdir(parents=True, exist_ok=True)
-    tmp.write_text(json.dumps(ctx, ensure_ascii=False, indent=1), encoding="utf-8")
-    os.replace(tmp, CONTEXT)
+    with exclusive(LIVE / '.write.lock'):
+        atomic_json(CONTEXT, ctx)
 
 
 @serialized(lambda: LIVE / "derived/mind/.job.lock")
@@ -1332,142 +1347,148 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
     rec = {"schema": "beops-organ-receipt/v1", "organ": ORGAN_ID, "organ_version": ORGAN_VERSION, "at": iso(now), "mode": "drip",
            "step": ctx["step"], "step_name": name, "conversation": cycle_id, "state": "nothing_to_do", "calls": 0, "reason": None}
     receipt_path = OUT_DIR / "receipts" / f"{stamp(now)}-{name}.json"
-    pause_reason = organ_pause_reason(reg, OUT_DIR)
-    if pause_reason:
-        rec["state"], rec["reason"] = "paused", pause_reason
-        publish(receipt_path, rec)
-        return rec
-    snap = snap or json.loads(SNAPSHOT.read_text(encoding="utf-8"))
-    if name == "score":
-        res = score(now=now)
-        rec["state"], rec["settled"] = "derived", res["settled_now"]
-        ctx["step"] += 1
-        ctx["cycle"] += 1
-        _save_context(ctx, now)
-        publish(receipt_path, rec)
-        return rec
-    dg0 = digest(snap, hours=int(reg.get("window_hours", 6)), now=now, context=context)
-    avail = tags()
-    if avail is None:
-        rec["state"], rec["reason"] = "organ_silent", "model daemon not answering"
-        ctx["step"] += 1
-        _save_context(ctx, now)
-        publish(receipt_path, rec)
-        return rec
-    allow_cloud = bool(reg.get("allow_cloud", False))
-    out_path = OUT_DIR / (now.strftime("%Y-%m") + ".jsonl")
-    if name == "linker":
-        embed_model = _pick(avail, reg.get("embed_models"), allow_cloud)
-        rec["model"] = embed_model
-        if not embed_model:
-            rec["state"], rec["reason"] = "organ_silent", "no embedding model from the register is present"
-        else:
-            try:
-                links = embed_linker(dg0, embed_model, embed=embed, threshold=float(reg.get('link_threshold', 0.70)))
-                rec["calls"] = 1 if len(dg0.get("headlines", [])) >= 2 else 0
-                ctx["links"], ctx["embed_model"] = links, embed_model
-                rec["state"], rec["links"] = "derived", len(links)
-                for L in links:
+    with receipt_scope(rec, receipt_path, publish):
+        pause_reason = organ_pause_reason(reg, OUT_DIR)
+        if pause_reason:
+            rec["state"], rec["reason"] = "paused", pause_reason
+            publish(receipt_path, rec)
+            return rec
+        snap = snap or json.loads(SNAPSHOT.read_text(encoding="utf-8"))
+        if name == "score":
+            res = score(now=now)
+            rec["state"], rec["settled"] = "derived", res["settled_now"]
+            ctx["step"] += 1
+            ctx["cycle"] += 1
+            _save_context(ctx, now)
+            publish(receipt_path, rec)
+            return rec
+        dg0 = digest(snap, hours=int(reg.get("window_hours", 6)), now=now, context=context)
+        avail = tags()
+        if avail is None:
+            rec["state"], rec["reason"] = "organ_silent", "model daemon not answering"
+            ctx["step"] += 1
+            _save_context(ctx, now)
+            publish(receipt_path, rec)
+            return rec
+        allow_cloud = bool(reg.get("allow_cloud", False))
+        out_path = OUT_DIR / (now.strftime("%Y-%m") + ".jsonl")
+        if name == "linker":
+            embed_model = _pick(avail, reg.get("embed_models"), allow_cloud)
+            rec["model"] = embed_model
+            if not embed_model:
+                rec["state"], rec["reason"] = "organ_silent", "no embedding model from the register is present"
+            else:
+                try:
+                    links = embed_linker(dg0, embed_model, embed=embed, threshold=float(reg.get('link_threshold', 0.70)))
+                    rec["calls"] = 1 if len(dg0.get("headlines", [])) >= 2 else 0
+                    ctx["links"], ctx["embed_model"] = links, embed_model
+                    rec["state"], rec["links"] = "derived", len(links)
+                    for L in links:
+                        _append(out_path, {"schema": "beops-derived-row/v1", "state": "organelle", "organ": ORGAN_ID, "organ_version": ORGAN_VERSION,
+                                           "conversation": cycle_id, "orchestration": "drip", "round": ctx["step"], "entity": "organelle",
+                                           "entity_sr": "Organela", "entity_en": "Organelle", "organelle": "embed-linker", "model": embed_model,
+                                           "ai_generated": True, "derivedTime": iso(now), "replies_to": [], "en": L["en"], "sr": L["sr"],
+                                           "sr_state": "program", "similarity": L["similarity"], "cites": [], "hypotheses": [], "questions": [],
+                                           "next_check": "", "claim": None, "rejected_because": None})
+                except local_models.ModelDeferred:
+                    raise
+                except Exception as e:  # noqa: BLE001
+                    rec["state"], rec["reason"] = "organ_failed", f"{type(e).__name__}: {str(e)[:120]}"
+        elif name == "ranker":
+            rank_model = _pick(avail, reg.get("ranker_models"), allow_cloud)
+            rec["model"] = rank_model
+            dg1 = annotate(dg0, ctx.get("links") or [], {}, rank_model, ctx.get("embed_model"))
+            if not rank_model:
+                rec["state"], rec["reason"] = "organ_silent", "no ranker model from the register is present"
+            elif not any(f.get("kind") in ("connection", "link") for f in dg1["facts"]):
+                rec["reason"] = "nothing to rate"
+            else:
+                ratings = surprise_ranker(dg1, rank_model, chat)
+                rec["calls"], rec["state"], rec["ratings"] = 1, "derived" if ratings else "rejected", len(ratings)
+                ctx["ratings"], ctx["rank_model"] = ratings, rank_model
+                ctx["rated_facts"] = {f["en"]: ratings[f["id"]] for f in dg1["facts"] if f["id"] in ratings}
+                if ratings:
+                    parts = ", ".join(f"{k} {v}/5" for k, v in sorted(ratings.items(), key=lambda x: -x[1]))
                     _append(out_path, {"schema": "beops-derived-row/v1", "state": "organelle", "organ": ORGAN_ID, "organ_version": ORGAN_VERSION,
                                        "conversation": cycle_id, "orchestration": "drip", "round": ctx["step"], "entity": "organelle",
-                                       "entity_sr": "Organela", "entity_en": "Organelle", "organelle": "embed-linker", "model": embed_model,
-                                       "ai_generated": True, "derivedTime": iso(now), "replies_to": [], "en": L["en"], "sr": L["sr"],
-                                       "sr_state": "program", "similarity": L["similarity"], "cites": [], "hypotheses": [], "questions": [],
-                                       "next_check": "", "claim": None, "rejected_because": None})
-            except Exception as e:  # noqa: BLE001
-                rec["state"], rec["reason"] = "organ_failed", f"{type(e).__name__}: {str(e)[:120]}"
-    elif name == "ranker":
-        rank_model = _pick(avail, reg.get("ranker_models"), allow_cloud)
-        rec["model"] = rank_model
-        dg1 = annotate(dg0, ctx.get("links") or [], {}, rank_model, ctx.get("embed_model"))
-        if not rank_model:
-            rec["state"], rec["reason"] = "organ_silent", "no ranker model from the register is present"
-        elif not any(f.get("kind") in ("connection", "link") for f in dg1["facts"]):
-            rec["reason"] = "nothing to rate"
-        else:
-            ratings = surprise_ranker(dg1, rank_model, chat)
-            rec["calls"], rec["state"], rec["ratings"] = 1, "derived" if ratings else "rejected", len(ratings)
-            ctx["ratings"], ctx["rank_model"] = ratings, rank_model
-            ctx["rated_facts"] = {f["en"]: ratings[f["id"]] for f in dg1["facts"] if f["id"] in ratings}
-            if ratings:
-                parts = ", ".join(f"{k} {v}/5" for k, v in sorted(ratings.items(), key=lambda x: -x[1]))
-                _append(out_path, {"schema": "beops-derived-row/v1", "state": "organelle", "organ": ORGAN_ID, "organ_version": ORGAN_VERSION,
-                                   "conversation": cycle_id, "orchestration": "drip", "round": ctx["step"], "entity": "organelle",
-                                   "entity_sr": "Organela", "entity_en": "Organelle", "organelle": "surprise-ranker", "model": rank_model,
-                                   "ai_generated": True, "derivedTime": iso(now), "replies_to": [],
-                                   "en": f"A small model rated the connections by surprise: {parts}. An estimate, not a measurement.",
-                                   "sr": f"Mali model je ocenio iznenađenje veza: {parts}. Procena, ne merenje.",
-                                   "sr_state": "program", "cites": [], "hypotheses": [], "questions": [], "next_check": "", "claim": None,
-                                   "rejected_because": None, "ratings": ratings})
-    else:   # an entity speaks, answering the other entities' last accepted utterances of this and the previous cycle
-        ent = ENT[name]
-        chain = _chain(avail, reg.get("models_by_entity", {}).get(name) or reg["models_preferred"], allow_cloud)
-        model = chain[0] if chain else None
-        voice_model = _pick(avail, reg.get("voice_models"), allow_cloud)
-        rec["model"] = model
-        if not model:
-            rec["state"], rec["reason"] = "organ_silent", f"no local model from the register for {name}"
-        else:
-            base = annotate(dg0, ctx.get("links") or [], {}, ctx.get("rank_model"), ctx.get("embed_model"))
-            current_ratings = {f["id"]: ctx.get("rated_facts", {}).get(f["en"]) for f in base["facts"] if f["en"] in ctx.get("rated_facts", {})}
-            dg = annotate(dg0, ctx.get("links") or [], current_ratings, ctx.get("rank_model"), ctx.get("embed_model"))
-            latest_by = {}
-            for c in (ctx.get("conversation") or []):
-                if c.get("entity") != name:
-                    latest_by[c["entity"]] = c
-            conversation = [{**c, "en": re.sub(r"\[F\d+\]", "[prior digest]", c["en"])} for c in latest_by.values()]
-            # what changed in the world since this entity last spoke - the nudge away from restating
-            seen = set(ctx.get("last_facts", {}).get(name) or [])
-            fresh = [f for f in dg["facts"] if f["en"] not in seen and f["kind"] in ("reception", "spread", "connection", "link", "headlines", "silence", "context", "usual")]
-            if seen and fresh:
-                dg = {**dg, "facts": dg["facts"] + [{"id": f"F{len(dg['facts']) + 1}", "kind": "fresh",
-                      "sr": "Novo otkad si poslednji put govorio: " + "; ".join(f["id"] for f in fresh[:8]) + ".",
-                      "en": "NEW since you last spoke (speak about these, not about what was already said): " + ", ".join(f["id"] for f in fresh[:8]) + "."}]}
-            digest_sha = hashlib.sha256(json.dumps(dg, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
-            (OUT_DIR / "digests").mkdir(parents=True, exist_ok=True)
-            (OUT_DIR / "digests" / f"{stamp(now)}-{name}.json").write_text(json.dumps(dg, ensure_ascii=False, indent=1), encoding="utf-8")
-            previous = [c["en"] for c in (ctx.get("conversation") or [])]
-            prompt = prompt_for(ent, dg, notebook(name), conversation)
-            prompt_sha = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
-            answer, model, tried = chat_chain(chain, prompt, chat, rec)
-            if tried:
-                rec["fell_back_from"] = tried
-            if answer is None:
-                rec["state"], rec["reason"] = "organ_failed", "; ".join(tried)[:160] or "no model answered"
+                                       "entity_sr": "Organela", "entity_en": "Organelle", "organelle": "surprise-ranker", "model": rank_model,
+                                       "ai_generated": True, "derivedTime": iso(now), "replies_to": [],
+                                       "en": f"A small model rated the connections by surprise: {parts}. An estimate, not a measurement.",
+                                       "sr": f"Mali model je ocenio iznenađenje veza: {parts}. Procena, ne merenje.",
+                                       "sr_state": "program", "cites": [], "hypotheses": [], "questions": [], "next_check": "", "claim": None,
+                                       "rejected_because": None, "ratings": ratings})
+        else:   # an entity speaks, answering the other entities' last accepted utterances of this and the previous cycle
+            ent = ENT[name]
+            chain = _chain(avail, reg.get("models_by_entity", {}).get(name) or reg["models_preferred"], allow_cloud)
+            model = chain[0] if chain else None
+            voice_model = _pick(avail, reg.get("voice_models"), allow_cloud)
+            rec["model"] = model
+            if not model:
+                rec["state"], rec["reason"] = "organ_silent", f"no local model from the register for {name}"
             else:
-                rec["model"] = model
-            if answer is not None:
-                text, bound_by = ensure_citations(answer.get("text"), dg)
-                answer["text"] = text
-                ok, reasons = validate(answer, dg, previous=previous)
-                claim = answer.get("claim") if ok and isinstance(answer.get("claim"), dict) and answer.get("claim") else None
-                ctx.setdefault("last_facts", {})[name] = [f["en"] for f in dg["facts"] if f["kind"] != "fresh"]
-                row = {"schema": "beops-derived-row/v1", "state": "thought" if ok else "rejected", "organ": ORGAN_ID,
-                       "organ_version": ORGAN_VERSION, "conversation": cycle_id, "orchestration": "drip", "round": ctx["step"], "cites_bound_by": bound_by,
-                       "entity": name, "entity_sr": ent["sr"], "entity_en": ent["en"], "model": model,
-                       "prompt_sha256": prompt_sha, "digest_sha256": digest_sha, "ai_generated": True, "derivedTime": iso(now),
-                       "replies_to": [c["entity"] for c in conversation], "en": text, "sr": "", "sr_state": "pending", "voice_model": None,
-                       "cites": sorted(set(re.findall(r"\[(F\d+)\]", text))),
-                       "hypotheses": [h for h in (answer.get("hypotheses") or []) if isinstance(h, str)][:4],
-                       "questions": [q for q in (answer.get("questions") or []) if isinstance(q, str)][:4],
-                       "next_check": (answer.get("next_check") or "")[:300] if isinstance(answer.get("next_check"), str) else "",
-                       "claim": claim, "rejected_because": reasons or None}
-                if ok:
-                    voice(row, text, dg, voice_model, chat, rec)
-                _append(out_path, row)
-                _append(OUT_DIR / "notebook" / f"{name}.jsonl", {"at": iso(now), "conversation": cycle_id, "round": ctx["step"], "state": row["state"],
-                                                                 "text": text, "sr": row["sr"], "reason": "; ".join(reasons) if reasons else None, "claim": claim})
-                if claim:
-                    _append(OUT_DIR / "claims.jsonl", {"at": iso(now), "conversation": cycle_id, "orchestration": "drip", "entity": name, "model": model,
-                                                        "round": ctx["step"], "digest_sha256": digest_sha, "claim": claim, "due": iso(now + timedelta(minutes=int(claim["within_minutes"]))), "outcome": None, "settled_at": None})
-                rec["state"] = "derived" if ok else "rejected"
-                rec["reason"] = None if ok else "; ".join(reasons)[:200]
-                rec["sr_state"] = row["sr_state"]
-                if ok:
-                    ctx["conversation"] = ((ctx.get("conversation") or []) + [{"entity": name, "en": text, "at": iso(now), "digest_sha256": digest_sha}])[-6:]
-    ctx["step"] += 1
-    _save_context(ctx, now)
-    publish(receipt_path, rec)
+                base = annotate(dg0, ctx.get("links") or [], {}, ctx.get("rank_model"), ctx.get("embed_model"))
+                current_ratings = {f["id"]: ctx.get("rated_facts", {}).get(f["en"]) for f in base["facts"] if f["en"] in ctx.get("rated_facts", {})}
+                dg = annotate(dg0, ctx.get("links") or [], current_ratings, ctx.get("rank_model"), ctx.get("embed_model"))
+                latest_by = {}
+                for c in (ctx.get("conversation") or []):
+                    if c.get("entity") != name:
+                        latest_by[c["entity"]] = c
+                conversation = [{**c, "en": re.sub(r"\[F\d+\]", "[prior digest]", c["en"])} for c in latest_by.values()]
+                # what changed in the world since this entity last spoke - the nudge away from restating
+                seen = set(ctx.get("last_facts", {}).get(name) or [])
+                fresh = [f for f in dg["facts"] if f["en"] not in seen and f["kind"] in ("reception", "spread", "connection", "link", "headlines", "silence", "context", "usual")]
+                if seen and fresh:
+                    dg = {**dg, "facts": dg["facts"] + [{"id": f"F{len(dg['facts']) + 1}", "kind": "fresh",
+                          "sr": "Novo otkad si poslednji put govorio: " + "; ".join(f["id"] for f in fresh[:8]) + ".",
+                          "en": "NEW since you last spoke (speak about these, not about what was already said): " + ", ".join(f["id"] for f in fresh[:8]) + "."}]}
+                digest_sha = hashlib.sha256(json.dumps(dg, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
+                with exclusive(LIVE / '.write.lock'):
+                    atomic_json(OUT_DIR / 'digests' / f'{stamp(now)}-{name}.json', dg)
+                previous = [c["en"] for c in (ctx.get("conversation") or [])]
+                prompt = prompt_for(ent, dg, notebook(name), conversation)
+                prompt_sha = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+                answer, model, tried = chat_chain(chain, prompt, chat, rec)
+                if tried:
+                    rec["fell_back_from"] = tried
+                if answer is None:
+                    rec["state"], rec["reason"] = "organ_failed", "; ".join(tried)[:160] or "no model answered"
+                else:
+                    rec["model"] = model
+                if answer is not None:
+                    text, bound_by = ensure_citations(answer.get("text"), dg)
+                    answer["text"] = text
+                    ok, reasons = validate(answer, dg, previous=previous)
+                    claim = answer.get("claim") if ok and isinstance(answer.get("claim"), dict) and answer.get("claim") else None
+                    ctx.setdefault("last_facts", {})[name] = [f["en"] for f in dg["facts"] if f["kind"] != "fresh"]
+                    row = {"schema": "beops-derived-row/v1", "state": "thought" if ok else "rejected", "organ": ORGAN_ID,
+                           "organ_version": ORGAN_VERSION, "conversation": cycle_id, "orchestration": "drip", "round": ctx["step"], "cites_bound_by": bound_by,
+                           "entity": name, "entity_sr": ent["sr"], "entity_en": ent["en"], "model": model,
+                           "prompt_sha256": prompt_sha, "digest_sha256": digest_sha, "ai_generated": True, "derivedTime": iso(now),
+                           "replies_to": [c["entity"] for c in conversation], "en": text, "sr": "", "sr_state": "pending", "voice_model": None,
+                           "cites": sorted(set(re.findall(r"\[(F\d+)\]", text))),
+                           "hypotheses": [h for h in (answer.get("hypotheses") or []) if isinstance(h, str)][:4],
+                           "questions": [q for q in (answer.get("questions") or []) if isinstance(q, str)][:4],
+                           "next_check": (answer.get("next_check") or "")[:300] if isinstance(answer.get("next_check"), str) else "",
+                           "claim": claim, "rejected_because": reasons or None}
+                    if ok:
+                        voice(row, text, dg, voice_model, chat, rec)
+                    _append(out_path, row)
+                    _append(OUT_DIR / "notebook" / f"{name}.jsonl", {"at": iso(now), "conversation": cycle_id, "round": ctx["step"], "state": row["state"],
+                                                                     "text": text, "sr": row["sr"], "reason": "; ".join(reasons) if reasons else None, "claim": claim})
+                    if claim:
+                        _append(OUT_DIR / "claims.jsonl", {"at": iso(now), "conversation": cycle_id, "orchestration": "drip", "entity": name, "model": model,
+                                                            "round": ctx["step"], "digest_sha256": digest_sha, "claim": claim, "due": iso(now + timedelta(minutes=int(claim["within_minutes"]))), "outcome": None, "settled_at": None})
+                    rec["state"] = "derived" if ok else "rejected"
+                    rec["reason"] = None if ok else "; ".join(reasons)[:200]
+                    rec["sr_state"] = row["sr_state"]
+                    if ok:
+                        ctx["conversation"] = ((ctx.get("conversation") or []) + [{"entity": name, "en": text, "at": iso(now), "digest_sha256": digest_sha}])[-6:]
+        ctx["step"] += 1
+        _save_context(ctx, now)
+        publish(receipt_path, rec)
+        return rec
+
+
     return rec
 
 

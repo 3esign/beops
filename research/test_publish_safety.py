@@ -2,6 +2,7 @@
 """Behavioral tests for the publish safety helpers."""
 import pathlib
 import subprocess
+import sys
 import tempfile
 import textwrap
 import unittest
@@ -28,6 +29,38 @@ def ps(script: str, *, cwd: pathlib.Path | None = None) -> subprocess.CompletedP
 
 
 class PublishSafety(unittest.TestCase):
+    def test_cleanup_removes_only_owned_generated_workspace(self):
+        import json
+        with tempfile.TemporaryDirectory() as d:
+            base = pathlib.Path(d); src = base/'source'; src.mkdir()
+            release = base/('beops-release-' + '1'*32); release.mkdir()
+            (release/'sentinel').write_text('generated')
+            call = f"Remove-BeopsGeneratedRelease -Path '{release}' -SourceRoot '{src}' -BaseRoot '{base}'"
+            self.assert_ps_ok(call)
+            self.assertTrue(release.exists(), 'unowned workspace must survive')
+            (release/'.beops-generated-workspace.json').write_text(json.dumps({'source':str(src),'destination':str(release)}))
+            self.assert_ps_ok(call)
+            self.assertFalse(release.exists())
+            self.assertTrue(src.exists())
+
+    def test_native_success_keeps_stderr_out_of_json(self):
+        with tempfile.TemporaryDirectory() as d:
+            script = pathlib.Path(d) / 'native.py'
+            script.write_text('import sys\nprint("warning", file=sys.stderr)\nprint(\'{"ok": true}\')\n')
+            out = self.assert_ps_ok(f"$v = Get-BeopsNativeOutput -Name probe -FilePath '{sys.executable}' -ArgumentList @('{script}'); ($v | ConvertFrom-Json).ok")
+            self.assertEqual(out.strip(), 'True')
+
+    def test_native_failure_preserves_complete_traceback_and_exit(self):
+        with tempfile.TemporaryDirectory() as d:
+            script = pathlib.Path(d) / 'native.py'
+            script.write_text('import sys\nprint("Traceback first line", file=sys.stderr)\nprint("actual final cause", file=sys.stderr)\nsys.exit(7)\n')
+            out = self.assert_ps_fails(f"Get-BeopsNativeOutput -Name probe -FilePath '{sys.executable}' -ArgumentList @('{script}')", 'actual final cause')
+            self.assertIn('exit code 7', out)
+            self.assertIn('Traceback first line', out)
+
+    def test_native_missing_command_fails(self):
+        self.assert_ps_fails("Get-BeopsNativeOutput -Name probe -FilePath 'beops-does-not-exist-93817'", 'not recognized')
+
     def test_nonempty_unowned_default_folder_is_rejected_without_touching_it(self):
         with tempfile.TemporaryDirectory() as d:
             root=pathlib.Path(d);src=root/'source';src.mkdir();pub=root/'Beops-public';pub.mkdir()

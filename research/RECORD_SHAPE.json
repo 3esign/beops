@@ -116,6 +116,7 @@
    "watch-ledger.jsonl": "one line per watchman reading, including the gaps between readings",
    "paper-numbers-runs.jsonl": "one line per run of the figure tool: the instant and a hash of the figures it produced, so a stamp in a paper can be matched to a run that happened (C-053)",
    "publish-receipt.json": "not a ledger - the single most recent publish attempt, whether the suite passed, and what was published. The guard reads it to answer whether the site is being kept stale (C-046).",
+   "publish-last-success.json": "Last completed publication with matching live/local site hashes; preserved when a later attempt fails. Its age is not reset by an unsuccessful attempt.",
    "guard.log": "the guard's report in the words a person reads, written beside the machine-readable ledger on every run. Not a second copy of the verdict: the ledger is the record and this is the reading of it.",
    ".write.lock": "OS-owned cross-process serialization for append and retention; no observation data",
    "retention-ledger.jsonl": "Append-only evidence of retention actions and hashes",

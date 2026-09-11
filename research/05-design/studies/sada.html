@@ -91,10 +91,11 @@ body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans)
 .gapnote{height:auto;min-height:26px}
 @media(max-width:600px){.tile{min-height:105px}.clock{white-space:normal}}
 </style>
+<link rel="stylesheet" href="accessibility.css"><script defer src="accessibility.js"></script>
 
-<div class="panel">
+<div class="panel" role="main" aria-label="Trenutni podaci / Current data">
   <div class="top">
-    <div class="tabs" id="tabs" role="group"></div>
+    <div class="tabs" id="tabs" role="group" aria-label="Vremenski prozor / Time window"></div>
     <div class="clock mono" id="clock">—</div>
   </div>
   <div class="tiles" id="tiles"></div>
