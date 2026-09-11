@@ -111,7 +111,7 @@ def done_keys() -> set:
 
 def save_done(keys: set) -> None:
     p = LIVE / "derived" / "news" / "_done.json"
-    with exclusive(LIVE / '.write.lock'):
+    with exclusive(LIVE / '.write.lock', timeout=120):
         atomic_json(p, sorted(keys))
 
 
@@ -336,7 +336,7 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
             retry[key] = {'last_attempt_at': iso(now),
                           'next_attempt_at': iso(now + timedelta(minutes=5 * 2 ** (attempts[key] - 1))),
                           'state': 'attempted'}
-        with exclusive(LIVE / ".write.lock"):
+        with exclusive(LIVE / ".write.lock", timeout=120):
             atomic_json(attempts_path, attempts)
             atomic_json(retry_path, retry)
         try:
@@ -361,11 +361,11 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
             errors.append(f"{type(exc).__name__}: {str(exc)[:160]}")
             for row in batch:
                 retry[row['dedupe_key']].update(state='failed', reason=type(exc).__name__)
-            with exclusive(LIVE / '.write.lock'):
+            with exclusive(LIVE / '.write.lock', timeout=120):
                 atomic_json(retry_path, retry)
             continue
         rows = derive(batch, answer, model, sha, now)
-        with exclusive(LIVE / ".write.lock"):
+        with exclusive(LIVE / ".write.lock", timeout=120):
             with open(out_path, "a", encoding="utf-8") as fh:
                 for r in rows:
                     fh.write(json.dumps(r, ensure_ascii=False) + "\n")
@@ -374,7 +374,7 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
                 done.add(r["input_key"])
             retry[r['input_key']].update(state='completed' if r['input_key'] in done else 'incomplete',
                                          reason=r.get('note'))
-        with exclusive(LIVE / '.write.lock'):
+        with exclusive(LIVE / '.write.lock', timeout=120):
             atomic_json(retry_path, retry)
         derived_n += len(rows)
     save_done(done)
@@ -397,7 +397,7 @@ def reconcile_completion():
     old = json.loads(cache.read_text(encoding='utf-8')) if cache.exists() else []
     if not isinstance(old, list) or any(not isinstance(k, str) for k in old):
         raise ValueError('invalid completion cache; preserve and inspect before reconciliation')
-    with exclusive(LIVE / '.write.lock'):
+    with exclusive(LIVE / '.write.lock', timeout=120):
         when = utcnow()
         backup = directory / 'reconciliation' / f'{stamp(when)}-cache-before.json'
         publish(backup, {'at': iso(when), 'keys': old})

@@ -114,6 +114,30 @@ class Corruption(unittest.TestCase):
 
 
 class NewsCompletion(unittest.TestCase):
+    def test_model_failure_can_wait_out_a_short_writer_snapshot_before_recording_retry(self):
+        """A 20 s publisher snapshot plus another brief writer exhausted the old 30 s default."""
+        with tempfile.TemporaryDirectory() as td:
+            live = pathlib.Path(td)
+            organs = live / 'organs.json'
+            organs.write_text(json.dumps({'organs':[{'id':'news-sorter', 'models_preferred':['fixture:local']}]}))
+            rows = [dict(sid='S1', result='Naslov', dedupe_key='a')]
+            waits = []
+
+            @contextlib.contextmanager
+            def observed_lock(path, timeout=30):
+                waits.append(timeout)
+                yield
+
+            def model_timeout(*args):
+                raise TimeoutError('fixture')
+
+            with patch.object(N, 'LIVE', live), patch.object(N, 'ORGANS', organs), \
+                    patch.object(N, 'headlines', return_value=rows), patch.object(N, 'exclusive', observed_lock):
+                rec = N.run(NOW, chat=model_timeout, tags=lambda: ['fixture:local'])
+            self.assertEqual(rec['state'], 'organ_failed')
+            self.assertTrue(waits)
+            self.assertTrue(all(timeout == 120 for timeout in waits), waits)
+
     def test_capacity_deferral_preserves_attempt_budget_and_defers_the_batch(self):
         with tempfile.TemporaryDirectory() as td:
             live = pathlib.Path(td)
