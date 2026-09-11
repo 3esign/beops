@@ -56,8 +56,11 @@ class Gate(unittest.TestCase):
     def test_the_export_tree_is_not_touched_until_the_gate_passes(self):
         gate = self.s.find('Write-Output "gate:')
         clear = self.s.find("Get-ChildItem -LiteralPath $pub")
-        copy = self.s.find("Copy-Item -LiteralPath (Join-Path $src $f)")
+        archive = self.s.find("New-BeopsTrackedHeadArchive $keep")
+        copy = self.s.find("Expand-BeopsTrackedHeadArchive")
         self.assertGreater(gate, -1)
+        self.assertGreater(archive, gate, "source archive is made before the gate passes")
+        self.assertLess(archive, clear, "a bad archive path can clear the public mirror before failing")
         self.assertGreater(clear, gate, "the public mirror is cleared before the gate passes")
         self.assertGreater(copy, gate, "files are copied to the public mirror before the gate passes")
 
@@ -65,7 +68,18 @@ class Gate(unittest.TestCase):
         """A gate that stops the site silently has exchanged one failure for a quieter one."""
         self.assertIn("publish-receipt.json", self.s)
         self.assertIn("beops-publish-receipt/v1", self.s)
-        for k in ("built", "export_changed", "committed", "pushed", "remote_head"):
+        for k in (
+            "source_tree",
+            "source_files_from",
+            "source_file_count",
+            "generated_as_of",
+            "built",
+            "export_manifest",
+            "export_changed",
+            "committed",
+            "pushed",
+            "remote_head",
+        ):
             self.assertIn(k, self.s, f"the receipt no longer records {k}")
 
     def test_two_publishers_cannot_race_for_the_export(self):
@@ -98,6 +112,27 @@ class Gate(unittest.TestCase):
     def test_an_unreadable_status_is_never_reported_as_clean(self):
         """C-045's own correction, held in place."""
         self.assertIn("could not read the export status", self.s)
+
+    def test_tracked_source_files_are_exported_from_head_not_the_working_tree(self):
+        self.assertIn("git source HEAD file list", self.s)
+        self.assertIn("git archive source HEAD", self.s)
+        self.assertIn("New-BeopsTrackedHeadArchive $keep", self.s)
+        self.assertIn("Expand-BeopsTrackedHeadArchive", self.s)
+        self.assertNotIn("Copy-Item -LiteralPath (Join-Path $src $f)", self.s)
+
+    def test_dirty_tracked_source_is_refused_before_public_mirror_is_touched(self):
+        self.assertIn("tracked source working tree is dirty", self.s)
+        before = self.s.find("Assert-BeopsTrackedSourceClean 'before build'")
+        after = self.s.find("Assert-BeopsTrackedSourceClean 'after gate'")
+        clear = self.s.find("Get-ChildItem -LiteralPath $pub")
+        self.assertGreater(before, -1)
+        self.assertGreater(after, before)
+        self.assertGreater(clear, after, "the public mirror can be cleared before the post-gate dirty check")
+
+    def test_the_export_has_a_manifest_with_file_hashes(self):
+        self.assertIn("beops-export-manifest/v1", self.s)
+        self.assertIn("docs/export-manifest.json", self.s)
+        self.assertIn("Get-FileHash", self.s)
 
     def test_generated_public_files_are_force_added(self):
         for path in (

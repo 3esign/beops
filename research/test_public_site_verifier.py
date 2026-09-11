@@ -55,8 +55,12 @@ class PublicSiteVerifierTests(unittest.TestCase):
         self.assertIn("BEOPS_CHECK_RAW === '1'", self.script)
 
     def test_the_verifier_checks_the_embedded_interface_routes(self):
-        for rel in ("podaci.html", "monolog.html", "sada.html", "traka.html", "svedoci.html"):
+        for rel in ("podaci.html", "monolog.html", "sada.html", "traka.html", "svedoci.html", "export-manifest.json"):
             self.assertIn(rel, self.script)
+        self.assertIn("localRouteFile", self.script)
+        self.assertIn("route.live_hash", self.script)
+        self.assertIn("route.local_hash", self.script)
+        self.assertIn("hash ${liveRouteHash} does not match", self.script)
 
     def test_the_verifier_uses_the_svemir_incognito_gate_when_available(self):
         self.assertIn("incognito.js", self.script)

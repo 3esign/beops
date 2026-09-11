@@ -28,7 +28,8 @@ const CORE_ROUTES = [
   'traka.html',
   'svedoci.html',
   'live-snapshot.json',
-  'basemap-belgrade.json'
+  'basemap-belgrade.json',
+  'export-manifest.json'
 ];
 
 const REQUIRED_MARKERS = [
@@ -64,6 +65,13 @@ function sleep(ms) {
 
 function firstExisting(paths) {
   return paths.find(p => fs.existsSync(p)) || '';
+}
+
+function localRouteFile(rel) {
+  return firstExisting([
+    path.join(PUBLIC_ROOT, 'docs', rel),
+    path.join(ROOT, 'docs', rel)
+  ]);
 }
 
 function cacheBusted(url) {
@@ -169,10 +177,24 @@ async function main() {
   for (const rel of CORE_ROUTES) {
     const url = new URL(rel, SITE_URL).toString();
     const item = await fetchText(url);
-    routes.push({ route: rel, status: item.status, ok: item.ok });
+    const route = { route: rel, status: item.status, ok: item.ok };
     if (!item.ok) {
       errors.push(`${rel} returned HTTP ${item.status}`);
     }
+    const localRoute = localRouteFile(rel);
+    if (localRoute) {
+      const liveRouteHash = sha256(item.text);
+      const localRouteHash = sha256(fs.readFileSync(localRoute, 'utf8'));
+      route.live_hash = liveRouteHash;
+      route.local_hash = localRouteHash;
+      route.match = liveRouteHash === localRouteHash;
+      if (item.ok && !route.match) {
+        errors.push(`${rel} hash ${liveRouteHash} does not match ${localRoute} hash ${localRouteHash}`);
+      }
+    } else {
+      warnings.push(`no local public mirror file for ${rel}`);
+    }
+    routes.push(route);
   }
 
   if (CHECK_RAW) {

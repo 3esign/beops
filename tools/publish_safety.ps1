@@ -202,9 +202,9 @@ function Get-BeopsNativeOutput {
   )
   $out = & $FilePath @ArgumentList 2>&1
   $rc = if ($LASTEXITCODE -ne $null) { [int]$LASTEXITCODE } else { 0 }
+  $text = (($out | ForEach-Object { "$_" }) -join "`n").Trim()
   if ($rc -ne 0) {
-    $text = (($out | Out-String).Trim())
     throw "$Name failed with exit code ${rc}: $text"
   }
-  return (($out | Out-String).Trim())
+  return $text
 }

@@ -6,7 +6,9 @@
 # refuses (>100 MB), and research/evidence/ (585 MB of captured third-party pages) stays local by
 # rule - it is proof, not publication. The public repository therefore receives the current tree
 # minus evidence, scratch, archives, runtime and live data, as ONE commit per publish, with the
-# local commit hash in the message. Local history is never rewritten.
+# local commit hash in the message. Tracked source bytes are archived from HEAD, not copied from the
+# moving working tree; generated public artefacts are overlaid after the build and named in the
+# manifest. Local history is never rewritten.
 #
 #   powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish_github.ps1            # publish
 #   powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish_github.ps1 -DryRun    # show what would go
@@ -44,10 +46,9 @@ $exclude = @('research/evidence','research/_scratch','research/06-paper','resear
              'research/evidence/S158')
 Set-Location $src
 $null = New-Item -ItemType Directory -Path (Join-Path $src 'runtime') -Force
-$head = (git rev-parse --short HEAD).Trim()
-if ($LASTEXITCODE -ne 0 -or -not $head) { throw "git rev-parse --short HEAD failed" }
-$files = (git ls-files) -split "`n" | Where-Object { $_ -ne '' }
-if ($LASTEXITCODE -ne 0) { throw "git ls-files failed" }
+$head = (Get-BeopsNativeOutput 'git source short HEAD' 'git' @('-C', $src, 'rev-parse', '--short', 'HEAD')).Trim()
+$sourceTree = (Get-BeopsNativeOutput 'git source tree' 'git' @('-C', $src, 'rev-parse', 'HEAD^{tree}')).Trim()
+$files = (Get-BeopsNativeOutput 'git source HEAD file list' 'git' @('-C', $src, 'ls-tree', '-r', '--name-only', 'HEAD')) -split '\r?\n' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
 $keep = $files | Where-Object { $f = $_; -not ($exclude | Where-Object { $f -eq $_ -or $f.StartsWith($_ + '/') }) }
 # C-020, second occurrence. The folder list above excludes research/06-paper, so pre-papers and
 # working documents never reach the export - but research/07-legal is exported whole, and the letters
@@ -57,7 +58,7 @@ $keep = $files | Where-Object { $f = $_; -not ($exclude | Where-Object { $f -eq 
 # an internal kind is excluded by being that kind rather than by someone remembering to list it.
 $notPublic = @('PISMA','LETTER','WORKING_DOCUMENT','INTERNAL','DRAFT','PRESEK','PRE_PAPER','PREPAPER','PRED_RAD')
 $keep = $keep | Where-Object { $n = (Split-Path $_ -Leaf).ToUpper(); -not ($notPublic | Where-Object { $n.Contains($_) }) }
-Write-Output ("source commit {0}: {1} tracked files, {2} exported" -f $head, $files.Count, $keep.Count)
+Write-Output ("source commit {0}: {1} HEAD files, {2} exported" -f $head, $files.Count, $keep.Count)
 if ($DryRun) { $keep | Select-Object -First 40; exit 0 }
 # C-045 left this open: two publish paths - the scheduled tick and any ship batch - run against one
 # export repository with no coordination, and the loser of a race for git's index.lock read exactly
@@ -65,20 +66,31 @@ if ($DryRun) { $keep | Select-Object -First 40; exit 0 }
 # minutes is treated as abandoned, because a publish that takes that long has died.
 $lockFile = Join-Path $src 'runtime\publish.lock'
 $script:publishTestsOutRun = $null
+$script:sourceArchivePath = $null
 $receiptPath = Join-Path $src 'data\live\publish-receipt.json'
+$generatedPublicPaths = @('public/history.json',
+                          'public/watch.json',
+                          'public/dataset/permission-landscape',
+                          'research/08-provenance/CORRECTION_TIMES.json',
+                          'research/observations/live')
 $receipt = [ordered]@{
-  schema        = 'beops-publish-receipt/v1'
-  at            = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
-  source_head   = $head
-  built         = $false
-  tests_ok      = $false
-  tests         = ''
-  export_changed = $false
-  committed     = $false
-  pushed        = $false
-  remote_head   = ''
-  published     = $false
-  why           = ''
+  schema            = 'beops-publish-receipt/v1'
+  at                = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+  source_head       = $head
+  source_tree       = $sourceTree
+  source_files_from = 'git archive HEAD'
+  source_file_count = $keep.Count
+  generated_as_of   = ''
+  built             = $false
+  tests_ok          = $false
+  tests             = ''
+  export_manifest   = 'docs/export-manifest.json'
+  export_changed    = $false
+  committed         = $false
+  pushed            = $false
+  remote_head       = ''
+  published         = $false
+  why               = ''
 }
 function Write-BeopsPublishReceipt {
   $receipt.at = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
@@ -88,8 +100,22 @@ function Release-BeopsPublishRun {
   if ($script:publishTestsOutRun -and (Test-Path $script:publishTestsOutRun)) {
     Remove-Item -LiteralPath $script:publishTestsOutRun -Force -ErrorAction SilentlyContinue
   }
+  if ($script:sourceArchivePath -and (Test-Path -LiteralPath $script:sourceArchivePath)) {
+    Remove-Item -LiteralPath $script:sourceArchivePath -Force -ErrorAction SilentlyContinue
+  }
   if ($lockFile -and (Test-Path $lockFile) -and (Test-BeopsPublishLockOwnedByCurrentProcess -Path $lockFile)) {
     Remove-Item -LiteralPath $lockFile -Force -ErrorAction SilentlyContinue
+  }
+}
+function Get-BeopsTrackedDirtyStatus {
+  $dirty = Get-BeopsNativeOutput 'git tracked source status' 'git' @('-C', $src, 'status', '--porcelain', '--untracked-files=no')
+  return ($dirty.Trim())
+}
+function Assert-BeopsTrackedSourceClean {
+  param([string]$Moment)
+  $dirty = Get-BeopsTrackedDirtyStatus
+  if ($dirty) {
+    throw "tracked source working tree is dirty $Moment; commit or move those changes before publish: $dirty"
   }
 }
 $lock = Enter-BeopsPublishLock -Path $lockFile -MaxAgeMinutes 15
@@ -99,6 +125,7 @@ if (-not $lock.Acquired) {
 }
 if ($lock.Recovered) { Write-Output ("note: {0}" -f $lock.Message) }
 try {
+Assert-BeopsTrackedSourceClean 'before build'
 
 # the site: docs/ is what GitHub Pages serves (main branch, /docs). It is GENERATED by
 # tools/build_site.py from the registry, the provenance index, the corrections and the last export,
@@ -160,22 +187,35 @@ if ($testsRc -ne 0) {
   exit 3
 }
 Write-Output "gate: $summary"
+Assert-BeopsTrackedSourceClean 'after gate'
 # ------------------------------------------------------------ END PUBLISH GATE
 
 if (-not (Test-Path -LiteralPath $pub)) {
   New-Item -ItemType Directory -Path $pub | Out-Null
   Invoke-BeopsNative 'git init public export' 'git' @('-C', $pub, 'init', '-q', '-b', 'main')
 }
+function New-BeopsTrackedHeadArchive {
+  param([string[]]$Paths)
+  if (-not $Paths -or $Paths.Count -eq 0) { return }
+  $script:sourceArchivePath = Join-Path $src ("runtime\publish-source-{0}.tar" -f $PID)
+  if (Test-Path -LiteralPath $script:sourceArchivePath) {
+    Remove-Item -LiteralPath $script:sourceArchivePath -Force
+  }
+  Invoke-BeopsNative 'git archive source HEAD' 'git' (@('-C', $src, 'archive', '--format=tar', '-o', $script:sourceArchivePath, 'HEAD', '--') + $Paths)
+}
+function Expand-BeopsTrackedHeadArchive {
+  if (-not $script:sourceArchivePath -or -not (Test-Path -LiteralPath $script:sourceArchivePath)) {
+    throw 'source archive was not created'
+  }
+  Invoke-BeopsNative 'extract source HEAD archive' 'tar' @('-xf', $script:sourceArchivePath, '-C', $pub)
+}
+New-BeopsTrackedHeadArchive $keep
 # clear the export tree (never the .git of the export repo), after the gate has passed
 Get-ChildItem -LiteralPath $pub -Force | Where-Object { $_.Name -ne '.git' } | ForEach-Object {
   $target = Assert-BeopsDeletionTarget -PublicRoot $pub -Target $_.FullName
   Remove-Item -LiteralPath $target -Recurse -Force
 }
-foreach ($f in $keep) {
-  $d = Split-Path (Join-Path $pub $f)
-  if (-not (Test-Path $d)) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
-  Copy-Item -LiteralPath (Join-Path $src $f) -Destination (Join-Path $pub $f) -Force
-}
+Expand-BeopsTrackedHeadArchive
 function Copy-BeopsGeneratedPublic {
   param([string]$Rel)
   $from = Join-Path $src $Rel
@@ -195,11 +235,7 @@ function Copy-BeopsGeneratedPublic {
 }
 # These are live/generated public artefacts. They are ignored in the private source repo so that the
 # working tree can stay readable, but the public site and public mirror still receive them explicitly.
-foreach ($f in @('public/history.json',
-                 'public/watch.json',
-                 'public/dataset/permission-landscape',
-                 'research/08-provenance/CORRECTION_TIMES.json',
-                 'research/observations/live')) {
+foreach ($f in $generatedPublicPaths) {
   Copy-BeopsGeneratedPublic $f
 }
 if (Test-Path (Join-Path $src 'docs')) { Copy-Item -LiteralPath (Join-Path $src 'docs') -Destination $pub -Recurse -Force }
@@ -217,26 +253,53 @@ $note2 = @'
 The working documents, pre-papers, research trails and programme notes are internal and stay on the authors' own machine. The public repository carries the observatory itself: the source registry, the provenance index and ledger, the corrections, the collectors, the organ register, the tools, the tests and the generated site. Links into these folders from the research index are therefore not resolvable here.
 '@
 foreach ($d in @('research/06-paper','research/_trail','research/01-programme')) { New-Item -ItemType Directory -Path (Join-Path $pub $d) -Force | Out-Null; Set-Content -Path (Join-Path $pub "$d/README.md") -Value $note2 -Encoding UTF8 }
-Invoke-BeopsNative 'git add public export' 'git' @('-C', $pub, 'add', '-A')
-# The source .gitignore travels with the export and lists docs/ (generated locally, never committed
-# in the source repo). In the EXPORT repo docs/ is the published site, so it must be forced in.
-# Without -f, only the files added before that ignore rule existed stayed tracked, and every page
-# added later - monolog.html, basemap-belgrade.json - was silently dropped and served as 404.
-foreach ($f in @('docs',
-                 'public/history.json',
-                 'public/watch.json',
-                 'public/dataset/permission-landscape',
-                 'research/08-provenance/CORRECTION_TIMES.json',
-                 'research/observations/live')) {
-  if (Test-Path -LiteralPath (Join-Path $pub $f)) {
-    Invoke-BeopsNative "git force-add $f" 'git' @('-C', $pub, 'add', '-A', '-f', $f)
+function Write-BeopsExportManifest {
+  param([string]$GeneratedAsOf)
+  $manifestRel = 'docs/export-manifest.json'
+  $manifestPath = Join-Path $pub $manifestRel
+  $gitDir = Join-Path $pub '.git'
+  $base = (Get-BeopsFullPath $pub) + [System.IO.Path]::DirectorySeparatorChar
+  $items = @()
+  $exportedFiles = Get-ChildItem -LiteralPath $pub -File -Recurse -Force | Sort-Object FullName
+  foreach ($item in $exportedFiles) {
+    $full = Get-BeopsFullPath $item.FullName
+    if (Test-BeopsSameOrInside -Parent $gitDir -Child $full) { continue }
+    $rel = $full.Substring($base.Length).Replace('\', '/')
+    if ($rel -eq $manifestRel) { continue }
+    $hash = (Get-FileHash -LiteralPath $full -Algorithm SHA256).Hash.ToLowerInvariant()
+    $items += [ordered]@{ path = $rel; bytes = $item.Length; sha256 = $hash }
   }
+  $manifest = [ordered]@{
+    schema            = 'beops-export-manifest/v1'
+    source_head       = $head
+    source_tree       = $sourceTree
+    source_files_from = 'git archive HEAD'
+    source_file_count = $keep.Count
+    generated_as_of   = $GeneratedAsOf
+    generated_paths   = $generatedPublicPaths
+    file_count        = $items.Count
+    files             = $items
+  }
+  New-Item -ItemType Directory -Path (Split-Path $manifestPath -Parent) -Force | Out-Null
+  $manifest | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
 }
 # One commit per publish: the public history becomes a free archive of what the observatory held at
 # each moment - the "git scraping" pattern - and a second, independent record against our own receipts.
 $snap = Join-Path $src 'public\live-snapshot.json'
 $asof = if (Test-Path $snap) { try { (Get-Content $snap -Raw | ConvertFrom-Json).as_of } catch { '' } } else { '' }
+$receipt.generated_as_of = $asof
 $msg = if ($asof) { "Live snapshot $asof (export of $head)" } else { "Publish export of local commit $head ($(Get-Date -Format 'yyyy-MM-dd HH:mm') local)" }
+Write-BeopsExportManifest $asof
+Invoke-BeopsNative 'git add public export' 'git' @('-C', $pub, 'add', '-A')
+# The source .gitignore travels with the export and lists docs/ (generated locally, never committed
+# in the source repo). In the EXPORT repo docs/ is the published site, so it must be forced in.
+# Without -f, only the files added before that ignore rule existed stayed tracked, and every page
+# added later - monolog.html, basemap-belgrade.json - was silently dropped and served as 404.
+foreach ($f in @('docs') + $generatedPublicPaths) {
+  if (Test-Path -LiteralPath (Join-Path $pub $f)) {
+    Invoke-BeopsNative "git force-add $f" 'git' @('-C', $pub, 'add', '-A', '-f', $f)
+  }
+}
 # On 2026-09-10 this said "nothing changed since the last publish" and exited 0 while seventeen
 # files sat staged in the export, so the site stayed a commit behind until somebody ran it by hand.
 # The check could not tell an EMPTY status from an UNREADABLE one - git returning nothing because
