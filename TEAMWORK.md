@@ -1,8 +1,10 @@
-Status: current
+Status: preserved historical context
 Date: 2026-09-06
 Author: BEOPS Coordinator
 
 # Literature collaboration
+
+Current project structure is governed by [research/STRUCTURE_CONTRACT_2026-09-11.md](research/STRUCTURE_CONTRACT_2026-09-11.md). This file preserves the 2026-09-06 literature-collaboration setup; it is not the current project map.
 
 Door: D:\Svemir\docs\ROOM_DOOR.md. Board: [RICH_CONTEXT_BOARD_2026-09-06.json](research/_trail/RICH_CONTEXT_BOARD_2026-09-06.json).
 

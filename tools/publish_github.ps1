@@ -174,6 +174,32 @@ foreach ($f in $keep) {
   if (-not (Test-Path $d)) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
   Copy-Item -LiteralPath (Join-Path $src $f) -Destination (Join-Path $pub $f) -Force
 }
+function Copy-BeopsGeneratedPublic {
+  param([string]$Rel)
+  $from = Join-Path $src $Rel
+  if (-not (Test-Path $from)) { return }
+  $to = Join-Path $pub $Rel
+  $item = Get-Item -LiteralPath $from
+  if ($item.PSIsContainer) {
+    New-Item -ItemType Directory -Path $to -Force | Out-Null
+    Get-ChildItem -LiteralPath $from -Force | ForEach-Object {
+      Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $to $_.Name) -Recurse -Force
+    }
+    return
+  }
+  $d = Split-Path $to
+  if (-not (Test-Path $d)) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
+  Copy-Item -LiteralPath $from -Destination $to -Force
+}
+# These are live/generated public artefacts. They are ignored in the private source repo so that the
+# working tree can stay readable, but the public site and public mirror still receive them explicitly.
+foreach ($f in @('public/history.json',
+                 'public/watch.json',
+                 'public/dataset/permission-landscape',
+                 'research/08-provenance/CORRECTION_TIMES.json',
+                 'research/observations/live')) {
+  Copy-BeopsGeneratedPublic $f
+}
 if (Test-Path (Join-Path $src 'docs')) { Copy-Item -LiteralPath (Join-Path $src 'docs') -Destination $pub -Recurse -Force }
 # evidence placeholder so links in the index explain themselves
 $note = @'

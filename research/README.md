@@ -12,8 +12,9 @@ file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ## Start here
 
-- **[PROJECT_MAP_2026-09-09.md](PROJECT_MAP_2026-09-09.md)** — the short way in: which folder holds what, which scheduled task writes where, what is public, and where the day's changes landed. Read it before this index.
+- **[STRUCTURE_CONTRACT_2026-09-11.md](STRUCTURE_CONTRACT_2026-09-11.md)** — current structure rule: public site as main surface, source/proof/live/generated/private zones, and how to name surplus and missing.
 - **[OPERATIONAL_ORDER_2026-09-11.md](OPERATIONAL_ORDER_2026-09-11.md)** — current operational order: active private repo vs public mirror, C/D path rule, scheduler source of truth and publish safety.
+- **[PROJECT_MAP_2026-09-09.md](PROJECT_MAP_2026-09-09.md)** — useful historical map of where things live; now superseded for structure by the contract above.
 - **[Current paper direction](06-paper/PRE_PAPER_v5_2026-09-10.md)** — pre-paper v5; supersedes v3/v4 and their addenda as the current discussion entry.
 - **[Statistical collaboration note](06-paper/STATISTICS_COLLABORATION_2026-09-10.md)** — what statisticians can do with the present record; coverage/exposure first.
 - **[Stability review](STABILITY_REVIEW_2026-09-10.md)** and **[decisions](DECISIONS.md)** — what can fail unnoticed and what was explicitly chosen.
@@ -344,9 +345,7 @@ each into the right thematic section with a one-line scope.
 - [observations/10k-2026-09-05/INTERIM_ANALYSIS.md](observations/10k-2026-09-05/INTERIM_ANALYSIS.md)
 - [observations/10k-2026-09-05/OPAZANJA.md](observations/10k-2026-09-05/OPAZANJA.md)
 - [observations/10k-2026-09-05/PROTOKOL.md](observations/10k-2026-09-05/PROTOKOL.md)
-- [observations/live/REPORT_2026-09-08.md](observations/live/REPORT_2026-09-08.md)
-- [observations/live/REPORT_2026-09-09.md](observations/live/REPORT_2026-09-09.md)
-- [observations/live/REPORT_2026-09-10.md](observations/live/REPORT_2026-09-10.md)
+- [observations/live/README.md](observations/live/README.md) — daily generated `REPORT_YYYY-MM-DD.md` files; ignored in private source, copied to the public mirror when present.
 - [STABILITY_REVIEW_2026-09-10.md](STABILITY_REVIEW_2026-09-10.md)
 
 ## Pre-paper organization for discussion, 2026-09-06

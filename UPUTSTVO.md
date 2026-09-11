@@ -1,6 +1,6 @@
 # Beops — Uputstvo za izradu
 
-Operativno uputstvo, uskladjeno 05.09.2026. Pocetna tacka za sledeci rad; istorijski izvestaji ne nadjacavaju kasnije odluke korisnika.
+Operativno uputstvo, uskladjeno 11.09.2026. Pocetna tacka za sledeci rad; istorijski izvestaji ne nadjacavaju kasnije odluke korisnika.
 
 ## Pravila izrade
 - Beops je samo Beograd. Pazarac ostaje zaseban projekat i izvor lekcija.
@@ -8,7 +8,8 @@ Operativno uputstvo, uskladjeno 05.09.2026. Pocetna tacka za sledeci rad; istori
 - Jedan prostorni filter kroz sve domene. Dedup na roditeljskom nivou; nepokrivenost se ne popunjava izmisljenim prosekom.
 - Povezujemo postojece izvore i usluge; nema sopstvenog indeksa grada, geokodera ili nove infrastrukturne platforme.
 - Parking/prevoz, javne i kulturne promene, dokumentovane cene i atmosfera/voda napreduju zajedno. Zvuk, kamere i tlo su istrazivacki pravci sa otvorenim pristupnim pitanjima.
-- UI je odlozen, mozda nepotreban. `server.js`, `src/`, `public/` i stari `tools/collect.js` su neaktivni i neverifikovani nacrti; `npm start` i `npm run collect` nisu put do istrazivackog rezultata.
+- Javni sajt `https://3esign.github.io/beops/` je glavni izlaz. `docs/` je generisana GitHub Pages povrsina; `public/` nosi interfejs/assets i generisane javne podatke; privatni git nosi izvor i dokaz, ne svaki zivi snapshot.
+- Struktura se cita iz `research/STRUCTURE_CONTRACT_2026-09-11.md`: izvor, dokaz, generisano javno stanje, privatni audit, ziva memorija i ostatak moraju biti razdvojeni.
 - Malo racunanja: jedan javni odgovor gde sadrzi vise lokacija, bez ponovnog geokodiranja i bez ucitavanja svih modela. Nema novih zavisnosti.
 - Izvorna vremena i jedinice ostaju tacni. Primljeno sada nije izmereno sada; najavljeno nije ostvareno; nema podataka nije nula.
 - Analiticke beleske su vidljivo tumacenje dokaza. Ne glume dodatni instrument i ne dokazuju uzrocnost.
@@ -16,13 +17,13 @@ Operativno uputstvo, uskladjeno 05.09.2026. Pocetna tacka za sledeci rad; istori
 
 ## Faze
 1. Istrazivacka osnova i povezivanje: izvori, uslovi, trag, recnik, zonska granularnost i testirane male probe.
-2. OBS-001: posebno odobrena opisna observacija trke, protokol i pocetni uzorak vec postoje; zakazani uzorci tek slede.
-3. Uporedivi domenski uzorci i model benchmark: planirano, bez automatskog pokretanja.
-4. Rad i eventualni javni oblik: tek iz rezultata; rok/prihvatanje konferencije i pravo objave posebno proveriti.
+2. Zivi opservatorijum: zakazani Collect, Mind, Organ, Publish, Watch, Legal, Guard i Baseline zadaci hrane privatni dokaz i javni sajt.
+3. Javni oblik: filtrirani mirror `github.com/3esign/beops` i GitHub Pages sajt su aktivni; izdvojeni su od privatnih dokaza i radnih papira.
+4. Rad: trenutni paper smer je `research/06-paper/PRE_PAPER_v5_2026-09-10.md`; konferencijsko slanje i prihvatanje nisu pretpostavljeni.
 
 ## Provera bez mreze
 
-`npm test` izvrsava Python stdlib testove kroz mali Node pokretac, bez instalacije. `BEOPS_PYTHON` moze zadati drugi Python 3.9+. Testovi nisu provera frontend-a ili punog Svemira.
+`npm test` izvrsava Python stdlib testove kroz mali Node pokretac, bez instalacije. `BEOPS_PYTHON` moze zadati drugi Python 3.9+, a publish gate za testove preferira bundled runtime sa potrebnim bibliotekama. Testovi nisu provera punog Svemira.
 
 Na ovom PC-u proveren Python je `C:/Users/treed/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe`. Kada `python` nije na PATH-u, pozvati taj izvrsni fajl; u PowerShell-u koristi se `&` ispred putanje u navodnicima. Putanja je lokalna pogodnost, ne obaveza drugih uredjaja.
 
@@ -40,6 +41,9 @@ Kasnjenje do 20 minuta belezi stvarno vreme prijema, ne vreme izvornog merenja. 
 
 ## Gde je sta
 
+- [Struktura projekta](research/STRUCTURE_CONTRACT_2026-09-11.md): sta je izvor, dokaz, generisano javno stanje, privatni audit, ziva memorija i ostatak.
+- [Operativni red](research/OPERATIONAL_ORDER_2026-09-11.md): privatni Beops, javni mirror, C/D pravilo, scheduler i publish safety.
+- [Research indeks](research/README.md): svi istrazivacki dokumenti i vazeci paper lineage.
 - [Detaljan program cula i modela](research/01-programme/PLAN_CULA_MODELI_2026-09-05.md): istrazivacki ciklus, 25 cula, 12 eksperimenata i 48 razrada postojecih zadataka.
 - [Banka pretrage](research/01-programme/PRETRAGA_KEYWORDS_2026-09-05.md): 64 pocetna upita, pravila izdvajanja i prosirivanja pojmova; nije automatski izvrsena pretraga.
 - [Katalog modela/provajdera](research/03-models/KATALOG_MODELA_I_PROVAJDERA_2026-09-05.md): konkretni izbori, statusi proba i razlike izmedju distributera i inference servisa.

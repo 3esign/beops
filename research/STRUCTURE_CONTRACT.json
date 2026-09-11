@@ -1,0 +1,94 @@
+{
+ "schema": "beops-structure-contract/v1",
+ "date": "2026-09-11",
+ "public_surface": {
+  "url": "https://3esign.github.io/beops/",
+  "role": "main public surface; every published artefact serves this site as source, proof, generated data or context"
+ },
+ "root_files": [
+  ".gitattributes",
+  ".gitignore",
+  "CLAIMS.md",
+  "CLAUDE.md",
+  "CONTRIBUTING.md",
+  "KNOWLEDGE.md",
+  "LICENSE.md",
+  "LOG.md",
+  "README.md",
+  "RECNIK.jsonl",
+  "TEAMWORK.md",
+  "UPUTSTVO.md",
+  "package.json",
+  "server.js",
+  "svemir_kit.json"
+ ],
+ "root_dirs": {
+  "src": "local zero-dependency server code",
+  "tools": "machines and scheduled task entry points",
+  "research": "knowledge, registries, tests, papers and provenance",
+  "public": "public-source assets and generated public data used by the site/export",
+  "docs": "generated GitHub Pages site; ignored in the private repo",
+  "data": "live memory; data/live is ignored and append-only",
+  "runtime": "task logs, locks and scratch; ignored",
+  "archive": "historical material; not part of current entry path"
+ },
+ "current_entry_points": [
+  "README.md",
+  "research/STRUCTURE_CONTRACT_2026-09-11.md",
+  "research/OPERATIONAL_ORDER_2026-09-11.md",
+  "research/README.md"
+ ],
+ "generated_public_ignored": [
+  {
+   "pattern": "public/live-snapshot.json",
+   "writer": "tools/collect_daemon.py export",
+   "published_by": "tools/build_site.py copies it into docs; tools/publish_github.ps1 copies docs"
+  },
+  {
+   "pattern": "public/history.json",
+   "writer": "tools/build_history.py",
+   "published_by": "tools/build_site.py copies it into docs; tools/publish_github.ps1 also copies public/history.json to the public mirror"
+  },
+  {
+   "pattern": "public/watch.json",
+   "writer": "tools/watchman.py",
+   "published_by": "tools/build_site.py copies it into docs; tools/publish_github.ps1 also copies public/watch.json to the public mirror"
+  },
+  {
+   "pattern": "public/dataset/permission-landscape/**",
+   "writer": "tools/export_permission_dataset.py",
+   "published_by": "tools/publish_github.ps1 copies the folder to the public mirror"
+  },
+  {
+   "pattern": "research/observations/live/REPORT_*.md",
+   "writer": "tools/collect_daemon.py report",
+   "published_by": "tools/publish_github.ps1 copies generated reports to the public mirror"
+  },
+  {
+   "pattern": "research/05-design/studies/slojevi*.svg",
+   "writer": "tools/make_layers.py or tools/build_site.py",
+   "published_by": "tools/build_site.py writes docs/slojevi.svg; tools/publish_github.ps1 copies docs"
+  }
+ ],
+ "generated_private_ignored": [
+  {
+   "pattern": "research/06-paper/PAPER_STAMPS.json",
+   "writer": "tools/paper_stamps.py",
+   "why_private": "paper audit output; useful locally, not the source of the paper itself"
+  },
+  {
+   "pattern": "research/08-provenance/CORRECTION_TIMES.json",
+   "writer": "tools/correction_times.py",
+   "why_private": "derived from git and CORRECTIONS.md; publish may copy it when present, but the source is the ledger and git history"
+  }
+ ],
+ "public_export_extra": [
+  "public/history.json",
+  "public/watch.json",
+  "public/dataset/permission-landscape",
+  "research/08-provenance/CORRECTION_TIMES.json",
+  "research/observations/live"
+ ],
+ "surplus_rule": "A tracked file is surplus if it is outside root_files/root_dirs, outside research/README.md, or matches a generated ignored pattern without being explicitly justified here.",
+ "missing_rule": "A site-visible fact is missing if it has no source file, no writer, no publication route, or no test guarding the route."
+}

@@ -11,7 +11,7 @@ Scope: Beograd only. Urban Intelligence / Living City Brain is the collection, n
 
 ## Authors · Autori
 
-prof. dr Darinka Golubović Matić · doc. dr Semir Poturak — authors of a scientific paper prepared for the conference “Creating sustainable commUNiTy” at University Union – Nikola Tesla, Belgrade. They teach at that university; this work is theirs, runs on their own equipment, is non-commercial, and does not speak for the institution or bind it. With **Svemir** (the authors' local AI infrastructure; on this work carried by Claude Fable 5.1, Anthropic) as a verified contributor at the authors' request — contributor, not author; every commit this mind made carries `Co-Authored-By: Claude Fable 5.1`. Licence: [MIT for code, CC BY 4.0 for documents](LICENSE.md). Public mirror: https://github.com/3esign/beops (export of the local repository without the captured evidence; see `tools/publish_github.ps1`).
+prof. dr Darinka Golubović Matić · doc. dr Semir Poturak — authors of a scientific paper prepared for the conference “Creating sustainable commUNiTy” at University Union – Nikola Tesla, Belgrade. They teach at that university; this work is theirs, runs on their own equipment, is non-commercial, and does not speak for the institution or bind it. With **Svemir** (the authors' local AI infrastructure) as a verified contributor at the authors' request — contributor, not author; project-local AI work is recorded in `LOG.md`, `KNOWLEDGE.md` and git history. Licence: [MIT for code, CC BY 4.0 for documents](LICENSE.md). Public mirror: https://github.com/3esign/beops (export of the local repository without the captured evidence; see `tools/publish_github.ps1`).
 
 ## How it works · Kako radi
 
@@ -24,7 +24,8 @@ prof. dr Darinka Golubović Matić · doc. dr Semir Poturak — authors of a sci
 Many minds work in this repository. **[CONTRIBUTING.md](CONTRIBUTING.md)** is the system of order:
 claim before you write, where each kind of file belongs, the status line every document opens with,
 what may never be edited, and what a number is allowed to claim. **[CLAIMS.md](CLAIMS.md)** is who is
-writing what right now. **[research/README.md](research/README.md)** is the index of every research
+writing what right now. **[research/STRUCTURE_CONTRACT_2026-09-11.md](research/STRUCTURE_CONTRACT_2026-09-11.md)**
+says what is source, proof, generated public state, private audit and live memory. **[research/README.md](research/README.md)** is the index of every research
 document and which one wins when two disagree.
 
 ## Research Dossier
@@ -69,8 +70,8 @@ Latest scope: all Belgrade -> larger urban areas -> broad zones, stopping before
 3. Define layered city pulses and controlled comparisons in [Research Protocol](research/01-programme/PULSE_RESEARCH_PROTOCOL.md).
 4. Audit Belgrade source coverage, update rhythms, reuse conditions and historical vintages before building collectors.
 5. Catalog small specialist models with input/output contracts and evaluation gates. Discovery is not installation, and installation is not proof of accuracy.
-6. Build an annotated benchmark and compare rules, small models and cross-layer combinations; measure utility, cost and failure recovery.
-7. Prepare a manuscript from measured results. Interface, public deployment and conference submission are separate later decisions.
+6. Maintain the public site as the main surface while keeping source, proof, generated state and live memory separate.
+7. Build an annotated benchmark and prepare the manuscript from measured results. Conference submission remains a separate decision.
 
 Public deployment has occurred through the filtered mirror and GitHub Pages. Conference submission is still a separate decision and is not assumed here.
 
