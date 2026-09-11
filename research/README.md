@@ -12,6 +12,7 @@ file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ## Start here
 
+- **[_trail/AUDIT_DEEP_2026-09-11.md](_trail/AUDIT_DEEP_2026-09-11.md)** — fresh deep audit of source dc22db2: 63 findings (15 P1, 42 P2, 6 P3), complete byte inventory, evidence/hash checks, 535 passing isolated tests, adversarial and browser probes, and a sequenced remediation plan. Findings are not fixes. Evidence and reproduction notes: **[_trail/audit-deep-20260911/README.md](_trail/audit-deep-20260911/README.md)**.
 - **[_trail/AUDIT_ORDER_2026-09-11.md](_trail/AUDIT_ORDER_2026-09-11.md)** — detailed project-order audit: 39 findings, isolated failure reproductions, 519 passing offline tests, scheduler and browser checks; findings are not fixes.
 - **[STRUCTURE_CONTRACT_2026-09-11.md](STRUCTURE_CONTRACT_2026-09-11.md)** — current structure rule: public site as main surface, source/proof/live/generated/private zones, and how to name surplus and missing.
 - **[OPERATIONAL_ORDER_2026-09-11.md](OPERATIONAL_ORDER_2026-09-11.md)** — current operational order: active private repo vs public mirror, C/D path rule, scheduler source of truth and publish safety.
