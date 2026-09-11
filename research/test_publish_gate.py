@@ -79,6 +79,11 @@ class Gate(unittest.TestCase):
             "committed",
             "pushed",
             "remote_head",
+            "site_verified",
+            "site_live_hash",
+            "site_local_hash",
+            "site_route_count",
+            "site_checked_at",
         ):
             self.assertIn(k, self.s, f"the receipt no longer records {k}")
 
@@ -133,6 +138,16 @@ class Gate(unittest.TestCase):
         self.assertIn("beops-export-manifest/v1", self.s)
         self.assertIn("docs/export-manifest.json", self.s)
         self.assertIn("Get-FileHash", self.s)
+
+    def test_the_publisher_verifies_the_live_site_before_confirming_publication(self):
+        push = self.s.find("Invoke-BeopsNative 'git push public export'")
+        site = self.s.find("Invoke-BeopsSiteCheck", push)
+        published = self.s.find("$receipt.published = $true", site)
+        self.assertGreater(push, -1)
+        self.assertGreater(site, push, "the live site check does not run after push")
+        self.assertGreater(published, site, "published=true is set before the live site is verified")
+        self.assertIn("tools\\verify_public_site.js", self.s)
+        self.assertIn("REMOTE PUSH COMPLETED BUT LIVE SITE WAS NOT VERIFIED", self.s)
 
     def test_generated_public_files_are_force_added(self):
         for path in (

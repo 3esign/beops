@@ -67,6 +67,7 @@ if ($DryRun) { $keep | Select-Object -First 40; exit 0 }
 $lockFile = Join-Path $src 'runtime\publish.lock'
 $script:publishTestsOutRun = $null
 $script:sourceArchivePath = $null
+$script:siteCheckOutRun = $null
 $receiptPath = Join-Path $src 'data\live\publish-receipt.json'
 $generatedPublicPaths = @('public/history.json',
                           'public/watch.json',
@@ -89,16 +90,24 @@ $receipt = [ordered]@{
   committed         = $false
   pushed            = $false
   remote_head       = ''
+  site_verified     = $false
+  site_live_hash    = ''
+  site_local_hash   = ''
+  site_route_count  = 0
+  site_checked_at   = ''
   published         = $false
   why               = ''
 }
 function Write-BeopsPublishReceipt {
   $receipt.at = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
-  $receipt | ConvertTo-Json -Depth 4 | Set-Content -Path $receiptPath -Encoding UTF8
+  $receipt | ConvertTo-Json -Depth 8 | Set-Content -Path $receiptPath -Encoding UTF8
 }
 function Release-BeopsPublishRun {
   if ($script:publishTestsOutRun -and (Test-Path $script:publishTestsOutRun)) {
     Remove-Item -LiteralPath $script:publishTestsOutRun -Force -ErrorAction SilentlyContinue
+  }
+  if ($script:siteCheckOutRun -and (Test-Path $script:siteCheckOutRun)) {
+    Remove-Item -LiteralPath $script:siteCheckOutRun -Force -ErrorAction SilentlyContinue
   }
   if ($script:sourceArchivePath -and (Test-Path -LiteralPath $script:sourceArchivePath)) {
     Remove-Item -LiteralPath $script:sourceArchivePath -Force -ErrorAction SilentlyContinue
@@ -116,6 +125,28 @@ function Assert-BeopsTrackedSourceClean {
   $dirty = Get-BeopsTrackedDirtyStatus
   if ($dirty) {
     throw "tracked source working tree is dirty $Moment; commit or move those changes before publish: $dirty"
+  }
+}
+function Invoke-BeopsSiteCheck {
+  $script:siteCheckOutRun = Join-Path $src ("runtime\publish-site-check-{0}.json" -f $PID)
+  $prevEAP = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  & node tools\verify_public_site.js *> $script:siteCheckOutRun
+  $siteRc = $LASTEXITCODE
+  $ErrorActionPreference = $prevEAP
+  $raw = if (Test-Path -LiteralPath $script:siteCheckOutRun) { Get-Content -LiteralPath $script:siteCheckOutRun -Raw } else { '' }
+  $site = $null
+  try { if ($raw.Trim()) { $site = $raw | ConvertFrom-Json } } catch {}
+  $receipt.site_checked_at = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+  if ($site) {
+    $receipt.site_verified = [bool]$site.ok
+    $receipt.site_live_hash = [string]($site.live_hash)
+    $receipt.site_local_hash = [string]($site.local_hash)
+    $receipt.site_route_count = @($site.routes).Count
+  }
+  if ($siteRc -ne 0 -or -not $site -or -not $site.ok) {
+    $detail = if ($raw.Trim()) { $raw.Trim() } else { 'no site verifier output' }
+    throw "site verification failed after push with exit code ${siteRc}: $($detail.Substring(0, [Math]::Min(500, $detail.Length)))"
   }
 }
 $lock = Enter-BeopsPublishLock -Path $lockFile -MaxAgeMinutes 15
@@ -323,7 +354,8 @@ if (-not $changed) {
   $remoteHead = (($remoteLine -split '\s+')[0])
   if ($remoteHead -eq $publicHead) {
     $receipt.remote_head = $remoteHead
-    $receipt.why = 'nothing changed since the last publish'
+    Invoke-BeopsSiteCheck
+    $receipt.why = 'nothing changed since the last publish; live site verified'
     Write-BeopsPublishReceipt
     Write-Output 'nothing changed since the last publish'
     Release-BeopsPublishRun
@@ -342,6 +374,7 @@ if (-not $changed) {
     Release-BeopsPublishRun
     exit 6
   }
+  Invoke-BeopsSiteCheck
   $receipt.published = $true
   $receipt.why = "Pushed existing export commit $publicHead for source $head"
   Write-BeopsPublishReceipt
@@ -369,15 +402,20 @@ if ($remoteHead -ne $publicHead) {
   Release-BeopsPublishRun
   exit 6
 }
+Invoke-BeopsSiteCheck
 $receipt.published = $true
 $receipt.why = $msg
 Write-BeopsPublishReceipt
 Write-Output "published: $msg"
 
 } catch {
-  $receipt.why = "publish failed before confirmed push: " + $_.Exception.Message
+  $receipt.why = "publish failed before final confirmation: " + $_.Exception.Message
   Write-BeopsPublishReceipt
-  Write-Output ("STOP: {0}. NOTHING WAS PUBLISHED." -f $receipt.why)
+  if ($receipt.pushed) {
+    Write-Output ("STOP: {0}. REMOTE PUSH COMPLETED BUT LIVE SITE WAS NOT VERIFIED." -f $receipt.why)
+  } else {
+    Write-Output ("STOP: {0}. NOTHING WAS PUBLISHED." -f $receipt.why)
+  }
   Release-BeopsPublishRun
   exit 5
 } finally { Release-BeopsPublishRun }
