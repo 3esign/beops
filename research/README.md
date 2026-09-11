@@ -1,8 +1,8 @@
 # research/ — index
 
 Status: current
-Date: 2026-09-05
-Author: claude-cowork
+Date: 2026-09-11
+Author: claude-cowork, Codex
 
 Every document in this folder, what it is, and which one wins when two disagree. **A document that
 is not listed here does not exist to the next mind** — add your row in the same commit that adds the
@@ -14,8 +14,11 @@ file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md)
 
 - **[PROJECT_MAP_2026-09-09.md](PROJECT_MAP_2026-09-09.md)** — the short way in: which folder holds what, which scheduled task writes where, what is public, and where the day's changes landed. Read it before this index.
 - **[OPERATIONAL_ORDER_2026-09-11.md](OPERATIONAL_ORDER_2026-09-11.md)** — current operational order: active private repo vs public mirror, C/D path rule, scheduler source of truth and publish safety.
+- **[Current paper direction](06-paper/PRE_PAPER_v5_2026-09-10.md)** — pre-paper v5; supersedes v3/v4 and their addenda as the current discussion entry.
+- **[Statistical collaboration note](06-paper/STATISTICS_COLLABORATION_2026-09-10.md)** — what statisticians can do with the present record; coverage/exposure first.
+- **[Stability review](STABILITY_REVIEW_2026-09-10.md)** and **[decisions](DECISIONS.md)** — what can fail unnoticed and what was explicitly chosen.
 
-- **[Serbian pre-paper V2](06-paper/PRED_RAD_SR_V2_2026-09-06.md)** — current discussion entry: new literature/gap review and institutional-practice appendix; no manuscript. Final bilingual alignment is deferred.
+- **[Serbian pre-paper V2](06-paper/PRED_RAD_SR_V2_2026-09-06.md)** — preserved Serbian discussion wave: new literature/gap review and institutional-practice appendix. It is superseded by v5 for current paper direction.
 - **[Earlier English pre-paper](06-paper/PRE_PAPER_URBAN_INTELLIGENCE_2026-09-06.md)** — preserved earlier version, not synchronized with the Serbian additions.
 - **[All189 source records, organized](06-paper/RESEARCH_ATLAS_2026-09-06.md)** — source roles, limits and literature shelves; original registry unchanged.
 
@@ -38,9 +41,27 @@ file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md)
    Supersedes interim interpretations; repeated zeroes are not proof of a dead counter.
 3. **[06-paper/rad_draft.md](06-paper/rad_draft.md)** — preserved historical manuscript; not the current discussion entry point. Its incomplete pilot/clock claims require later correction.
 
+## Paper lineage
+
+| File | Status |
+|---|---|
+| [06-paper/PRE_PAPER_v5_2026-09-10.md](06-paper/PRE_PAPER_v5_2026-09-10.md) | Current paper discussion entry. Supersedes v3/v4 and addenda. |
+| [06-paper/STATISTICS_COLLABORATION_2026-09-10.md](06-paper/STATISTICS_COLLABORATION_2026-09-10.md) | Current statistical collaboration note. |
+| [06-paper/PAPER_v1_2026-09-09.md](06-paper/PAPER_v1_2026-09-09.md) | Paper-shaped draft; not the current discussion entry. |
+| [06-paper/PRE_PAPER_v4_2026-09-10.md](06-paper/PRE_PAPER_v4_2026-09-10.md) | Preserved prior version; superseded by v5. |
+| [06-paper/PRE_PAPER_v4_ADDENDUM_2026-09-10.md](06-paper/PRE_PAPER_v4_ADDENDUM_2026-09-10.md) | Preserved addendum; superseded by v5. |
+| [06-paper/PRE_PAPER_v4_ADDENDUM_2_2026-09-10.md](06-paper/PRE_PAPER_v4_ADDENDUM_2_2026-09-10.md) | Preserved addendum; superseded by v5. |
+| [06-paper/PRE_PAPER_v3_2026-09-09.md](06-paper/PRE_PAPER_v3_2026-09-09.md) | Preserved prior version; superseded by v4/v5. |
+| [06-paper/PRE_PAPER_v3_ADDENDUM_2026-09-09.md](06-paper/PRE_PAPER_v3_ADDENDUM_2026-09-09.md) | Preserved addendum; superseded by v5. |
+| [06-paper/PRE_PAPER_CONFERENCE_2026-09-09.md](06-paper/PRE_PAPER_CONFERENCE_2026-09-09.md) | Earlier conference pre-paper; superseded by v3-v5. |
+| [06-paper/PRE_PAPER_CONFERENCE_v2_2026-09-09.md](06-paper/PRE_PAPER_CONFERENCE_v2_2026-09-09.md) | Earlier v2; superseded by later pre-paper line. |
+| [06-paper/PRE_PAPER_URBAN_INTELLIGENCE_2026-09-06.md](06-paper/PRE_PAPER_URBAN_INTELLIGENCE_2026-09-06.md) | Earlier English pack; preserved. |
+| [06-paper/PRED_RAD_SR_V2_2026-09-06.md](06-paper/PRED_RAD_SR_V2_2026-09-06.md) | Serbian discussion wave; preserved. |
+| [06-paper/rad_draft.md](06-paper/rad_draft.md) | Historical manuscript; preserved. |
+
 ## Serbian discussion wave V2 — 2026-09-06
 
-This is the current working discussion layer, explicitly requested in Serbian. It extends the earlier English pack; final bilingual parity is not claimed. Source registry and manuscript are unchanged. The current system-method note qualifies the old C15 conformal-prediction shorthand; the old bibliography is preserved.
+This is a preserved working discussion layer, explicitly requested in Serbian. It extends the earlier English pack; final bilingual parity is not claimed. Source registry and manuscript are unchanged for that wave. Later paper direction is v5 above.
 
 | File | Scope |
 |---|---|
@@ -84,7 +105,9 @@ SOURCE_REGISTRY.json · MODEL_CANDIDATES.json   the registries
 | Subject | Current | Note |
 |---|---|---|
 | Situation and state | `_trail/PRESEK_2026-09-08_SPOLJNI_PREGLED.md` | supersedes `_trail/PRESEK_2026-09-05_POPODNE.md` for state; the 05 review stays as history |
-| Current pre-paper direction | `06-paper/PRE_PAPER_CONFERENCE_2026-09-09.md` | supersedes the Serbian discussion V2 (kept as history); recommends Option A for the 25 September conference |
+| Current pre-paper direction | `06-paper/PRE_PAPER_v5_2026-09-10.md` | supersedes v3/v4 and addenda as the current discussion entry; v5 keeps the costs and unresolved limits explicit |
+| Statistical collaboration | `06-paper/STATISTICS_COLLABORATION_2026-09-10.md` | coverage/exposure with population as denominator; warns against inventing a smooth city surface |
+| Stability and decisions | `STABILITY_REVIEW_2026-09-10.md` + `DECISIONS.md` | current checks-of-checks and explicit choices |
 | Historical manuscript | `06-paper/rad_draft.md` | Preserved unchanged; later audits take precedence for pilot, clock, coverage and legal claims. |
 | Pilot reading | `observations/10k-2026-09-05/IZVESTAJ.md` | Final descriptive report; supersedes interim interpretations. Append-only corrections remain in `OPAZANJA.md`. |
 | Sense discovery | `02-senses/NOVA_CULA_RUNDA3_2026-09-05.md` | rounds 1 and 2 are **extended, not superseded**: round 1 holds the 19 dormant-technology categories, round 2 the twelve-medium typology and the global candidates, round 3 the Serbian institutions, the physical instrument inventory, the derived senses and the city's dated rhythms |
@@ -95,7 +118,7 @@ SOURCE_REGISTRY.json · MODEL_CANDIDATES.json   the registries
 | The mind | `03-models/MIND_ARCHITECTURES_2026-09-09.md` + `ORGANS.json` (organ `mind`) | the architecture, the experiment and its first measured result; the utterances themselves live in `data/live/derived/mind/` and the accepted ones in the snapshot |
 | The city's shape (context) | `STATIC_LAYERS.json` → `public/context-population.json` | Kontur population (S120, CC BY) taken 2026-09-09; other layers registered with their status |
 | The map's ground | `public/basemap-belgrade.json` (generated by `tools/fetch_basemap.py derive-naturalearth`) | Natural Earth 1:10m, public domain (S98), after S193/S194/S126/S142/S127 were refused and recorded |
-| Sources | `SOURCE_REGISTRY.json` | **191 records**. Records include archives, catalogues, related routes and coverage gaps; use the registry for status totals, not a sensor count. |
+| Sources | `SOURCE_REGISTRY.json` | **215 records**. Records include archives, catalogues, related routes and coverage gaps; use the registry for status totals, not a sensor count. |
 | The city's past and ground | `02-senses/HISTORY_AND_SPATIAL_BASE_2026-09-05.md` | How to reconstruct a past from sources that keep none, and the free spatial base — about 1.1–2.3 GB |
 | What v1 stands on | `02-senses/OPEN_LAYER_V1_2026-09-05.md` | The layer that depends on nobody — no letters, no purchases, no approvals |
 | What may lawfully be collected | `07-legal/COLLECTION_LEGAL_FRAME.md` | Primary texts, quoted; open questions named rather than resolved |
@@ -213,7 +236,7 @@ validated by code, scored, retractable - see `03-models/MIND_ARCHITECTURES_2026-
 GeoPackage read with sqlite3 + a forty-line WKB parser) ·
 `build_site.py` (generates `docs/index.html` from the registry, the
 provenance index, the corrections and the last snapshot) · `publish_github.ps1` (the export to
-github.com/3esign/beops) · `register_tasks.ps1` + `collect_tick.bat`, `organ_tick.bat`,
+github.com/3esign/beops) · `beops_tasks.ps1`, `audit_tasks.ps1`, `register_tasks.ps1` + `collect_tick.bat`, `organ_tick.bat`,
 `publish_tick.bat`, `mind_tick.bat`, `watch_tick.bat`, `legal_tick.bat`, `guard_tick.bat`,
 `baseline_tick.bat` (the eight scheduled tasks) · `legal_capture.py` (permission evidence before
 any collection; `--recheck-collectors` re-captures every polled source weekly) · `build_provenance_index.py`. Their tests: `test_collect_daemon.py`,
@@ -281,6 +304,50 @@ first and moves second, and the reverse order silently leaves every moved file p
 - [CURRENT_PRODUCTS_COLLECTION_METHOD_2026-09-06](_trail/CURRENT_PRODUCTS_COLLECTION_METHOD_2026-09-06.txt) — bounded report, review or reproduction record.
 - [Continuation board](_trail/CURRENT_PRODUCTS_BOARD_2026-09-06.md) — ownership, limits and exit state.
 - [Integration QA](_trail/CURRENT_PRODUCTS_INTEGRATION_QA_2026-09-06.json) — hashes, local links, registry and required checks.
+
+## Named backlog — known documents needing fuller classification
+
+These files now have exact names in the index so they are not invisible. A later cleanup should move
+each into the right thematic section with a one-line scope.
+
+- [_trail/AUDIT_V1_2026-09-05.md](_trail/AUDIT_V1_2026-09-05.md)
+- [_trail/AUDIT_V2_2026-09-05.md](_trail/AUDIT_V2_2026-09-05.md)
+- [_trail/INTAKE_2026-09-05.md](_trail/INTAKE_2026-09-05.md)
+- [_trail/MERGE_2026-09-05.md](_trail/MERGE_2026-09-05.md)
+- [_trail/PAZARAC_TRANSFER_AUDIT.md](_trail/PAZARAC_TRANSFER_AUDIT.md)
+- [_trail/PLAN_IZVRSENJA_2026-09-05.md](_trail/PLAN_IZVRSENJA_2026-09-05.md)
+- [_trail/revise-1788619136912.md](_trail/revise-1788619136912.md)
+- [_trail/VERIFICATION_2026-09-05.md](_trail/VERIFICATION_2026-09-05.md)
+- [01-programme/DISCOVERY_PROTOCOL.md](01-programme/DISCOVERY_PROTOCOL.md)
+- [02-senses/ROAD_COUNTS_2026-09-06.md](02-senses/ROAD_COUNTS_2026-09-06.md)
+- [06-paper/BEOPS_ANALYSIS_instruments_and_knowledge_2026-09-09.md](06-paper/BEOPS_ANALYSIS_instruments_and_knowledge_2026-09-09.md)
+- [06-paper/conference/LATE_SUBMISSION_EMAIL.md](06-paper/conference/LATE_SUBMISSION_EMAIL.md)
+- [06-paper/PAPER_v1_2026-09-09.md](06-paper/PAPER_v1_2026-09-09.md)
+- [06-paper/PRE_PAPER_CONFERENCE_v2_2026-09-09.md](06-paper/PRE_PAPER_CONFERENCE_v2_2026-09-09.md)
+- [06-paper/PRE_PAPER_v3_2026-09-09.md](06-paper/PRE_PAPER_v3_2026-09-09.md)
+- [06-paper/PRE_PAPER_v3_ADDENDUM_2026-09-09.md](06-paper/PRE_PAPER_v3_ADDENDUM_2026-09-09.md)
+- [06-paper/PRE_PAPER_v4_2026-09-10.md](06-paper/PRE_PAPER_v4_2026-09-10.md)
+- [06-paper/PRE_PAPER_v4_ADDENDUM_2026-09-10.md](06-paper/PRE_PAPER_v4_ADDENDUM_2026-09-10.md)
+- [06-paper/PRE_PAPER_v4_ADDENDUM_2_2026-09-10.md](06-paper/PRE_PAPER_v4_ADDENDUM_2_2026-09-10.md)
+- [06-paper/PRE_PAPER_v5_2026-09-10.md](06-paper/PRE_PAPER_v5_2026-09-10.md)
+- [06-paper/STATISTICS_COLLABORATION_2026-09-10.md](06-paper/STATISTICS_COLLABORATION_2026-09-10.md)
+- [07-legal/BEOPS_EVIDENCIJA_OBRADE_2026-09-09.md](07-legal/BEOPS_EVIDENCIJA_OBRADE_2026-09-09.md)
+- [07-legal/BEOPS_PISMA_OBAVESTENJA_v2_2026-09-09.md](07-legal/BEOPS_PISMA_OBAVESTENJA_v2_2026-09-09.md)
+- [07-legal/BEOPS_PISMA_v3_2026-09-09.md](07-legal/BEOPS_PISMA_v3_2026-09-09.md)
+- [07-legal/GRANT_LAYER_WORKING_DOCUMENT_v1_2026-09-10.md](07-legal/GRANT_LAYER_WORKING_DOCUMENT_v1_2026-09-10.md)
+- [07-legal/NEWS_LEGAL_RECOMB_WORKING_DOCUMENT_v1_2026-09-10.md](07-legal/NEWS_LEGAL_RECOMB_WORKING_DOCUMENT_v1_2026-09-10.md)
+- [07-legal/THIRD_PARTY_ROUTE_RULE_2026-09-10.md](07-legal/THIRD_PARTY_ROUTE_RULE_2026-09-10.md)
+- [DECISIONS.md](DECISIONS.md)
+- [DOI_TO_FINISH.md](DOI_TO_FINISH.md)
+- [GATE_SECOND_ANNOTATOR.md](GATE_SECOND_ANNOTATOR.md)
+- [GATE_SHEET_BLANK.md](GATE_SHEET_BLANK.md)
+- [observations/10k-2026-09-05/INTERIM_ANALYSIS.md](observations/10k-2026-09-05/INTERIM_ANALYSIS.md)
+- [observations/10k-2026-09-05/OPAZANJA.md](observations/10k-2026-09-05/OPAZANJA.md)
+- [observations/10k-2026-09-05/PROTOKOL.md](observations/10k-2026-09-05/PROTOKOL.md)
+- [observations/live/REPORT_2026-09-08.md](observations/live/REPORT_2026-09-08.md)
+- [observations/live/REPORT_2026-09-09.md](observations/live/REPORT_2026-09-09.md)
+- [observations/live/REPORT_2026-09-10.md](observations/live/REPORT_2026-09-10.md)
+- [STABILITY_REVIEW_2026-09-10.md](STABILITY_REVIEW_2026-09-10.md)
 
 ## Pre-paper organization for discussion, 2026-09-06
 

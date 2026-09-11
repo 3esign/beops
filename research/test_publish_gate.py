@@ -26,6 +26,16 @@ class Gate(unittest.TestCase):
         self.assertIn("unittest discover", self.s,
                       "the publisher no longer runs the tests: every scheduled publish would go out unchecked")
 
+    def test_direct_publisher_prefers_the_bundled_test_python(self):
+        """The documented direct PowerShell command must not fall back to a random PATH python."""
+        start = self.s.find("function Resolve-BeopsTestPython")
+        end = self.s.find("$src =")
+        self.assertGreater(start, -1)
+        seg = self.s[start:end]
+        self.assertIn("BEOPS_TEST_PYTHON", seg)
+        self.assertIn("Resolve-BeopsBundledPython", seg)
+        self.assertIn("Resolve-BeopsPython", seg)
+
     def test_the_suite_runs_after_the_site_is_built(self):
         """Tests placed before build_site.py would check yesterday's page and pass it while today's
         went out untested. That was the first design and reading the file refuted it."""
@@ -58,14 +68,23 @@ class Gate(unittest.TestCase):
         """C-045: the loser of a race for git's index.lock read exactly like a clean tree."""
         self.assertIn("publish.lock", self.s)
         self.assertIn("another publish holds the lock", self.s)
+        self.assertIn("[System.IO.FileMode]::CreateNew", self.s,
+                      "the publish lock is not taken atomically")
+
+    def test_publish_test_transcript_is_per_run(self):
+        self.assertIn("publish-tests-{0}.txt", self.s)
+        self.assertIn("$script:publishTestsOutRun", self.s)
 
     def test_a_failing_gate_releases_the_lock(self):
         """PowerShell does not run finally on exit. A lock left by a failing gate would block every
         publish for fifteen minutes - a second outage caused by the first."""
+        release = self.s[self.s.find("function Release-BeopsPublishRun"):self.s.find("if (Test-Path $lockFile)")]
+        self.assertIn("Remove-Item $lockFile", release,
+                      "the shared publish cleanup no longer removes the lock")
         i = self.s.find("NOTHING WAS PUBLISHED")
         j = self.s.find("exit 3")
         seg = self.s[i:j]
-        self.assertIn("Remove-Item $lockFile", seg,
+        self.assertIn("Release-BeopsPublishRun", seg,
                       "the gate exits without releasing the lock it holds")
 
     def test_an_unreadable_status_is_never_reported_as_clean(self):
