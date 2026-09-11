@@ -1080,11 +1080,12 @@ def _rows(path: pathlib.Path) -> list[dict]:
     if not path.exists():
         return []
     out = []
-    for line in open(path, encoding="utf-8"):
-        try:
-            out.append(json.loads(line))
-        except ValueError:
-            continue
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            try:
+                out.append(json.loads(line))
+            except ValueError:
+                continue
     return out
 
 

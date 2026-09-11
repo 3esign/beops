@@ -139,3 +139,10 @@ Errors: A temporary git diff check with core.autocrlf=false reinterpreted histor
 - Iskustva: Ne sme se globalno zabraniti rec `Claude` u javnom output-u, jer su `ClaudeBot` i `anthropic-ai` legitimni pojmovi u robots/provenance dokazima i odbijanjima. Lek: test proverava samo vidljive author blokove, ne ceo embedded registar.
 - Vestine: `research/test_public_attribution.py` cuva javni potpis u `docs/index.html`, `docs/podaci.html`, `docs/monolog.html`, `tools/build_site.py` i dve studije koje build kopira.
 - Odluke: Vidljivi javni potpis glasi u sustini: autori su ljudi; rad ne nastupa u ime ustanove; Svemir je lokalna AI infrastruktura autora i provereni saradnik, ne autor.
+
+## Public site gate — 2026-09-11T01:10:44Z
+
+- Iskustva: Offline `npm test` dokazuje artefakt pre objave, ali ne dokazuje da GitHub Pages zaista sluzi taj artefakt. Lek: posle objave treba poseban read-only site-gate koji sa cache-busterom pita javni URL, normalizuje CRLF/LF i poredi hash sa public mirror-om.
+- Greske: Prvi marker u novom verifieru trazio je izraz `Source registry`, iako javni interfejs taj ulaz nosi kao `Izvori/Sources`. Uzrok: proveravao sam interni naziv sloja, ne stvarni tekst sajta. Lek: health provera mora vezati javni ugovor (`#izvori`, `#greske`, core routes), ne recnik iz glave.
+- Vestine: `npm run test:site` pokrece `tools/verify_public_site.js`; koristi Svemirov `incognito.js` kada postoji, zatim proverava live hash, osnovne ugradjene rute i poznate stale javne recenice.
+- Odluke: `npm test` ostaje offline publish gate, a `npm run test:site` je posle-publish provera glavnog interfejsa. Zivi sajt je health surface projekta, ne sporedni output.
