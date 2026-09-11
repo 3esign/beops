@@ -29,6 +29,10 @@ Na ovom PC-u proveren Python je `C:/Users/treed/.cache/codex-runtimes/codex-prim
 
 `python -B research/observe_10k.py status` cita 13 planiranih termina i postojece receipte; ne pristupa internetu i ne pise stanje.
 
+## Provera javnog sajta
+
+`npm run test:site` je read-only provera glavnog interfejsa. Ona salje spoljne GET zahteve ka `https://3esign.github.io/beops/`, sa cache-busterom, uporedjuje zivi `index.html` sa `Beops-public/docs/index.html`, proverava osnovne ugradjene stranice (`podaci`, `monolog`, `sada`, `traka`, `svedoci`) i pada ako se vrati stara javna atribucija ili drugi poznat stale marker. To je posle-publish provera zivog sajta; ne zamenjuje `npm test`, koji ostaje offline gate pre objave.
+
 ## OBS-001 upis
 
 `python -B research/observe_10k.py capture` se poziva samo iz vec podesene automatizacije u ovoj sesiji. Alat je ogranicen na datume observacije. Ne podizati drugi scheduler ili novi servis.

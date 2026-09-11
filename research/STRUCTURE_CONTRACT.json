@@ -36,8 +36,19 @@
   "README.md",
   "research/STRUCTURE_CONTRACT_2026-09-11.md",
   "research/OPERATIONAL_ORDER_2026-09-11.md",
-  "research/README.md"
+  "research/README.md",
+  "tools/verify_public_site.js"
  ],
+ "site_verification": {
+  "command": "npm run test:site",
+  "tool": "tools/verify_public_site.js",
+  "when": "after publish",
+  "checks": [
+   "live GitHub Pages index equals public export after line-ending normalization",
+   "core embedded pages answer with HTTP 200",
+   "known stale public wording is absent"
+  ]
+ },
  "generated_public_ignored": [
   {
    "pattern": "public/live-snapshot.json",

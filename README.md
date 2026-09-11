@@ -2,7 +2,7 @@
 
 Belgrade evidence observatory — a scientific work, not a product and not a service. A new implementation in the Living City Brain / Urban Intelligence collection.
 
-Status: active research instrument, 2026-09-11. The previous application is archival material, not the runtime. The current runtime is the scheduled observatory in `tools/`: collectors, local model organs, guard, watchman, baseline builder and the publisher. A filtered public mirror is published at https://github.com/3esign/beops and the public site is served from GitHub Pages. Operational entry point: [research/OPERATIONAL_ORDER_2026-09-11.md](research/OPERATIONAL_ORDER_2026-09-11.md).
+Status: active research instrument, 2026-09-11. The previous application is archival material, not the runtime. The current runtime is the scheduled observatory in `tools/`: collectors, local model organs, guard, watchman, baseline builder and the publisher. A filtered public mirror is published at https://github.com/3esign/beops and the public site is served from GitHub Pages. The public site is the main interface and health surface; after publish, `npm run test:site` checks that the live GitHub Pages HTML matches the public export and that the embedded pages answer. Operational entry point: [research/OPERATIONAL_ORDER_2026-09-11.md](research/OPERATIONAL_ORDER_2026-09-11.md).
 
 The current version connects parking, public events/service changes, environmental observations, static context and permission evidence through existing sources. Forecasts and archival context are separate channels. It must distinguish observations, forecasts, model estimates, and unavailable data. No fabricated camera readings, river levels, city vitality score, face recognition, individual tracking, or unsupported causal claims.
 
@@ -70,7 +70,7 @@ Latest scope: all Belgrade -> larger urban areas -> broad zones, stopping before
 3. Define layered city pulses and controlled comparisons in [Research Protocol](research/01-programme/PULSE_RESEARCH_PROTOCOL.md).
 4. Audit Belgrade source coverage, update rhythms, reuse conditions and historical vintages before building collectors.
 5. Catalog small specialist models with input/output contracts and evaluation gates. Discovery is not installation, and installation is not proof of accuracy.
-6. Maintain the public site as the main surface while keeping source, proof, generated state and live memory separate.
+6. Maintain the public site as the main surface while keeping source, proof, generated state and live memory separate; use `npm run test:site` after publish to verify the live interface.
 7. Build an annotated benchmark and prepare the manuscript from measured results. Conference submission remains a separate decision.
 
 Public deployment has occurred through the filtered mirror and GitHub Pages. Conference submission is still a separate decision and is not assumed here.
