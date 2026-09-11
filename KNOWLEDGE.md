@@ -132,3 +132,10 @@ Errors: A temporary git diff check with core.autocrlf=false reinterpreted histor
 - Iskustva: Cist git status nije isto sto i uredan projekat. Ako se zivi javni artefakti prate u privatnom source repou, scheduler ih stalno pravi dirty i sledeci um ne zna da li gleda rucnu promenu ili normalan puls. Lek: generated public state je ignorisan lokalno, ali publisher ga kopira eksplicitno u javni mirror.
 - Vestine: `STRUCTURE_CONTRACT.json` je masinski ugovor za visak/manjak: root fajlovi, root zone, generated public/private obrasci i public-export extra ruta. `test_structure_contract.py` proverava da ulazi postoje, da su generated obrasci u `.gitignore`, i da publisher nosi ignored public artefakte.
 - Greske: `UPUTSTVO.md` i `TEAMWORK.md` su nosili staro "current" stanje posle promene sistema. Uzrok: ulazni dokumenti nisu bili deo readme/status provere. Lek: `test_readme_status.py` sada cuva da UPUTSTVO ne vrati staru tvrdnju o odlozenom/neaktivnom interfejsu.
+
+## Public attribution — 2026-09-11T00:36:38Z
+
+- Greske: Javni `docs/index.html`, `docs/podaci.html` i `docs/monolog.html` su u vidljivom potpisu vezivali Svemir za Claude/Anthropic/Fable iako je aktuelni ugovor da je Svemir lokalna AI infrastruktura, a model prolazno telo. Uzrok: README je osvezen, ali generator i ugradjene studije nisu bile pod istom proverom.
+- Iskustva: Ne sme se globalno zabraniti rec `Claude` u javnom output-u, jer su `ClaudeBot` i `anthropic-ai` legitimni pojmovi u robots/provenance dokazima i odbijanjima. Lek: test proverava samo vidljive author blokove, ne ceo embedded registar.
+- Vestine: `research/test_public_attribution.py` cuva javni potpis u `docs/index.html`, `docs/podaci.html`, `docs/monolog.html`, `tools/build_site.py` i dve studije koje build kopira.
+- Odluke: Vidljivi javni potpis glasi u sustini: autori su ljudi; rad ne nastupa u ime ustanove; Svemir je lokalna AI infrastruktura autora i provereni saradnik, ne autor.
