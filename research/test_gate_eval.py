@@ -29,11 +29,11 @@ LOCKED = {
     "citation_mismatch", "untimed_as_now", "silence_as_zero", "causal_invention", "unit_swap",
     "advice", "superlative_unsupported", "coverage_overclaim", "link_as_fact", "authority_borrowing",
     "voice_ijekavica", "voice_citation_drift", "voice_untranslated", "voice_not_serbian",
-    "voice_number_added", "voice_number_invented", "voice_prompt_echo", "voice_too_short",
+    "voice_meaning_drift", "voice_number_added", "voice_number_invented", "voice_prompt_echo", "voice_too_short",
 }
 
 # What the gate is known NOT to catch, and cannot without a reader. Named in the paper as the residue.
-RESIDUE = {"number_rebinding", "measurement_time_drift", "voice_meaning_drift"}
+RESIDUE = {"number_rebinding", "measurement_time_drift"}  # v0.5 closes the negation-drift fixture; general semantics still need a reader
 
 
 class GateEvalTests(unittest.TestCase):

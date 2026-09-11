@@ -49,6 +49,13 @@ $rows = foreach ($spec in Get-BeopsTaskSpecs) {
     if ($triggerCount -lt 2) {
       $issues += 'missing repeat or logon trigger'
     }
+    if ([string]$task.Settings.ExecutionTimeLimit -ne [System.Xml.XmlConvert]::ToString([TimeSpan]::FromMinutes($spec.Limit))) { $issues += 'execution limit drift' }
+    if ([string]$task.Settings.MultipleInstances -ne 'IgnoreNew') { $issues += 'overlap policy drift' }
+    $interval = [System.Xml.XmlConvert]::ToString([TimeSpan]::FromMinutes($spec.Minutes))
+    if (-not @($task.Triggers | Where-Object { $_.Repetition.Interval -eq $interval }).Count) { $issues += 'repeat interval drift' }
+    if ([string]$task.Principal.LogonType -ne 'S4U' -or [string]$task.Principal.RunLevel -ne 'Limited') { $issues += 'principal drift' }
+    $logs = @($task.Triggers | Where-Object { $_.CimClass.CimClassName -eq 'MSFT_TaskLogonTrigger' })
+    if (-not $logs.Count -or @($logs | Where-Object { -not $_.UserId }).Count) { $issues += 'unscoped logon trigger' }
   }
   $bad = @($issues | Where-Object { $_ -notlike '*alias' })
   $status = if ($bad.Count -gt 0) { 'DRIFT' } elseif ($issues.Count -gt 0) { 'ALIAS' } else { 'OK' }

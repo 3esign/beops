@@ -2,7 +2,11 @@
 const fs=require('node:fs/promises'), path=require('node:path');
 const {sources,hash,normalize,viewRecord}=require('./evidence');
 async function boundedJSON(url, options={}) {
-  const response=await fetch(url,{...options,redirect:'error',signal:options.signal||AbortSignal.timeout(12000)});
+  const providers=[process.env.BEOPS_INCOGNITO,'C:/Svemir/lib/incognito.js','D:/Svemir/lib/incognito.js'].filter(Boolean);
+  const provider=providers.find(p=>require('node:fs').existsSync(p));
+  if(!provider)throw new Error('Incognito HTTP provider is unavailable');
+  const headers=require(provider).headers(url,{vrsta:'json'});
+  const response=await fetch(url,{...options,headers,redirect:'error',signal:options.signal||AbortSignal.timeout(12000)});
   if (!response.ok) throw new Error(`Source HTTP ${response.status}`);
   const reader=response.body.getReader(), chunks=[]; let count=0;
   try {while(true){const {done,value}=await reader.read();if(done)break;count+=value.length;if(count>(options.maxBytes||1048576))throw new Error('Response size limit');chunks.push(Buffer.from(value));}}

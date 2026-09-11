@@ -47,6 +47,8 @@ class RetentionTests(unittest.TestCase):
         (self.dir / "research").mkdir()
         shutil.copy(ROOT / "research" / "RETENTION.json", self.dir / "research" / "RETENTION.json")
         self.policy = json.loads((self.dir / "research" / "RETENTION.json").read_text(encoding="utf-8"))
+        # Exercise the legacy finite-retention engine independently of the current no-expiry policy.
+        next(r for r in self.policy["rules"] if r["id"] == "R1")["keep_days"] = 90
         rows = self.dir / "data" / "live" / "rows" / "S68"
         rows.mkdir(parents=True)
         self.f = rows / "2026-09.jsonl"

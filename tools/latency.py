@@ -34,6 +34,7 @@ count and a sentence. That absence is the finding, not a gap in the table.
     python tools/latency.py show       # print it for a person
 """
 from __future__ import annotations
+from contracts import observation_rows
 
 import json
 import pathlib
@@ -70,6 +71,8 @@ def _p(s):
 def _end_of(row: dict) -> tuple[datetime | None, str]:
     """(end of the measurement window, which clock it was read off). The correction wins where one
     exists - the label is what was served, the correction is what we believe it meant."""
+    if row.get('sourceClockUnresolved'):
+        return None, 'none'
     pc = row.get("phenomenonTimeCorrected")
     if isinstance(pc, dict) and pc.get("end") and not row.get("phenomenonTimeUnknown"):
         d = _p(pc["end"])
@@ -105,14 +108,7 @@ def build_source(sid: str, now: datetime | None = None, src: dict | None = None)
     total = 0
     note = None
     for f in sorted(d.glob("*.jsonl")):
-        for ln in f.read_text(encoding="utf-8", errors="replace").splitlines():
-            ln = ln.strip()
-            if not ln.startswith("{"):
-                continue
-            try:
-                r = json.loads(ln)
-            except ValueError:
-                continue
+        for r in observation_rows(f):
             if r.get("parameter") in NOT_A_MEASURE:
                 continue
             rx = _p(r.get("receivedTime"))

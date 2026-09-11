@@ -6,7 +6,7 @@ Author: BEOPS Coordinator
 
 Current project structure is governed by [research/STRUCTURE_CONTRACT_2026-09-11.md](research/STRUCTURE_CONTRACT_2026-09-11.md). This file preserves the 2026-09-06 literature-collaboration setup; it is not the current project map.
 
-Door: D:\Svemir\docs\ROOM_DOOR.md. Board: [RICH_CONTEXT_BOARD_2026-09-06.json](research/_trail/RICH_CONTEXT_BOARD_2026-09-06.json).
+Door: D:\Svemir\docs\ROOM_DOOR.md. Board: RICH_CONTEXT_BOARD_2026-09-06.json (private working record).
 
 Three native agents verify local empirical literature in disjoint writable-workspace drafts: ground/EMF, environment, infrastructure. The coordinator owns integration, theory, citation checks and the legal register. Two user-requested manual room collaborators have separate real queue tasks and exact prompts: domestic repositories/grey literature, and international comparative sensing. Their prompts are ready; startup and ACK are not observed. No external model was silently launched.
 

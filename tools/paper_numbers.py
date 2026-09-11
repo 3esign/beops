@@ -98,19 +98,22 @@ def history():
     return {"hours": d.get("hours_of_history"), "series": len(d.get("series", [])),
             "starts": d.get("history_starts"), "ends": d.get("history_ends"),
             "unreadable_measurement_times": sum((d.get("unreadable_measurement_times") or {}).values()),
-            "measured_series": sum(1 for s in d.get("series", []) if s.get("time_basis") == "measured"),
+            "measured_series": sum(1 for s in d.get("series", []) if s.get("time_basis") in ("measured", "corrected")),
+            "corrected_series_subset": sum(1 for s in d.get("series", []) if s.get("time_basis") == "corrected"),
+            "clock_note": "measured_series includes series on an explicitly estimated corrected measurement clock; received_series has no measurement time",
             "received_series": sum(1 for s in d.get("series", []) if s.get("time_basis") == "received")}
 
 
 def mind():
     c = Counter()
     import record
-    for p in (ROOT / "data" / "live" / "derived" / "mind").rglob("*.jsonl"):
+    for p in (ROOT / "data" / "live" / "derived" / "mind").glob("????-??.jsonl"):
         for r in record.objects(p):
             c[r.get("state")] += 1
     total = sum(c.values())
     spoken = c.get("thought", 0) + c.get("rejected", 0)
     return {"drops": total, "by_state": named(c),
+            "population": "canonical monthly utterances only; notebooks and claim events excluded",
             "refusal_rate_of_utterances": round(c.get("rejected", 0) / spoken, 3) if spoken else None}
 
 
@@ -149,9 +152,10 @@ def retention():
     import apply_retention as R
     policy = load("research/RETENTION.json")
     plan = R.due(ROOT, policy, dt.datetime.now(dt.timezone.utc))
-    return {"policy_decided": policy["decided"], "keep_days": 90,
+    days = next(r['keep_days'] for r in policy['rules'] if r['id'] == 'R1')
+    return {"policy_decided": policy["decided"], "keep_days": days if days is not None else 'indefinite',
             "rows_due_today": sum(i["rows"] for i in plan["rows"]),
-            "oldest_headline": plan["oldest_headline"], "first_erasure_due": plan["first_erasure_due"]}
+            "oldest_headline": plan["oldest_headline"] or 'no headlines', "first_erasure_due": plan["first_erasure_due"] or 'not scheduled'}
 
 
 FIGURES = [("registry", registry), ("collectors", collectors), ("provenance", provenance),

@@ -22,8 +22,10 @@ The rules it keeps:
     python tools/baseline.py show S146  # print what it knows, for a person
 """
 from __future__ import annotations
+from contracts import observation_rows
 
 import json
+from contracts import row_clock, finite, atomic_json
 import pathlib
 import statistics
 import sys
@@ -32,7 +34,7 @@ from datetime import datetime, timezone
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ROWS = ROOT / "data" / "live" / "rows"
 OUT = ROOT / "data" / "live" / "derived" / "baseline"
-SCHEMA = "beops-baseline/v1"
+SCHEMA = "beops-baseline/v2"
 
 BUCKET_MIN_DAYS = 3       # fewer days than this is an anecdote, not a usual
 BUCKET_MIN_N = 5          # and fewer values than this is one bad afternoon
@@ -50,34 +52,8 @@ def _p(s):
 
 
 def _hour_of(row: dict) -> tuple[int | None, bool, str]:
-    """(hour UTC, was it the measurement's own hour, which clock that hour came from).
-
-    Three frames, and the bucket has to say which one it is in, because an hour is only comparable
-    to an hour read off the same clock:
-
-      "measured"  - the source published a measurement time and we take it as served;
-      "corrected" - the source published a measurement time whose label is wrong (it stamps local
-                    time as UTC), the collector wrote our ESTIMATE of the true UTC beside it, and we
-                    bucket by the estimate. The bucket is our reading of the source's clock, not the
-                    source's own statement, and says so;
-      "arrival"   - the source publishes no measurement time at all, so the bucket is the hour the
-                    value ARRIVED, which is a different thing and is marked as such.
-
-    Reading the label when a correction exists is the error this layer is built against: two sources
-    bucketed on two different clocks look comparable and are not."""
-    pc = row.get("phenomenonTimeCorrected")
-    if isinstance(pc, dict) and pc.get("end") and not row.get("phenomenonTimeUnknown"):
-        d = _p(pc["end"])
-        if d:
-            return d.astimezone(timezone.utc).hour, True, "corrected"
-    pt = row.get("phenomenonTime")
-    end = pt.get("end") if isinstance(pt, dict) else pt
-    if end and not row.get("phenomenonTimeUnknown"):
-        d = _p(end)
-        if d:
-            return d.astimezone(timezone.utc).hour, True, "measured"
-    d = _p(row.get("receivedTime"))
-    return (d.astimezone(timezone.utc).hour, False, "arrival") if d else (None, False, "arrival")
+    dt, frame = row_clock(row)
+    return (dt.hour if dt else None), frame in ("measured", "corrected"), frame
 
 
 def build_source(sid: str, now: datetime | None = None) -> dict | None:
@@ -94,17 +70,10 @@ def build_source(sid: str, now: datetime | None = None) -> dict | None:
     names: dict[str, str] = {}
     first = last = None
     for f in sorted(d.glob("*.jsonl")):
-        for ln in f.read_text(encoding="utf-8", errors="replace").splitlines():
-            ln = ln.strip()
-            if not ln.startswith("{"):
-                continue
-            try:
-                r = json.loads(ln)
-            except ValueError:
-                continue
+        for r in observation_rows(f):
             par = r.get("parameter")
             val = r.get("result")
-            if par in NOT_A_MEASURE or not isinstance(val, (int, float)) or val != val:
+            if par in NOT_A_MEASURE or not finite(val):
                 continue
             rx = _p(r.get("receivedTime"))
             if not rx or (now - rx).days > MAX_DAYS:
@@ -116,9 +85,12 @@ def build_source(sid: str, now: datetime | None = None) -> dict | None:
                 clock_note = str(r["sourceClockNote"])
             st = str(r.get("station_name") or r.get("station_id") or "?")
             names[str(r.get("station_id"))] = st
-            k = (st, str(par), hour)
+            k = (st, str(par), hour, str(r.get("unit") or ""), frame)
+            sample_time, _ = row_clock(r)
+            if not sample_time or sample_time > now or (now - sample_time).days > MAX_DAYS:
+                continue
             seen.setdefault(k, []).append(float(val))
-            days.setdefault(k, set()).add(rx.date().isoformat())
+            days.setdefault(k, set()).add(sample_time.date().isoformat())
             timed[k] = own
             frames[k] = frame
             if r.get("unit"):
@@ -133,7 +105,7 @@ def build_source(sid: str, now: datetime | None = None) -> dict | None:
             thin += 1
             continue                      # absent on purpose: a thin bucket is not a usual
         vals.sort()
-        buckets["|".join((k[0], k[1], "%02d" % k[2]))] = {
+        buckets["|".join((k[0], k[1], "%02d" % k[2], k[3], k[4]))] = {
             "n": len(vals), "days": nd,
             "median": round(statistics.median(vals), 2),
             "p25": round(vals[len(vals) // 4], 2),
@@ -164,7 +136,9 @@ def usual(base: dict | None, station: str, parameter: str, hour: int) -> dict | 
     every bucket so a mismatch is visible rather than silent."""
     if not base:
         return None
-    return (base.get("buckets") or {}).get("|".join((str(station), str(parameter), "%02d" % int(hour))))
+    prefix = "|".join((str(station), str(parameter), "%02d" % int(hour)))
+    matches = [v for k, v in (base.get("buckets") or {}).items() if k == prefix or k.startswith(prefix + "|")]
+    return matches[0] if len(matches) == 1 else None  # ambiguous unit/clock is not a baseline
 
 
 def load(sid: str) -> dict | None:
@@ -180,14 +154,16 @@ def load(sid: str) -> dict | None:
 def build(sids: list[str] | None = None) -> dict:
     OUT.mkdir(parents=True, exist_ok=True)
     out = {}
-    for d in sorted(ROWS.iterdir()) if ROWS.exists() else []:
-        if not d.is_dir() or (sids and d.name not in sids):
+    candidates = {p.name for p in ROWS.iterdir() if p.is_dir()} if ROWS.exists() else set()
+    candidates.update(p.stem for p in OUT.glob("S*.json"))
+    for sid in sorted(candidates):
+        d = ROWS / sid
+        if sids and d.name not in sids:
             continue
         b = build_source(d.name)
-        if not b or not b["buckets"]:
-            out[d.name] = 0
-            continue
-        (OUT / f"{d.name}.json").write_text(json.dumps(b, ensure_ascii=False, indent=1), encoding="utf-8")
+        if b is None:
+            b = {"schema": SCHEMA, "sid": d.name, "buckets": {}, "buckets_published": 0, "state": "empty"}
+        atomic_json(OUT / f"{d.name}.json", b)
         out[d.name] = b["buckets_published"]
     return out
 
@@ -195,6 +171,9 @@ def build(sids: list[str] | None = None) -> dict:
 def main(argv: list[str]) -> int:
     cmd = argv[1] if len(argv) > 1 else "build"
     if cmd == "build":
+        if (ROOT / 'runtime' / 'MAINTENANCE').exists():
+            print('BEOPS baseline paused for project maintenance')
+            return 75
         res = build(argv[2:] or None)
         for sid, n in sorted(res.items(), key=lambda x: -x[1]):
             if n:
@@ -211,7 +190,7 @@ def main(argv: list[str]) -> int:
         print(f"{b['sid']}  {b['days_of_record']} days of record  "
               f"{b['buckets_published']} buckets published, {b['buckets_too_thin_to_publish']} too thin")
         for k, v in sorted(b["buckets"].items())[:40]:
-            st, par, hh = k.split("|")
+            st, par, hh = k.split("|")[:3]
             mark = "" if v["hour_is_the_measurement_s_own"] else "  (hour of ARRIVAL, not of measurement)"
             print("  %-22s %-8s %sh  usual %7.2f %-8s  n=%-4d days=%d  [%.2f..%.2f]%s"
                   % (st, par, hh, v["median"], v.get("unit") or "", v["n"], v["days"], v["min"], v["max"], mark))

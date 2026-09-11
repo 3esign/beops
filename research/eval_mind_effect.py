@@ -40,15 +40,12 @@ def rows(p: pathlib.Path) -> list[dict]:
 
 
 def receipts() -> list[dict]:
-    if not TICKS.exists():
-        return []
-    t = TICKS.read_text(encoding="utf-8", errors="replace")
     out = []
-    for _at, b in re.findall(r"---- (\S+) \n(\{.*?\n\})", t, re.S):
+    for path in sorted((MIND / "receipts").glob("*.json")):
         try:
-            out.append(json.loads(b))
-        except ValueError:
-            pass
+            out.append(json.loads(path.read_text(encoding="utf-8")))
+        except ValueError as exc:
+            raise ValueError("unreadable receipt: " + str(path)) from exc
     return out
 
 
@@ -60,7 +57,7 @@ def is_hour(reason: str) -> bool:
 
 
 def report(cut: str) -> int:
-    ut = rows(MIND / "2026-09.jsonl") or [r for p in sorted(MIND.glob("*.jsonl")) if p.name != "claims.jsonl" for r in rows(p)]
+    ut = [r for p in sorted(MIND.glob("????-??.jsonl")) for r in rows(p)]
     cl = rows(MIND / "claims.jsonl")
     rc = receipts()
     if not ut:

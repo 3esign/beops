@@ -85,6 +85,11 @@ body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans)
   .v{font-size:23px}
   .top{padding:calc(var(--u)*2)}
 }
+
+.tile{height:auto;min-height:86px}
+.p,.gapnote{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+.gapnote{height:auto;min-height:26px}
+@media(max-width:600px){.tile{min-height:105px}.clock{white-space:normal}}
 </style>
 
 <div class="panel">
@@ -98,6 +103,12 @@ body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans)
 </div>
 
 <script>
+function beopsLoadJSON(name){
+  try{if(parent!==window&&typeof parent.beopsJSON==='function')return parent.beopsJSON(name).catch(()=>null);}catch(e){}
+  return fetch(name,{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
+}
+function beopsVisible(){return !document.hidden&&(!window.frameElement||window.frameElement.getClientRects().length>0);}
+
 (function(){
 "use strict";
 /* SADA - the one panel that answers "what is Belgrade right now", and never says more than it knows.
@@ -360,9 +371,9 @@ function render(){
   document.getElementById('foot').innerHTML=f.join(' · ');
 }
 
-setInterval(function(){ if(SNAP) render(); },60000);
+setInterval(function(){if(!beopsVisible())return;Promise.all([load('live-snapshot.json'),load('history.json'),load('watch.json')]).then(function(r){if(r[0]){SNAP=r[0];if(r[1])HIST=r[1];if(r[2])WATCH=r[2];render();}});},60000);
 
-function load(n){ return fetch(n,{cache:'no-store'}).then(function(r){ return r.ok?r.json():null; }).catch(function(){ return null; }); }
+function load(n){return beopsLoadJSON(n);}
 Promise.all([load('live-snapshot.json'),load('history.json'),load('watch.json')]).then(function(r){
   SNAP=r[0]; HIST=r[1]; WATCH=r[2];
   if(!SNAP){ document.getElementById('foot').textContent='no snapshot'; return; }

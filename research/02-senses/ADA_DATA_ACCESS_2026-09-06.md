@@ -6,7 +6,7 @@ Scope: eight Ada Marina records from the captured WeBaSOOP catalogue; no raw dat
 
 This review separates dataset declarations, repository file access and evidence from research papers. The original catalogue establishes nine local DOI links. The DTT record was already reviewed and remains excluded from new requests; its declared CC BY 4.0 licence coexists with restricted files. Bor is a different site and is excluded.
 
-All eight exact DataCite singleton responses were received with HTTP 200 and declare **CC BY 4.0 for their referenced datasets**. Seven NILU file-access states remain unknown. The captured AA Zenodo landing shows **public metadata and restricted files**. Consequently, this wave identifies no demonstrably accessible small raw file. This is not a finding that no public files exist. Machine-readable details and individual receipt hashes are in [ADA_DATA_ACCESS.json](../_trail/ADA_DATA_ACCESS_2026-09-06.json).
+All eight exact DataCite singleton responses were received with HTTP 200 and declare **CC BY 4.0 for their referenced datasets**. Seven NILU file-access states remain unknown. The captured AA Zenodo landing shows **public metadata and restricted files**. Consequently, this wave identifies no demonstrably accessible small raw file. This is not a finding that no public files exist. Machine-readable details and individual receipt hashes are in ADA_DATA_ACCESS.json (private working record).
 
 DataCite's separate [CC0 metadata declaration](https://support.datacite.org/docs/harvesting-datacite-doi-metadata) applies to DOI metadata, not to the underlying observations. It is distinct from each record's dataset-specific [CC BY 4.0 declaration](https://creativecommons.org/licenses/by/4.0/legalcode). These declarations resolve the earlier unknown licence field for the eight exact records; they do not clear generic provider websites, recurring extraction or inaccessible files.
 
@@ -60,7 +60,7 @@ E-003 remains the project's bounded local evidence practice, not a publisher gra
 
 ## Evidence receipts and remaining boundary
 
-The corresponding exact request plan is [ADA_DATACITE_PLAN.json](../_trail/CURRENT_PRODUCTS_DATACITE_PLAN_2026-09-06.json). Initial direct DOI and AA web opens failed without usable server status; the coordinator's later responses establish successful metadata access through the documented routes. Tool errors are not recast as server denials.
+The corresponding exact request plan is ADA_DATACITE_PLAN.json (private working record). Initial direct DOI and AA web opens failed without usable server status; the coordinator's later responses establish successful metadata access through the documented routes. Tool errors are not recast as server denials.
 
 - Eight singleton bodies: `research/evidence/S191/20260906T123813Z/`; individual HTTP status, byte count, SHA-256 and URL are preserved in its `MANIFEST.json` and the companion review JSON. Each is below the authorized 128 KiB cap. Batch timestamp: 2026-09-06 12:38:13 UTC.
 - DataCite metadata policy: `research/evidence/legal/S191/20260906T123714Z/terms_1.html`; captured 12:37:20 UTC; SHA-256 `3066a3388cf5c9e3512b421d1a82a2fcc80c8389cf1f349cfe4325b01b1b295a`.

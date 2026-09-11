@@ -137,6 +137,8 @@ button[aria-pressed="true"]:hover{background:var(--ink)}
    belongs at the END of the sheet, not beside the rule it is narrowing. */
 @media (max-width:900px){ .reading{position:static;border-left:0;border-top:1px solid var(--ink12)} }
 @media (max-width:560px){ .gh h2{font-size:14px;line-height:1.25} }
+
+@media(max-width:600px){.clocknote,.clock-note{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;}}
 </style>
 
 <body class="lang-sr">
@@ -165,6 +167,12 @@ button[aria-pressed="true"]:hover{background:var(--ink)}
 
 <script id="snapshot" type="application/json">__SNAPSHOT__</script>
 <script>
+function beopsLoadJSON(name){
+  try{if(parent!==window&&typeof parent.beopsJSON==='function')return parent.beopsJSON(name).catch(()=>null);}catch(e){}
+  return fetch(name,{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
+}
+function beopsVisible(){return !document.hidden&&(!window.frameElement||window.frameElement.getClientRects().length>0);}
+
 (function(){
 'use strict';
 const U=4, LANE_H=U*10, SUB_H=U*7, PAD_L=8, PAD_R=8;
@@ -173,7 +181,7 @@ let SNAP=null, T0=0, T1=0, HAIR=null, lanes=[];
 
 // ---------- data ------------------------------------------------------
 function load(){
-  return fetch('live-snapshot.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).catch(()=>{
+  return beopsLoadJSON('live-snapshot.json').then(r=>r||Promise.reject()).catch(()=>{
     const el=document.getElementById('snapshot'); try{return JSON.parse(el.textContent);}catch(e){return null;}
   });
 }
@@ -217,6 +225,7 @@ function paintAges(){
   });
 }
 setInterval(paintAges,30000);
+setInterval(()=>{if(!beopsVisible())return;load().then(s=>{if(!s||s.as_of===SNAP?.as_of)return;SNAP=s;T1=P(s.as_of);T0=T1-s.window_hours*3600e3;lanes=[];lanes.groups=buildLanes(s);render();reading(T1);document.getElementById('asof').textContent=s.as_of;});},60000);
 const PNAME={P1:'PM10 (građanski)',P2:'PM2.5 (građanski)',P0:'PM1 (građanski)',free_spaces:'slobodna mesta'};
 const PNAME_EN={P1:'PM10 (citizen)',P2:'PM2.5 (citizen)',P0:'PM1 (citizen)',free_spaces:'free spaces'};
 const pname=k=>(LANG==='sr'?PNAME:PNAME_EN)[k]||k;
@@ -295,7 +304,7 @@ function quorumCells(streams,cadence){
 function render(){
   const rib=document.getElementById('ribbon'); rib.innerHTML='';
   const ax=document.createElement('div'); ax.className='axis'; const axl=document.createElement('div'); axl.className='lane'; axl.style.cursor='default';
-  axl.innerHTML='<div class="ll mono">UTC</div><div class="lc" style="height:24px"><canvas></canvas></div>'; ax.appendChild(axl); rib.appendChild(ax);
+  axl.innerHTML='<div class="ll mono">UTC</div><div class="lc" style="height:24px"><canvas role="img" aria-label="Prikaz podataka; vrednosti su u tabelama / Data visualization; values appear in tables"></canvas></div>'; ax.appendChild(axl); rib.appendChild(ax);
   const axc=axl.querySelector('canvas'); lanes.push({cv:axc,draw:()=>drawAxis(axc)});
   for(const grp of lanes.groups){
     const el=document.createElement('section'); el.className='group';
@@ -326,7 +335,7 @@ function mkLane(param,streams,cadence,sub,unit){
   const el=document.createElement('div'); el.className='lane'+(sub?' sub':'');
   const n=streams.length, pts=streams.reduce((a,s)=>a+s.points.length,0);
   const label=sub?esc(streams[0].station||streams[0].datastream):esc(pname(param)||param);
-  el.innerHTML=`<div class="ll"><span>${label}</span><span class="num">${sub?'':n+S(' tokova · ',' streams · ')}${pts}${S(' redova',' rows')}${unit?' · '+esc(unit):''}</span></div><div class="lc"><canvas></canvas></div>`;
+  el.innerHTML=`<div class="ll"><span>${label}</span><span class="num">${sub?'':n+S(' tokova · ',' streams · ')}${pts}${S(' redova',' rows')}${unit?' · '+esc(unit):''}</span></div><div class="lc"><canvas role="img" aria-label="Prikaz podataka; vrednosti su u tabelama / Data visualization; values appear in tables"></canvas></div>`;
   const cv=el.querySelector('canvas'); const lane={el,cv,streams,cadence,param,sub,draw:()=>drawLane(cv,streams,cadence,sub)};
   lanes.push(lane); return lane;
 }

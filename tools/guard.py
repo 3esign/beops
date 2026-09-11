@@ -29,6 +29,7 @@ Everything it does is appended to data/live/guard-ledger.jsonl. ASCII output onl
 from __future__ import annotations
 
 import json
+from permission_policy import MAX_AGE_HOURS
 import pathlib
 import re
 import subprocess
@@ -45,7 +46,7 @@ TASKS = ["Beops_Collect", "Beops_Mind", "Beops_Organ", "Beops_Publish", "Beops_W
          "Beops_Legal", "Beops_Guard", "Beops_Baseline"]
 # A task that legitimately runs rarely must not be called dead for not having run in an hour.
 MAX_SILENCE_H = {"Beops_Collect": 0.5, "Beops_Mind": 0.5, "Beops_Organ": 1.0,
-                 "Beops_Publish": 1.0, "Beops_Watch": 1.0, "Beops_Legal": 36.0,
+                 "Beops_Publish": 1.0, "Beops_Watch": 1.0, "Beops_Legal": float(MAX_AGE_HOURS),
                  "Beops_Guard": 0.5, "Beops_Baseline": 1.5}
 
 # An organ is alive when it PRODUCES, not when its task exits zero. For each: where its rows land,
@@ -86,8 +87,11 @@ def parse_iso(s: str) -> datetime | None:
 
 def sh(args: list[str]) -> str:
     try:
-        return subprocess.run(args, capture_output=True, text=True, timeout=45,
-                              encoding="utf-8", errors="replace").stdout or ""
+        proc = subprocess.run(args, capture_output=True, text=True, timeout=45,
+                              encoding="utf-8", errors="replace", creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        if proc.returncode:
+            return f"ERROR exit {proc.returncode}: {(proc.stderr or proc.stdout)[:200]}"
+        return proc.stdout or ""
     except Exception as e:                                   # noqa: BLE001
         return "ERROR " + type(e).__name__ + " " + str(e)
 
@@ -118,6 +122,13 @@ def task_state(name: str) -> dict:
         except ValueError:
             continue
     d["hours_since_last_run"] = None if age is None else round(age, 2)
+    try:
+        code = int(result, 0) if result.lower().startswith("0x") else int(result)
+    except ValueError:
+        code = None
+    if code not in (0, 267009) and code is not None:
+        d.update(state=WARN, why=f"last execution failed with result {result}")
+        return d
     if age is None:
         d.update(state=UNKNOWN, why="last run time could not be read: " + last)
     elif age > MAX_SILENCE_H.get(name, 1.0) * 3:
@@ -130,11 +141,15 @@ def task_state(name: str) -> dict:
 
 
 def repair(name: str, what: str) -> str:
+    if (ROOT / "runtime" / "PAUSED").exists() or (ROOT / "runtime" / "pauses" / name).exists():
+        return f"{name}: operator pause respected"
     if what == "disabled":
-        sh(["schtasks", "/change", "/tn", name, "/enable"])
-    sh(["schtasks", "/run", "/tn", name])
+        return f"{name}: disabled task requires an explicit operator resume"
+    result = sh(["schtasks", "/run", "/tn", name])
+    if result.startswith("ERROR"):
+        return f"{name}: start failed: {result}"
     after = task_state(name)
-    return f"{name}: {what} -> re-enabled and started; now {after.get('state')} ({after.get('why')})"
+    return f"{name}: start requested; now {after.get('state')} ({after.get('why')})"
 
 
 def permission_invariants() -> list[dict]:
@@ -191,18 +206,18 @@ def permission_invariants() -> list[dict]:
                            capture_output=True, text=True, timeout=60,
                            encoding="utf-8", errors="replace")
         txt = (r.stdout or "") + (r.stderr or "")
-        m = re.search(r"headline rows past 90 days\s*:\s*(\d+)", txt)
+        m = re.search(r"headline rows (?:past 90 days|due by policy)\s*:\s*(\d+)", txt)
+        raw_due = re.search(r"raw news captures past 90 d\s*:\s*(\d+)", txt)
         due_m = re.search(r"first erasure falls due\s*:\s*(\S+)", txt)
         if r.returncode != 0 or m is None:
             out.append({"check": "retention", "state": UNKNOWN,
                         "why": "apply_retention did not report a plan"})
-        elif int(m.group(1)) > 0:
+        elif int(m.group(1)) > 0 or (raw_due and int(raw_due.group(1)) > 0):
             out.append({"check": "retention", "state": STOP,
-                        "why": f"{m.group(1)} headline rows are past the 90-day window and have not "
-                               f"been erased - run tools/apply_retention.py --apply"})
+                        "why": f"retention due: {m.group(1)} headline rows and {raw_due.group(1) if raw_due else 'unknown'} raw payloads; apply the current policy"})
         else:
             out.append({"check": "retention", "state": OK,
-                        "why": "nothing past the 90-day window" +
+                        "why": "no erasure due under the current retention policy" +
                                (f"; first erasure falls due {due_m.group(1)}" if due_m else "")})
     except Exception as e:                                   # noqa: BLE001
         out.append({"check": "retention", "state": UNKNOWN, "why": type(e).__name__})
@@ -374,7 +389,8 @@ def publish_gate() -> list[dict]:
     now_dt = now()
     age_h = None if at_dt is None else (now_dt - at_dt).total_seconds() / 3600.0
     out = []
-    if r.get("tests_ok"):
+    complete = all(r.get(k) is True for k in ("tests_ok", "pushed", "site_verified", "published"))
+    if complete:
         out.append({"check": "the publish is gated", "state": OK,
                     "why": "last publish ran the suite and it passed (%s)" % (r.get("tests") or "no summary")})
     else:
@@ -382,7 +398,7 @@ def publish_gate() -> list[dict]:
         fail_h = None if start_dt is None else (now_dt - start_dt).total_seconds() / 3600.0
         state = STOP if (fail_h is not None and fail_h >= 0.5) else WARN
         out.append({"check": "the publish is gated", "state": state,
-                    "why": "THE SUITE DID NOT PASS, so nothing has been published%s: %s"
+                    "why": ("THE SUITE DID NOT PASS" if not r.get("tests_ok") else "PUBLICATION INCOMPLETE") + ", no verified publication%s: %s"
                            % (" for %.1f h" % fail_h if fail_h is not None else "",
                               (r.get("why") or "")[:160])})
     if age_h is not None and age_h > 1.0 and r.get("tests_ok"):
@@ -441,7 +457,7 @@ def publish_failure_started_at(current_receipt_at: datetime | None) -> datetime 
         if not check:
             continue
         why = str(check.get("why") or "")
-        failed = check.get("state") in (WARN, STOP) and why.startswith("THE SUITE DID NOT PASS")
+        failed = check.get("state") in (WARN, STOP) and why.startswith(("THE SUITE DID NOT PASS", "PUBLICATION INCOMPLETE"))
         if not failed:
             break
         row_at = parse_iso(str(row.get("at") or ""))

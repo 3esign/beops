@@ -8,7 +8,7 @@ Protokol: [ROOM_DOOR.md](D:/Svemir/docs/ROOM_DOOR.md), pročitan u ovoj smeni. O
 
 Najveća praznina je prelaz sa načela na proverljivu praksu. Postojeći okvir već pominje granice, neizvesnost, ljude, poreklo podataka i održavanje. Potrebno je odrediti kako se ti zahtevi proveravaju za konkretno pitanje, model i odluku. Sedam novih radova ispod pomaže da se taj prelaz razradi. Nijedan nije dokaz da BEOPS već ima operativni gradski blizanac ili potvrđen planski učinak.
 
-Pregledani su [sistemski nacrt](../06-paper/URBAN_INTELLIGENCE_SYSTEM_OUTLINE_2026-09-06.md), [predmet razgovora](../06-paper/PRE_PAPER_URBAN_INTELLIGENCE_2026-09-06.md), [modeli i literatura](../03-models/MODELI_I_LITERATURA.md), [šira bibliografija](BIBLIOGRAPHY_2026-09-05.md) i relevantni delovi [teorijske dopune](LITERATURE_THEORY_METHODS_2026-09-06.md). Bibliografija je pregledana po naslovima i identifikatorima; nisu svi njeni citirani radovi ponovo čitani. Ciljana pretraga svih Markdown beležaka u 03-models, 04-bibliography i 06-paper nije našla sedam dole navedenih naslova/identifikatora. To je provera unutar tih mapa, ne tvrdnja o svim fajlovima projekta.
+Pregledani su sistemski nacrt (private working record), predmet razgovora (private working record), [modeli i literatura](../03-models/MODELI_I_LITERATURA.md), [šira bibliografija](BIBLIOGRAPHY_2026-09-05.md) i relevantni delovi [teorijske dopune](LITERATURE_THEORY_METHODS_2026-09-06.md). Bibliografija je pregledana po naslovima i identifikatorima; nisu svi njeni citirani radovi ponovo čitani. Ciljana pretraga svih Markdown beležaka u 03-models, 04-bibliography i 06-paper nije našla sedam dole navedenih naslova/identifikatora. To je provera unutar tih mapa, ne tvrdnja o svim fajlovima projekta.
 
 | Već pokriveno | Dopuna koju predlažem | Mesto u razgovoru |
 |---|---|---|
@@ -118,7 +118,7 @@ Za prvi razgovor dovoljno je proći kroz ove kartice na jednom već odabranom pi
 
 ## Trag pretrage i granice
 
-[zajednički dnevnik pretrage](../_trail/PRED_RAD_SR_WAVE7_SEARCH.json) sadrži 16 doslovno izvršenih upita, datum, odluke o uključivanju i pristupne neuspehe. Upiti su bili na engleskom i srpskom, latinicom i ćirilicom. Regionalni rezultati bili su pretežno programi/projektni pozivi ili komercijalna predstavljanja, bez odgovarajućeg dokaza evaluirane gradske primene za ovaj izbor.
+zajednički dnevnik pretrage (private working record) sadrži 16 doslovno izvršenih upita, datum, odluke o uključivanju i pristupne neuspehe. Upiti su bili na engleskom i srpskom, latinicom i ćirilicom. Regionalni rezultati bili su pretežno programi/projektni pozivi ili komercijalna predstavljanja, bez odgovarajućeg dokaza evaluirane gradske primene za ovaj izbor.
 
 Ovo je svrhovit, ograničen izbor, ne sistematski iscrpan pregled. Sedam novih zapisa ne treba sabirati sa ranijim zbirkama bez globalne deduplikacije. Dubina čitanja označava ciljano čitanje punih primarnih tekstova; ne znači reprodukciju koda, numeričku proveru svih formula ili pregled piksela svih slika. Nije preuzet sirov skup, zvuk, individualna putanja ni drugi lični zapis. Nema novih poruka institucijama, registracionih brojeva izvora ili izmena na disku D.
 

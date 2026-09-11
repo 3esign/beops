@@ -85,4 +85,4 @@ The main new result is a documented negative current-product check for BEOG plus
 
 ## Coordinator receipt update
 
-The subsequent saved S192 response and independent static QA resolve the latest chart label to2026-09-06; the latest ten full dates match the visible table. Earlier uncertainty above describes the preceding documentation-only review. Exact measurement time,163 field contract and conditional depth conversion remain unresolved. See[current product synthesis](CURRENT_PRODUCTS_2026-09-06.md) and[static QA](../_trail/BORCA_QA_REVIEW_2026-09-06.json).
+The subsequent saved S192 response and independent static QA resolve the latest chart label to2026-09-06; the latest ten full dates match the visible table. Earlier uncertainty above describes the preceding documentation-only review. Exact measurement time,163 field contract and conditional depth conversion remain unresolved. See[current product synthesis](CURRENT_PRODUCTS_2026-09-06.md) andstatic QA (private working record).

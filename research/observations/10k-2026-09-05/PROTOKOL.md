@@ -14,7 +14,7 @@ Sta mozemo pouzdano opaziti o najavljenom dogadjaju povezivanjem javnih objava i
 - [Sekretarijat za javni prevoz](https://www.bgprevoz.rs/vesti/informacija-o-promeni-rezima-rada-linija-javnog-prevoza-tokom-odrzavanja-manifestacije-trka-10k-beograd-2026): detaljni vremenski segmenti i promene linija. Ne svoditi sva zatvaranja na 18:00; neke izmene pocinju prethodnog dana.
 - [Parking servis](https://www.parking-servis.co.rs/lat/garaze-i-parkiralista): jedan javni odgovor sadrzi sve lokacije i koordinate. Nema potrebe za 27 zahteva ili ponovnim geokodiranjem.
 
-Rani uzorak: [multidomain dokaz](../../evidence/multidomain-20260905T032324953657Z.json), parking preuzet 03:23:21 UTC / 05:23:21 lokalno; 27 lokacija. Izvorni cas merenja nije poznat. Uzorak ostaje u tom fajlu, ne menja se i ne prepisuje.
+Rani uzorak: multidomain dokaz (private working record), parking preuzet 03:23:21 UTC / 05:23:21 lokalno; 27 lokacija. Izvorni cas merenja nije poznat. Uzorak ostaje u tom fajlu, ne menja se i ne prepisuje.
 
 ## Sta pratimo
 

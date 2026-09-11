@@ -1,7 +1,7 @@
 # The permission landscape of a European capital
 
 **215 public data sources reviewed for a city observatory, with the reasons.**
-Version 1.1 · generated 2026-09-11T09:36:57.400510Z · licence **CC BY 4.0**
+Version 1.2 · generated 2026-09-11T11:50:37.136735Z · licence **CC BY 4.0**
 
 A city-scale evidence instrument can be built for nothing. What cannot be bought is permission. This
 dataset is the measurement of that: every source considered for the Belgrade Evidence Observatory,
@@ -13,7 +13,7 @@ what was decided about it, why, and whether the bytes that justified the decisio
 | named refusals honoured | 14 |
 | unresolved and therefore not collected | 3 |
 | actually polled | 28 |
-| permission captures on file | 313 |
+| permission captures on file | 343 |
 
 Status breakdown: probe_ok 119, primary_page 27, lead 26, opted_out 14, no_coverage 10, collected 8, needs_decision 3, dead 2, account_required 2, token_required 1, restricted 1, blocked 1, probe_tls_failed 1
 
@@ -25,7 +25,7 @@ importantly, what it is not. `CHANGES.md` says what each version is not, relativ
 
 ## How to cite
 
-> Golubović Matić, D., & Poturak, S. (2026). The permission landscape of a European capital: 215 public data sources reviewed for a city observatory (v1.1) [Data set]. Belgrade Evidence Observatory for Public Signals (BEOPS).
+> Golubović Matić, D., & Poturak, S. (2026). The permission landscape of a European capital: 215 public data sources reviewed for a city observatory (v1.2) [Data set]. Belgrade Evidence Observatory for Public Signals (BEOPS).
 
 ## What this is honest about
 

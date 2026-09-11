@@ -1,6 +1,6 @@
 # Beops: mali modeli, literatura i sta tacno preuzimamo
 
-Naknadna razrada: [plan istrazivanja](../01-programme/PLAN_CULA_MODELI_2026-09-05.md), [24-modelski audit i provajderi](KATALOG_MODELA_I_PROVAJDERA_2026-09-05.md), [banka keyword upita](../01-programme/PRETRAGA_KEYWORDS_2026-09-05.md). Donji tekst ostaje pocetni deset-modelski pregled, ne poslednji kompletan status.
+Naknadna razrada: plan istrazivanja (private working record), [24-modelski audit i provajderi](KATALOG_MODELA_I_PROVAJDERA_2026-09-05.md), banka keyword upita (private working record). Donji tekst ostaje pocetni deset-modelski pregled, ne poslednji kompletan status.
 
 05.09.2026. Nema instaliranja tezina, benchmark rezultata ili automatskog ucitavanja modela u ovom prolazu.
 Deset repozitorijuma provereno direktnim HF API pozivima; revizije i deklaracije su u `evidence/models-20260905T023712000220Z.json`.

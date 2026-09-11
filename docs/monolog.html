@@ -217,6 +217,8 @@ body.embedded .map .cv{min-height:0}
   header h1{font-size:17px}
   .how{padding:calc(var(--u)*4)}
 }
+
+@media(max-width:600px){.clocknote,.clock-note{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;}}
 </style>
 
 <header>
@@ -234,7 +236,7 @@ body.embedded .map .cv{min-height:0}
 </header>
 <section class="map">
     <h2><span class="sr-only">Puls — kruži samo kad je instrument stvarno pročitan</span><span class="en-only">Pulse — a ring only when an instrument was actually read</span></h2>
-    <div class="cv"><canvas id="mapc"></canvas></div>
+    <div class="cv"><canvas id="mapc" role="img" aria-label="Prikaz podataka; vrednosti su u tabelama / Data visualization; values appear in tables"></canvas></div>
     <div class="maplegend">
       <span><i style="background:var(--signal)"></i><span class="sr-only">izmereno, vreme poznato</span><span class="en-only">observed, time known</span></span>
       <span><i style="background:var(--signal-untimed)"></i><span class="sr-only">izmereno, vreme nepoznato (parking)</span><span class="en-only">observed, time unknown (parking)</span></span>
@@ -280,6 +282,12 @@ body.embedded .map .cv{min-height:0}
 <script id="snapshot" type="application/json">__SNAPSHOT__</script>
 <script id="basemap" type="application/json">__BASEMAP__</script>
 <script>
+function beopsLoadJSON(name){
+  try{if(parent!==window&&typeof parent.beopsJSON==='function')return parent.beopsJSON(name).catch(()=>null);}catch(e){}
+  return fetch(name,{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
+}
+function beopsVisible(){return !document.hidden&&(!window.frameElement||window.frameElement.getClientRects().length>0);}
+
 (function(){
 'use strict';
 const css=k=>getComputedStyle(document.documentElement).getPropertyValue(k).trim();
@@ -290,7 +298,7 @@ const SAVA=[[44.66,20.22],[44.70,20.30],[44.745,20.365],[44.775,20.405],[44.795,
 const DUNAV=[[44.95,20.28],[44.90,20.35],[44.86,20.395],[44.84,20.42],[44.826,20.447],[44.83,20.49],[44.825,20.53],[44.79,20.60],[44.72,20.68],[44.67,20.73]];
 const BB={lo0:20.17,lo1:20.80,la0:44.55,la1:44.98};
 
-function load(){return fetch('live-snapshot.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).catch(()=>{try{return JSON.parse(document.getElementById('snapshot').textContent)}catch(e){return null}});}
+function load(){return beopsLoadJSON('live-snapshot.json').then(r=>r||Promise.reject()).catch(()=>{try{return JSON.parse(document.getElementById('snapshot').textContent)}catch(e){return null}});}
 let BASEMAP=null, PEOPLE=null;
 // Context: people per H3 hexagon (Kontur 2022, CC BY 4.0) - a modelled estimate, drawn as quiet structure
 // under the instruments so the reader sees where the city lives and where the observatory listens.
@@ -359,6 +367,7 @@ function paintAges(){
   });
 }
 setInterval(paintAges,30000);
+setInterval(()=>{if(!beopsVisible())return;load().then(s=>{if(!s||s.as_of===SNAP?.as_of)return;SNAP=s;T1=P(s.as_of);T0=T1-s.window_hours*3600e3;EVENTS=build(s);showLatest();renderMind();drawMap(performance.now());});},60000);
 function fmtD(t){const d=new Date(t);return d.toISOString().slice(5,10).replace('-','.')+' '+fmtT(t);}
 function hourRange(isoEnd){ if(!isoEnd) return ''; const e=P(isoEnd); return fmtT(e-3600e3)+'–'+fmtT(e)+' UTC'; }
 function sentence(e){

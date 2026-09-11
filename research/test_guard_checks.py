@@ -190,7 +190,7 @@ class PublishGate(unittest.TestCase):
             self.assertEqual(g.publish_gate()[0]["state"], g.UNKNOWN)
 
     def test_a_passing_receipt_is_ok(self):
-        with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "tests": "Ran 364 tests OK"}):
+        with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "pushed": True, "site_verified": True, "published": True, "tests": "Ran 364 tests OK"}):
             c = by(g.publish_gate(), "the publish is gated")
         self.assertEqual(c["state"], g.OK)
         self.assertIn("364", c["why"])
@@ -240,7 +240,7 @@ class PublishGate(unittest.TestCase):
         against a receipt that was perfectly well-formed."""
         with world() as root:
             (root / "data" / "live" / "publish-receipt.json").write_text(
-                json.dumps({"at": g.iso(g.now()), "tests_ok": True, "tests": "Ran 1 test OK"}),
+                json.dumps({"at": g.iso(g.now()), "tests_ok": True, "pushed": True, "site_verified": True, "published": True, "tests": "Ran 1 test OK"}),
                 encoding="utf-8-sig")
             c = by(g.publish_gate(), "the publish is gated")
         self.assertEqual(c["state"], g.OK, "a BOM made the guard blind to a good receipt again")
@@ -251,7 +251,7 @@ class PublishGate(unittest.TestCase):
         the gap between publishes - and nothing anywhere reported it."""
         import os
         import time
-        with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "tests": "OK"}) as root:
+        with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "pushed": True, "site_verified": True, "published": True, "tests": "OK"}) as root:
             lock = root / "runtime" / "publish.lock"
             lock.write_text("held by a publish", encoding="utf-8")
             old = time.time() - 14 * 60
@@ -264,7 +264,7 @@ class PublishGate(unittest.TestCase):
     def test_a_lock_older_than_the_takeover_says_the_next_publish_will_step_over_it(self):
         import os
         import time
-        with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "tests": "OK"}) as root:
+        with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "pushed": True, "site_verified": True, "published": True, "tests": "OK"}) as root:
             lock = root / "runtime" / "publish.lock"
             lock.write_text("held", encoding="utf-8")
             old = time.time() - 40 * 60
@@ -276,18 +276,18 @@ class PublishGate(unittest.TestCase):
     def test_a_publish_that_is_simply_running_is_not_reported(self):
         """A lock a minute old is a publish doing its job. A check that mentions it every quarter of
         an hour is a check nobody reads."""
-        with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "tests": "OK"}) as root:
+        with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "pushed": True, "site_verified": True, "published": True, "tests": "OK"}) as root:
             (root / "runtime" / "publish.lock").write_text("held", encoding="utf-8")
             names = [c["check"] for c in g.publish_gate()]
         self.assertNotIn("a publish is not stuck", names)
 
     def test_no_lock_at_all_says_nothing(self):
-        with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "tests": "OK"}):
+        with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "pushed": True, "site_verified": True, "published": True, "tests": "OK"}):
             names = [c["check"] for c in g.publish_gate()]
         self.assertNotIn("a publish is not stuck", names)
 
     def test_a_stale_receipt_that_passed_still_warns_that_the_publisher_may_be_stopped(self):
-        with world(receipt={"at": g.iso(g.now() - timedelta(hours=3)), "tests_ok": True, "tests": "OK"}):
+        with world(receipt={"at": g.iso(g.now() - timedelta(hours=3)), "tests_ok": True, "pushed": True, "site_verified": True, "published": True, "tests": "OK"}):
             c = by(g.publish_gate(), "the publisher is still running")
         self.assertEqual(c["state"], g.WARN)
 

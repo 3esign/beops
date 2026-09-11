@@ -1,1 +1,17 @@
-{"name":"beops","version":"0.1.0","private":true,"description":"Evidence-first urban observatory","scripts":{"start":"node server.js","test":"node tools/test-research.js","test:site":"node tools/verify_public_site.js","collect":"node tools/collect.js"},"engines":{"node":">=22"}}
+{
+  "name": "beops",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Evidence-first urban observatory",
+  "scripts": {
+    "start": "node tools/serve.js",
+    "test": "node tools/test-research.js",
+    "test:site": "node tools/verify_public_site.js",
+    "collect": "node tools/collect.js",
+    "start:legacy": "node server.js",
+    "doctor": "node tools/doctor.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

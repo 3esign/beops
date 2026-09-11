@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import pathlib
 from itertools import islice
+from contracts import json_rows
 
 
 def lines(path: pathlib.Path, errors: str = "replace"):
@@ -36,18 +37,9 @@ def count_lines(path: pathlib.Path, non_blank: bool = True) -> int:
 
 
 def objects(path: pathlib.Path, limit: int | None = None):
-    """The JSON objects in a .jsonl file, skipping anything that is not one."""
-    it = lines(path)
-    if limit is not None:
-        it = islice(it, limit)
-    for ln in it:
-        ln = ln.strip()
-        if not ln.startswith("{"):
-            continue
-        try:
-            yield json.loads(ln)
-        except ValueError:
-            continue
+    """Strict streaming read: corruption is reported with its line, never silently dropped."""
+    it = json_rows(path)
+    yield from (islice(it, limit) if limit is not None else it)
 
 
 def files(root: pathlib.Path):

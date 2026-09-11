@@ -1,3 +1,6 @@
+Status: current
+Date: 2026-09-11
+
 # BEOPS — orientation for anyone (or anything) arriving here
 
 **Belgrade Evidence Observatory for Public Signals.** Read this before touching anything. It is short
@@ -44,7 +47,7 @@ These are enforced by tests, not by intention. If a change breaks one, the chang
    test.
 6. **Corrections are appended, never edited.** 25 entries in `research/08-provenance/CORRECTIONS.md`.
    The wrong text stays visible beside the right one.
-7. **The machine may not say what the record does not support.** Gate 0.4.0, measured, residue named.
+7. **The machine may not say what the record does not support.** Gate version in research/ORGANS.json, measured, residue named.
 8. **A monitor that cannot see says UNKNOWN, never OK.**
 9. **Success is verified on the artefact, not on the receipt.** An exit code of 0 is evidence that
    something finished, never that it happened. C-018 is what skipping this costs.
@@ -55,19 +58,19 @@ These are enforced by tests, not by intention. If a change breaks one, the chang
 
 | | |
 |---|---|
-| Source registry (211 records, 14 refusals) | `research/SOURCE_REGISTRY.json` |
+| Source registry (counts are generated from the registry) | `research/SOURCE_REGISTRY.json` |
 | Collectors (31 listed, 28 polled) | `research/COLLECTORS.json` |
 | Permission evidence index + ledger | `research/08-provenance/INDEX.md`, `LEDGER.jsonl` |
 | Corrections ledger | `research/08-provenance/CORRECTIONS.md` |
 | Gate test set and evaluation | `research/GATE_ADVERSARIAL_SET.json`, `research/eval_gate.py` |
-| Retention policy (90 days, R1–R6) | `research/RETENTION.json`, `tools/apply_retention.py` |
+| Retention: headlines/digests kept; raw feeds 90 days, R1–R6 | `research/RETENTION.json`, `tools/apply_retention.py` |
 | Record of processing activities (ZZPL čl. 47) | `research/07-legal/BEOPS_EVIDENCIJA_OBRADE_2026-09-09.md` |
 | Letters, ready to send | `research/07-legal/BEOPS_PISMA_v3_2026-09-09.md` |
 | Pre-paper and its addendum | `research/06-paper/PRE_PAPER_v3_*.md` |
 | The site builder | `tools/build_site.py` → `docs/` |
 | The three frames | `research/05-design/studies/{monolog-puls,podaci,traka-live}.html` |
 | Watchman / guard | `tools/watchman.py`, `tools/guard.py` |
-| Tests (193) | `research/test_*.py` |
+| Tests (discovered by npm test) | `research/test_*.py` |
 
 ## What keeps running
 
@@ -103,3 +106,6 @@ invariants from the files on every pass and says **STOP** — without repairing 
 - Outputs are issued as NEW versions; an old one is never rewritten.
 - Say the honest verdict in every report and every commit message, including what is weaker than it
   looks and what would falsify the claim.
+
+
+Recovery entry (2026-09-11): `research/_trail/REPAIR_2026-09-11.md` records implemented changes, validation and unresolved limits. `npm run doctor` checks local build requirements; `npm start` serves generated docs on a loopback port (printed on startup), and `npm run start:legacy` explicitly starts the old prototype. Headlines are retained and the complete collected archive is at `naslovi.html`; article bodies are not published. Public Git history persists. Scheduled task definitions are in `tools/beops_tasks.ps1`, with individual execution limits; disabled tasks and operator pauses are preserved.

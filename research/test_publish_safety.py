@@ -28,6 +28,25 @@ def ps(script: str, *, cwd: pathlib.Path | None = None) -> subprocess.CompletedP
 
 
 class PublishSafety(unittest.TestCase):
+    def test_nonempty_unowned_default_folder_is_rejected_without_touching_it(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=pathlib.Path(d);src=root/'source';src.mkdir();pub=root/'Beops-public';pub.mkdir()
+            sentinel=pub/'keep.txt';sentinel.write_bytes(b'original')
+            self.assert_ps_fails(f"Assert-BeopsPublicRootSafe -SourceRoot '{src}' -PublicRoot '{pub}'",'expected public remote')
+            self.assertEqual(sentinel.read_bytes(),b'original')
+
+    def test_junction_to_source_is_rejected_and_sentinel_survives(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=pathlib.Path(d);src=root/'source';src.mkdir();alias=root/'Beops-public'
+            sentinel=src/'keep.txt';sentinel.write_bytes(b'original')
+            self.assert_ps_ok(f"New-Item -ItemType Junction -Path '{alias}' -Target '{src}' | Out-Null")
+            try:
+                self.assert_ps_fails(f"Assert-BeopsPublicRootSafe -SourceRoot '{src}' -PublicRoot '{alias}'",'source repository or inside it')
+                self.assertEqual(sentinel.read_bytes(),b'original')
+            finally:
+                # Only our junction entry; never recurse into its target.
+                alias.rmdir()
+
     def run_helper(self, body: str) -> subprocess.CompletedProcess[str]:
         script = textwrap.dedent(
             f"""

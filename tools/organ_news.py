@@ -22,6 +22,9 @@ Rules (CONTRIBUTING.md, 05-design grammar, 07-legal, AI Act Art. 50 notes in res
 from __future__ import annotations
 
 import argparse
+from contracts import json_rows, serialized, atomic_json
+from contracts import exclusive, finite, organ_pause_reason
+import local_models
 import hashlib
 import json
 import os
@@ -37,7 +40,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 LIVE = ROOT / "data" / "live"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "news-sorter"
-ORGAN_VERSION = "0.1.1"
+ORGAN_VERSION = "0.2.0"
 OLLAMA = os.environ.get("BEOPS_OLLAMA", "http://127.0.0.1:11434")
 
 CATEGORIES = ["saobracaj", "radovi", "iskljucenja", "javni_prevoz", "vreme_i_vazduh", "voda_i_reke",
@@ -77,17 +80,14 @@ def headlines(hours: int = 48) -> list[dict]:
         return out
     for sid_dir in sorted(rows_dir.iterdir()):
         for mf in sorted(sid_dir.glob("*.jsonl")):
-            with open(mf, encoding="utf-8") as fh:
-                for line in fh:
-                    try:
-                        r = json.loads(line)
-                    except ValueError:
-                        continue
-                    if r.get("kind") != "text" or not r.get("result"):
-                        continue
-                    if (r.get("receivedTime") or "") < since:
-                        continue
-                    out.append(r)
+            for r in json_rows(mf):
+                if r.get("kind") != "text" or not r.get("result"):
+                    continue
+                if (r.get("receivedTime") or "") < since:
+                    continue
+                r = dict(r)
+                r["dedupe_key"] = r.get("row_id") or r.get("dedupe_key")
+                out.append(r)
     return out
 
 
@@ -96,8 +96,8 @@ def done_keys() -> set:
     if p.exists():
         try:
             return set(json.loads(p.read_text(encoding="utf-8")))
-        except ValueError:
-            return set()
+        except ValueError as exc:
+            raise ValueError(f'Invalid completion cache {p}: {exc}') from exc
     return set()
 
 
@@ -146,8 +146,8 @@ SCHEMA = {
 
 def ollama_tags(timeout: int = 5) -> list[str] | None:
     try:
-        with urllib.request.urlopen(OLLAMA + "/api/tags", timeout=timeout) as r:
-            return [m["name"] for m in json.load(r).get("models", [])]
+        doc = local_models.request(OLLAMA, "/api/tags", timeout=timeout)
+        return [m["name"] for m in doc.get("models", []) if not m.get("remote_host") and not m.get("remote_model")]
     except Exception:  # noqa: BLE001 - silence is a state
         return None
 
@@ -180,8 +180,7 @@ def ollama_chat(model: str, prompt: str, timeout: int = 600) -> dict:
         payload["think"] = False   # measured 2026-09-09: left thinking, qwen3.5 spends its whole budget thinking and returns empty content
     body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(OLLAMA + "/api/chat", data=body, headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        doc = json.load(r)
+    doc = local_models.request(OLLAMA, "/api/chat", payload, min(timeout, 120))
     content = (doc.get("message") or {}).get("content") or ""
     return json.loads(content)
 
@@ -217,7 +216,7 @@ def derive(batch: list[dict], answer: dict, model: str, prompt_sha: str, now: da
                 "input_sid": r["sid"], "input_key": r.get("dedupe_key"), "input_headline": r["result"],
                 "input_resultTime": r.get("resultTime"), "derivedTime": iso(now)}
         if it is None:
-            out.append({**base, "category": None, "belgrade": None, "zones": [], "event_time_text": None,
+            out.append({**base, "state": "incomplete", "category": None, "belgrade": None, "zones": [], "event_time_text": None,
                         "note": "model returned no item for this headline"})
             continue
         cat = it.get("category") if it.get("category") in CATEGORIES else None
@@ -226,16 +225,23 @@ def derive(batch: list[dict], answer: dict, model: str, prompt_sha: str, now: da
             name = z.get("name") if isinstance(z, dict) else None
             if name in GAZETTEER:
                 try:
-                    zones.append({"name": name, "score": max(0.0, min(1.0, float(z.get("score", 0))))})
+                    score = z.get('score', 0)
+                    zones.append({"name": name, "score": max(0.0, min(1.0, float(score))) if finite(score) else 0.0})
                 except (TypeError, ValueError):
                     zones.append({"name": name, "score": 0.0})
             elif name:
                 zones.append({"name": None, "rejected": str(name)[:60], "score": 0.0,
                               "why": "not in gazetteer - a place the model named on its own is kept as a rejection, never as a zone"})
         zones.sort(key=lambda z: -z["score"])
+        zones = zones[:3]
+        if it.get("belgrade") is not True:
+            zones = []
+        time_text = str(it.get("event_time_text") or "").strip()
+        time_ok = time_text and time_text.casefold() in str(r["result"]).casefold()
+        base["validation"] = {"time_quote_supported": bool(time_ok), "zone_candidates": "model estimate"}
         out.append({**base, "bound_by": how, "category": cat, "belgrade": it.get("belgrade") if isinstance(it.get("belgrade"), bool) else None,
                     "zones": zones, "binding": "inferred_from_content" if zones and zones[0].get("name") else None,
-                    "event_time_text": (str(it.get("event_time_text"))[:80] if it.get("event_time_text") else None)})
+                    "event_time_text": time_text[:80] if time_ok else None})
     return out
 
 
@@ -253,6 +259,8 @@ def publish(path: pathlib.Path, value: dict) -> None:
         os.unlink(tmp)
 
 
+@serialized(lambda: LIVE / "derived/news/.job.lock")
+@local_models.budget(480)
 def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_size: int | None = None, limit: int | None = None) -> dict:
     now = now or utcnow()
     if limit is None:
@@ -262,9 +270,16 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
     reg = json.loads(ORGANS.read_text(encoding="utf-8"))
     organ = next(o for o in reg["organs"] if o["id"] == ORGAN_ID)
     receipt_path = LIVE / "derived" / "news" / "receipts" / f"{stamp(now)}.json"
-    todo = [r for r in headlines() if r.get("dedupe_key") and r["dedupe_key"] not in done_keys()][:limit]
+    done = done_keys()
+    attempts_path = LIVE / "derived/news/attempts.json"
+    attempts = json.loads(attempts_path.read_text(encoding="utf-8")) if attempts_path.exists() else {}
+    todo = [r for r in headlines() if r.get("dedupe_key") and r["dedupe_key"] not in done and attempts.get(r["dedupe_key"], 0) < 3][:limit]
     rec = {"schema": "beops-organ-receipt/v1", "organ": ORGAN_ID, "organ_version": ORGAN_VERSION, "at": iso(now),
            "waiting": len(todo), "state": "nothing_to_do", "derived": 0, "model": None, "calls": 0}
+    if organ_pause_reason(organ, LIVE / "derived" / "news"):
+        rec.update(state="paused", reason="operator pause or inactive organ")
+        publish(receipt_path, rec)
+        return rec
     if not todo:
         publish(receipt_path, rec)
         return rec
@@ -286,21 +301,28 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
         prompt = prompt_for(batch)
         sha = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
         rec["calls"] += 1
+        for row in batch:
+            attempts[row["dedupe_key"]] = attempts.get(row["dedupe_key"], 0) + 1
+        with exclusive(LIVE / ".write.lock"):
+            atomic_json(attempts_path, attempts)
         try:
             answer = chat(model, prompt)
         except Exception as exc:  # noqa: BLE001
             errors.append(f"{type(exc).__name__}: {str(exc)[:160]}")
             continue
         rows = derive(batch, answer, model, sha, now)
-        with open(out_path, "a", encoding="utf-8") as fh:
-            for r in rows:
-                fh.write(json.dumps(r, ensure_ascii=False) + "\n")
-        for r in batch:
-            done.add(r["dedupe_key"])
+        with exclusive(LIVE / ".write.lock"):
+            with open(out_path, "a", encoding="utf-8") as fh:
+                for r in rows:
+                    fh.write(json.dumps(r, ensure_ascii=False) + "\n")
+        for r in rows:
+            if r.get("state") != "incomplete" and r.get("category") is not None:
+                done.add(r["input_key"])
         derived_n += len(rows)
     save_done(done)
     rec["derived"] = derived_n
     rec["errors"] = errors
+    rec["incomplete_exhausted"] = sum(1 for key, count in attempts.items() if count >= 3 and key not in done)
     rec["state"] = "derived" if derived_n else ("organ_failed" if errors else "nothing_to_do")
     rec["output"] = str(out_path)
     publish(receipt_path, rec)

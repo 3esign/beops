@@ -12,7 +12,7 @@ There is a second public Science and Technology Park record with a different met
 
 ## 1. Two records must remain separate
 
-Existing immutable local evidence is [FIXED21_QA.json](../evidence/device-discovery-20260906/FIXED21_QA.json), backed by source <https://emf.ratel.rs/getOpenData/21/json>. It preserves the original header and content SHA-256 `e3ecaba71a8a860c5c490e7d12569da35d3578497c62b9a93994c9766f42a20e`. This wave did not request that URL again.
+Existing immutable local evidence is FIXED21_QA.json (private working record), backed by source <https://emf.ratel.rs/getOpenData/21/json>. It preserves the original header and content SHA-256 `e3ecaba71a8a860c5c490e7d12569da35d3578497c62b9a93994c9766f42a20e`. This wave did not request that URL again.
 
 | Attribute | Existing archive parameter 21 | Public results-page record 168 |
 |---|---|---|
@@ -74,9 +74,9 @@ Read the previous EMF report, QA references, closed wave board and legal matrix.
 
 ## Follow-up: the captured record-168 HTML already contains a measured series
 
-After the review above, the coordinator captured the exact page route and saved [science_park_record168.html](../evidence/S158/20260906T112754Z/science_park_record168.html). This follow-up only read that local file. It is **1,194,691 bytes**, SHA-256 **95868186ee46992c8f7be3cc197aea6d5df6736d1b33818f6310c9376adde677**. Thus the earlier metadata-only characterization is superseded for this saved response: it includes literal Chart.js data arrays. No JavaScript was executed and no additional request was made by the scout.
+After the review above, the coordinator captured the exact page route and saved science_park_record168.html (private working record). This follow-up only read that local file. It is **1,194,691 bytes**, SHA-256 **95868186ee46992c8f7be3cc197aea6d5df6736d1b33818f6310c9376adde677**. Thus the earlier metadata-only characterization is superseded for this saved response: it includes literal Chart.js data arrays. No JavaScript was executed and no additional request was made by the scout.
 
-The derived [RECORD168_STATIC_QA.json](../evidence/device-followup-20260906/RECORD168_STATIC_QA.json) records the static parser method and results. A balanced-delimiter/string scanner isolated the two chart objects and their literal arrays; JSON decoding processed dates, labels and numeric values only. Script API keys, contact fields and other unrelated content were neither copied to QA nor used.
+The derived RECORD168_STATIC_QA.json (private working record) records the static parser method and results. A balanced-delimiter/string scanner isolated the two chart objects and their literal arrays; JSON decoding processed dates, labels and numeric values only. Script API keys, contact fields and other unrelated content were neither copied to QA nor used.
 
 | Published chart content | Verified result |
 |---|---|

@@ -5,7 +5,7 @@
   "organs": [
     {
       "id": "news-sorter",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "tool": "tools/organ_news.py",
       "purpose": "Sort headlines the collector received into a fixed topic list, say whether they concern Belgrade, and propose up to three candidate zones from the project's gazetteer, keeping every candidate with its score.",
       "inputs": "headline (<=200 chars), link, publication time - never the article body (07-legal)",
@@ -26,13 +26,15 @@
       "editor_of_record": "doc. dr Semir Poturak, one of the two authors (editorial responsibility is the person's, not an institution's)",
       "status": "built 2026-09-08; first run against a local model on 2026-09-09 (see receipts) ; 0.1.1 binds by echoed headline (C-013); 2026-09-09: moved to the same main model as the mind (qwen3.5:4b, Apache-2.0) - the body (8 GB RAM, 4 GB GPU) cannot hold two models, and the 500s of 10:19 UTC on the public page were the two organs evicting each other during the voice bench; 11:15 UTC: the 4b sorted five headlines in more than nine minutes (the task limit) - with fourteen feeds the sorter needs a small fast model: qwen2.5:1.5b, the Skeptic's model, already resident beside the 4b (1.0 + 3.1 GB fit the 4 GB GPU). Categorical JSON with the C-013 echo binding is a job a 1.5B model can do; its sorting is a model's estimate and is labelled so",
       "allow_cloud": false,
-      "why_local_only": "names ending in ':cloud' are Ollama-hosted; a headline sent there leaves the machine, which this entry forbids. Measured on the PC 2026-09-08: local qwen2.5:3b (2.0 GB), qwen3.5:0.8b, lfm2.5:1.2b, llama3.2:1b present"
+      "why_local_only": "names ending in ':cloud' are Ollama-hosted; a headline sent there leaves the machine, which this entry forbids. Measured on the PC 2026-09-08: local qwen2.5:3b (2.0 GB), qwen3.5:0.8b, lfm2.5:1.2b, llama3.2:1b present",
+      "operational_state": "active",
+      "local_execution_contract": "Loopback endpoint, remote metadata refusal, shared OS model lock, and a total job deadline."
     },
     {
       "id": "mind",
-      "version": "0.4.4",
+      "version": "0.5.0",
       "tool": "tools/organ_mind.py",
-      "purpose": "The real monologue as a conversation, drop by drop: small local models orchestrated in layers - a program builds the digest and computes connections; organelles (a multilingual sentence-embedding model that links the same event across outlets, the smallest instruct model that rates connections by surprise) annotate it; three temperaments (Observer, Skeptic, Connector) think in English on the strongest local model and answer each other; the one model that writes Serbian renders every accepted thought; every utterance is validated by code, notebooks are read back (learning without training), claims are scored when reality arrives.",
+      "purpose": "The real monologue as a conversation, drop by drop: small local models orchestrated in layers - a program builds the digest and computes connections; organelles (a multilingual sentence-embedding model that proposes similar headline pairs across outlets without confirming event identity, the smallest instruct model that rates connections by surprise) annotate it; three temperaments (Observer, Skeptic, Connector) think in English on the strongest local model and answer each other; the one model that writes Serbian renders every accepted thought; every utterance is validated by code, notebooks are read back (learning without training), claims are scored when reality arrives.",
       "inputs": "public/live-snapshot.json only (receptions, silences, SEPA spreads, headlines, other organs' derived rows) rendered as numbered facts F1..Fn; the entity's own notebook; the other entities' VALIDATED utterances of the same conversation",
       "outputs": "data/live/derived/mind/<YYYY-MM>.jsonl (state 'thought' or 'rejected', with entity, round, replies_to, cites, hypotheses, questions, next_check, claim, model, prompt_sha256, digest_sha256); notebook/<entity>.jsonl; claims.jsonl with outcomes; receipts/; digests/ (the exact facts each conversation saw)",
       "runs_where": "on the PC body only (local model daemon at 127.0.0.1:11434); nothing leaves the machine",
@@ -102,7 +104,9 @@
       "link_threshold": 0.7,
       "ekavica_guard": "tools/organ_mind.py `ijekavian_hits`: a tested list (long and short jat reflex after verbal prefixes, Croatian-standard lexis), word-initial so that Srbije, linije, prijem, dijeta, objekat, odjednom, sjediniti, kolovoz, travnjak and dj-for-đ pass. Measured before it existed: 18 of 18 'voiced' sentences of the first night carried ijekavian or Croatian words (vrijednost, promijenile, utjecaj, vjerojatnost, sugerira). A list misses what is not on it; the editor's weekly sample is the second guard.",
       "voice_bench_2026_09_09": "qwen3.5:4b (Apache-2.0, pulled 2026-09-09) rendered one real thought in correct, natural ekavica on the first attempt ('Maksimalne vrednosti PM10 i NO2 u gradu su se povećale sa 85 na 119 µg/m³ ...') - the first Serbian sentence of the project a Serbian reader would not correct. The bench then timed out twice; the diagnosis (runtime/ollama_diag.py, same day): with think=false the model answers 28 tokens in 3.6 s warm on the RX 580 (7.8 tok/s), cold load 84 s; with thinking left on it spends all 600 tokens thinking and returns empty content - exactly the empty fields the bench saw; and the body has 8 GB RAM with a 4 GB GPU, so two resident models (qwen2.5:3b + qwen3.5:4b) thrash. Decision: ONE main model - qwen3.5:4b thinks (Observer, Connector) and voices; the Skeptic stays on qwen2.5:1.5b for heterogeneity; the voice bench command remains for the next model. qwen2.5:3b (non-commercial) leaves the default chain.",
-      "hardware_2026_09_09": "i7-7700K (4 cores), 8 GB RAM, Radeon RX 580 4 GB; Ollama runs the 4b at 100% GPU with num_ctx 2048; at 6144 part of the cache spills - measure the step time in the receipts"
+      "hardware_2026_09_09": "i7-7700K (4 cores), 8 GB RAM, Radeon RX 580 4 GB; Ollama runs the 4b at 100% GPU with num_ctx 2048; at 6144 part of the cache spills - measure the step time in the receipts",
+      "operational_state": "active",
+      "local_execution_contract": "Loopback endpoint, remote metadata refusal, shared OS model lock, and a total job deadline."
     },
     {
       "id": "series-watch",

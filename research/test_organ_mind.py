@@ -357,7 +357,12 @@ class ValidatorTests(unittest.TestCase):
         fid = next(f["id"] for f in dg["facts"] if "41" in om._nums(f["en"]))
         ok, why = om.validate({"text": f"The highest PM10 was 41 in the hour ending 23:00 [{fid}].", "cites": [fid],
                                "hypotheses": [], "questions": [], "next_check": "", "claim": None}, dg)
-        self.assertTrue(ok, why)
+        self.assertFalse(ok, "23:00 is in the window but is not the cited measurement's hour")
+        supported = next(f for f in dg["facts"] if f["id"] == fid)
+        supported["en"] += " at 08:00 UTC"
+        clock = "08:00"
+        good, reasons = om.validate({"text": f"The highest PM10 was 41 in the hour ending {clock} [{fid}].", "cites": [fid], "hypotheses": [], "questions": [], "next_check": "", "claim": None}, dg)
+        self.assertTrue(good, reasons)
         ok2, why2 = om.validate({"text": f"The highest PM10 was 41 at 05:00 [{fid}].", "cites": [fid],
                                  "hypotheses": [], "questions": [], "next_check": "", "claim": None}, dg)
         self.assertTrue(any("time outside the window" in r for r in why2), why2)

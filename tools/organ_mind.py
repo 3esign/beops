@@ -62,6 +62,11 @@ never presented as a measurement; the editor of record can stop the organ with o
 from __future__ import annotations
 
 import hashlib
+from decimal import Decimal
+from contracts import finite, row_clock, belgrade_offset, exclusive, json_rows, content_id, atomic_json
+import local_models
+from contracts import serialized, organ_pause_reason
+import claim_evidence
 import json
 import math
 import os
@@ -82,7 +87,7 @@ SNAPSHOT = ROOT / "public" / "live-snapshot.json"
 CONTEXT_POP = ROOT / "public" / "context-population.json"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "mind"
-ORGAN_VERSION = "0.4.4"
+ORGAN_VERSION = "0.5.0"
 OUT_DIR = LIVE / "derived" / "mind"
 ORCHESTRATIONS = ("council", "relay")   # for `run`; the scheduled mode is the drip (see STEPS)
 
@@ -137,7 +142,8 @@ def _clocks(text: str) -> set:
 
 def _nums(text: str) -> set:
     t = CLOCK.sub(" ", re.sub(r"\[F\d+\]", "", text or ""))
-    return {m.replace(",", ".") for m in re.findall(r"\d+(?:[.,]\d+)?", t)}
+    return {format(Decimal(m.replace(",", ".")), "f").lstrip("+")
+            for m in re.findall(r"(?<![\w.])[-+]?\d+(?:[.,]\d+)?", t)}
 
 
 _USUAL_CACHE: dict = {}
@@ -188,7 +194,7 @@ def digest(snap: dict, hours: int = 6, now: datetime | None = None, context: dic
     def add(sr: str, en: str, **meta):
         facts.append({"id": f"F{len(facts) + 1}", "sr": sr, "en": en, **meta})
 
-    local = now.astimezone(timezone(timedelta(hours=2)))   # CEST until 25 Oct 2026
+    local = now.astimezone(timezone(timedelta(hours=belgrade_offset(now))))
     wd_sr = ["ponedeljak", "utorak", "sreda", "četvrtak", "petak", "subota", "nedelja"][local.weekday()]
     wd_en = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][local.weekday()]
     add(f"Sada je {wd_sr}, {local.strftime('%H:%M')} po lokalnom vremenu ({now.strftime('%H:%M')} UTC).",
@@ -383,11 +389,8 @@ def _people_near(lat: float, lon: float, km: float, ctx: dict) -> int:
 
 # ================================================================ L1: organelles
 def ollama_embed(model: str, texts: list[str], timeout: int = 120) -> list[list[float]]:
-    body = json.dumps({"model": model, "input": texts, "keep_alive": "30m"}).encode("utf-8")
-    req = urllib.request.Request(OLLAMA + "/api/embed", data=body, headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        doc = json.load(r)
-    return doc.get("embeddings") or []
+    doc = local_models.request(OLLAMA, "/api/embed", {"model": model, "input": texts}, timeout)
+    return doc.get("embeddings", [])
 
 
 def _cos(a: list[float], b: list[float]) -> float:
@@ -419,8 +422,8 @@ def embed_linker(dg: dict, model: str | None, embed=ollama_embed, threshold: flo
     out = []
     for s, i, j in pairs[:top]:
         out.append({"kind": "link", "similarity": round(s, 2), "a": hs[i], "b": hs[j],
-                    "sr": f"Veza (organela): dva izvora nose isti događaj - {hs[i]['outlet']} „{hs[i]['title'][:80]}\" i {hs[j]['outlet']} „{hs[j]['title'][:80]}\" (sličnost {s:.2f}, model ugrađivanja rečenica).",
-                    "en": f"Link (organelle): two outlets carry the same event - {hs[i]['outlet']} \"{hs[i]['title'][:80]}\" and {hs[j]['outlet']} \"{hs[j]['title'][:80]}\" (similarity {s:.2f}, sentence-embedding model)."})
+                    "sr": f"Veza (organela): dva naslova su slična; isti događaj nije potvrđen - {hs[i]['outlet']} „{hs[i]['title'][:80]}\" i {hs[j]['outlet']} „{hs[j]['title'][:80]}\" (sličnost {s:.2f}, model ugrađivanja rečenica).",
+                    "en": f"Link (organelle): two headlines are similar; event identity is unverified - {hs[i]['outlet']} \"{hs[i]['title'][:80]}\" and {hs[j]['outlet']} \"{hs[j]['title'][:80]}\" (similarity {s:.2f}, sentence-embedding model)."})
     return out
 
 
@@ -575,7 +578,7 @@ def voice(row: dict, text: str, dg: dict, voice_model: str | None, chat, rec: di
         sr_text = re.sub(r"\s*\[F\d+\]", "", (v.get("sr") or "")).strip() + (" " + cites if cites else "")
         h_sr = [x.strip() for x in (v.get("hypotheses") or []) if isinstance(x, str) and x.strip()][:len(hyps)]
         q_sr = [x.strip() for x in (v.get("questions") or []) if isinstance(x, str) and x.strip()][:len(qs)]
-        vok, vwhy = validate_voice(sr_text, text, dg, h_sr, q_sr, len(hyps), len(qs))
+        vok, vwhy = validate_voice(sr_text, text, dg, h_sr, q_sr, len(hyps), len(qs), hyps, qs)
         if vok:
             row["sr"], row["hypotheses_sr"], row["questions_sr"], row["sr_state"] = sr_text, h_sr, q_sr, "voiced"
             if rec is not None:
@@ -695,8 +698,7 @@ def ollama_chat(model: str, prompt: str, schema: dict | None = None, num_predict
         payload["think"] = False   # the organ wants the answer, not a hidden monologue; the JSON must carry all of it
     body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(OLLAMA + "/api/chat", data=body, headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        doc = json.load(r)
+    doc = local_models.request(OLLAMA, "/api/chat", payload, timeout=min(timeout, 120))
     return json.loads((doc.get("message") or {}).get("content") or "{}")
 
 
@@ -952,7 +954,7 @@ def validate(answer: dict, dg: dict, previous: list[str] | None = None) -> tuple
         elif textual and m not in bound:
             reasons.append(f"number not in the cited facts: {m}")
     for hhmm in _clocks(text):
-        if hhmm not in set(dg.get("clock") or []):
+        if hhmm not in set().union(*(_clocks(f.get("en") or "") | _clocks(f.get("sr") or "") for f in cited)):
             reasons.append(f"time outside the window: {hhmm}")
     bad = sorted(c for c in (inline | listed) if c not in ids)
     if bad:
@@ -988,9 +990,9 @@ def validate(answer: dict, dg: dict, previous: list[str] | None = None) -> tuple
             need = CLAIM_KINDS[claim["kind"]]
             if not need <= set(claim):
                 reasons.append("claim missing fields: " + ", ".join(sorted(need - set(claim))))
-            elif claim["kind"] == "spread" and not (isinstance(claim.get("lo"), (int, float)) and isinstance(claim.get("hi"), (int, float)) and claim["lo"] <= claim["hi"]):
+            elif claim["kind"] == "spread" and not (finite(claim.get("lo")) and finite(claim.get("hi")) and claim["lo"] <= claim["hi"]):
                 reasons.append("claim range malformed")
-            elif not isinstance(claim.get("within_minutes"), int) or not 5 <= claim["within_minutes"] <= 24 * 60:
+            elif type(claim.get("within_minutes")) is not int or not 5 <= claim["within_minutes"] <= 24 * 60:
                 reasons.append("claim horizon must be 5..1440 minutes")
             else:
                 # The claim is well formed; make it SETTLEABLE. A source named rather than identified
@@ -1001,12 +1003,34 @@ def validate(answer: dict, dg: dict, previous: list[str] | None = None) -> tuple
                         claim["sid"] = got
                     else:
                         reasons.append("claim names a source that is not in these facts: " + str(claim.get("sid"))[:40])
+    for label, values in (("hypotheses", answer.get("hypotheses") or []),
+                          ("questions", answer.get("questions") or []),
+                          ("next_check", [answer.get("next_check") or ""])):
+        if not isinstance(values, list):
+            reasons.append(label + " must be a list")
+            continue
+        for value in values:
+            if not isinstance(value, str):
+                reasons.append(label + " must contain text")
+                continue
+            aux_ids = set(re.findall(r"\[(F\d+)\]", value))
+            aux_facts = [f for f in dg["facts"] if f["id"] in (aux_ids or (inline | listed))]
+            aux_bound = set().union(*(_nums(f.get("en") or "") | _nums(f.get("sr") or "") for f in aux_facts)) if aux_facts else set()
+            for number in _nums(value):
+                if number not in aux_bound:
+                    reasons.append(f"unsupported number in {label}: {number}")
+            aux_clocks = set().union(*(_clocks(f.get("en") or "") | _clocks(f.get("sr") or "") for f in aux_facts)) if aux_facts else set()
+            if not _clocks(value) <= aux_clocks:
+                reasons.append("unsupported clock in " + label)
+            if aux_ids - ids:
+                reasons.append("unknown citation in " + label)
+            reasons += semantic_reasons(value, aux_facts)
     reasons += semantic_reasons(text, cited)
     return (not reasons), reasons
 
 
 def validate_voice(sr: str, en: str, dg: dict, hyp_sr: list[str] | None = None, q_sr: list[str] | None = None,
-                   n_hyp: int = 0, n_q: int = 0) -> tuple[bool, list[str]]:
+                   n_hyp: int = 0, n_q: int = 0, hyp_en=None, q_en=None) -> tuple[bool, list[str]]:
     """The Serbian rendering may not add a number or a citation, must be Serbian, and must be EKAVICA -
     in the thought and in every hypothesis and question."""
     reasons = []
@@ -1018,6 +1042,23 @@ def validate_voice(sr: str, en: str, dg: dict, hyp_sr: list[str] | None = None, 
     # this function is not given, so they keep the wider digest-level check, and the asymmetry is
     # deliberate rather than an oversight.
     allowed = _nums(en)
+    if _nums(sr) != allowed:
+        reasons.append("quantities differ from the original")
+    if _clocks(sr) != _clocks(en):
+        reasons.append("clocks differ from the original")
+    if _units([sr]) != _units([en]):
+        reasons.append("units differ from the original")
+    en_negative = bool(re.search(r"\b(no|not|never|without|cannot|isn't|aren't)\b", en, re.I))
+    sr_negative = bool(re.search(r"\b(ne|nije|nisu|nema|nikad|nikada|bez)\b", sr, re.I))
+    if en_negative != sr_negative:
+        reasons.append("negation differs from the original")
+    for label, translated, original in (("hypothesis", hyp_sr or [], hyp_en), ("question", q_sr or [], q_en)):
+        if original is not None:
+            if len(translated) != len(original):
+                reasons.append(label + " count differs")
+            for a, b in zip(translated, original):
+                if _nums(a) != _nums(b) or _clocks(a) != _clocks(b) or _units([a]) != _units([b]):
+                    reasons.append(label + " facts differ from the original")
     allowed_aux = allowed | set(dg["numbers"])
     for m in _nums(sr):
         if m not in allowed:
@@ -1071,22 +1112,18 @@ def publish(path: pathlib.Path, value: dict) -> None:
 
 
 def _append(path: pathlib.Path, row: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "a", encoding="utf-8") as f:
-        f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    with exclusive(LIVE / ".write.lock"):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if path.name == "claims.jsonl":
+            row.setdefault("claim_id", content_id(row))
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(row, ensure_ascii=False, allow_nan=False) + "\n")
+            f.flush()
+            os.fsync(f.fileno())
 
 
 def _rows(path: pathlib.Path) -> list[dict]:
-    if not path.exists():
-        return []
-    out = []
-    with open(path, encoding="utf-8") as f:
-        for line in f:
-            try:
-                out.append(json.loads(line))
-            except ValueError:
-                continue
-    return out
+    return list(json_rows(path))
 
 
 def notebook(entity: str) -> list[dict]:
@@ -1135,11 +1172,12 @@ def chat_chain(chain: list[str], prompt: str, chat, rec: dict | None = None, **k
 
 
 # -------------------------------------------------------------------- run
+@serialized(lambda: LIVE / "derived/mind/.job.lock")
+@local_models.budget(480)
 def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=ollama_embed, snap: dict | None = None,
         context: dict | None = None, orchestration: str | None = None) -> dict:
     now = now or utcnow()
     reg = register()
-    snap = snap or json.loads(SNAPSHOT.read_text(encoding="utf-8"))
     conv_id = stamp(now)
     n_prev = len(list((OUT_DIR / "receipts").glob("*.json"))) if (OUT_DIR / "receipts").exists() else 0
     orch = orchestration or ORCHESTRATIONS[n_prev % len(ORCHESTRATIONS)]
@@ -1148,10 +1186,12 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=o
            "state": "nothing_to_do", "utterances": 0, "rejected": 0, "voiced": 0, "voice_refused": 0,
            "models": {}, "organelles": {}, "calls": 0, "reason": None}
     receipt_path = OUT_DIR / "receipts" / f"{conv_id}.json"
-    if (OUT_DIR / "PAUSED").exists():
-        rec["state"], rec["reason"] = "paused", (OUT_DIR / "PAUSED").read_text(encoding="utf-8", errors="replace")[:200] or "PAUSED file present"
+    pause_reason = organ_pause_reason(reg, OUT_DIR)
+    if pause_reason:
+        rec["state"], rec["reason"] = "paused", pause_reason
         publish(receipt_path, rec)
         return rec
+    snap = snap or json.loads(SNAPSHOT.read_text(encoding="utf-8"))
     dg0 = digest(snap, hours=int(reg.get("window_hours", 6)), now=now, context=context)
     if len(dg0["facts"]) < 2:
         rec["reason"] = "digest empty - nothing to think about"
@@ -1228,7 +1268,7 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=o
                  "reason": "; ".join(reasons) if reasons else None, "claim": claim})
         if claim:
             _append(OUT_DIR / "claims.jsonl", {"at": iso(now), "conversation": conv_id, "orchestration": orch, "entity": ent["id"],
-                                                "model": spoke, "claim": claim,
+                                                "model": spoke, "round": rnd, "digest_sha256": digest_sha, "claim": claim,
                                                 "due": iso(now + timedelta(minutes=int(claim["within_minutes"]))), "outcome": None, "settled_at": None})
         if ok:
             accepted.append(row)
@@ -1264,8 +1304,8 @@ def _context() -> dict:
     if CONTEXT.exists():
         try:
             return json.loads(CONTEXT.read_text(encoding="utf-8"))
-        except ValueError:
-            pass
+        except ValueError as exc:
+            raise ValueError(f'Invalid mind context {CONTEXT}: {exc}') from exc
     return {"schema": "beops-mind-context/v1", "step": 0, "cycle": 0, "links": [], "ratings": {}, "rank_model": None,
             "embed_model": None, "conversation": [], "updated": None}
 
@@ -1278,6 +1318,8 @@ def _save_context(ctx: dict, now: datetime) -> None:
     os.replace(tmp, CONTEXT)
 
 
+@serialized(lambda: LIVE / "derived/mind/.job.lock")
+@local_models.budget(180)
 def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=ollama_embed, snap: dict | None = None,
          context: dict | None = None) -> dict:
     """One drop of the endless conversation. State lives in context.json; every step rebuilds the digest
@@ -1290,13 +1332,14 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
     rec = {"schema": "beops-organ-receipt/v1", "organ": ORGAN_ID, "organ_version": ORGAN_VERSION, "at": iso(now), "mode": "drip",
            "step": ctx["step"], "step_name": name, "conversation": cycle_id, "state": "nothing_to_do", "calls": 0, "reason": None}
     receipt_path = OUT_DIR / "receipts" / f"{stamp(now)}-{name}.json"
-    if (OUT_DIR / "PAUSED").exists():
-        rec["state"], rec["reason"] = "paused", (OUT_DIR / "PAUSED").read_text(encoding="utf-8", errors="replace")[:200] or "PAUSED file present"
+    pause_reason = organ_pause_reason(reg, OUT_DIR)
+    if pause_reason:
+        rec["state"], rec["reason"] = "paused", pause_reason
         publish(receipt_path, rec)
         return rec
     snap = snap or json.loads(SNAPSHOT.read_text(encoding="utf-8"))
     if name == "score":
-        res = score(now=now, snap=snap)
+        res = score(now=now)
         rec["state"], rec["settled"] = "derived", res["settled_now"]
         ctx["step"] += 1
         ctx["cycle"] += 1
@@ -1345,6 +1388,7 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
             ratings = surprise_ranker(dg1, rank_model, chat)
             rec["calls"], rec["state"], rec["ratings"] = 1, "derived" if ratings else "rejected", len(ratings)
             ctx["ratings"], ctx["rank_model"] = ratings, rank_model
+            ctx["rated_facts"] = {f["en"]: ratings[f["id"]] for f in dg1["facts"] if f["id"] in ratings}
             if ratings:
                 parts = ", ".join(f"{k} {v}/5" for k, v in sorted(ratings.items(), key=lambda x: -x[1]))
                 _append(out_path, {"schema": "beops-derived-row/v1", "state": "organelle", "organ": ORGAN_ID, "organ_version": ORGAN_VERSION,
@@ -1364,15 +1408,14 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
         if not model:
             rec["state"], rec["reason"] = "organ_silent", f"no local model from the register for {name}"
         else:
-            dg = annotate(dg0, ctx.get("links") or [], ctx.get("ratings") or {}, ctx.get("rank_model"), ctx.get("embed_model"))
-            digest_sha = hashlib.sha256(json.dumps(dg, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
-            (OUT_DIR / "digests").mkdir(parents=True, exist_ok=True)
-            (OUT_DIR / "digests" / f"{stamp(now)}-{name}.json").write_text(json.dumps(dg, ensure_ascii=False, indent=1), encoding="utf-8")
+            base = annotate(dg0, ctx.get("links") or [], {}, ctx.get("rank_model"), ctx.get("embed_model"))
+            current_ratings = {f["id"]: ctx.get("rated_facts", {}).get(f["en"]) for f in base["facts"] if f["en"] in ctx.get("rated_facts", {})}
+            dg = annotate(dg0, ctx.get("links") or [], current_ratings, ctx.get("rank_model"), ctx.get("embed_model"))
             latest_by = {}
             for c in (ctx.get("conversation") or []):
                 if c.get("entity") != name:
                     latest_by[c["entity"]] = c
-            conversation = list(latest_by.values())
+            conversation = [{**c, "en": re.sub(r"\[F\d+\]", "[prior digest]", c["en"])} for c in latest_by.values()]
             # what changed in the world since this entity last spoke - the nudge away from restating
             seen = set(ctx.get("last_facts", {}).get(name) or [])
             fresh = [f for f in dg["facts"] if f["en"] not in seen and f["kind"] in ("reception", "spread", "connection", "link", "headlines", "silence", "context", "usual")]
@@ -1380,6 +1423,9 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
                 dg = {**dg, "facts": dg["facts"] + [{"id": f"F{len(dg['facts']) + 1}", "kind": "fresh",
                       "sr": "Novo otkad si poslednji put govorio: " + "; ".join(f["id"] for f in fresh[:8]) + ".",
                       "en": "NEW since you last spoke (speak about these, not about what was already said): " + ", ".join(f["id"] for f in fresh[:8]) + "."}]}
+            digest_sha = hashlib.sha256(json.dumps(dg, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
+            (OUT_DIR / "digests").mkdir(parents=True, exist_ok=True)
+            (OUT_DIR / "digests" / f"{stamp(now)}-{name}.json").write_text(json.dumps(dg, ensure_ascii=False, indent=1), encoding="utf-8")
             previous = [c["en"] for c in (ctx.get("conversation") or [])]
             prompt = prompt_for(ent, dg, notebook(name), conversation)
             prompt_sha = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
@@ -1413,12 +1459,12 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
                                                                  "text": text, "sr": row["sr"], "reason": "; ".join(reasons) if reasons else None, "claim": claim})
                 if claim:
                     _append(OUT_DIR / "claims.jsonl", {"at": iso(now), "conversation": cycle_id, "orchestration": "drip", "entity": name, "model": model,
-                                                        "claim": claim, "due": iso(now + timedelta(minutes=int(claim["within_minutes"]))), "outcome": None, "settled_at": None})
+                                                        "round": ctx["step"], "digest_sha256": digest_sha, "claim": claim, "due": iso(now + timedelta(minutes=int(claim["within_minutes"]))), "outcome": None, "settled_at": None})
                 rec["state"] = "derived" if ok else "rejected"
                 rec["reason"] = None if ok else "; ".join(reasons)[:200]
                 rec["sr_state"] = row["sr_state"]
                 if ok:
-                    ctx["conversation"] = ((ctx.get("conversation") or []) + [{"entity": name, "en": text, "at": iso(now)}])[-6:]
+                    ctx["conversation"] = ((ctx.get("conversation") or []) + [{"entity": name, "en": text, "at": iso(now), "digest_sha256": digest_sha}])[-6:]
     ctx["step"] += 1
     _save_context(ctx, now)
     publish(receipt_path, rec)
@@ -1427,42 +1473,33 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
 
 # ------------------------------------------------------------------ score
 def score(now: datetime | None = None, snap: dict | None = None) -> dict:
-    """Settle every claim whose deadline has passed, against the snapshot as it is now."""
+    with exclusive(LIVE / ".write.lock"):
+        return _score_locked(now, snap)
+
+
+def _score_locked(now=None, snap=None):
     now = now or utcnow()
-    snap = snap or json.loads(SNAPSHOT.read_text(encoding="utf-8"))
     path = OUT_DIR / "claims.jsonl"
     rows = _rows(path)
     settled = 0
-    by_sid = {s["sid"]: s for s in snap.get("sources", [])}
+    if snap is not None:
+        proof = OUT_DIR / "claim-evidence" / (content_id(snap) + ".json")
+        if not proof.exists():
+            publish(proof, snap)
     for r in rows:
         if r.get("outcome") is not None:
             continue
-        due, made = _p(r.get("due")), _p(r.get("at"))
+        due = _p(r.get("due"))
         if not due or due > now:
             continue
-        c = r["claim"]
-        src = by_sid.get(c.get("sid"))
-        outcome = "unverifiable"
-        if src:
-            pts = [p for d in src.get("datastreams", []) for p in d.get("points", [])]
-            if c["kind"] == "reception":
-                rx = [_p(p.get("rx")) for p in pts if p.get("rx")]
-                outcome = "true" if any(made < t <= due for t in rx if t) else "false"
-            elif c["kind"] == "spread":
-                later = sorted({p.get("t") for d in src.get("datastreams", []) if d.get("parameter") == c.get("parameter")
-                                for p in d.get("points", []) if p.get("t") and (_p(p.get("rx")) or made) > made})
-                if later:
-                    h0 = later[0]
-                    vals = [p["v"] for d in src.get("datastreams", []) if d.get("parameter") == c.get("parameter")
-                            for p in d.get("points", []) if p.get("t") == h0 and isinstance(p.get("v"), (int, float))]
-                    if vals:
-                        outcome = "true" if c["lo"] <= max(vals) <= c["hi"] else "false"
-                        r["observed_max"], r["observed_hour"] = max(vals), h0
-        r["outcome"], r["settled_at"] = outcome, iso(now)
+        r.setdefault("claim_id", content_id(r))
+        result = claim_evidence.evaluate(r, LIVE, snap)
+        r.update(result, settled_at=iso(now), scoring_version="closed-window/v2")
+        _append(OUT_DIR / "claim-events.jsonl", {"kind": "settled", "at": iso(now), "claim_id": r["claim_id"], **result})
+        _append(OUT_DIR / "notebook" / f"{r['entity']}.jsonl", {"at": iso(now), "conversation": r["conversation"],
+            "state": "claim_settled", "claim_id": r["claim_id"], "text": "claim evaluated from a closed window",
+            "claim_outcome": r["outcome"], "reason": result.get("reason")})
         settled += 1
-        _append(OUT_DIR / "notebook" / f"{r['entity']}.jsonl",
-                {"at": iso(now), "conversation": r["conversation"], "state": "claim_settled", "text": f"claim {json.dumps(c, ensure_ascii=False)}",
-                 "claim_outcome": outcome, "reason": None})
     if settled:
         tmp = path.with_suffix(".tmp")
         tmp.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
@@ -1472,7 +1509,9 @@ def score(now: datetime | None = None, snap: dict | None = None) -> dict:
 
 def scoreboard(rows: list[dict] | None = None) -> dict:
     rows = rows if rows is not None else _rows(OUT_DIR / "claims.jsonl")
-    utter = [r for mf in sorted(OUT_DIR.glob("*.jsonl")) if OUT_DIR.exists() and mf.name != "claims.jsonl" for r in _rows(mf)]
+    utter = [r for mf in sorted(OUT_DIR.glob("*.jsonl")) if OUT_DIR.exists() and re.fullmatch(r"\d{4}-\d{2}\.jsonl", mf.name) for r in _rows(mf)]
+    retracted = {(r.get("conversation"), r.get("entity"), r.get("round")) for r in utter if r.get("state") == "retracted"}
+    utter = [r for r in utter if r.get("state") != "thought" or (r.get("conversation"), r.get("entity"), r.get("round")) not in retracted]
     board = {}
     for ent in ENTITIES:
         mine = [r for r in rows if r.get("entity") == ent["id"]]
@@ -1500,6 +1539,11 @@ def scoreboard(rows: list[dict] | None = None) -> dict:
 
 
 def retract(conversation: str, entity: str, rnd: int, reason: str, now: datetime | None = None) -> dict:
+    with exclusive(LIVE / ".write.lock"):
+        return _retract_locked(conversation, entity, rnd, reason, now)
+
+
+def _retract_locked(conversation: str, entity: str, rnd: int, reason: str, now: datetime | None = None) -> dict:
     """Append a retraction for an utterance that should not have passed. The original row stays; the
     export skips any (conversation, entity, round) that has a retraction; its claim is voided."""
     now = now or utcnow()
@@ -1513,7 +1557,8 @@ def retract(conversation: str, entity: str, rnd: int, reason: str, now: datetime
     rows = _rows(cpath)
     changed = False
     for r in rows:
-        if r.get("conversation") == conversation and r.get("entity") == entity and r.get("outcome") is None:
+        if r.get("conversation") == conversation and r.get("entity") == entity and r.get("round") == int(rnd):
+            _append(OUT_DIR / "claim-events.jsonl", {"kind": "retracted", "at": iso(now), "claim_id": r.get("claim_id"), "prior_outcome": r.get("outcome"), "reason": reason})
             r["outcome"], r["settled_at"] = "retracted", iso(now)
             changed = True
     if changed:
@@ -1540,7 +1585,7 @@ def status() -> dict:
 def check() -> dict:
     reg = register()
     dg = {"as_of": "x", "window_hours": 6, "numbers": ["32", "485", "3", "10", "40", "90", "1"],
-          "facts": [{"id": "F1", "sr": "a", "en": "a"}, {"id": "F2", "sr": "b", "en": "b"}]}
+          "facts": [{"id": "F1", "sr": "Stanice su javile 485 vrednosti.", "en": "Stations reported 485 values."}, {"id": "F2", "sr": "Jedan izvor ćuti.", "en": "One feed is silent."}]}
     ok1, r1 = validate({"text": "Thirty-two stations [F1] reported 485 values while one feed is silent [F2].", "cites": ["F1"],
                         "hypotheses": ["maybe the night lowers it"], "questions": [], "next_check": "",
                         "claim": {"kind": "spread", "sid": "S146", "parameter": "PM10", "lo": 10, "hi": 40, "within_minutes": 90}}, dg)
@@ -1598,6 +1643,12 @@ def voice_bench(model_names: list[str], n: int = 8) -> dict:
 
 def main() -> int:
     cmd = sys.argv[1] if len(sys.argv) > 1 else "status"
+    if cmd in ("run", "step"):
+        # Publication builds in isolation. Model input must therefore refresh
+        # independently from the current canonical record on every CLI run.
+        from collect_daemon import export
+        with exclusive(LIVE / '.write.lock'):
+            export()
     if cmd == "run":
         print(json.dumps(run(), ensure_ascii=False, indent=1))
     elif cmd == "step":
@@ -1614,7 +1665,9 @@ def main() -> int:
     elif cmd == "status":
         print(json.dumps(status(), ensure_ascii=False, indent=1))
     elif cmd == "check":
-        print(json.dumps(check(), ensure_ascii=False, indent=1))
+        result = check()
+        print(json.dumps(result, ensure_ascii=False, indent=1))
+        return 0 if all(result.get(k) for k in ("validator_accepts_grounded", "validator_refuses_ungrounded", "voice_accepts_faithful", "voice_refuses_salad")) else 1
     elif cmd == "voice-bench" and len(sys.argv) >= 3:
         args = sys.argv[2:]
         n = int(args[args.index("--n") + 1]) if "--n" in args else 8

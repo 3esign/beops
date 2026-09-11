@@ -159,8 +159,8 @@ def report(data: dict, run_out: dict, summary: dict) -> str:
     L.append("HONEST VERDICT")
     L.append("  " + data["annotation"]["known_bias"])
     L.append("  The families listed above are the ones one author could imagine in one sitting. A")
-    L.append("  false-accept rate measured against them is a floor. It is still the first number this")
-    L.append("  project has had for the question the refusal count never answered.")
+    L.append("  false-accept rate on this development set is descriptive only: it is neither a population estimate nor a lower bound.")
+    L.append("  The set has one digest and one annotator. Independent blinded annotation and a held-out time/source sample remain required.")
     return "\n".join(L)
 
 
@@ -181,6 +181,8 @@ def main() -> int:
             "schema": "beops-gate-eval/v1",
             "run_at": stamp.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "set_version": data["version"],
+            "evaluation_scope": "development regression; not independent or generalizable",
+            "independent_validation": False,
             "gate_version": M.ORGAN_VERSION,
             "baseline": BASELINE,
             "annotation": data["annotation"],

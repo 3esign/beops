@@ -12,18 +12,18 @@ file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ## Start here
 
-- **[_trail/AUDIT_DEEP_2026-09-11.md](_trail/AUDIT_DEEP_2026-09-11.md)** — fresh deep audit of source dc22db2: 63 findings (15 P1, 42 P2, 6 P3), complete byte inventory, evidence/hash checks, 535 passing isolated tests, adversarial and browser probes, and a sequenced remediation plan. Findings are not fixes. Evidence and reproduction notes: **[_trail/audit-deep-20260911/README.md](_trail/audit-deep-20260911/README.md)**.
-- **[_trail/AUDIT_ORDER_2026-09-11.md](_trail/AUDIT_ORDER_2026-09-11.md)** — detailed project-order audit: 39 findings, isolated failure reproductions, 519 passing offline tests, scheduler and browser checks; findings are not fixes.
+- **_trail/AUDIT_DEEP_2026-09-11.md (private working record)** — fresh deep audit of source dc22db2: 63 findings (15 P1, 42 P2, 6 P3), complete byte inventory, evidence/hash checks, 535 passing isolated tests, adversarial and browser probes, and a sequenced remediation plan. Findings are not fixes. Evidence and reproduction notes: **_trail/audit-deep-20260911/README.md (private working record)**.
+- **_trail/AUDIT_ORDER_2026-09-11.md (private working record)** — detailed project-order audit: 39 findings, isolated failure reproductions, 519 passing offline tests, scheduler and browser checks; findings are not fixes.
 - **[STRUCTURE_CONTRACT_2026-09-11.md](STRUCTURE_CONTRACT_2026-09-11.md)** — current structure rule: public site as main surface, source/proof/live/generated/private zones, and how to name surplus and missing.
 - **[OPERATIONAL_ORDER_2026-09-11.md](OPERATIONAL_ORDER_2026-09-11.md)** — current operational order: active private repo vs public mirror, C/D path rule, scheduler source of truth and publish safety.
 - **[PROJECT_MAP_2026-09-09.md](PROJECT_MAP_2026-09-09.md)** — useful historical map of where things live; now superseded for structure by the contract above.
-- **[Current paper direction](06-paper/PRE_PAPER_v5_2026-09-10.md)** — pre-paper v5; supersedes v3/v4 and their addenda as the current discussion entry.
-- **[Statistical collaboration note](06-paper/STATISTICS_COLLABORATION_2026-09-10.md)** — what statisticians can do with the present record; coverage/exposure first.
+- **Current paper direction (private working record)** — pre-paper v5; supersedes v3/v4 and their addenda as the current discussion entry.
+- **Statistical collaboration note (private working record)** — what statisticians can do with the present record; coverage/exposure first.
 - **[Stability review](STABILITY_REVIEW_2026-09-10.md)** and **[decisions](DECISIONS.md)** — what can fail unnoticed and what was explicitly chosen.
 
-- **[Serbian pre-paper V2](06-paper/PRED_RAD_SR_V2_2026-09-06.md)** — preserved Serbian discussion wave: new literature/gap review and institutional-practice appendix. It is superseded by v5 for current paper direction.
-- **[Earlier English pre-paper](06-paper/PRE_PAPER_URBAN_INTELLIGENCE_2026-09-06.md)** — preserved earlier version, not synchronized with the Serbian additions.
-- **[All189 source records, organized](06-paper/RESEARCH_ATLAS_2026-09-06.md)** — source roles, limits and literature shelves; original registry unchanged.
+- **Serbian pre-paper V2 (private working record)** — preserved Serbian discussion wave: new literature/gap review and institutional-practice appendix. It is superseded by v5 for current paper direction.
+- **Earlier English pre-paper (private working record)** — preserved earlier version, not synchronized with the Serbian additions.
+- **All189 source records, organized (private working record)** — source roles, limits and literature shelves; original registry unchanged.
 
 - **[Current products and sensory ecology](02-senses/CURRENT_PRODUCTS_2026-09-06.md)** — one new groundwater record, eight exact DOI metadata reviews, coverage correction and eight literature/practice additions.
 - **[Current-product legal scope](07-legal/CURRENT_PRODUCTS_LEGAL_2026-09-06.md)** — RHMZ sector law, metadata grants and restricted files.
@@ -37,30 +37,30 @@ file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md)
 - **[Device/data discovery, 2026-09-06](02-senses/DEVICE_DATA_DISCOVERY_2026-09-06.md)** — six new records, concrete local archives, source corrections and remaining gaps.
 - **[Legal sorting for this wave](07-legal/DEVICE_DATA_LEGAL_SORT_2026-09-06.md)** — access, declared basis, reuse and publication decisions under the existing legal frame.
 
-1. **[_trail/PRESEK_2026-09-05_POPODNE.md](_trail/PRESEK_2026-09-05_POPODNE.md)** — the situation
+1. **_trail/PRESEK_2026-09-05_POPODNE.md (private working record)** — the situation
    review: what was found, what was broken, what was fixed, and what remains, in order of value.
 2. **[observations/10k-2026-09-05/IZVESTAJ.md](observations/10k-2026-09-05/IZVESTAJ.md)**
    — final OBS-001 report: 10/13 slots, 27 locations, all 270 displayed values and receipt hashes.
    Supersedes interim interpretations; repeated zeroes are not proof of a dead counter.
-3. **[06-paper/rad_draft.md](06-paper/rad_draft.md)** — preserved historical manuscript; not the current discussion entry point. Its incomplete pilot/clock claims require later correction.
+3. **06-paper/rad_draft.md (private working record)** — preserved historical manuscript; not the current discussion entry point. Its incomplete pilot/clock claims require later correction.
 
 ## Paper lineage
 
 | File | Status |
 |---|---|
-| [06-paper/PRE_PAPER_v5_2026-09-10.md](06-paper/PRE_PAPER_v5_2026-09-10.md) | Current paper discussion entry. Supersedes v3/v4 and addenda. |
-| [06-paper/STATISTICS_COLLABORATION_2026-09-10.md](06-paper/STATISTICS_COLLABORATION_2026-09-10.md) | Current statistical collaboration note. |
-| [06-paper/PAPER_v1_2026-09-09.md](06-paper/PAPER_v1_2026-09-09.md) | Paper-shaped draft; not the current discussion entry. |
-| [06-paper/PRE_PAPER_v4_2026-09-10.md](06-paper/PRE_PAPER_v4_2026-09-10.md) | Preserved prior version; superseded by v5. |
-| [06-paper/PRE_PAPER_v4_ADDENDUM_2026-09-10.md](06-paper/PRE_PAPER_v4_ADDENDUM_2026-09-10.md) | Preserved addendum; superseded by v5. |
-| [06-paper/PRE_PAPER_v4_ADDENDUM_2_2026-09-10.md](06-paper/PRE_PAPER_v4_ADDENDUM_2_2026-09-10.md) | Preserved addendum; superseded by v5. |
-| [06-paper/PRE_PAPER_v3_2026-09-09.md](06-paper/PRE_PAPER_v3_2026-09-09.md) | Preserved prior version; superseded by v4/v5. |
-| [06-paper/PRE_PAPER_v3_ADDENDUM_2026-09-09.md](06-paper/PRE_PAPER_v3_ADDENDUM_2026-09-09.md) | Preserved addendum; superseded by v5. |
-| [06-paper/PRE_PAPER_CONFERENCE_2026-09-09.md](06-paper/PRE_PAPER_CONFERENCE_2026-09-09.md) | Earlier conference pre-paper; superseded by v3-v5. |
-| [06-paper/PRE_PAPER_CONFERENCE_v2_2026-09-09.md](06-paper/PRE_PAPER_CONFERENCE_v2_2026-09-09.md) | Earlier v2; superseded by later pre-paper line. |
-| [06-paper/PRE_PAPER_URBAN_INTELLIGENCE_2026-09-06.md](06-paper/PRE_PAPER_URBAN_INTELLIGENCE_2026-09-06.md) | Earlier English pack; preserved. |
-| [06-paper/PRED_RAD_SR_V2_2026-09-06.md](06-paper/PRED_RAD_SR_V2_2026-09-06.md) | Serbian discussion wave; preserved. |
-| [06-paper/rad_draft.md](06-paper/rad_draft.md) | Historical manuscript; preserved. |
+| 06-paper/PRE_PAPER_v5_2026-09-10.md (private working record) | Current paper discussion entry. Supersedes v3/v4 and addenda. |
+| 06-paper/STATISTICS_COLLABORATION_2026-09-10.md (private working record) | Current statistical collaboration note. |
+| 06-paper/PAPER_v1_2026-09-09.md (private working record) | Paper-shaped draft; not the current discussion entry. |
+| 06-paper/PRE_PAPER_v4_2026-09-10.md (private working record) | Preserved prior version; superseded by v5. |
+| 06-paper/PRE_PAPER_v4_ADDENDUM_2026-09-10.md (private working record) | Preserved addendum; superseded by v5. |
+| 06-paper/PRE_PAPER_v4_ADDENDUM_2_2026-09-10.md (private working record) | Preserved addendum; superseded by v5. |
+| 06-paper/PRE_PAPER_v3_2026-09-09.md (private working record) | Preserved prior version; superseded by v4/v5. |
+| 06-paper/PRE_PAPER_v3_ADDENDUM_2026-09-09.md (private working record) | Preserved addendum; superseded by v5. |
+| 06-paper/PRE_PAPER_CONFERENCE_2026-09-09.md (private working record) | Earlier conference pre-paper; superseded by v3-v5. |
+| 06-paper/PRE_PAPER_CONFERENCE_v2_2026-09-09.md (private working record) | Earlier v2; superseded by later pre-paper line. |
+| 06-paper/PRE_PAPER_URBAN_INTELLIGENCE_2026-09-06.md (private working record) | Earlier English pack; preserved. |
+| 06-paper/PRED_RAD_SR_V2_2026-09-06.md (private working record) | Serbian discussion wave; preserved. |
+| 06-paper/rad_draft.md (private working record) | Historical manuscript; preserved. |
 
 ## Serbian discussion wave V2 — 2026-09-06
 
@@ -68,21 +68,21 @@ This is a preserved working discussion layer, explicitly requested in Serbian. I
 
 | File | Scope |
 |---|---|
-| [Entry and themes](06-paper/PRED_RAD_SR_V2_2026-09-06.md) | Working definition, changes, candidate cases and decisions for discussion |
-| [Verified institutional practices](06-paper/UVOD_PROVERENE_PRAKSE_SR_2026-09-06.md) | Seven examples; standards, maintained infrastructure, actual planning workflow and historical pilot distinguished |
-| [Research structure](06-paper/STRUKTURA_RADA_SR_V2_2026-09-06.md) | Questions, priorities, prospective tables and figures |
-| [Urban intelligence system outline](06-paper/SISTEM_URBANE_INTELIGENCIJE_SR_2026-09-06.md) | Proposed decision process, model contract, validation and lifecycle |
-| [All189 source records in Serbian](06-paper/ATLAS_IZVORA_SR_2026-09-06.md) | Complete translation with source IDs, original codes, qualifiers and URLs retained |
-| [Methods, comparators and venue conditions](06-paper/METODOLOGIJA_I_USLOVI_SR_2026-09-06.md) | Executed versus proposed methods; five prior comparators; dated venue limits |
-| [Legal working synthesis](07-legal/PRAVNI_OKVIR_PRED_RAD_SR_2026-09-06.md) | Earlier verified legal/product findings; no new blanket authorization |
+| Entry and themes (private working record) | Working definition, changes, candidate cases and decisions for discussion |
+| Verified institutional practices (private working record) | Seven examples; standards, maintained infrastructure, actual planning workflow and historical pilot distinguished |
+| Research structure (private working record) | Questions, priorities, prospective tables and figures |
+| Urban intelligence system outline (private working record) | Proposed decision process, model contract, validation and lifecycle |
+| All189 source records in Serbian (private working record) | Complete translation with source IDs, original codes, qualifiers and URLs retained |
+| Methods, comparators and venue conditions (private working record) | Executed versus proposed methods; five prior comparators; dated venue limits |
+| Legal working synthesis (private working record) | Earlier verified legal/product findings; no new blanket authorization |
 | [Literature overview](04-bibliography/DOPUNA_LITERATURE_SR_V2_2026-09-06.md) | 24 distinct selected publications, explicit reading levels and gap-to-structure changes |
 | [Planning literature dossier](04-bibliography/PLANIRANJE_LITERATURA_SR_2026-09-06.md) | Seven works on planning support, geodesign, collaboration and equity |
 | [Belgrade literature dossier](04-bibliography/BEOGRAD_LITERATURA_SR_2026-09-06.md) | Seven local-context studies with observation/reading limits |
 | [System literature dossier and C15 correction](04-bibliography/SISTEM_LITERATURA_SR_2026-09-06.md) | Seven works on twins, AI, geographic context, data justice and maintenance |
-| [Search and review trail](_trail/PRED_RAD_SR_WAVE7_SEARCH.json) | Five historical lanes,65 exact query occurrences, access failures, reading levels and review additions |
-| [Serbian atlas machine record](_trail/PRED_RAD_SR_WAVE7_ATLAS_TRANSLATION.json) | All original record fields retained alongside Serbian fields and codebook |
-| [Wave board](_trail/PRED_RAD_SR_WAVE7_BOARD.json) | Bounded native tasks, acceptance and releases; external campaign separate |
-| [QA record](_trail/PRED_RAD_SR_WAVE7_QA.json) | Counts, links, preserved hashes and executed verification |
+| Search and review trail (private working record) | Five historical lanes,65 exact query occurrences, access failures, reading levels and review additions |
+| Serbian atlas machine record (private working record) | All original record fields retained alongside Serbian fields and codebook |
+| Wave board (private working record) | Bounded native tasks, acceptance and releases; external campaign separate |
+| QA record (private working record) | Counts, links, preserved hashes and executed verification |
 
 ## The shape of this folder
 
@@ -133,14 +133,14 @@ benchmarks tied to a named experiment* go in the narrow one. Do not merge them.
 
 ## 01-programme — what we intend to do
 
-- **[RADNI_PROGRAM.md](01-programme/RADNI_PROGRAM.md)** — 65 tasks in 13 themes with dependencies and completion evidence. A task count, not a completion count.
-- **[PLAN_CULA_MODELI_2026-09-05.md](01-programme/PLAN_CULA_MODELI_2026-09-05.md)** — 25 candidate senses, 10 research questions, 12 experiment designs, 48 work items.
-- **[PULSE_RESEARCH_PROTOCOL.md](01-programme/PULSE_RESEARCH_PROTOCOL.md)** — layered pulses and controlled comparisons.
-- **[ZONE_I_POVEZIVANJE.md](01-programme/ZONE_I_POVEZIVANJE.md)** — the single spatial filter: whole city → larger units → broad zones, external linking, no internal geocoder.
-- **[PRETRAGA_KEYWORDS_2026-09-05.md](01-programme/PRETRAGA_KEYWORDS_2026-09-05.md)** — 64 search seeds. Planned queries, not executed ones.
+- **RADNI_PROGRAM.md (private working record)** — 65 tasks in 13 themes with dependencies and completion evidence. A task count, not a completion count.
+- **PLAN_CULA_MODELI_2026-09-05.md (private working record)** — 25 candidate senses, 10 research questions, 12 experiment designs, 48 work items.
+- **PULSE_RESEARCH_PROTOCOL.md (private working record)** — layered pulses and controlled comparisons.
+- **ZONE_I_POVEZIVANJE.md (private working record)** — the single spatial filter: whole city → larger units → broad zones, external linking, no internal geocoder.
+- **PRETRAGA_KEYWORDS_2026-09-05.md (private working record)** — 64 search seeds. Planned queries, not executed ones.
 
-- **[HYPOTHESES_2026-09-06.md](01-programme/HYPOTHESES_2026-09-06.md)** — where to look next, built from where the surprises actually came from: seven generative rules (catalogues leak endpoints; front-ends name their back-ends; files exist without indexes; the obligation creates the data; registers are duties; checking permission is itself discovery; ask *instrument or world?*), then twelve hypotheses each with its test, the international-money axis, and the spatial spine.
-- **[PLACE_REGISTER.md](01-programme/PLACE_REGISTER.md)** — the join between maps and data, held as our own code because six sources address space in six mutually unintelligible ways. Adopts **Linked Places Format** rather than inventing a register, and **H3** as the index spine, chosen by measurement: cell area varies **0.61 %** across Belgrade against a 154× covering cost for strict equal area.
+- **HYPOTHESES_2026-09-06.md (private working record)** — where to look next, built from where the surprises actually came from: seven generative rules (catalogues leak endpoints; front-ends name their back-ends; files exist without indexes; the obligation creates the data; registers are duties; checking permission is itself discovery; ask *instrument or world?*), then twelve hypotheses each with its test, the international-money axis, and the spatial spine.
+- **PLACE_REGISTER.md (private working record)** — the join between maps and data, held as our own code because six sources address space in six mutually unintelligible ways. Adopts **Linked Places Format** rather than inventing a register, and **H3** as the index spine, chosen by measurement: cell area varies **0.61 %** across Belgrade against a 154× covering cost for strict equal area.
 
 ## 02-senses — what the city offers
 
@@ -198,10 +198,10 @@ of each — under `evidence/legal/<SID>/<UTC>/`, never edited, never deleted.
 
 ## 06-paper
 
-- **[PRE_PAPER_CONFERENCE_2026-09-09.md](06-paper/PRE_PAPER_CONFERENCE_2026-09-09.md)** (+ PDF beside it) — the pre-paper for the 25 September conference: the verified inventory of 9 September, the 2024–2026 literature in six themes and where BEOPS sits, the four contributions that can be claimed honestly, three candidate paper structures with a recommendation (A for the conference; B after a week of the mind's scoreboard; C after the user study). Supersedes `PRED_RAD_SR_V2_2026-09-06.md` as the discussion entry for the paper.
-- **[BEOPS_WORKING_DOCUMENT_v1.1_2026-09-09.pdf](06-paper/BEOPS_WORKING_DOCUMENT_v1.1_2026-09-09.pdf)** (36 pages, English, Serbian summary; `.html` source beside it) — the working document for the conference paper, the public presentation and the commercial framing. v1.1 adds §7.5 (three maps generated by `tools/make_maps.py` from `public/basemap-belgrade.json` and `public/live-snapshot.json`), §12.6 (the ground of the map: five recorded refusals and the public-domain floor), C-013 and the state of the public site. v1 of the same day stays beside it, dated.
+- **PRE_PAPER_CONFERENCE_2026-09-09.md (private working record)** (+ PDF beside it) — the pre-paper for the 25 September conference: the verified inventory of 9 September, the 2024–2026 literature in six themes and where BEOPS sits, the four contributions that can be claimed honestly, three candidate paper structures with a recommendation (A for the conference; B after a week of the mind's scoreboard; C after the user study). Supersedes `PRED_RAD_SR_V2_2026-09-06.md` as the discussion entry for the paper.
+- **BEOPS_WORKING_DOCUMENT_v1.1_2026-09-09.pdf (private working record)** (36 pages, English, Serbian summary; `.html` source beside it) — the working document for the conference paper, the public presentation and the commercial framing. v1.1 adds §7.5 (three maps generated by `tools/make_maps.py` from `public/basemap-belgrade.json` and `public/live-snapshot.json`), §12.6 (the ground of the map: five recorded refusals and the public-domain floor), C-013 and the state of the public site. v1 of the same day stays beside it, dated.
 - `06-paper/maps/` — `map-instruments.svg`, `map-coverage.svg`, `map-last24h.svg` and `MAPS.json` (what each map was made from). Regenerated by `python -B tools/make_maps.py`; nothing is drawn that the two input files do not contain.
-- **[rad_draft.md](06-paper/rad_draft.md)** — the historical manuscript.
+- **rad_draft.md (private working record)** — the historical manuscript.
 - `06-paper/conference/Prvi-poziv-2026.pdf`, `Uputstvo-za-autore3.pdf` — the call and the author instructions. The only authority on format and dates.
 - `06-paper/conference/ROK_STATUS.md`, `LATE_SUBMISSION_EMAIL.md` — the deadline situation and drafted enquiries. **Nothing has been sent.**
 
@@ -261,7 +261,7 @@ first and moves second, and the reverse order silently leaves every moved file p
 - [EMF lane](02-senses/DEVICE_EMF_2026-09-06.md): mobile/fixed instruments, archive QA and source association correction.
 - [Hydromet lane](02-senses/DEVICE_HYDROMET_2026-09-06.md): lidar, radiosondes, sonar/ADCP and river survey holdings.
 - [Procurement lane](02-senses/DEVICE_PROCUREMENT_2026-09-06.md): operator evidence and planned purchases distinguished.
-- [Discovery board](_trail/DEVICE_DISCOVERY_BOARD_2026-09-06.md): ownership, review and closure.
+- Discovery board (private working record): ownership, review and closure.
 - [Offline fixed archive audit](audit_fixed21_20260906.py): reproducible stdlib audit of the retained JSON or lossless gzip.
 
 
@@ -271,12 +271,12 @@ first and moves second, and the reverse order silently leaves every moved file p
 - [ACTRIS product101626 review](02-senses/ACTRIS_PRODUCT_2026-09-06.md)
 - [Plovput terms and product lineage](02-senses/PLOVPUT_BULLETIN_2026-09-06.md)
 - [WeBaSOOP DOI catalogue and DTT access](02-senses/WEBASOOP_DATA_2026-09-06.md)
-- [Bounded follow-up board](_trail/DEVICE_FOLLOWUP_BOARD_2026-09-06.md)
+- Bounded follow-up board (private working record)
 
 ## Rich context collaboration, 2026-09-06
 
-- [Domestic room prompt](01-programme/ROOM_PROMPT_DOMACI_2026-09-06.md) and [international comparative room prompt](01-programme/ROOM_PROMPT_KOMPARATIVNI_2026-09-06.md): ready handoff packets; startup not assumed.
-- [Rich-context board](_trail/RICH_CONTEXT_BOARD_2026-09-06.json) and [teamwork](../TEAMWORK.md): real queue IDs and disjoint ownership.
+- Domestic room prompt (private working record) and international comparative room prompt (private working record): ready handoff packets; startup not assumed.
+- Rich-context board (private working record) and [teamwork](../TEAMWORK.md): real queue IDs and disjoint ownership.
 
 ## Sensing-context additions, 2026-09-06
 
@@ -289,8 +289,8 @@ first and moves second, and the reverse order silently leaves every moved file p
 - [GROUND_STRUCTURES_2026-09-06](02-senses/GROUND_STRUCTURES_2026-09-06.md) — reviewed dated supplement; evidence limits retained.
 - [URBAN_ENVIRONMENT_2026-09-06](02-senses/URBAN_ENVIRONMENT_2026-09-06.md) — reviewed dated supplement; evidence limits retained.
 - [INFRASTRUCTURE_2026-09-06](02-senses/INFRASTRUCTURE_2026-09-06.md) — reviewed dated supplement; evidence limits retained.
-- [Literature integration review](_trail/LITERATURE_CONTEXT_REVIEW_2026-09-06.json) —32 distinct works, one duplicate across lanes, source hashes and review limits.
-- [Device/context integration QA](_trail/DEVICE_CONTEXT_INTEGRATION_QA_2026-09-06.json) — manifest hashes, source counts, links and executed test result.
+- Literature integration review (private working record) —32 distinct works, one duplicate across lanes, source hashes and review limits.
+- Device/context integration QA (private working record) — manifest hashes, source counts, links and executed test result.
 
 ## Current-products continuation, 2026-09-06
 
@@ -299,46 +299,46 @@ first and moves second, and the reverse order silently leaves every moved file p
 - [SENSORY_ECOLOGY_LITERATURE_2026-09-06](04-bibliography/SENSORY_ECOLOGY_LITERATURE_2026-09-06.md) — bounded report, review or reproduction record.
 - [GROUND_CURRENT_PRODUCTS_2026-09-06](02-senses/GROUND_CURRENT_PRODUCTS_2026-09-06.md) — bounded report, review or reproduction record.
 - [ADA_DATA_ACCESS_2026-09-06](02-senses/ADA_DATA_ACCESS_2026-09-06.md) — bounded report, review or reproduction record.
-- [ADA_DATA_ACCESS_2026-09-06](_trail/ADA_DATA_ACCESS_2026-09-06.json) — bounded report, review or reproduction record.
-- [BORCA_QA_REVIEW_2026-09-06](_trail/BORCA_QA_REVIEW_2026-09-06.json) — bounded report, review or reproduction record.
-- [CURRENT_PRODUCTS_DATACITE_PLAN_2026-09-06](_trail/CURRENT_PRODUCTS_DATACITE_PLAN_2026-09-06.json) — bounded report, review or reproduction record.
-- [CURRENT_PRODUCTS_METADATA_RECEIPTS_PLAN_2026-09-06](_trail/CURRENT_PRODUCTS_METADATA_RECEIPTS_PLAN_2026-09-06.json) — bounded report, review or reproduction record.
-- [CURRENT_PRODUCTS_GROUNDWATER_PLAN_2026-09-06](_trail/CURRENT_PRODUCTS_GROUNDWATER_PLAN_2026-09-06.json) — bounded report, review or reproduction record.
-- [CURRENT_PRODUCTS_COLLECTION_METHOD_2026-09-06](_trail/CURRENT_PRODUCTS_COLLECTION_METHOD_2026-09-06.txt) — bounded report, review or reproduction record.
-- [Continuation board](_trail/CURRENT_PRODUCTS_BOARD_2026-09-06.md) — ownership, limits and exit state.
-- [Integration QA](_trail/CURRENT_PRODUCTS_INTEGRATION_QA_2026-09-06.json) — hashes, local links, registry and required checks.
+- ADA_DATA_ACCESS_2026-09-06 (private working record) — bounded report, review or reproduction record.
+- BORCA_QA_REVIEW_2026-09-06 (private working record) — bounded report, review or reproduction record.
+- CURRENT_PRODUCTS_DATACITE_PLAN_2026-09-06 (private working record) — bounded report, review or reproduction record.
+- CURRENT_PRODUCTS_METADATA_RECEIPTS_PLAN_2026-09-06 (private working record) — bounded report, review or reproduction record.
+- CURRENT_PRODUCTS_GROUNDWATER_PLAN_2026-09-06 (private working record) — bounded report, review or reproduction record.
+- CURRENT_PRODUCTS_COLLECTION_METHOD_2026-09-06 (private working record) — bounded report, review or reproduction record.
+- Continuation board (private working record) — ownership, limits and exit state.
+- Integration QA (private working record) — hashes, local links, registry and required checks.
 
 ## Named backlog — known documents needing fuller classification
 
 These files now have exact names in the index so they are not invisible. A later cleanup should move
 each into the right thematic section with a one-line scope.
 
-- [_trail/AUDIT_V1_2026-09-05.md](_trail/AUDIT_V1_2026-09-05.md)
-- [_trail/AUDIT_V2_2026-09-05.md](_trail/AUDIT_V2_2026-09-05.md)
-- [_trail/INTAKE_2026-09-05.md](_trail/INTAKE_2026-09-05.md)
-- [_trail/MERGE_2026-09-05.md](_trail/MERGE_2026-09-05.md)
-- [_trail/PAZARAC_TRANSFER_AUDIT.md](_trail/PAZARAC_TRANSFER_AUDIT.md)
-- [_trail/PLAN_IZVRSENJA_2026-09-05.md](_trail/PLAN_IZVRSENJA_2026-09-05.md)
-- [_trail/revise-1788619136912.md](_trail/revise-1788619136912.md)
-- [_trail/VERIFICATION_2026-09-05.md](_trail/VERIFICATION_2026-09-05.md)
-- [01-programme/DISCOVERY_PROTOCOL.md](01-programme/DISCOVERY_PROTOCOL.md)
+- _trail/AUDIT_V1_2026-09-05.md (private working record)
+- _trail/AUDIT_V2_2026-09-05.md (private working record)
+- _trail/INTAKE_2026-09-05.md (private working record)
+- _trail/MERGE_2026-09-05.md (private working record)
+- _trail/PAZARAC_TRANSFER_AUDIT.md (private working record)
+- _trail/PLAN_IZVRSENJA_2026-09-05.md (private working record)
+- _trail/revise-1788619136912.md (private working record)
+- _trail/VERIFICATION_2026-09-05.md (private working record)
+- 01-programme/DISCOVERY_PROTOCOL.md (private working record)
 - [02-senses/ROAD_COUNTS_2026-09-06.md](02-senses/ROAD_COUNTS_2026-09-06.md)
-- [06-paper/BEOPS_ANALYSIS_instruments_and_knowledge_2026-09-09.md](06-paper/BEOPS_ANALYSIS_instruments_and_knowledge_2026-09-09.md)
-- [06-paper/conference/LATE_SUBMISSION_EMAIL.md](06-paper/conference/LATE_SUBMISSION_EMAIL.md)
-- [06-paper/PAPER_v1_2026-09-09.md](06-paper/PAPER_v1_2026-09-09.md)
-- [06-paper/PRE_PAPER_CONFERENCE_v2_2026-09-09.md](06-paper/PRE_PAPER_CONFERENCE_v2_2026-09-09.md)
-- [06-paper/PRE_PAPER_v3_2026-09-09.md](06-paper/PRE_PAPER_v3_2026-09-09.md)
-- [06-paper/PRE_PAPER_v3_ADDENDUM_2026-09-09.md](06-paper/PRE_PAPER_v3_ADDENDUM_2026-09-09.md)
-- [06-paper/PRE_PAPER_v4_2026-09-10.md](06-paper/PRE_PAPER_v4_2026-09-10.md)
-- [06-paper/PRE_PAPER_v4_ADDENDUM_2026-09-10.md](06-paper/PRE_PAPER_v4_ADDENDUM_2026-09-10.md)
-- [06-paper/PRE_PAPER_v4_ADDENDUM_2_2026-09-10.md](06-paper/PRE_PAPER_v4_ADDENDUM_2_2026-09-10.md)
-- [06-paper/PRE_PAPER_v5_2026-09-10.md](06-paper/PRE_PAPER_v5_2026-09-10.md)
-- [06-paper/STATISTICS_COLLABORATION_2026-09-10.md](06-paper/STATISTICS_COLLABORATION_2026-09-10.md)
+- 06-paper/BEOPS_ANALYSIS_instruments_and_knowledge_2026-09-09.md (private working record)
+- 06-paper/conference/LATE_SUBMISSION_EMAIL.md (private working record)
+- 06-paper/PAPER_v1_2026-09-09.md (private working record)
+- 06-paper/PRE_PAPER_CONFERENCE_v2_2026-09-09.md (private working record)
+- 06-paper/PRE_PAPER_v3_2026-09-09.md (private working record)
+- 06-paper/PRE_PAPER_v3_ADDENDUM_2026-09-09.md (private working record)
+- 06-paper/PRE_PAPER_v4_2026-09-10.md (private working record)
+- 06-paper/PRE_PAPER_v4_ADDENDUM_2026-09-10.md (private working record)
+- 06-paper/PRE_PAPER_v4_ADDENDUM_2_2026-09-10.md (private working record)
+- 06-paper/PRE_PAPER_v5_2026-09-10.md (private working record)
+- 06-paper/STATISTICS_COLLABORATION_2026-09-10.md (private working record)
 - [07-legal/BEOPS_EVIDENCIJA_OBRADE_2026-09-09.md](07-legal/BEOPS_EVIDENCIJA_OBRADE_2026-09-09.md)
-- [07-legal/BEOPS_PISMA_OBAVESTENJA_v2_2026-09-09.md](07-legal/BEOPS_PISMA_OBAVESTENJA_v2_2026-09-09.md)
-- [07-legal/BEOPS_PISMA_v3_2026-09-09.md](07-legal/BEOPS_PISMA_v3_2026-09-09.md)
-- [07-legal/GRANT_LAYER_WORKING_DOCUMENT_v1_2026-09-10.md](07-legal/GRANT_LAYER_WORKING_DOCUMENT_v1_2026-09-10.md)
-- [07-legal/NEWS_LEGAL_RECOMB_WORKING_DOCUMENT_v1_2026-09-10.md](07-legal/NEWS_LEGAL_RECOMB_WORKING_DOCUMENT_v1_2026-09-10.md)
+- 07-legal/BEOPS_PISMA_OBAVESTENJA_v2_2026-09-09.md (private working record)
+- 07-legal/BEOPS_PISMA_v3_2026-09-09.md (private working record)
+- 07-legal/GRANT_LAYER_WORKING_DOCUMENT_v1_2026-09-10.md (private working record)
+- 07-legal/NEWS_LEGAL_RECOMB_WORKING_DOCUMENT_v1_2026-09-10.md (private working record)
 - [07-legal/THIRD_PARTY_ROUTE_RULE_2026-09-10.md](07-legal/THIRD_PARTY_ROUTE_RULE_2026-09-10.md)
 - [DECISIONS.md](DECISIONS.md)
 - [DOI_TO_FINISH.md](DOI_TO_FINISH.md)
@@ -352,23 +352,23 @@ each into the right thematic section with a one-line scope.
 
 ## Pre-paper organization for discussion, 2026-09-06
 
-- [Discussion entry point](06-paper/PRE_PAPER_URBAN_INTELLIGENCE_2026-09-06.md): urban intelligence, eight themes, framing alternatives and decisions.
-- [Complete research atlas](06-paper/RESEARCH_ATLAS_2026-09-06.md): all189 original source records by evidence role, with secondary IoT classification and literature shelves.
-- [Candidate section structure](06-paper/PAPER_STRUCTURE_2026-09-06.md): research questions, claim ledger, reading shelves and proposed visuals.
-- [Proposed system outline](06-paper/URBAN_INTELLIGENCE_SYSTEM_OUTLINE_2026-09-06.md): observations, integration, models, planning interpretation and evaluation; implemented boundaries explicit.
-- [Methods audit](06-paper/PAPER_METHODS_AUDIT_2026-09-06.md) and [45-pointer evidence index](_trail/PAPER_METHODS_EVIDENCE_2026-09-06.json): actual search record, missing logs, clocks and completed pilot.
-- [Tables and coding discussion](06-paper/PAPER_TABLES_2026-09-06.md) and [all189 coded records](_trail/PAPER_REGISTRY_CODING_2026-09-06.json): no device or live-feed census.
-- [Explicit coding decisions](_trail/PAPER_CODING_DECISIONS_2026-09-06.psv) and [count/coding builder](build_paper_registry_coding_20260906.ps1): source decisions retained separately; builder generates a fresh candidate artifact with review-pending metadata, so use an output scratch directory for reproduction.
+- Discussion entry point (private working record): urban intelligence, eight themes, framing alternatives and decisions.
+- Complete research atlas (private working record): all189 original source records by evidence role, with secondary IoT classification and literature shelves.
+- Candidate section structure (private working record): research questions, claim ledger, reading shelves and proposed visuals.
+- Proposed system outline (private working record): observations, integration, models, planning interpretation and evaluation; implemented boundaries explicit.
+- Methods audit (private working record) and 45-pointer evidence index (private working record): actual search record, missing logs, clocks and completed pilot.
+- Tables and coding discussion (private working record) and all189 coded records (private working record): no device or live-feed census.
+- Explicit coding decisions (private working record) and [count/coding builder](build_paper_registry_coding_20260906.ps1): source decisions retained separately; builder generates a fresh candidate artifact with review-pending metadata, so use an output scratch directory for reproduction.
 - [Legal scope](07-legal/PAPER_LEGAL_SCOPE_2026-09-06.md): product-specific reuse, resolved Article138 text and adopted2026 eGovernment amendment with transition/commencement distinctions.
-- [Venue and five comparative/conceptual works](06-paper/PAPER_VENUE_COMPARATORS_2026-09-06.md): verified requirements, reading levels, deadline limits and optional future budget.
-- [Bounded coordination board](_trail/PAPER_REFRAME_BOARD_2026-09-06.md) and [integration QA](_trail/PAPER_QA_2026-09-06.json): scope correction, preservation and actual checks.
+- Venue and five comparative/conceptual works (private working record): verified requirements, reading levels, deadline limits and optional future budget.
+- Bounded coordination board (private working record) and integration QA (private working record): scope correction, preservation and actual checks.
 
 The historical manuscript is intentionally unchanged. No manuscript, conference PDF/DOCX, cross-domain model or new raw-data collection was produced in this wave. Existing research documents remain in place and their original evidence is preserved.
 
 ## External state review, 2026-09-08
 
-- **[_trail/PRESEK_2026-09-08_SPOLJNI_PREGLED.md](_trail/PRESEK_2026-09-08_SPOLJNI_PREGLED.md)** — `current` situation review (Serbian working note): verified inventory of the repository, two defects found and fixed (C-010 false refusals in the provenance index; C-011 the pilot's scheduled task never self-deleted), the missing-remote / 141 MB blob decision, and a ranked plan — one collector that survives a week before any new source.
-- **[_trail/SPOLJNI_PREGLED_2026-09-08_ISTRAZIVANJE.md](_trail/SPOLJNI_PREGLED_2026-09-08_ISTRAZIVANJE.md)** — the three research reports behind it, verbatim (English): comparable observatories and stacks; 37 candidate new Belgrade sources with verification status; annotated 2024–2026 literature and standards with an honest list of which claimed gaps are real. Trail material — not findings about the city until a source is captured and collected.
+- **_trail/PRESEK_2026-09-08_SPOLJNI_PREGLED.md (private working record)** — `current` situation review (Serbian working note): verified inventory of the repository, two defects found and fixed (C-010 false refusals in the provenance index; C-011 the pilot's scheduled task never self-deleted), the missing-remote / 141 MB blob decision, and a ranked plan — one collector that survives a week before any new source.
+- **_trail/SPOLJNI_PREGLED_2026-09-08_ISTRAZIVANJE.md (private working record)** — the three research reports behind it, verbatim (English): comparable observatories and stacks; 37 candidate new Belgrade sources with verification status; annotated 2024–2026 literature and standards with an honest list of which claimed gaps are real. Trail material — not findings about the city until a source is captured and collected.
 
 ## Live collection, organs and the working document, 2026-09-08/09
 
@@ -376,5 +376,12 @@ The historical manuscript is intentionally unchanged. No manuscript, conference 
 - **[ORGANS.json](ORGANS.json)** — the algorithm register of model-driven organs (news-sorter built; series-watch and daily-voice specified); local-only models; editor of record; AI Act Art. 50 notes.
 - **[observations/live/](observations/live/)** — generated daily reports of the collector (`REPORT_<day>.md`): quorum per source, ages, silences. Generated; never edited.
 - **[05-design/studies/traka-live.html](05-design/studies/traka-live.html)** and **[monolog-puls.html](05-design/studies/monolog-puls.html)** — the two studies over real rows (`public/live-snapshot.json`, exported by the collector): time as the primary object; the bilingual monologue beside the pulsing map.
-- **[06-paper/BEOPS_WORKING_DOCUMENT_v1_2026-09-09.pdf](06-paper/BEOPS_WORKING_DOCUMENT_v1_2026-09-09.pdf)** — `working`: the comprehensive document (Serbian summary, 18 sections, 6 appendices) for the paper, the public presentation and the commercial framing; HTML source beside it.
+- **06-paper/BEOPS_WORKING_DOCUMENT_v1_2026-09-09.pdf (private working record)** — `working`: the comprehensive document (Serbian summary, 18 sections, 6 appendices) for the paper, the public presentation and the commercial framing; HTML source beside it.
 - `test_collect_daemon.py`, `test_organ_news.py` — offline tests for the collector and the organ (in `npm test`).
+
+
+## Recovery implementation, 2026-09-11
+
+- _trail/REPAIR_2026-09-11.md (private working record): current recovery record, all 63 audit findings, implementation and application/rollback steps.
+- _trail/repair-20260911/status.json (private working record): machine-readable per-finding recovery status.
+- _trail/DOCUMENT_STATUS_2026-09-11.md (private working record): explicit historical/undesignated-document exceptions and inventory.

@@ -1,10 +1,44 @@
 # Safety helpers for tools\publish_github.ps1.
 # Kept separate so tests can execute the hard boundaries without running a real publish.
 
+if (-not ('BeopsPhysicalPath' -as [type])) {
+  Add-Type -TypeDefinition @'
+using System;
+using System.Text;
+using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
+public static class BeopsPhysicalPath {
+  [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+  static extern SafeFileHandle CreateFile(string name, uint access, uint share, IntPtr security, uint mode, uint flags, IntPtr template);
+  [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+  static extern uint GetFinalPathNameByHandle(SafeFileHandle file, StringBuilder path, uint size, uint flags);
+  public static string Resolve(string name) {
+    using (var handle=CreateFile(name,0,7,IntPtr.Zero,3,0x02000000,IntPtr.Zero)) {
+      if(handle.IsInvalid) throw new System.IO.IOException("Cannot resolve physical path: "+name);
+      var text=new StringBuilder(32768);
+      uint size=GetFinalPathNameByHandle(handle,text,(uint)text.Capacity,0);
+      if(size==0||size>=text.Capacity) throw new System.IO.IOException("Cannot resolve physical path: "+name);
+      var result=text.ToString();
+      if(result.StartsWith(@"\\?\UNC\")) return @"\\"+result.Substring(8);
+      return result.StartsWith(@"\\?\") ? result.Substring(4) : result;
+    }
+  }
+}
+'@
+}
+
 function Get-BeopsFullPath {
   param([Parameter(Mandatory=$true)][string]$Path)
   $candidate = if ([System.IO.Path]::IsPathRooted($Path)) { $Path } else { Join-Path (Get-Location).Path $Path }
-  return ([System.IO.Path]::GetFullPath($candidate)).TrimEnd('\', '/')
+  $full = [System.IO.Path]::GetFullPath($candidate)
+  if (Test-Path -LiteralPath $full) {
+    $resolved = [BeopsPhysicalPath]::Resolve($full)
+    if ($resolved -eq [System.IO.Path]::GetPathRoot($resolved)) { return $resolved }
+    return $resolved.TrimEnd('\', '/')
+  }
+  $parent = Split-Path -Parent $full
+  if ($parent -and $parent -ne $full) { return Join-Path (Get-BeopsFullPath $parent) (Split-Path -Leaf $full) }
+  return $full
 }
 
 function Test-BeopsSameOrInside {
@@ -47,7 +81,7 @@ function Assert-BeopsPublicRootSafe {
   $src = Get-BeopsFullPath $SourceRoot
   $pub = Get-BeopsFullPath $PublicRoot
   $driveRoot = ([System.IO.Path]::GetPathRoot($pub)).TrimEnd('\', '/')
-  if ($pub.Equals($driveRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+  if ($pub.TrimEnd('\', '/').Equals($driveRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
     throw "unsafe public root '$pub': drive root cannot be an export target"
   }
   if (Test-BeopsSameOrInside -Parent $src -Child $pub) {
@@ -64,11 +98,33 @@ function Assert-BeopsPublicRootSafe {
     }
   } else {
     $origin = Get-BeopsGitOrigin $pub
-    if ($origin -and -not (Test-BeopsExpectedRemote -Actual $origin -Expected $ExpectedRemote)) {
+    $nonempty = (Test-Path -LiteralPath $pub) -and @(Get-ChildItem -LiteralPath $pub -Force).Count -gt 0
+    if ($nonempty -and -not (Test-BeopsExpectedRemote -Actual $origin -Expected $ExpectedRemote)) {
       throw "unsafe public root '$pub': origin '$origin' is not the expected public remote"
     }
   }
+  if (Test-Path -LiteralPath (Join-Path $pub '.git')) {
+    $dirty = git -C $pub status --porcelain --untracked-files=all 2>&1
+    if ($LASTEXITCODE -ne 0 -or ($dirty -join '').Trim()) { throw "unsafe public root '$pub': mirror has uncommitted or unreadable state" }
+    $head = git -C $pub rev-parse --verify --quiet HEAD
+    if ($LASTEXITCODE -eq 0) {
+      $marker = Join-Path $pub '.git\beops-export-owner.json'
+      if (-not (Test-Path -LiteralPath $marker)) { throw "public mirror needs explicit ownership registration: $pub" }
+      $owner = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
+      if ($owner.schema -ne 'beops-public-owner/v1' -or $owner.path -ne $pub -or -not (Test-BeopsExpectedRemote -Actual $owner.remote -Expected $ExpectedRemote)) { throw 'invalid public mirror ownership marker' }
+    }
+  }
   return $pub
+}
+
+function Register-BeopsPublicOwnership {
+  param([Parameter(Mandatory=$true)][string]$PublicRoot)
+  $pub = Get-BeopsFullPath $PublicRoot
+  $origin = Get-BeopsGitOrigin $pub
+  if (-not (Test-BeopsExpectedRemote -Actual $origin -Expected 'https://github.com/3esign/beops.git')) { throw 'ownership registration requires the BEOPS public remote' }
+  $dirty = git -C $pub status --porcelain --untracked-files=all
+  if ($LASTEXITCODE -ne 0 -or ($dirty -join '').Trim()) { throw 'ownership registration requires a clean mirror' }
+  [ordered]@{schema='beops-public-owner/v1';path=$pub;remote=$origin;registered_at=(Get-Date).ToUniversalTime().ToString('o')} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $pub '.git\beops-export-owner.json') -Encoding UTF8
 }
 
 function Assert-BeopsDeletionTarget {

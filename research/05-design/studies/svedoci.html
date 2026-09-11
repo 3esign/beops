@@ -84,6 +84,8 @@ h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink6
   .row .val,.scale > :last-child{text-align:right}
 }
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+
+@media(max-width:600px){.clocknote,.clock-note{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;}}
 </style>
 
 <body class="lang-sr">
@@ -121,13 +123,19 @@ h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink6
 <div class="foot" id="foot"></div>
 
 <script>
+function beopsLoadJSON(name){
+  try{if(parent!==window&&typeof parent.beopsJSON==='function')return parent.beopsJSON(name).catch(()=>null);}catch(e){}
+  return fetch(name,{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
+}
+function beopsVisible(){return !document.hidden&&(!window.frameElement||window.frameElement.getClientRects().length>0);}
+
 (function(){
 "use strict";
 var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
 var n1=function(v){return (Math.round(v*10)/10).toFixed(1);};
 
 function bust(u){return u+(u.indexOf('?')<0?'?':'&')+'v='+Date.now();}
-function grab(u){return fetch(bust(u),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}
+function grab(u){return beopsLoadJSON(u);}
 
 /* ---------- how old it was ---------- */
 function drawLatency(d){
@@ -266,7 +274,7 @@ window.addEventListener('message',function(ev){
 });
 try{ if(window.parent&&window.parent!==window) window.parent.postMessage({beopsAsk:true},'*'); }catch(e){}
 
-Promise.all([grab('latency.json'),grab('agreement.json')]).then(function(r){
+function refresh(){ return Promise.all([grab('latency.json'),grab('agreement.json')]).then(function(r){
   var L=drawLatency(r[0]), A=drawAgreement(r[1]);
   var f=[];
   if(L) f.push('<b>'+L.sources_read+'</b> sources read; <b>'+L.sources_publishing_no_measurement_time
@@ -279,6 +287,8 @@ Promise.all([grab('latency.json'),grab('agreement.json')]).then(function(r){
   document.getElementById('foot').innerHTML=f.join(' ');
   report(); setTimeout(report,200);
 });
+}
+refresh(); setInterval(function(){if(beopsVisible())refresh();},60000);
 window.addEventListener('resize',report);
 })();
 </script>

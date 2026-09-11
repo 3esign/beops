@@ -14,7 +14,7 @@ The terms text names the legacy `www.plovput.rs` portal. Its exact application t
 
 ## Captured access outcome
 
-The [S187 capture manifest](../evidence/legal/S187/20260906T112601Z/MANIFEST.json) and its [headers](../evidence/legal/S187/20260906T112601Z/headers.json) were independently read from disk in this lane. They record homepage HTTP 200, terms HTTP 200 and HTTP 404 for both bulletin-host and operator-host robots files. The stored terms file is 15,811 bytes. The homepage record has 6,632 response bytes and a content hash; this is access evidence, not proof that current records were parsed.
+The S187 capture manifest (private working record) and its headers (private working record) were independently read from disk in this lane. They record homepage HTTP 200, terms HTTP 200 and HTTP 404 for both bulletin-host and operator-host robots files. The stored terms file is 15,811 bytes. The homepage record has 6,632 response bytes and a content hash; this is access evidence, not proof that current records were parsed.
 
 The append-only ledger entry for this capture has `capture_ok: true`, `allowed_for_us: null` and `manual_verdict: needs_decision`. Its reason distinguishes free service access from unresolved database reuse and legacy-domain scope. This is a deliberate collection hold, not a robots refusal and not permission clearance. The coordinator explicitly ended this lane at documentation, without raw/UI data extraction. No user permission question is required for the completed documentation work.
 

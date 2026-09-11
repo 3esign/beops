@@ -35,7 +35,8 @@
     "mind/voice_bench/*.jsonl": "one line per rendering in a benchmark run, made by hand and not part of the record's stream. This is where the undeclared state `failed` lives (C-057)."
    },
    "registers_inside_it": {
-    "mind/claims.jsonl": "the PREDICTIONS register, and the correction to what this file first said about it. A row is written when a claim is MADE - carrying the claim, the entity, the model, the conversation and the instant it falls due - with `outcome` and `settled_at` null until the due time passes and the scorer fills them in. It is not a register of settlements: on 2026-09-10 it held 30 rows, 29 scored (true 15, unverifiable 11, false 3) and one still open, due ninety minutes after it was made. Writing the claim at the moment it is made is the whole point: a prediction cannot be added afterwards, cannot be quietly dropped, and cannot have its due time moved once the answer is visible. Every settlement is also told to the entity as a `claim_settled` line in its notebook, in prose, because the entity is told what happened to its prediction - the register is the record and the notebook line is the telling, and the two agree in count once the open claims are set aside."
+    "mind/claims.jsonl": "the PREDICTIONS register, and the correction to what this file first said about it. A row is written when a claim is MADE - carrying the claim, the entity, the model, the conversation and the instant it falls due - with `outcome` and `settled_at` null until the due time passes and the scorer fills them in. It is not a register of settlements: on 2026-09-10 it held 30 rows, 29 scored (true 15, unverifiable 11, false 3) and one still open, due ninety minutes after it was made. Writing the claim at the moment it is made is the whole point: a prediction cannot be added afterwards, cannot be quietly dropped, and cannot have its due time moved once the answer is visible. Every settlement is also told to the entity as a `claim_settled` line in its notebook, in prose, because the entity is told what happened to its prediction - the register is the record and the notebook line is the telling, and the two agree in count once the open claims are set aside.",
+    "mind/claim-events.jsonl": "Append-only scoring and retraction events, keyed by claim_id; claims.jsonl is the current materialized view. Outcomes: true, false, unverifiable, retracted, or null while open."
    }
   },
   {
@@ -48,9 +49,9 @@
   },
   {
    "path": "public/dataset",
-   "nests": false,
-   "max_depth": 2,
-   "shape": "one directory per published dataset, its files directly inside",
+   "nests": true,
+   "max_depth": 4,
+   "shape": "dataset working edition plus immutable releases/<content hash>; read each MANIFEST.json",
    "enumerate": "one level, and only the files the dataset's own manifest declares - never a listing of the directory, which is how v1.0 of the permission dataset published a working note (C-051)"
   },
   {
@@ -111,7 +112,10 @@
    "watch-ledger.jsonl": "one line per watchman reading, including the gaps between readings",
    "paper-numbers-runs.jsonl": "one line per run of the figure tool: the instant and a hash of the figures it produced, so a stamp in a paper can be matched to a run that happened (C-053)",
    "publish-receipt.json": "not a ledger - the single most recent publish attempt, whether the suite passed, and what was published. The guard reads it to answer whether the site is being kept stale (C-046).",
-   "guard.log": "the guard's report in the words a person reads, written beside the machine-readable ledger on every run. Not a second copy of the verdict: the ledger is the record and this is the reading of it."
+   "guard.log": "the guard's report in the words a person reads, written beside the machine-readable ledger on every run. Not a second copy of the verdict: the ledger is the record and this is the reading of it.",
+   ".write.lock": "OS-owned cross-process serialization for append and retention; no observation data",
+   "retention-ledger.jsonl": "Append-only evidence of retention actions and hashes",
+   "corrections.jsonl": "Append-only hashed corrections over immutable observation rows, read through contracts.observation_rows"
   }
  },
  "the_field_name_collision": {

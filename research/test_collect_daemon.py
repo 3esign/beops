@@ -11,6 +11,7 @@ import os
 import pathlib
 import tempfile
 import unittest
+from recovery_fixtures import permission
 from datetime import datetime, timedelta, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -69,11 +70,16 @@ PERMIT = {"S146": {"sid": "S146", "captured_at_utc": "20260906T000000Z", "allowe
 class LiveDirCase(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
-        self._live = cd.LIVE
-        cd.LIVE = pathlib.Path(self.tmp.name) / "live"
+        self._live, self._root = cd.LIVE, cd.ROOT
+        cd.ROOT = pathlib.Path(self.tmp.name)
+        cd.LIVE = cd.ROOT / "live"
+        self._permit = dict(PERMIT)
+        for source in (SRC_SEPA, SRC_SC, SRC_PARK):
+            PERMIT[source["sid"]] = permission(cd.ROOT, source["sid"], cd.render_url(source, NOW), NOW)
 
     def tearDown(self):
-        cd.LIVE = self._live
+        cd.LIVE, cd.ROOT = self._live, self._root
+        PERMIT.clear(); PERMIT.update(self._permit)
         self.tmp.cleanup()
 
 
@@ -97,7 +103,7 @@ class GateTests(unittest.TestCase):
 
     def test_permissive_header_is_not_refusal(self):
         # C-010: a search-engine header (noindex) recorded in the capture must not refuse reading.
-        self.assertTrue(cd.may_collect("S04", PERMIT)[0])
+        self.assertTrue(cd.permission_policy.access_state(PERMIT["S04"])[0])
 
 
 class ParserTests(unittest.TestCase):
@@ -150,7 +156,7 @@ class CollectTests(LiveDirCase):
         self.assertTrue((cd.LIVE / "raw" / "S146" / (cd.stamp(NOW) + ".json.gz")).exists())
         rows = (cd.LIVE / "rows" / "S146" / "2026-09.jsonl").read_text(encoding="utf-8").strip().split("\n")
         self.assertEqual(len(rows), 2)
-        self.assertIn('"permission_capture": "20260906T000000Z"', rows[0])
+        self.assertEqual(json.loads(rows[0])["permission_capture"], PERMIT["S146"]["captured_at_utc"])
         self.assertIn("from=2026-09-09T09:00:00Z", rec["url"])
         self.assertFalse((cd.LIVE / "receipts" / "S146" / (cd.stamp(NOW) + ".claim")).exists())
 
@@ -336,7 +342,8 @@ class UtilityAndWeatherParserTests(unittest.TestCase):
         self.assertEqual((by["Beograd|wind_direction"]["result"], by["Beograd|wind_direction"]["result_text"], by["Beograd|wind_direction"]["unit"]), (None, "SE", "compass"))
         self.assertEqual((by["Košutnjak|wind_direction"]["result"], by["Košutnjak|wind_direction"]["unit"]), (181.0, "deg"))
         self.assertFalse(by["Beograd|humidity"]["phenomenonTimeUnknown"])
-        self.assertEqual(cd.parse_rhmz_auto(b"<html>no termin here</html>", NOW, {"sid": "S01"}), [])
+        with self.assertRaises(ValueError):
+            cd.parse_rhmz_auto(b"<html>no termin here</html>", NOW, {"sid": "S01"})
         self.assertEqual(cd._belgrade_local_offset(datetime(2026, 1, 15, tzinfo=timezone.utc)), 1)
         self.assertEqual(cd._belgrade_local_offset(datetime(2026, 7, 15, tzinfo=timezone.utc)), 2)
 
@@ -448,7 +455,8 @@ class RiverGaugeTests(unittest.TestCase):
         self.assertTrue(all("approximate" in r["spatial_binding"] for r in rows))
         self.assertEqual((rows[0]["lat"], rows[0]["lon"]), (44.8206, 20.4489))
         self.assertEqual(len(set(r["dedupe_key"] for r in rows)), len(rows))
-        self.assertEqual(cd.parse_rhmz_gauges(b"<html><table><tr><td>SAVA</td></tr></table></html>", NOW, {"sid": "S52"}), [])
+        with self.assertRaises(ValueError):
+            cd.parse_rhmz_gauges(b"<html><table><tr><td>SAVA</td></tr></table></html>", NOW, {"sid": "S52"})
 
 
 RSS_BODY = b"""<?xml version="1.0"?><rss version="2.0"><channel><title>x</title>
@@ -478,7 +486,7 @@ class ClockAndCoordTests(unittest.TestCase):
 
 class RssTests(LiveDirCase):
     def test_headline_only_publication_is_result_time_and_raw_not_stored(self):
-        PERMIT2 = dict(PERMIT, S68={"sid": "S68", "captured_at_utc": "20260906T000000Z", "allowed_for_us": True, "capture_ok": True})
+        PERMIT2 = dict(PERMIT, S68=permission(cd.ROOT, "S68", SRC_RSS["url"], NOW))
         r = cd.collect_one(SRC_RSS, NOW, PERMIT2, fetcher=ok(RSS_BODY))
         self.assertEqual(r["state"], "captured")
         self.assertEqual(r["rows"], 2)
@@ -505,7 +513,7 @@ class ConfigTests(unittest.TestCase):
         latest = cd.gate()
         for s in cfg["sources"]:
             self.assertIn(s["sid"], latest, f"{s['sid']} listed in COLLECTORS.json without a permission capture")
-            self.assertTrue(cd.may_collect(s["sid"], latest)[0], s["sid"])
+            self.assertIn("allowed_for_us", latest[s["sid"]])  # live permission can expire; this offline test checks registration, not current authority
 
     def test_sepa_url_always_asks_for_a_window(self):
         cfg = cd.load_config()

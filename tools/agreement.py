@@ -33,8 +33,10 @@ industrial scale.
     python tools/agreement.py show
 """
 from __future__ import annotations
+from contracts import observation_rows
 
 import json
+from contracts import row_clock, finite, atomic_json
 import pathlib
 import statistics
 import sys
@@ -64,7 +66,7 @@ def _gap(par: str, a: float, b: float) -> float:
     return abs(a - b)
 
 
-def _circular_median(vals: list[float]) -> float:
+def _circular_mean(vals: list[float]) -> float:
     """The middle of a set of bearings, computed as a direction rather than as an average of numbers.
     Without this an hour containing 350 and 10 would be summarised as 180 - due south for a north
     wind."""
@@ -73,12 +75,17 @@ def _circular_median(vals: list[float]) -> float:
         return 0.0
     x = sum(math.cos(math.radians(v)) for v in vals) / len(vals)
     y = sum(math.sin(math.radians(v)) for v in vals) / len(vals)
+    if math.hypot(x, y) < 1e-12:
+        return None  # antipodal/uniform directions have no defined circular mean
     return math.degrees(math.atan2(y, x)) % 360.0
 
 WHAT_THIS_IS = ("the difference between what two independent sources said about the same parameter in "
                 "the same hour. It contains instrumental disagreement AND real difference between the "
                 "places they stand in, and this record cannot separate them. It is not an error bar, "
                 "not a check of any source, and it is never used to adjust a value.")
+
+
+_circular_median = _circular_mean  # compatibility for historical callers; output names the estimator
 
 
 def _p(s):
@@ -91,20 +98,8 @@ def _p(s):
 
 
 def _hour_of(row: dict):
-    """(hour key 'YYYY-MM-DDTHH', which clock, was it a measurement time at all)"""
-    pc = row.get("phenomenonTimeCorrected")
-    if isinstance(pc, dict) and pc.get("end") and not row.get("phenomenonTimeUnknown"):
-        d = _p(pc["end"])
-        if d:
-            return d.astimezone(timezone.utc).strftime("%Y-%m-%dT%H"), "corrected", True
-    pt = row.get("phenomenonTime")
-    end = pt.get("end") if isinstance(pt, dict) else pt
-    if end and not row.get("phenomenonTimeUnknown"):
-        d = _p(end)
-        if d:
-            return d.astimezone(timezone.utc).strftime("%Y-%m-%dT%H"), "measured", True
-    d = _p(row.get("receivedTime"))
-    return (d.astimezone(timezone.utc).strftime("%Y-%m-%dT%H"), "arrival", False) if d else (None, "arrival", False)
+    dt, frame = row_clock(row)
+    return (dt.strftime("%Y-%m-%dT%H") if dt else None), frame, frame in ("measured", "corrected")
 
 
 def read_all(now: datetime | None = None):
@@ -113,21 +108,15 @@ def read_all(now: datetime | None = None):
     vals = defaultdict(list)
     clocks = defaultdict(set)
     units = {}
+    unit_sets = defaultdict(set)
     places = defaultdict(set)
     for d in sorted(ROWS.iterdir()) if ROWS.exists() else []:
         if not d.is_dir():
             continue
         for f in sorted(d.glob("*.jsonl")):
-            for ln in f.read_text(encoding="utf-8", errors="replace").splitlines():
-                ln = ln.strip()
-                if not ln.startswith("{"):
-                    continue
-                try:
-                    r = json.loads(ln)
-                except ValueError:
-                    continue
+            for r in observation_rows(f):
                 par, v = r.get("parameter"), r.get("result")
-                if not par or par in NOT_A_MEASURE or not isinstance(v, (int, float)) or v != v:
+                if not par or par in NOT_A_MEASURE or not finite(v):
                     continue
                 rx = _p(r.get("receivedTime"))
                 if not rx or (now - rx).days > MAX_DAYS:
@@ -137,11 +126,12 @@ def read_all(now: datetime | None = None):
                     continue
                 vals[(str(par), hour, d.name)].append(float(v))
                 clocks[(str(par), d.name)].add(clock)
-                if r.get("unit"):
-                    units[(str(par), d.name)] = str(r["unit"])
+                unit_sets[(str(par), d.name)].add(str(r["unit"]) if r.get("unit") else None)
                 st = r.get("station_name") or r.get("station_id")
                 if st:
                     places[(str(par), d.name)].add(str(st))
+    for key, choices in unit_sets.items():
+        units[key] = next(iter(choices)) if len(choices) == 1 else None
     return vals, clocks, units, places
 
 
@@ -149,7 +139,9 @@ def build(now: datetime | None = None) -> dict:
     vals, clocks, units, places = read_all(now)
     per_hour = defaultdict(dict)                     # (par, hour) -> {sid: median}
     for (par, hour, sid), v in vals.items():
-        per_hour[(par, hour)][sid] = _circular_median(v) if par in CIRCULAR_DEGREES else statistics.median(v)
+        centre = _circular_mean(v) if par in CIRCULAR_DEGREES else statistics.median(v)
+        if centre is not None:
+            per_hour[(par, hour)][sid] = centre
 
     pairs = defaultdict(list)                        # (par, a, b) -> [|a-b| per shared hour]
     widest = defaultdict(list)                       # par -> [widest gap per shared hour]
@@ -183,8 +175,8 @@ def build(now: datetime | None = None) -> dict:
                 continue
             ua, ub = units.get((par, a)), units.get((par, b))
             rec = {"a": a, "b": b, "shared_hours": len(gaps), "unit_a": ua, "unit_b": ub,
-                   "units_match": ua == ub, "geometry": "circular_degrees" if par in CIRCULAR_DEGREES else "linear"}
-            if ua != ub:
+                   "units_match": ua is not None and ua == ub, "geometry": "circular_degrees" if par in CIRCULAR_DEGREES else "linear"}
+            if ua is None or ub is None or ua != ub or bool(clocks.get((par, a), set()) & {"arrival"}) != bool(clocks.get((par, b), set()) & {"arrival"}) or len(clocks.get((par, a), ())) != 1:
                 # A gap between hPa and Pa is not a large disagreement, it is not a quantity at all.
                 # Publishing it with a warning attached invites the reading the warning exists to
                 # prevent, so the number is withheld and the reason is named in its place.
@@ -200,7 +192,8 @@ def build(now: datetime | None = None) -> dict:
                 rec["max_gap"] = round(g[-1], 2)
             entry["pairs"].append(rec)
             seen_sids.update((a, b))
-        if any(p2.get("withheld") for p2 in entry["pairs"]):
+        all_units = {units.get((par, sid)) for (p, hour), values in per_hour.items() if p == par for sid in values}
+        if len(all_units) != 1 or None in all_units or any(p2.get("withheld") for p2 in entry["pairs"]):
             # If any two of these sources publish in different units, the widest gap across all of
             # them is the same non-quantity as the pair gap, and it goes the same way.
             entry["widest_gap"] = None
@@ -212,11 +205,13 @@ def build(now: datetime | None = None) -> dict:
                                      "unit": units.get((par, sid))}
         entry["these_are_different_places"] = ("the sources below stand in different places, so part of "
                                                "every gap is the city itself and not the instruments.")
+        entry["centre_estimator"] = "circular_mean" if par in CIRCULAR_DEGREES else "median"
         entry["geometry"] = "circular_degrees" if par in CIRCULAR_DEGREES else "linear"
         out["parameters"][par] = entry
 
     OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "SUMMARY.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    from contracts import atomic_json
+    atomic_json(OUT / "SUMMARY.json", out)
     return out
 
 

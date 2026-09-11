@@ -29,10 +29,8 @@ Rules this file enforces (from CONTRIBUTING.md and 08-provenance/README.md):
     by hard link (same pattern as research/observe_10k.py). A crash between
     the two leaves a visible claim and a gap, never a retry of the same slot.
   * 403 or 429 pauses the source until a person clears the pause file.
-  * Transport identifies honestly. On Windows the request goes through
-    curl.exe (Schannel, OS certificate store) because the Python on this PC
-    has no CA bundle (C-001, C-006); elsewhere urllib with the default context.
-    There is no unverified mode.
+  * Transport uses verified TLS and the shared incognito header provider.
+    Redirects require their own permission route; response bodies are bounded.
   * Byte caps per source. The SEPA observations endpoint returns the whole
     30-day bundle (140 MB) when asked without ``from``; the collector always
     asks for a window and stops at the cap.
@@ -45,8 +43,12 @@ the only thing that goes back into the repository.
 from __future__ import annotations
 
 import argparse
+from contracts import json_rows, serialized, atomic_json, observation_rows
 import gzip
 import hashlib
+from contracts import finite, belgrade_local, belgrade_offset, content_id, exclusive
+import permission_policy
+import transport
 import json
 import os
 import pathlib
@@ -87,115 +89,17 @@ def iso(dt: datetime | None) -> str | None:
 
 # --------------------------------------------------------------------- gate
 def gate() -> dict:
-    """Newest ledger capture per source id (mirror of research/collect_permitted.py)."""
-    latest: dict = {}
-    if not LEDGER.exists():
-        return latest
-    with open(LEDGER, encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if not line:
-                continue
-            e = json.loads(line)
-            cur = latest.get(e["sid"])
-            if cur is None or e["captured_at_utc"] >= cur["captured_at_utc"]:
-                latest[e["sid"]] = e
-    return latest
+    return permission_policy.latest(LEDGER)
 
 
-def may_collect(sid: str, latest: dict) -> tuple[bool, str]:
-    e = latest.get(sid)
-    if e is None:
-        return False, "no permission capture exists - run tools/legal_capture.py first"
-    if e.get("manual_verdict") == "refused":
-        return False, "REFUSED: " + (e.get("manual_reason") or "")[:120]
-    if e.get("manual_verdict") == "needs_decision":
-        return False, "decision held open in EDGE_CASES.md"
-    if e.get("allowed_for_us") is False:
-        return False, "robots.txt or an opt-out signal disallows it"
-    if e.get("allowed_for_us") is not True:
-        return False, "verdict is unknown, and an unknown is never a permission"
-    if not e.get("capture_ok"):
-        return False, "the permission capture did not complete"
-    sigs = {k: v for sg in (e.get("content_signal") or {}).values() for k, v in sg.items()}
-    if sigs.get("ai-input") == "no" or sigs.get("search") == "no":
-        return False, "Content-Signal forbids the use we would make"
-    return True, e["captured_at_utc"]
+def may_collect(sid: str, latest: dict, url: str | None = None, now=None) -> tuple[bool, str]:
+    return permission_policy.authorize(sid, latest, ROOT, url, now)
 
 
-# ---------------------------------------------------------------- transport
 def fetch(url: str, timeout_s: int, max_bytes: int) -> dict:
-    """Return {status, headers, body(bytes)|None, error, transport}. Never raises."""
-    curl = shutil.which("curl.exe") or shutil.which("curl")
-    if platform.system() == "Windows" and curl:
-        return _fetch_curl(curl, url, timeout_s, max_bytes)
-    return _fetch_urllib(url, timeout_s, max_bytes)
+    return transport.fetch(url, timeout_s, max_bytes)
 
 
-def _fetch_curl(curl: str, url: str, timeout_s: int, max_bytes: int) -> dict:
-    with tempfile.TemporaryDirectory(prefix="beops-curl-") as td:
-        body_path = os.path.join(td, "body")
-        head_path = os.path.join(td, "head")
-        cmd = [curl, "-sS", "-L", "--max-redirs", "3", "--max-time", str(timeout_s),
-               "--max-filesize", str(max_bytes), "-A", UA,
-               "-H", "Accept: application/json, text/html;q=0.9, */*;q=0.5",
-               "-D", head_path, "-o", body_path, "-w", "%{http_code}", url]
-        try:
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_s + 15)
-        except subprocess.TimeoutExpired:
-            return {"status": None, "headers": {}, "body": None,
-                    "error": f"curl hard timeout after {timeout_s + 15}s", "transport": "curl.exe/Schannel"}
-        status = None
-        m = re.search(r"(\d{3})\s*$", proc.stdout or "")
-        if m:
-            status = int(m.group(1))
-        headers = {}
-        try:
-            with open(head_path, encoding="latin-1") as fh:
-                for ln in fh:
-                    if ":" in ln:
-                        k, v = ln.split(":", 1)
-                        headers[k.strip().lower()] = v.strip()
-        except OSError:
-            pass
-        body = None
-        try:
-            with open(body_path, "rb") as fh:
-                body = fh.read()
-        except OSError:
-            body = None
-        err = None
-        if proc.returncode == 63:
-            err = f"response larger than the {max_bytes} byte cap"
-            body = None
-        elif proc.returncode != 0:
-            err = f"curl exit {proc.returncode}: {(proc.stderr or '').strip()[:200]}"
-            body = None
-        elif status is None:
-            err = "no HTTP status"
-        return {"status": status, "headers": headers, "body": body, "error": err,
-                "transport": "curl.exe/Schannel (OS certificate store, verified)"}
-
-
-def _fetch_urllib(url: str, timeout_s: int, max_bytes: int) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "*/*"})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout_s) as r:
-            body = r.read(max_bytes + 1)
-            if len(body) > max_bytes:
-                return {"status": r.status, "headers": dict(r.headers.items()), "body": None,
-                        "error": f"response larger than the {max_bytes} byte cap", "transport": "urllib/default-context"}
-            return {"status": r.status, "headers": dict(r.headers.items()), "body": body, "error": None,
-                    "transport": "urllib/default-context"}
-    except urllib.error.HTTPError as e:
-        return {"status": e.code, "headers": dict(e.headers.items()) if e.headers else {}, "body": None,
-                "error": f"HTTP {e.code}", "transport": "urllib/default-context"}
-    except Exception as e:  # noqa: BLE001 - the receipt must record any failure
-        return {"status": None, "headers": {}, "body": None, "error": f"{type(e).__name__}: {e}",
-                "transport": "urllib/default-context"}
-
-
-# ------------------------------------------------------------------ parsers
 def parse_sepa_hvd(body: bytes, received: datetime, src: dict) -> list[dict]:
     """SEPA HVD /api/v1/observations: hourly means, phenomenonTime is an interval."""
     doc = json.loads(body.decode("utf-8"))
@@ -208,7 +112,7 @@ def parse_sepa_hvd(body: bytes, received: datetime, src: dict) -> list[dict]:
         if keep and st not in keep:
             continue
         val = rec.get("value")
-        present = isinstance(val, (int, float)) and val == val  # not NaN
+        present = finite(val)
         rows.append({
             "schema": SCHEMA_ROW, "sid": src["sid"],
             "datastream": f"{st}|{rec.get('parameter_code')}",
@@ -229,6 +133,10 @@ def parse_sepa_hvd(body: bytes, received: datetime, src: dict) -> list[dict]:
         off = int(note["offset_seconds"])
         for r in rows:
             r["sourceClockNote"] = note["text"]
+            if note.get('valid_until') and iso(received) >= note['valid_until']:
+                r['sourceClockUnresolved'] = True
+                r['sourceClockRule'] = note.get('rule_id')
+                continue
             pt = r["phenomenonTime"]
             r["phenomenonTimeCorrected"] = {"start": _shift(pt.get("start"), -off), "end": _shift(pt.get("end"), -off),
                                             "state": "estimated", "why": note["text"]}
@@ -355,7 +263,7 @@ def parse_rss(body: bytes, received: datetime, src: dict) -> list[dict]:
                     rt = iso(datetime.fromisoformat(pub.replace("Z", "+00:00")))
                 except ValueError:
                     rt = None
-        title = " ".join(title.split())[:200]
+        title = " ".join(title.split())
         if not title and not link:
             continue
         rows.append({
@@ -394,7 +302,7 @@ def parse_city_listing(body: bytes, received: datetime, src: dict) -> list[dict]
         link = m_href.group(1)
         if link.startswith("/"):
             link = base + link
-        title = " ".join(_html.unescape(m_title.group(1)).split())[:200]
+        title = " ".join(_html.unescape(m_title.group(1)).split())
         rt = None
         if m_time:
             try:
@@ -478,7 +386,7 @@ def parse_rhmz_auto(body: bytes, received: datetime, src: dict) -> list[dict]:
     text = body.decode("utf-8", "replace")
     m = re.search(r"(\d{2})\.(\d{2})\.(\d{4})\.?(?:&nbsp;|\s)*termin:(?:&nbsp;|\s)*(\d{1,2}):(\d{2})", text)
     if not m:
-        return []
+        raise ValueError("expected RHMZ timestamp/table was not found")
     dd, mm, yy, hh, mi = (int(x) for x in m.groups())
     base_local = datetime(yy, mm, dd, hh, mi)
     rows = []
@@ -493,8 +401,7 @@ def parse_rhmz_auto(body: bytes, received: datetime, src: dict) -> list[dict]:
         else:
             local = base_local
             vals = c[1:6]
-        off = _belgrade_local_offset(datetime(yy, mm, dd, 12, tzinfo=timezone.utc))
-        pt = (local - timedelta(hours=off)).replace(tzinfo=timezone.utc)
+        pt, off = belgrade_local(local)
         lat, lon = RHMZ_BELGRADE[c[0]]
         for name, unit, raw in (("temperature", "Cel", vals[0]), ("pressure", "hPa", vals[1]), ("humidity", "%", vals[2]),
                                 ("wind_direction", "compass", vals[3]), ("wind_speed", "m/s", vals[4])):
@@ -513,7 +420,8 @@ def parse_rhmz_auto(body: bytes, received: datetime, src: dict) -> list[dict]:
                 "schema": SCHEMA_ROW, "sid": src["sid"],
                 "datastream": f"{c[0]}|{name}", "station_id": c[0], "station_name": c[0], "parameter": name,
                 "result": val, "result_text": text_val, "unit": unit if name != "wind_direction" else ("deg" if val is not None else "compass"),
-                "phenomenonTime": iso(pt), "phenomenonTimeUnknown": False,
+                "phenomenonTime": iso(pt), "phenomenonTimeUnknown": pt is None,
+                "phenomenonTimeUnknownReason": "ambiguous or nonexistent local DST time" if pt is None else None,
                 "phenomenonTimeSource": f"'termin' {local.strftime('%H:%M')} local (UTC+{off}, project DST rule) as printed on the page",
                 "resultTime": None, "receivedTime": iso(received),
                 "resultQuality": "unvalidated" if (val is not None or text_val) else "missing",
@@ -577,7 +485,7 @@ def parse_rhmz_gauges(body: bytes, received: datetime, src: dict) -> list[dict]:
     text = body.decode("utf-8", "replace")
     m = re.search(r"(\d{2})\.(\d{2})\.(\d{4})\.?(?:&nbsp;|\s)*vreme:(?:&nbsp;|\s)*\d{1,2}:\d{2}(?:&nbsp;|\s)*\((\d{1,2}):(\d{2})\s*UTC\)", text)
     if not m:
-        return []
+        raise ValueError("expected RHMZ timestamp/table was not found")
     dd, mm, yy, hh, mi = (int(x) for x in m.groups())
     pt = datetime(yy, mm, dd, hh, mi, tzinfo=timezone.utc)
     rows = []
@@ -588,13 +496,22 @@ def parse_rhmz_gauges(body: bytes, received: datetime, src: dict) -> list[dict]:
         key = (c[0].strip().upper(), c[2].strip().upper())
         if key not in RHMZ_GAUGES:
             continue
-        vals = [x for x in c[3:] if x.strip()]
+        cells_html = re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S | re.I)
+        # Live RHMZ has two image-only navigation columns before four measurements.
+        # The compact archived layout has seven columns. Missing measurement cells stay put.
+        if len(c) >= 9 and all(re.search(r"<img\b", x, re.I) for x in cells_html[3:5]):
+            vals = c[5:9]
+        elif len(c) == 7:
+            vals = c[3:7]
+        else:
+            raise ValueError("unrecognized RHMZ gauge column layout")
         lat, lon = RHMZ_GAUGES[key]
         station = f"{key[1].title()} ({key[0].title()})"
         for i, (name, unit) in enumerate(GAUGE_FIELDS):
             raw = vals[i] if i < len(vals) else ""
             try:
                 val = float(raw.replace(",", "."))
+                if not finite(val): val = None
             except (TypeError, ValueError):
                 val = None                     # '*' and '-' are the source's own way of saying: no value
             rows.append({
@@ -636,13 +553,18 @@ def publish(path: pathlib.Path, value: dict) -> None:
 def _row_key(r: dict) -> str:
     """A source row is the same row if datastream, phenomenon time, result time and result agree."""
     if r.get("dedupe_key"):
-        return r["dedupe_key"]
+        return str(r["dedupe_key"]) + "|" + content_id(r)
     return json.dumps([r.get("datastream"), r.get("phenomenonTime"), r.get("resultTime"),
                        r.get("result"), None if r.get("phenomenonTimeUnknown") is False else r.get("receivedTime")],
                       ensure_ascii=False, sort_keys=True)
 
 
 def append_rows(sid: str, rows: list[dict], received: datetime, dedupe_hours: int = 72) -> tuple[pathlib.Path, int]:
+    with exclusive(LIVE / ".write.lock"):
+        return _append_rows_locked(sid, rows, received, dedupe_hours)
+
+
+def _append_rows_locked(sid: str, rows: list[dict], received: datetime, dedupe_hours: int = 72) -> tuple[pathlib.Path, int]:
     """Append rows; skip rows already seen in the last `dedupe_hours` (sources with a window re-send).
 
     The seen-set is a small sidecar, not a re-read of the month file. Rows whose measurement time is
@@ -654,8 +576,8 @@ def append_rows(sid: str, rows: list[dict], received: datetime, dedupe_hours: in
     if seen_path.exists():
         try:
             seen = json.loads(seen_path.read_text(encoding="utf-8"))
-        except ValueError:
-            seen = {}
+        except ValueError as exc:
+            raise ValueError(f'Invalid deduplication cache {seen_path}: {exc}') from exc
     cutoff = iso(received - timedelta(hours=dedupe_hours))
     seen = {k: v for k, v in seen.items() if v >= cutoff}
     written = 0
@@ -754,7 +676,7 @@ def paused(sid: str) -> str | None:
 # ---------------------------------------------------------------------- tick
 def collect_one(src: dict, now: datetime, latest_gate: dict, fetcher=fetch) -> dict:
     sid = src["sid"]
-    ok, why = may_collect(sid, latest_gate)
+    ok, why = may_collect(sid, latest_gate, render_url(src, now), now)
     if not ok:
         return {"sid": sid, "state": "not_permitted", "reason": why, "network_requests": 0}
     pz = paused(sid)
@@ -799,14 +721,18 @@ def collect_one(src: dict, now: datetime, latest_gate: dict, fetcher=fetch) -> d
         try:
             rows = PARSERS[src["parser"]](res["body"], received, src)
             for r in rows:
+                if isinstance(r.get('result'), (int,float)) and not finite(r['result']):
+                    r['result'], r['resultQuality'] = None, 'missing'
                 r["permission_capture"] = why
                 r["raw_sha256"] = digest
+                r["row_id"] = content_id(r)
             rows_path, written = append_rows(sid, rows, received)
             item["rows"] = len(rows)
             item["rows_new"] = written
             item["rows_missing"] = sum(1 for r in rows if r["result"] is None)
             item["rows_file"] = _rel(rows_path)
             item["state"] = "captured"
+            item['payload_outcome'] = 'empty' if not rows else ('unchanged' if not written else 'rows')
         except Exception as exc:  # noqa: BLE001
             item["state"] = "unparsed"
             item["error"] = {"type": type(exc).__name__, "message": str(exc)[:240]}
@@ -928,36 +854,35 @@ def export(now: datetime | None = None, hours: int = 24) -> pathlib.Path:
         d = LIVE / "rows" / src["sid"]
         if d.exists():
             for mf in sorted(d.glob("*.jsonl")):
-                with open(mf, encoding="utf-8") as fh:
-                    for line in fh:
-                        try:
-                            r = json.loads(line)
-                        except ValueError:
-                            continue
-                        if (r.get("receivedTime") or "") < since:
-                            continue
-                        if r.get("kind") == "text":
-                            events.append({"t": r.get("resultTime"), "rx": r.get("receivedTime"), "title": r.get("result"), "link": r.get("link")})
-                            continue
-                        if keep_ids and r.get("station_id") is not None and str(r.get("station_id")) not in keep_ids:
-                            continue   # rows captured before the Belgrade filter existed stay on disk, but are not the observatory's scope
-                        ds = streams.setdefault(r["datastream"], {"datastream": r["datastream"], "station": r.get("station_name") or r.get("station_id"),
-                                                                    "parameter": r.get("parameter"), "unit": r.get("unit"),
-                                                                    "lat": r.get("lat"), "lon": r.get("lon"), "points": []})
-                        # The month file is append-only and older rows predate station_coords / station_names in
-                        # COLLECTORS.json; a datastream created from such a row kept lat/lon/name null for ever and the
-                        # 32 SEPA stations never appeared on the map. Later rows carry the values - take them.
-                        if ds.get("lat") is None and r.get("lat") is not None:
-                            ds["lat"], ds["lon"] = r.get("lat"), r.get("lon")
-                        if r.get("station_name") and ds.get("station") == r.get("station_id"):
-                            ds["station"] = r.get("station_name")
-                        pt = r.get("phenomenonTime")
-                        pc = r.get("phenomenonTimeCorrected")
-                        point = {"t": (pt.get("end") if isinstance(pt, dict) else pt), "tu": bool(r.get("phenomenonTimeUnknown")),
-                                 "rt": r.get("resultTime"), "rx": r.get("receivedTime"), "v": r.get("result"), "q": r.get("resultQuality")}
-                        if isinstance(pc, dict) and pc.get("end"):
-                            point["tc"] = pc["end"]      # corrected placement (estimated); the received label stays in "t"
-                        ds["points"].append(point)
+                for r in observation_rows(mf):
+                    if (r.get("receivedTime") or "") < since:
+                        continue
+                    if r.get("kind") == "text":
+                        events.append({"t": r.get("resultTime"), "rx": r.get("receivedTime"), "title": r.get("result"), "link": r.get("link")})
+                        continue
+                    if keep_ids and r.get("station_id") is not None and str(r.get("station_id")) not in keep_ids:
+                        continue   # rows captured before the Belgrade filter existed stay on disk, but are not the observatory's scope
+                    ds = streams.setdefault(r["datastream"], {"datastream": r["datastream"], "station": r.get("station_name") or r.get("station_id"),
+                                                                "parameter": r.get("parameter"), "unit": r.get("unit"),
+                                                                "lat": r.get("lat"), "lon": r.get("lon"), "points": []})
+                    # The month file is append-only and older rows predate station_coords / station_names in
+                    # COLLECTORS.json; a datastream created from such a row kept lat/lon/name null for ever and the
+                    # 32 SEPA stations never appeared on the map. Later rows carry the values - take them.
+                    if ds.get("lat") is None and r.get("lat") is not None:
+                        ds["lat"], ds["lon"] = r.get("lat"), r.get("lon")
+                    if r.get("station_name") and ds.get("station") == r.get("station_id"):
+                        ds["station"] = r.get("station_name")
+                    pt = r.get("phenomenonTime")
+                    pc = r.get("phenomenonTimeCorrected")
+                    point = {"t": (pt.get("end") if isinstance(pt, dict) else pt), "tu": bool(r.get("phenomenonTimeUnknown")),
+                             "rt": r.get("resultTime"), "rx": r.get("receivedTime"), "v": r.get("result"), "q": r.get("resultQuality")}
+                    if r.get("sourceClockUnresolved"):
+                        point["source_label"] = point["t"]
+                        point["t"], point["tu"] = None, True
+                        point["clock_note"] = "source clock correction requires renewed evidence"
+                    if isinstance(pc, dict) and pc.get("end"):
+                        point["tc"] = pc["end"]      # corrected placement (estimated); the received label stays in "t"
+                    ds["points"].append(point)
         out["sources"].append({"sid": src["sid"], "name": src["name"], "cadence_seconds": src["cadence_seconds"],
                                "phenomenon_time_published": src.get("phenomenon_time_published"),
                                "datastreams": sorted(streams.values(), key=lambda x: (str(x["station"]), str(x["parameter"]))),
@@ -969,20 +894,15 @@ def export(now: datetime | None = None, hours: int = 24) -> pathlib.Path:
     dd = LIVE / "derived" / "news"
     if dd.exists():
         for mf in sorted(dd.glob("*.jsonl")):
-            with open(mf, encoding="utf-8") as fh:
-                for line in fh:
-                    try:
-                        r = json.loads(line)
-                    except ValueError:
-                        continue
-                    if (r.get("derivedTime") or "") < since:
-                        continue
-                    derived.append({"t": r.get("derivedTime"), "organ": r.get("organ"), "organ_version": r.get("organ_version"),
-                                    "model": r.get("model"), "ai_generated": True, "bound_by": r.get("bound_by"),
-                                    "sid": r.get("input_sid"), "headline": r.get("input_headline"),
-                                    "published": r.get("input_resultTime"), "category": r.get("category"),
-                                    "belgrade": r.get("belgrade"), "zones": r.get("zones") or [],
-                                    "event_time_text": r.get("event_time_text"), "note": r.get("note")})
+            for r in json_rows(mf):
+                if (r.get("derivedTime") or "") < since:
+                    continue
+                derived.append({"t": r.get("derivedTime"), "organ": r.get("organ"), "organ_version": r.get("organ_version"),
+                                "model": r.get("model"), "ai_generated": True, "bound_by": r.get("bound_by"),
+                                "sid": r.get("input_sid"), "headline": r.get("input_headline"),
+                                "published": r.get("input_resultTime"), "category": r.get("category"),
+                                "belgrade": r.get("belgrade"), "zones": r.get("zones") or [],
+                                "event_time_text": r.get("event_time_text"), "note": r.get("note")})
     out["derived"] = sorted(derived, key=lambda e: e["t"] or "")
     orx = sorted((LIVE / "derived" / "news" / "receipts").glob("*.json")) if (LIVE / "derived" / "news" / "receipts").exists() else []
     out["organ_runs"] = []
@@ -1006,70 +926,44 @@ def export(now: datetime | None = None, hours: int = 24) -> pathlib.Path:
         ijekavian_hits = None
     if md.exists():
         retracted = set()
-        for mf in sorted(md.glob("*.jsonl")):
+        for mf in sorted(md.glob("????-??.jsonl")):
             if mf.name == "claims.jsonl":
                 continue
-            with open(mf, encoding="utf-8") as fh:
-                for line in fh:
-                    try:
-                        r = json.loads(line)
-                    except ValueError:
-                        continue
-                    if r.get("state") == "retracted":
-                        retracted.add((r.get("conversation"), r.get("entity"), r.get("round")))
-        for mf in sorted(md.glob("*.jsonl")):
+            for r in json_rows(mf):
+                if r.get("state") == "retracted":
+                    retracted.add((r.get("conversation"), r.get("entity"), r.get("round")))
+        for mf in sorted(md.glob("????-??.jsonl")):
             if mf.name == "claims.jsonl":
                 continue
-            with open(mf, encoding="utf-8") as fh:
-                for line in fh:
-                    try:
-                        r = json.loads(line)
-                    except ValueError:
-                        continue
-                    if r.get("state") not in ("thought", "organelle") or (r.get("derivedTime") or "") < since:
-                        continue
-                    if (r.get("conversation"), r.get("entity"), r.get("round")) in retracted:
-                        continue   # a retraction was appended later: the row stays on disk, never on the page
-                    sr_state, sr, h_sr, q_sr = r.get("sr_state"), r.get("sr"), r.get("hypotheses_sr") or [], r.get("questions_sr") or []
-                    # C-033: what a refusal produced is carried too, plainly labelled, so the page can show
-                    # the Serbian that did not pass instead of only the reason it did not. `sr` stays the
-                    # validated text and nothing else, so no reader can be shown a refusal as if it passed.
-                    sr_refused = r.get("sr_refused") or ""
-                    if ijekavian_hits and sr_state == "voiced":
-                        hits = ijekavian_hits(sr or "") + [h for x in h_sr + q_sr for h in ijekavian_hits(x)]
-                        if hits:   # voiced under an older guard: the row stays on disk, the Serbian page does not show it
-                            sr_refused = sr or sr_refused
-                            sr_state, sr, h_sr, q_sr = "refused at export: ijekavian, not ekavica: " + ", ".join(hits[:3]), "", [], []
-                    thoughts.append({"t": r.get("derivedTime"), "conversation": r.get("conversation"), "round": r.get("round"),
-                                     "orchestration": r.get("orchestration"), "state": r.get("state"), "organelle": r.get("organelle"),
-                                     "entity": r.get("entity"), "entity_sr": r.get("entity_sr"), "entity_en": r.get("entity_en"),
-                                     "model": r.get("model"), "voice_model": r.get("voice_model"), "sr_state": sr_state,
-                                     "ai_generated": True, "replies_to": r.get("replies_to") or [],
-                                     "sr": sr, "sr_refused": sr_refused, "en": r.get("en"), "cites": r.get("cites") or [],
-                                     "hypotheses": r.get("hypotheses") or [], "questions": r.get("questions") or [],
-                                     "hypotheses_sr": h_sr, "questions_sr": q_sr,
-                                     "next_check": r.get("next_check"), "claim": r.get("claim"), "similarity": r.get("similarity")})
-        claims = []
-        if (md / "claims.jsonl").exists():
-            with open(md / "claims.jsonl", encoding="utf-8") as fh:
-                for line in fh:
-                    try:
-                        claims.append(json.loads(line))
-                    except ValueError:
-                        continue
-        allrows = []
-        for mf in sorted(md.glob("*.jsonl")):
-            if mf.name == "claims.jsonl":
-                continue
-            with open(mf, encoding="utf-8") as fh:
-                for line in fh:
-                    try:
-                        allrows.append(json.loads(line))
-                    except ValueError:
-                        continue
+            for r in json_rows(mf):
+                if r.get("state") not in ("thought", "organelle") or (r.get("derivedTime") or "") < since:
+                    continue
+                if (r.get("conversation"), r.get("entity"), r.get("round")) in retracted:
+                    continue   # a retraction was appended later: the row stays on disk, never on the page
+                sr_state, sr, h_sr, q_sr = r.get("sr_state"), r.get("sr"), r.get("hypotheses_sr") or [], r.get("questions_sr") or []
+                # C-033: what a refusal produced is carried too, plainly labelled, so the page can show
+                # the Serbian that did not pass instead of only the reason it did not. `sr` stays the
+                # validated text and nothing else, so no reader can be shown a refusal as if it passed.
+                sr_refused = r.get("sr_refused") or ""
+                if ijekavian_hits and sr_state == "voiced":
+                    hits = ijekavian_hits(sr or "") + [h for x in h_sr + q_sr for h in ijekavian_hits(x)]
+                    if hits:   # voiced under an older guard: the row stays on disk, the Serbian page does not show it
+                        sr_refused = sr or sr_refused
+                        sr_state, sr, h_sr, q_sr = "refused at export: ijekavian, not ekavica: " + ", ".join(hits[:3]), "", [], []
+                thoughts.append({"t": r.get("derivedTime"), "conversation": r.get("conversation"), "round": r.get("round"),
+                                 "orchestration": r.get("orchestration"), "state": r.get("state"), "organelle": r.get("organelle"),
+                                 "entity": r.get("entity"), "entity_sr": r.get("entity_sr"), "entity_en": r.get("entity_en"),
+                                 "model": r.get("model"), "voice_model": r.get("voice_model"), "sr_state": sr_state,
+                                 "ai_generated": True, "replies_to": r.get("replies_to") or [],
+                                 "sr": sr, "sr_refused": sr_refused, "en": r.get("en"), "cites": r.get("cites") or [],
+                                 "hypotheses": r.get("hypotheses") or [], "questions": r.get("questions") or [],
+                                 "hypotheses_sr": h_sr, "questions_sr": q_sr,
+                                 "next_check": r.get("next_check"), "claim": r.get("claim"), "similarity": r.get("similarity")})
+        claims = list(json_rows(md / "claims.jsonl"))
+        allrows = [r for mf in sorted(md.glob("????-??.jsonl")) for r in json_rows(mf)]
         board = {}
         for ent in ("observer", "skeptic", "connector", "organelle"):
-            u = [r for r in allrows if r.get("entity") == ent]
+            u = [r for r in allrows if r.get("entity") == ent and (r.get("state") != "thought" or (r.get("conversation"), r.get("entity"), r.get("round")) not in retracted)]
             c = [r for r in claims if r.get("entity") == ent]
             board[ent] = {"utterances": len(u), "accepted": sum(1 for r in u if r.get("state") in ("thought", "organelle")),
                           "voiced": sum(1 for r in u if r.get("sr_state") == "voiced"),
@@ -1114,7 +1008,7 @@ def check() -> dict:
     latest = gate()
     out = []
     for s in cfg["sources"]:
-        ok, why = may_collect(s["sid"], latest)
+        ok, why = may_collect(s["sid"], latest, render_url(s, utcnow()))
         out.append({"sid": s["sid"], "permitted": ok, "why": why, "enabled": s.get("enabled", True)})
     return {"config": str(CONFIG.relative_to(ROOT)), "live_dir": str(LIVE.relative_to(ROOT)),
             "curl": shutil.which("curl.exe") or shutil.which("curl"), "sources": out}

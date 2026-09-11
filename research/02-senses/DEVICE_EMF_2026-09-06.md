@@ -10,8 +10,8 @@ Accepted discovery snapshot. The [integrated report](DEVICE_DATA_DISCOVERY_2026-
 
 The November 2024 Belgrade campaign is already saved, under S155 rather than its correct subject S158. No new dataset request was needed to resolve the coverage gap.
 
-- Immutable file: [9314c9_open-data-2-2.json](../evidence/S155/20260906T025246Z/9314c9_open-data-2-2.json).
-- Source URL, as recorded by its [manifest](../evidence/S155/20260906T025246Z/MANIFEST.json): <https://emf.ratel.rs/drive-test-open-data/open-data-2-2.json>.
+- Immutable file: 9314c9_open-data-2-2.json (private working record).
+- Source URL, as recorded by its manifest (private working record): <https://emf.ratel.rs/drive-test-open-data/open-data-2-2.json>.
 - SHA-256, recomputed and matching manifest: `e350841f6584272ea0609ea2b5bee37fe15930cf30d9e866df526ce802c0a960`.
 - Total objects: **7,781 = one campaign metadata header + 7,780 measurement rows**. Header identifies Beograd / Belgrade, BG, November 2024.
 - Measurement dates: all rows are **2024-11-08**, minimum `09:02:08`, maximum `15:03:33`. All 7,780 `Date_time` values are unique. **No timezone or UTC offset is supplied** in these values or the header.
@@ -73,7 +73,7 @@ Verified locally: the 7,780-row historical Belgrade campaign and hash; source ID
 
 Status: bounded local validation delivered for coordinator review, 2026-09-06. This addendum changes the earlier statement that the fixed endpoint was unprobed: the coordinator subsequently obtained exact-route permission evidence and collected the response. The scout made **no network request** during this follow-up.
 
-Source: <https://emf.ratel.rs/getOpenData/21/json>. Exact permission capture is `S158/20260906T104256Z`. Local [fixed_station_21.json](../evidence/S158/20260906T104316Z/fixed_station_21.json) and [manifest](../evidence/S158/20260906T104316Z/MANIFEST.json) record receipt at `20260906T104327Z`, 225,410,096 bytes, content type `application/octet-stream;`, no Last-Modified date. Recomputed SHA-256 matches the manifest: `e3ecaba71a8a860c5c490e7d12569da35d3578497c62b9a93994c9766f42a20e`.
+Source: <https://emf.ratel.rs/getOpenData/21/json>. Exact permission capture is `S158/20260906T104256Z`. Local fixed_station_21.json (private working record) and manifest (private working record) record receipt at `20260906T104327Z`, 225,410,096 bytes, content type `application/octet-stream;`, no Last-Modified date. Recomputed SHA-256 matches the manifest: `e3ecaba71a8a860c5c490e7d12569da35d3578497c62b9a93994c9766f42a20e`.
 
 ### Site and schema
 
@@ -112,4 +112,4 @@ All twenty band fields and the temperature/humidity fields are present on every 
 
 Executed verification: two bounded Node.js standard-library streaming passes over the local file; a brace/string-aware JSON-object scanner parsed every object, verified array delimiters and no unfinished object, recomputed full SHA-256, examined schema/numeric fields and counts, then checked sentinel dates/latest row. No full dataset was dumped into tool output or copied. No tests, external calls or central-record edits were made by this scout. The original evidence remains unchanged. Integration should carry the station-name/active-flag contradiction, absent timezone, data gaps, conflicting duplicates and unresolved sentinel semantics alongside the usable historical coverage.
 
-Reproducibility artifacts added at the coordinator's request: the independent offline [Python auditor](../audit_fixed21_20260906.py) and immutable [FIXED21_QA.json](../evidence/device-discovery-20260906/FIXED21_QA.json). The auditor uses only the standard library, makes no network calls, reads the original without mutation, and refuses to overwrite an output. Duplicate payload comparison excludes `RBR` and canonicalizes JSON object keys; the QA output retains the exact source hash, site header, schema, timestamp counts, gaps, sentinel counts and unresolved meanings without copying raw measurement rows.
+Reproducibility artifacts added at the coordinator's request: the independent offline [Python auditor](../audit_fixed21_20260906.py) and immutable FIXED21_QA.json (private working record). The auditor uses only the standard library, makes no network calls, reads the original without mutation, and refuses to overwrite an output. Duplicate payload comparison excludes `RBR` and canonicalizes JSON object keys; the QA output retains the exact source hash, site header, schema, timestamp counts, gaps, sentinel counts and unresolved meanings without copying raw measurement rows.

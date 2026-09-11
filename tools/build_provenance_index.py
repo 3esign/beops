@@ -75,36 +75,7 @@ def load_registry():
     return out
 
 
-def header_refusals(entry: dict) -> dict:
-    """Return only those recorded header signals that actually refuse reading.
-
-    legal_capture.py stores EVERY value of X-Robots-Tag / Content-Usage /
-    TDM-Reservation / TDM-Policy it sees, because the record must be complete.
-    But most X-Robots-Tag values (`noindex`, `nofollow`, `index, follow`) speak
-    to search-engine indexing, not to whether a page may be read. Treating their
-    presence as a refusal listed Kontur (CC BY, commercial use permitted) under
-    "said no" - C-010. What refuses reading or text-and-data mining is:
-      * X-Robots-Tag containing `noai` or `noimageai`
-      * TDM-Reservation: 1   (W3C TDMRep)
-      * Content-Usage containing `ai=n` or `tdm=n`  (IETF draft)
-      * TDM-Policy present together with TDM-Reservation: 1
-    Everything else stays visible in the capture and in the permitted row, but
-    does not by itself move a source to "do not collect".
-    """
-    out: dict = {}
-    for url, sig in (entry.get("opt_out_signals_seen") or {}).items():
-        hit = {}
-        for k, v in (sig or {}).items():
-            key, val = k.lower(), str(v).lower().replace(" ", "")
-            if key == "x-robots-tag" and ("noai" in val or "noimageai" in val):
-                hit[k] = v
-            elif key == "tdm-reservation" and val.strip() == "1":
-                hit[k] = v
-            elif key == "content-usage" and ("ai=n" in val or "tdm=n" in val):
-                hit[k] = v
-        if hit:
-            out[url] = hit
-    return out
+from permission_policy import header_refusals
 
 
 def name_of(sid: str, entry: dict, registry: dict) -> str:
@@ -122,6 +93,8 @@ def name_of(sid: str, entry: dict, registry: dict) -> str:
 
 def main() -> int:
     ledger = load_ledger()
+    from permission_policy import latest
+    effective = latest(LEDGER)
     registry = load_registry()
 
     by_sid = defaultdict(list)
@@ -132,7 +105,7 @@ def main() -> int:
 
     forbidden, permitted, incomplete, undecided = [], [], [], []
     for sid, caps in by_sid.items():
-        last = caps[-1]
+        last = effective.get(sid, caps[-1])
         # Content-Signal is per purpose, not yes/no. BEOPS reads; it does not
         # train. So ai-input=no or search=no forbids what we actually do, while
         # ai-train=no is a real restriction we honour and record but which does
@@ -143,7 +116,7 @@ def main() -> int:
         signal_note = ", ".join(f"{k}={v}" for k, v in sorted(sigs.items())) if sigs else ""
         if last.get("manual_verdict") == "needs_decision":
             undecided.append((sid, caps))
-        elif (last.get("allowed_for_us") is False) or header_refusals(last) or signal_no:
+        elif last.get("manual_verdict") == "refused" or (last.get("allowed_for_us") is False) or header_refusals(last) or signal_no:
             forbidden.append((sid, caps))
         elif last.get("allowed_for_us") is True and last.get("capture_ok", False):
             permitted.append((sid, caps))
@@ -174,8 +147,8 @@ def main() -> int:
     A("Apply the existing [legal frame](../07-legal/COLLECTION_LEGAL_FRAME.md) and")
     A("[edge cases](EDGE_CASES.md); unknown reuse rights remain unknown.")
     A("")
-    A("The collector identifies itself honestly as")
-    A("`Beops-Research-Capture/1.0`. There is no mode that hides who is asking.")
+    A("Outbound requests use the workspace transport identity. Each capture records")
+    A("the actual request agent and evaluates that agent against the stored robots rules.")
     A("")
 
     if forbidden:
@@ -187,7 +160,7 @@ def main() -> int:
         A("| id | source | what said no | captured |")
         A("|---|---|---|---|")
         for sid, caps in sorted(forbidden):
-            last = caps[-1]
+            last = effective.get(sid, caps[-1])
             why = []
             if last.get("allowed_for_us") is False:
                 why.append("robots.txt disallows our agent")
@@ -212,7 +185,7 @@ def main() -> int:
     A("| id | source | robots.txt | HTTP | Content-Signal | evidence | last checked |")
     A("|---|---|---|---|---|---|---|")
     for sid, caps in sorted(permitted):
-        last = caps[-1]
+        last = effective.get(sid, caps[-1])
         rb = "; ".join(v["regime"] for v in last.get("robots", {}).values()) or "—"
         codes = sorted({str(c) for c in last.get("status_by_url", {}).values()})
         cs = {k: v for sg in (last.get("content_signal") or {}).values() for k, v in sg.items()}
@@ -233,7 +206,7 @@ def main() -> int:
         A("| id | source | why it is open | captured |")
         A("|---|---|---|---|")
         for sid, caps in sorted(undecided):
-            last = caps[-1]
+            last = effective.get(sid, caps[-1])
             A(f"| {sid} | {name_of(sid, last, registry)} | {(last.get('manual_reason') or '')[:150]} | "
               f"[{last['captured_at_utc']}]({rel(last['evidence_dir'])}/) |")
         A("")
@@ -249,7 +222,7 @@ def main() -> int:
         A("| id | source | what failed | captured |")
         A("|---|---|---|---|")
         for sid, caps in sorted(incomplete):
-            last = caps[-1]
+            last = effective.get(sid, caps[-1])
             why = []
             for o in last.get("robots_unreadable_origins") or []:
                 why.append(f"robots.txt unreadable at {o}")

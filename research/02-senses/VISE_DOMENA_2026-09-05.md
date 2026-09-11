@@ -1,10 +1,10 @@
 # Prvi otisak nije samo atmosfera
 
-Novi prioritet korisnika: povezivanje vise oblasti od pocetka; prostorni fokus je opisan u [ZONE_I_POVEZIVANJE.md](../01-programme/ZONE_I_POVEZIVANJE.md). Poslednja odluka: ceo Beograd -> vece celine -> sire zone, bez mikronivoa. Primeri centralnih zona ispod su jedan filter, ne iskljucenje Novog Beograda. Bez nove interne geografske infrastrukture ili UI-ja.
+Novi prioritet korisnika: povezivanje vise oblasti od pocetka; prostorni fokus je opisan u ZONE_I_POVEZIVANJE.md (private working record). Poslednja odluka: ceo Beograd -> vece celine -> sire zone, bez mikronivoa. Primeri centralnih zona ispod su jedan filter, ne iskljucenje Novog Beograda. Bez nove interne geografske infrastrukture ili UI-ja.
 
 ## Nova direktna proba, 05.09.2026 oko 03:23 UTC
 
-[Dokaz](../evidence/multidomain-20260905T032324953657Z.json) sadrzi deset HTTP odgovora i ogranicene ekstrakcije. Deset uspesnih prijema nije deset produkcijskih konektora.
+Dokaz (private working record) sadrzi deset HTTP odgovora i ogranicene ekstrakcije. Deset uspesnih prijema nije deset produkcijskih konektora.
 
 | Oblast | Izmereno/pronadjeno | Sta jos ne znamo |
 |---|---|---|

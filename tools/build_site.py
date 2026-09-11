@@ -133,7 +133,21 @@ def live() -> dict:
 
 TEMPLATE = r"""<!doctype html>
 <html lang="sr">
-<head>
+<head><script>
+window.beopsJSON=(function(){
+  var cache={};
+  return function(name){
+    if(!/^[a-z][a-z0-9-]*\.json$/.test(name)) return Promise.reject(new Error('Invalid data resource'));
+    var entry=cache[name], now=Date.now();
+    if(!entry||now-entry.at>=60000){
+      entry={at:now,promise:fetch(name,{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('Data unavailable');return r.json();})};
+      cache[name]=entry;
+      entry.promise.catch(function(){if(cache[name]===entry)delete cache[name];});
+    }
+    return entry.promise.then(function(data){return structuredClone(data);});
+  };
+})();
+</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BEOPS — Belgrade Evidence Observatory</title>
@@ -401,7 +415,8 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
 <header>
   <div class="wrap hbar">
     <a class="brand" href="#top">BEOPS <span>· Beograd</span></a>
-    <nav>
+    <p style="margin:0;padding:10px 24px;border-bottom:1px solid #ccc"><a href="naslovi.html">Svi sačuvani naslovi · All retained headlines</a></p>
+<nav>
       <a href="#sta"><span class="sr-only i18n">Šta je ovo</span><span class="en-only i18n">What this is</span><span class="zh-only">这是什么</span><span class="de-only">Was das ist</span></a>
       <a href="#zivo"><span class="sr-only i18n">Uživo</span><span class="en-only i18n">Live</span><span class="zh-only">实时</span><span class="de-only">Live</span></a>
       <a href="#podaci"><span class="sr-only i18n">Podaci</span><span class="en-only i18n">Data</span><span class="zh-only">数据</span><span class="de-only">Daten</span></a>
@@ -477,18 +492,18 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
       <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only i18n">Podaci — šta smo izmerili, po stanici i na mapi</span><span class="en-only i18n">Data — what was measured, per station and on the map</span><span class="zh-only">数据——测得了什么，按站点与地图</span><span class="de-only">Daten — was gemessen wurde, je Station und auf der Karte</span></h2>
       
     </div>
-    <div class="datastage"><iframe id="datastage" src="podaci.html?v={stamp}" title="BEOPS · Podaci" loading="lazy"></iframe></div>
+    <div class="datastage"><iframe id="datastage" data-src="podaci.html?v={stamp}" title="BEOPS · Podaci" loading="lazy"></iframe></div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin:28px 0 12px">
       <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only i18n">Traka — vreme kao glavni predmet, jedna traka po čulu</span><span class="en-only i18n">The ribbon — time as the primary object, one lane per sense</span><span class="zh-only">时间带——以时间为主体，每种感官一条轨道</span><span class="de-only">Das Band — die Zeit als eigentlicher Gegenstand, eine Spur je Sinn</span></h2>
       
     </div>
-    <div class="datastage trakastage"><iframe id="trakastage" src="traka.html?v={stamp}" title="BEOPS · Traka" loading="lazy"></iframe></div>
+    <div class="datastage trakastage"><iframe id="trakastage" data-src="traka.html?v={stamp}" title="BEOPS · Traka" loading="lazy"></iframe></div>
     <p class="mono" style="font-size:11.5px;color:var(--ink55);margin:12px 0 0"><span class="sr-only i18n">Oznaka postoji samo tamo gde red postoji; prazno mesto je tišina, ne nula.</span><span class="en-only i18n">A mark exists only where a row exists; an empty place is silence, not a zero.</span><span class="zh-only">只有存在数据行的地方才有标记；空白之处是沉默，不是零。</span><span class="de-only">Eine Markierung gibt es nur dort, wo eine Zeile existiert; eine leere Stelle ist Stille, keine Null.</span></p>
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin:28px 0 12px">
       <h2 style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink55);margin:0;font-weight:600"><span class="sr-only i18n">Svedoci — koliko je vrednost bila stara kad je stigla, i da li se dva izvora slažu</span><span class="en-only i18n">Witnesses — how old a value was when it reached us, and whether two sources agree</span><span class="zh-only">证人——数据抵达我们时有多旧，以及两个来源是否一致</span><span class="de-only">Zeugen — wie alt ein Wert war, als er uns erreichte, und ob zwei Quellen übereinstimmen</span></h2>
       
     </div>
-    <div class="datastage"><iframe id="svedocistage" src="svedoci.html?v={stamp}" title="BEOPS · Svedoci" loading="lazy"></iframe></div>
+    <div class="datastage"><iframe id="svedocistage" data-src="svedoci.html?v={stamp}" title="BEOPS · Svedoci" loading="lazy"></iframe></div>
     <p class="mono" style="font-size:11.5px;color:var(--ink55);margin:12px 0 0"><span class="sr-only i18n">Starost sadrži i zakašnjenje izdavača i do jednog našeg intervala pitanja, i zapis to dvoje ne može da razdvoji; razmak između dva izvora nije mera greške, jer izvori stoje na različitim mestima.</span><span class="en-only i18n">An age contains the publisher's delay and up to one of our own polling intervals, and this record cannot separate the two; a gap between two sources is not an error bar, because the sources stand in different places.</span><span class="zh-only">一个"多旧"里既有发布方的延迟，也有至多一个我们自己的轮询间隔，本记录无法把两者分开；两个来源之间的差距不是误差棒，因为它们所处的位置不同。</span><span class="de-only">Ein Alter enthält die Verzögerung des Herausgebers und bis zu einem unserer eigenen Abfrageintervalle, und dieses Verzeichnis kann beides nicht trennen; ein Abstand zwischen zwei Quellen ist kein Fehlerbalken, denn die Quellen stehen an verschiedenen Orten.</span></p>
   </div>
 </div>
@@ -680,7 +695,7 @@ function stats(){
     s.insertAdjacentHTML('beforeend','<div class="stat'+(o[2]?' warn':'')+'"><div class="n">'+n+'</div><div class="l">'+esc(o[1])+'</div></div>'); });
   var ch=document.getElementById('chips'); ch.innerHTML='';
   Object.keys(D.registry.counts).sort(function(a,b){return D.registry.counts[b]-D.registry.counts[a];}).forEach(function(k){
-    ch.insertAdjacentHTML('beforeend','<span class="chip" role="button" tabindex="0" data-st="'+esc(k)+'" aria-pressed="false">'+esc(k)+' '+D.registry.counts[k]+'</span>');
+    ch.insertAdjacentHTML('beforeend','<span class="chip" role="button" tabindex="0" data-st="'+esc(k)+'" aria-pressed="'+String(k===active)+'">'+esc(k)+' '+D.registry.counts[k]+'</span>');
   });
   Array.prototype.forEach.call(ch.querySelectorAll('.chip'),function(el){
     function go(){ active=(active===el.dataset.st)?null:el.dataset.st;
@@ -737,7 +752,7 @@ function corr(){
   });
 }
 
-function render(){ live(); chips(); stats(); rows(); filter(); prov(); corr();
+function render(){ live(); chips(); stats(); rows(); filter(); prov(); corr(); relatedWork();
   document.getElementById('built').textContent=D.built+' UTC · '+D.registry.rows.length+' '+T('izvora','sources'); }
 // Four buttons, one meaning: which language the page speaks in its own voice. Serbian and English
 // also switch the generated tables, because those exist in two languages. Chinese and German sit on
@@ -827,8 +842,8 @@ addEventListener('message',function(ev){
 
 // Related work: rendered from research/RELATED_WORK.json, so no citation can appear here
 // that is not in the register a reader can clone.
-(function relatedWork(){
-  var box=document.getElementById('related'); if(!box||!D.related) return;
+function relatedWork(){
+  var box=document.getElementById('related'); if(!box||!D.related) return; box.innerHTML='';
   var kindName={project:[ 'Srodni projekat','Related project'],standard:['Standard','Standard'],work:['Rad','Work']};
   (D.related.entries||[]).forEach(function(e){
     var k=kindName[e.kind]||['',''];
@@ -838,7 +853,8 @@ addEventListener('message',function(ev){
       '<p>'+esc(T(e.what_sr,e.what_en))+'</p>'+
       '<p class="takes">'+T('uzima','takes')+': '+esc(T(e.takes_sr,e.takes_en))+'</p></div>');
   });
-})();
+}
+relatedWork();
 
 // Each part can be folded away: its heading gets a button, the rest of the part hides.
 (function fold(){
@@ -866,6 +882,7 @@ addEventListener('message',function(ev){
       if(!folded){
         // A frame inside a display:none section never measured itself; a resize makes it report.
         var fr=sec.querySelectorAll('iframe');
+        for(var j=0;j<fr.length;j++){ if(fr[j].dataset.src&&!fr[j].getAttribute('src')) fr[j].src=fr[j].dataset.src; }
         setTimeout(function(){ for(var i=0;i<fr.length;i++){ try{ fr[i].contentWindow.dispatchEvent(new Event('resize')); }catch(e){} } },60);
       }
     }
@@ -911,6 +928,8 @@ def main() -> int:
         "related": related(),
     }
     DOCS.mkdir(parents=True, exist_ok=True)
+    from build_headlines import build as build_headlines
+    build_headlines(ROOT)
     html = TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False).replace("</script>", "<\\/script>"))
     try:
         sys.path.insert(0, str(ROOT / "tools"))
@@ -939,6 +958,8 @@ def main() -> int:
                      ("data/live/derived/agreement/SUMMARY.json", "agreement.json"),
                      ("public/live-snapshot.json", "live-snapshot.json"),
                      ("public/history.json", "history.json"),
+                     ("public/headlines.json", "headlines.json"),
+                     ("research/05-design/studies/naslovi.html", "naslovi.html"),
                      ("public/basemap-belgrade.json", "basemap-belgrade.json"),
                      ("public/context-population.json", "context-population.json"),
                      ("public/watch.json", "watch.json")]:

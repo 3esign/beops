@@ -27,8 +27,10 @@ The output is small by construction (buckets, not rows), so it can grow to month
 site growing with it.
 """
 from __future__ import annotations
+from contracts import observation_rows
 
 import json
+from contracts import row_clock, finite
 import pathlib
 import sys
 from datetime import datetime, timedelta, timezone
@@ -39,7 +41,7 @@ OUT = ROOT / "public" / "history.json"
 CONFIG = ROOT / "research" / "COLLECTORS.json"
 
 MAX_DAYS = 92            # a quarter of hourly buckets is plenty for a page; older rows stay on disk
-SCHEMA = "beops-history/v1"
+SCHEMA = "beops-history/v2"
 
 
 def iso(dt: datetime) -> str:
@@ -49,14 +51,14 @@ def iso(dt: datetime) -> str:
 def parse_time(s):
     """An hourly mean's phenomenonTime is legitimately an INTERVAL, and this project stores it as
     one - either the object {"start": ..., "end": ...} that SEPA's hourly means carry, or the ISO
-    "start/end" form. The bucket is the START, which is the hour the source itself labels the value
-    with; taking the end would move every hourly mean one hour into the future."""
+    "start/end" form. The bucket is the END, matching snapshots, baseline, latency and scoring.
+    The original interval remains in the source row."""
     if isinstance(s, dict):
-        s = s.get("start") or s.get("begin") or s.get("from")
+        s = s.get("end")
     if not s or not isinstance(s, str):
         return None
     if "/" in s:
-        s = s.split("/", 1)[0]
+        s = s.split("/", 1)[1]
     try:
         return datetime.fromisoformat(s.replace("Z", "+00:00")).astimezone(timezone.utc)
     except ValueError:
@@ -86,15 +88,7 @@ def fold(now: datetime | None = None) -> dict:
     for sid_dir in sorted(p for p in ROWS.iterdir() if p.is_dir()) if ROWS.exists() else []:
         sid = sid_dir.name
         for f in sorted(sid_dir.glob("*.jsonl")):
-          with f.open(encoding="utf-8") as fh:
-            for line in fh:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    r = json.loads(line)
-                except ValueError:
-                    continue                      # a truncated line is skipped, never guessed at
+          for r in observation_rows(f):
                 ds = r.get("datastream")
                 if not ds:
                     continue
@@ -103,7 +97,7 @@ def fold(now: datetime | None = None) -> dict:
                 if untimed:
                     t, basis = parse_time(r.get("receivedTime")), "received"
                 else:
-                    t, basis = parse_time(r.get("phenomenonTime")), "measured"
+                    t, basis = row_clock(r)
                     if t is None:
                         # The row claims a measurement time this program cannot read. Falling back to
                         # the reception clock here would quietly relabel a measurement as a reception,
@@ -114,6 +108,8 @@ def fold(now: datetime | None = None) -> dict:
                     continue
 
                 key = f"{sid}|{ds}|{basis}"
+                if key in series and series[key].get("unit") != r.get("unit"):
+                    key += "|unit=" + str(r.get("unit"))
                 s = series.get(key)
                 if s is None:
                     s = series[key] = {
@@ -127,7 +123,7 @@ def fold(now: datetime | None = None) -> dict:
                 b = s["buckets"].setdefault(hour_key(t), {"n": 0, "missing": 0, "vals": []})
                 b["n"] += 1
                 v = r.get("result")
-                if isinstance(v, (int, float)) and not isinstance(v, bool):
+                if finite(v):
                     b["vals"].append(float(v))
                 else:
                     b["missing"] += 1             # answered, nothing to say - a fact, not a zero

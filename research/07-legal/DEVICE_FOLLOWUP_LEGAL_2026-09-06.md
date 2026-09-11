@@ -22,11 +22,11 @@ Primary policy references: [ACTRIS policy](https://data.actris.eu/data-policy), 
 
 ## Evidence and the access-check correction
 
-- [S158 exact-page capture](../evidence/legal/S158/20260906T112604Z/MANIFEST.json) precedes its bounded HTML receipt; original archive licence evidence is unchanged.
-- [S186 documented metadata-route capture](../evidence/legal/S186/20260906T112601Z/MANIFEST.json) retains the policy and exact URLs. One oversized metadata response was refused by the data byte cap.
-- [S187 terms capture and hold](../evidence/legal/S187/20260906T112601Z/MANIFEST.json) records the new explicit reservation.
-- [S190 direct 403 capture](../evidence/legal/S190/20260906T113103Z/MANIFEST.json) is preserved. [An offline supplemental decision](../evidence/legal/S190/20260906T113853Z/DECISION.json) holds collection without refetching or changing the original evidence.
-- [S191 catalogue access](../evidence/legal/S191/20260906T113410Z/MANIFEST.json) and [DTT record/licence capture](../evidence/legal/S191/20260906T114007Z/MANIFEST.json) concern different scopes. The latter's initial hold remains effective for raw restricted files even though subsequent reading resolved the licence declaration.
+- S158 exact-page capture (private working record) precedes its bounded HTML receipt; original archive licence evidence is unchanged.
+- S186 documented metadata-route capture (private working record) retains the policy and exact URLs. One oversized metadata response was refused by the data byte cap.
+- S187 terms capture and hold (private working record) records the new explicit reservation.
+- S190 direct 403 capture (private working record) is preserved. An offline supplemental decision (private working record) holds collection without refetching or changing the original evidence.
+- S191 catalogue access (private working record) and DTT record/licence capture (private working record) concern different scopes. The latter's initial hold remains effective for raw restricted files even though subsequent reading resolved the licence declaration.
 
 The existing capture code treated an HTTP 403 robots response as a robots 4xx with no stated restrictions and returned `allowed_for_us=true` despite a 403 article response. That is not proof of successful access or a stored licence. The offline S190 review places the source on hold using the existing manual-verdict mechanism; [C-009](../08-provenance/CORRECTIONS.md) records the limitation. Historical evidence and the collector's global behavior were not rewritten in this research wave.
 

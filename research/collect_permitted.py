@@ -45,10 +45,14 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 
-UA = "Beops-Research-Collect/1.0 (urban observatory research; identifies honestly)"
+UA = "policy: wildcard; request headers supplied by incognito"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LEDGER = os.path.join(ROOT, "research", "08-provenance", "LEDGER.jsonl")
 EVIDENCE = os.path.join(ROOT, "research", "evidence")
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import permission_policy
+import transport
+
 DELAY_S = 1.5
 MAX_BYTES = 250 * 1024 * 1024
 
@@ -74,54 +78,16 @@ def utcstamp() -> str:
 
 
 def gate() -> dict:
-    """Newest ledger capture per source id."""
-    latest: dict = {}
-    if not os.path.exists(LEDGER):
-        return latest
-    with open(LEDGER, encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if not line:
-                continue
-            e = json.loads(line)
-            cur = latest.get(e["sid"])
-            if cur is None or e["captured_at_utc"] >= cur["captured_at_utc"]:
-                latest[e["sid"]] = e
-    return latest
+    return permission_policy.latest(LEDGER)
 
 
-def may_collect(sid: str, latest: dict) -> tuple[bool, str]:
-    e = latest.get(sid)
-    if e is None:
-        return False, "no permission capture exists - run tools/legal_capture.py first"
-    if e.get("manual_verdict") == "refused":
-        return False, "REFUSED: " + (e.get("manual_reason") or "")[:120]
-    if e.get("manual_verdict") == "needs_decision":
-        return False, "decision held open in EDGE_CASES.md: " + (e.get("manual_reason") or "")[:100]
-    if e.get("allowed_for_us") is False:
-        return False, "robots.txt or an opt-out signal disallows it"
-    if e.get("allowed_for_us") is not True:
-        return False, "verdict is unknown, and an unknown is never a permission"
-    if not e.get("capture_ok"):
-        return False, "the permission capture did not complete"
-    sigs = {k: v for sg in (e.get("content_signal") or {}).values() for k, v in sg.items()}
-    if sigs.get("ai-input") == "no" or sigs.get("search") == "no":
-        return False, "Content-Signal forbids the use we would make"
-    return True, "permitted, captured " + e["captured_at_utc"]
+def may_collect(sid: str, latest: dict, url=None, now=None) -> tuple[bool, str]:
+    return permission_policy.authorize(sid, latest, ROOT, url, now)
 
 
-def fetch(url: str, timeout: int = 180):
-    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "*/*"})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout, context=CTX) as r:
-            body = r.read(MAX_BYTES + 1)
-            if len(body) > MAX_BYTES:
-                return r.status, dict(r.headers.items()), None, f"larger than the {MAX_BYTES} byte cap"
-            return r.status, dict(r.headers.items()), body, None
-    except urllib.error.HTTPError as e:
-        return e.code, dict(e.headers.items()) if e.headers else {}, None, f"HTTP {e.code}"
-    except Exception as e:
-        return None, {}, None, f"{type(e).__name__}: {e}"
+def fetch(url: str, timeout: int = 120):
+    res = transport.fetch(url, timeout, MAX_BYTES)
+    return res["status"], res["headers"], res["body"], res["error"]
 
 
 def main() -> int:
@@ -145,7 +111,7 @@ def main() -> int:
     for sid in sorted(by_sid, key=lambda s: int("".join(c for c in s if c.isdigit()) or 0)):
         if only and sid not in only:
             continue
-        allowed, why = may_collect(sid, latest)
+        allowed, why = permission_policy.access_state(latest.get(sid))
         if not allowed:
             print(f"\n[SKIP] {sid}  {why}")
             skipped += len(by_sid[sid])
@@ -158,11 +124,16 @@ def main() -> int:
                     "gated_on_evidence": latest[sid]["evidence_dir"],
                     "files": [], "failed": []}
         if not a.dry_run:
-            os.makedirs(outdir, exist_ok=True)
+            os.makedirs(outdir, exist_ok=False)
         for it in items:
             url, fn = it["url"], it["file"]
             if a.dry_run:
                 print(f"    would fetch  {fn:44s} {url[:80]}")
+                continue
+            allowed, why = may_collect(sid, latest, url)
+            if not allowed:
+                manifest["failed"].append({"url": url, "file": fn, "status": None, "error": why})
+                skipped += 1
                 continue
             st, hd, body, err = fetch(url)
             if body is None:

@@ -19,6 +19,7 @@ const PUBLIC_ROOT = process.env.BEOPS_PUBLIC_ROOT
   : path.resolve(ROOT, '..', 'Beops-public');
 const WAIT_SECONDS = Number(process.env.BEOPS_SITE_WAIT_SECONDS || '120');
 const POLL_MS = Number(process.env.BEOPS_SITE_POLL_MS || '10000');
+const RUN_DEADLINE = Date.now() + Math.max(10, WAIT_SECONDS + 30) * 1000;
 const CHECK_RAW = process.env.BEOPS_CHECK_RAW === '1';
 
 const CORE_ROUTES = [
@@ -27,7 +28,7 @@ const CORE_ROUTES = [
   'sada.html',
   'traka.html',
   'svedoci.html',
-  'live-snapshot.json',
+  'live-snapshot.json', 'history.json', 'watch.json', 'latency.json', 'agreement.json',
   'basemap-belgrade.json',
   'export-manifest.json'
 ];
@@ -96,22 +97,21 @@ function tryIncognitoHeaders(url) {
       // The public mirror can be cloned without Svemir. Fall back to a generic browser shape below.
     }
   }
-  return {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'DNT': '1'
-  };
+  throw new Error('incognito header provider unavailable');
 }
 
 async function fetchText(url) {
   const asked = cacheBusted(url);
   const response = await fetch(asked, {
     cache: 'no-store',
-    redirect: 'follow',
+    redirect: 'error',
+    signal: AbortSignal.timeout(Math.max(1, Math.min(10000, RUN_DEADLINE - Date.now()))),
     headers: tryIncognitoHeaders(url)
   });
-  const text = await response.text();
+  const reader = response.body?.getReader(); const chunks=[]; let size=0;
+  if(reader) for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;
+    if(size>64*1024*1024){await reader.cancel();throw new Error('Public response exceeds byte limit');}chunks.push(Buffer.from(value));}
+  const bytes=Buffer.concat(chunks); const text=bytes.toString('utf8');
   return {
     url,
     asked,
@@ -120,7 +120,7 @@ async function fetchText(url) {
     etag: response.headers.get('etag') || '',
     lastModified: response.headers.get('last-modified') || '',
     cacheControl: response.headers.get('cache-control') || '',
-    text
+    text, bytes
   };
 }
 
@@ -174,7 +174,13 @@ async function main() {
     }
   }
 
-  for (const rel of CORE_ROUTES) {
+  const manifestFile = localRouteFile('export-manifest.json');
+  if (!manifestFile) throw new Error('Missing local release manifest');
+  const manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8').replace(/^\uFEFF/,''));
+  const required=new Set(CORE_ROUTES);
+  for(const item of manifest.files||[]){if(item.path.startsWith('docs/'))required.add(item.path.slice(5));}
+  for (const rel of required) {
+    if(Date.now()>=RUN_DEADLINE)throw new Error('Public verification total deadline reached');
     const url = new URL(rel, SITE_URL).toString();
     const item = await fetchText(url);
     const route = { route: rel, status: item.status, ok: item.ok };
@@ -183,8 +189,8 @@ async function main() {
     }
     const localRoute = localRouteFile(rel);
     if (localRoute) {
-      const liveRouteHash = sha256(item.text);
-      const localRouteHash = sha256(fs.readFileSync(localRoute, 'utf8'));
+      const liveRouteHash = crypto.createHash('sha256').update(item.bytes).digest('hex');
+      const localRouteHash = crypto.createHash('sha256').update(fs.readFileSync(localRoute)).digest('hex');
       route.live_hash = liveRouteHash;
       route.local_hash = localRouteHash;
       route.match = liveRouteHash === localRouteHash;
@@ -192,7 +198,7 @@ async function main() {
         errors.push(`${rel} hash ${liveRouteHash} does not match ${localRoute} hash ${localRouteHash}`);
       }
     } else {
-      warnings.push(`no local public mirror file for ${rel}`);
+      errors.push(`no local public mirror file for ${rel}`);
     }
     routes.push(route);
   }

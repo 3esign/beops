@@ -4,8 +4,8 @@
 
 ## 1. Sta je stvarno provereno i skinuto
 
-- Prvi [audit](../evidence/model-audit-20260905T035841827817Z/REPORT.json): 24 trazena repozitorijuma, 22 potvrđena identiteta/revizije i 22 lokalno sacuvane kartice. Dve greske su sacuvane, nisu izbrisane.
-- Drugi [ciljani audit](../evidence/model-audit-20260905T040035741530Z/REPORT.json): E5 identitet/provider metadata i kanonski Moonshine identitet potvrđeni; sacuvana jos jedna kartica.
+- Prvi audit (private working record): 24 trazena repozitorijuma, 22 potvrđena identiteta/revizije i 22 lokalno sacuvane kartice. Dve greske su sacuvane, nisu izbrisane.
+- Drugi ciljani audit (private working record): E5 identitet/provider metadata i kanonski Moonshine identitet potvrđeni; sacuvana jos jedna kartica.
 - Ukupno 24 kanonska HF identiteta/revizije, provider metapodaci za svih 24 i 23 kartice. Nisu skinute tezine, nisu instalirani runtimes i nije izvrsen inference.
 - Prvi prolaz: 68 pokusaja HTTP zahteva. Brojac bajtova u izvestaju obuhvata samo uspesne odgovore; ne obuhvata prekoračeni odgovor, HTTP/TLS overhead ili ostalo istrazivanje. Ne koristiti ga kao merenje ukupnog mrežnog saobracaja.
 - E5 potpuni metadata odgovor presao je pocetnu granicu 1 MB. Selektivna polja su uspela; README i dalje prelazi granicu 200 kB i nije lokalno skinut. Nema razloga da zbog jednog velikog README-a uklonimo granice svih fetch poziva.
@@ -103,4 +103,4 @@ U sacuvanim HF API odgovorima `hf-inference` ima `status=live` za **E5-small**, 
 
 ## Honest verdict
 
-Potvrđeni su identiteti, revizije i prijavljeni metapodaci, ne kvalitet inferencije, potpuna bezbednost ili prava celog javnog proizvoda. Preuzete kartice nisu u celini strucno auditovane; odabrane primarne strane i apstrakti jesu procitani. Nije izvrseno sistematsko automatsko keyword izdvajanje ni kompletna pretraga drugih provajdera. Sledeci rad je opisan u [glavnom planu](../01-programme/PLAN_CULA_MODELI_2026-09-05.md).
+Potvrđeni su identiteti, revizije i prijavljeni metapodaci, ne kvalitet inferencije, potpuna bezbednost ili prava celog javnog proizvoda. Preuzete kartice nisu u celini strucno auditovane; odabrane primarne strane i apstrakti jesu procitani. Nije izvrseno sistematsko automatsko keyword izdvajanje ni kompletna pretraga drugih provajdera. Sledeci rad je opisan u glavnom planu (private working record).

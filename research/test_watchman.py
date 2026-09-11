@@ -41,7 +41,7 @@ class Tree:
         d = self.dir / "data" / "live" / "receipts" / sid
         d.mkdir(parents=True, exist_ok=True)
         (d / (iso(when).replace(":", "") + ".json")).write_text(
-            json.dumps({"receivedTime": iso(when), "state": "ok", "rows": 3}), encoding="utf-8")
+            json.dumps({"receivedTime": iso(when), "state": "captured", "http_status": 200, "rows": 3}), encoding="utf-8")
 
     def row(self, sid, when, n=1):
         d = self.dir / "data" / "live" / "rows" / sid

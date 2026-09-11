@@ -159,13 +159,14 @@ class Gate(unittest.TestCase):
         ):
             self.assertIn(path, self.s, f"{path} is not explicitly copied and force-added to the export")
 
-    def test_scheduler_stops_after_failed_pre_publish_steps(self):
+    def test_scheduler_delegates_generation_to_the_isolated_publisher(self):
         tick = TICK.read_text(encoding="utf-8")
-        for step in ("collect_daemon.py export", "collect_daemon.py report", "build_history.py"):
-            pos = tick.find(step)
-            self.assertGreater(pos, -1)
-            guard = tick.find("if errorlevel 1 exit /b %ERRORLEVEL%", pos)
-            self.assertGreater(guard, pos, f"publish_tick.bat continues after {step} fails")
+        self.assertNotIn("collect_daemon.py export", tick)
+        self.assertNotIn("build_history.py", tick)
+        self.assertIn("publish_github.ps1", tick)
+        self.assertIn("prepare_release.py", self.s)
+        for label in ("export frozen rows", "report frozen rows", "build frozen history"):
+            self.assertIn("Invoke-BeopsNative '" + label + "'", self.s)
 
 
 class Receipt(unittest.TestCase):

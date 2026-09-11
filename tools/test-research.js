@@ -10,15 +10,15 @@ const candidates = process.env.BEOPS_PYTHON
   : [...(fs.existsSync(bundled) ? [[bundled, []]] : []), ['python', []], ['python3', []]];
 let selected;
 for (const [exe, prefix] of candidates) {
-  const check = spawnSync(exe, [...prefix, '-c', 'import sys; assert sys.version_info >= (3, 9)'],
+  const check = spawnSync(exe, [...prefix, '-c', 'import sys; assert sys.version_info >= (3, 12)'],
     { windowsHide: true, timeout: 5000, stdio: 'ignore' });
   if (check.status === 0) { selected = [exe, prefix]; break; }
 }
 if (!selected) {
-  console.error('Python 3.9+ required for stdlib research tests; set BEOPS_PYTHON. No install attempted.');
+  console.error('Python 3.12+ required for stdlib research tests; set BEOPS_PYTHON. No install attempted.');
   process.exit(1);
 }
-const result = spawnSync(selected[0], [...selected[1], '-B', '-m', 'unittest', 'discover',
+const result = spawnSync(selected[0], [...selected[1], '-X', 'utf8', '-B', '-m', 'unittest', 'discover',
   '-s', 'research', '-p', 'test_*.py', '-v'], {
   cwd: path.resolve(__dirname, '..'), stdio: 'inherit', windowsHide: true, timeout: 60000,
 });

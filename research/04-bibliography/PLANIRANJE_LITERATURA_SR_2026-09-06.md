@@ -107,6 +107,6 @@ Ovo su urednički i istraživački predlozi za razgovor; nisu novi izvršeni eks
 
 ## Trag pretrage i granice
 
-[zajednički dnevnik — planiranje](../_trail/PRED_RAD_SR_WAVE7_SEARCH.json) čuva stvarno izvršene upite i primarne putanje. Nisu pretražene pretplatničke baze direktno; korišćena je mrežna pretraga i ciljano praćenje javnih veza. Nismo sačuvali kompletne liste i rangove svih rezultata, pa se ne prikazuje PRISMA tok niti izmišljen zbir pregledanih pogodaka. Petnaest upita ne znači petnaest nezavisnih baza.
+zajednički dnevnik — planiranje (private working record) čuva stvarno izvršene upite i primarne putanje. Nisu pretražene pretplatničke baze direktno; korišćena je mrežna pretraga i ciljano praćenje javnih veza. Nismo sačuvali kompletne liste i rangove svih rezultata, pa se ne prikazuje PRISMA tok niti izmišljen zbir pregledanih pogodaka. Petnaest upita ne znači petnaest nezavisnih baza.
 
 Sedam unosa služi proveri praznina u strukturi. Njihov izbor favorizuje dostupne engleske izvore i ciljane teme; ne predstavlja ukupnu teoriju planiranja. DOI/ISBN i autori provereni su na primarnim ili institucionalnim putanjama, sa jasno izdvojenim ograničenim čitanjem. Nema novih podataka o stanovnicima, intervjua, kontakata, preuzimanja sirovih skupova, izmena na D: disku ni rukopisa. Nijedan od ovih radova ne potvrđuje da je BEOPS već poboljšao planersku odluku.

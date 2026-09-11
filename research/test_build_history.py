@@ -9,6 +9,7 @@ import json
 import pathlib
 import tempfile
 import unittest
+from unittest.mock import patch
 from datetime import datetime, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -88,37 +89,29 @@ class HistoryCase(unittest.TestCase):
         self.assertNotIn("mean", s["buckets"]["2026-09-09T10"])
         self.assertEqual(s["buckets"]["2026-09-09T10"]["n"], 1)
 
-    def test_a_truncated_line_is_skipped_and_the_rest_still_folds(self):
-        tmp = tempfile.TemporaryDirectory()
-        root = pathlib.Path(tmp.name)
-        d = root / "data" / "live" / "rows" / "S01"
-        d.mkdir(parents=True, exist_ok=True)
-        (d / "2026-09.jsonl").write_text(json.dumps(row()) + '\n{"sid": "S01", "datast\n',
-                                         encoding="utf-8")
-        old_rows, old_cfg = bh.ROWS, bh.CONFIG
-        bh.ROWS, bh.CONFIG = root / "data" / "live" / "rows", root / "nope.json"
-        try:
-            out = bh.fold(now=NOW)
-        finally:
-            bh.ROWS, bh.CONFIG = old_rows, old_cfg
-            tmp.cleanup()
-        self.assertEqual(len(out["series"]), 1)
-        self.assertEqual(out["series"][0]["buckets"]["2026-09-09T10"]["n"], 1)
+    def test_a_truncated_line_fails_visibly_and_does_not_publish_a_partial_history(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rows = pathlib.Path(tmp) / 'rows'
+            d = rows / 'S01'
+            d.mkdir(parents=True)
+            (d / '2026-09.jsonl').write_text('{"broken":', encoding='utf-8')
+            with patch.object(bh, 'ROWS', rows), self.assertRaisesRegex(ValueError, 'invalid JSONL'):
+                bh.fold(now=NOW)
 
-    def test_an_interval_is_bucketed_by_its_start_hour(self):
+    def test_an_interval_is_bucketed_by_its_end_hour(self):
         d = self.fold({"S01": [row(phenomenonTime="2026-09-09T10:00:00Z/2026-09-09T11:00:00Z", result=7.0)]})
         s = d["series"][0]
         self.assertEqual(s["time_basis"], "measured")
-        self.assertEqual(sorted(s["buckets"]), ["2026-09-09T10"])   # the hour the source labels it with
+        self.assertEqual(sorted(s["buckets"]), ["2026-09-09T11"])   # canonical interval-end hour
 
-    def test_an_interval_object_is_bucketed_by_its_start(self):
+    def test_an_interval_object_is_bucketed_by_its_end(self):
         # SEPA's hourly means arrive as {"start": ..., "end": ...}; the value belongs to the hour the
         # source labels it with, which is the start.
         d = self.fold({"S01": [row(phenomenonTime={"start": "2026-09-09T10:00:00Z",
                                                    "end": "2026-09-09T11:00:00Z"}, result=41.0)]})
         s = d["series"][0]
         self.assertEqual(s["time_basis"], "measured")
-        self.assertEqual(sorted(s["buckets"]), ["2026-09-09T10"])
+        self.assertEqual(sorted(s["buckets"]), ["2026-09-09T11"])
         self.assertEqual(d["unreadable_measurement_times"], {})
 
     def test_an_unreadable_measurement_time_is_dropped_not_moved_to_the_other_clock(self):

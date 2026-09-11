@@ -25,13 +25,13 @@ The new [phenology review](../04-bibliography/SENSORY_ECOLOGY_LITERATURE_2026-09
 
 ## Stored proof and collection limits
 
-- [S192 legal manifest](../evidence/legal/S192/20260906T123023Z/MANIFEST.json): exact reporting route, operator law PDF, verified TLS and hashes.
-- [S192 page receipt](../evidence/S192/20260906T123811Z/MANIFEST.json): one 20,459-byte HTML response; no executable script evaluation or follow-up asset requests.
-- [S191 legal manifest](../evidence/legal/S191/20260906T123714Z/MANIFEST.json): eight exact API routes, DataCite CC0 statement and AA access evidence.
-- [S191 metadata receipts](../evidence/S191/20260906T123813Z/MANIFEST.json): eight singleton bodies capped at 128 KiB each; no dataset files.
-- [S102 coverage evidence](../evidence/legal/S102/20260906T123712Z/MANIFEST.json): original operator coverage page stored as terms evidence; no data tile requested.
+- S192 legal manifest (private working record): exact reporting route, operator law PDF, verified TLS and hashes.
+- S192 page receipt (private working record): one 20,459-byte HTML response; no executable script evaluation or follow-up asset requests.
+- S191 legal manifest (private working record): eight exact API routes, DataCite CC0 statement and AA access evidence.
+- S191 metadata receipts (private working record): eight singleton bodies capped at 128 KiB each; no dataset files.
+- S102 coverage evidence (private working record): original operator coverage page stored as terms evidence; no data tile requested.
 - [DataCite harvesting policy](https://support.datacite.org/docs/harvesting-datacite-doi-metadata) and [documented singleton route](https://support.datacite.org/docs/api-get-doi) explain the metadata access contract.
 
-The request budget was extended in the [bounded board](../_trail/CURRENT_PRODUCTS_BOARD_2026-09-06.md) before the eight metadata requests. Stored bodies passed 200/status, JSON and byte-cap checks. A preliminary S102 identity collision was resolved with the tool's shared-host flag because distinct Copernicus products use the same host; that initial attempt stopped before network access. No access refusal was bypassed. Existing S190403 and S175 opt-out holds remain unchanged.
+The request budget was extended in the bounded board (private working record) before the eight metadata requests. Stored bodies passed 200/status, JSON and byte-cap checks. A preliminary S102 identity collision was resolved with the tool's shared-host flag because distinct Copernicus products use the same host; that initial attempt stopped before network access. No access refusal was bypassed. Existing S190403 and S175 opt-out holds remain unchanged.
 
 Attribution for local facts: Republic Hydrometeorological Service of Serbia, named station/product, exact URL, observation date where explicit, receipt time and transformation description. Dataset reuse additionally requires the creators, DOI, actual version and its resource licence. Machine access flags never override an explicit restriction.

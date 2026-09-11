@@ -10,11 +10,5 @@ cd /d "%BEOPS_ROOT%" || exit /b 9
 if not exist runtime mkdir runtime
 for /f "usebackq tokens=*" %%i in (`powershell -NoProfile -Command "(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')"`) do set NOWUTC=%%i
 echo ---- %NOWUTC% >> runtime\publish-tick.log
-call "%BEOPS_PYTHON%" -X utf8 -B tools\collect_daemon.py export >> runtime\publish-tick.log 2>&1
-if errorlevel 1 exit /b %ERRORLEVEL%
-call "%BEOPS_PYTHON%" -X utf8 -B tools\collect_daemon.py report >> runtime\publish-tick.log 2>&1
-if errorlevel 1 exit /b %ERRORLEVEL%
-call "%BEOPS_PYTHON%" -X utf8 -B tools\build_history.py >> runtime\publish-tick.log 2>&1
-if errorlevel 1 exit /b %ERRORLEVEL%
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish_github.ps1 >> runtime\publish-tick.log 2>&1
 exit /b %ERRORLEVEL%

@@ -271,10 +271,14 @@ class MindTree(unittest.TestCase):
                 self.assertIsNone(r.get("settled_at"),
                                   "a claim has a settling time and no outcome")
             else:
-                self.assertIn(r["outcome"], ("true", "false", "unverifiable"),
+                self.assertIn(r["outcome"], ("true", "false", "unverifiable", "retracted"),
                               f"a claim carries the outcome {r['outcome']!r}, which is not one of "
                               "true / false / unverifiable")
                 self.assertTrue(r.get("settled_at"), "a scored claim does not say when it was scored")
+                if r['outcome'] == 'retracted':
+                    self.assertTrue(any(e.get('claim_id') == r.get('claim_id') and e.get('reason')
+                                        for e in record.objects(self.mind/'claim-events.jsonl')),
+                                    'a retracted claim must have an append-only correction event')
 
     def test_a_forgotten_prediction_is_the_guard_s_business_and_not_the_suite_s(self):
         """The strongest thing this register can be asked - a claim past its due time that never got

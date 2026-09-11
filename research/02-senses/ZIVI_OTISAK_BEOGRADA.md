@@ -13,14 +13,14 @@ Glavna istrazivacka tvrdnja koju TEK proveravamo: kombinacija vise heterogenih, 
 
 ## Mapa dosijea
 
-Najnoviji smer korisnika: [vise domena od pocetka](VISE_DOMENA_2026-09-05.md), [priblizne centralne zone i spoljno povezivanje](../01-programme/ZONE_I_POVEZIVANJE.md), bez internog geokodera. Atmosferski pilot ispod ostaje jedna grana istrazivanja, ne jedini prvi proizvod. [OBS-001 trka 10K](../observations/10k-2026-09-05/PROTOKOL.md) je odvojena observacija.
+Najnoviji smer korisnika: [vise domena od pocetka](VISE_DOMENA_2026-09-05.md), priblizne centralne zone i spoljno povezivanje (private working record), bez internog geokodera. Atmosferski pilot ispod ostaje jedna grana istrazivanja, ne jedini prvi proizvod. [OBS-001 trka 10K](../observations/10k-2026-09-05/PROTOKOL.md) je odvojena observacija.
 
 - [Registar 33 izvora i pristupnih puteva](../SOURCE_REGISTRY.json): teme, linkovi, status, ritam, pristup i sledeca konkretna provera.
 - [Modeli i literatura](../03-models/MODELI_I_LITERATURA.md): provereni identiteti modela, zadaci, ogranicenja i naucni izvori sa dubinom citanja.
-- [65 zadataka po prioritetima](../01-programme/RADNI_PROGRAM.md): zavisnosti i dokaz zavrsetka; bez automatskog pokretanja drugih agenata.
+- 65 zadataka po prioritetima (private working record): zavisnosti i dokaz zavrsetka; bez automatskog pokretanja drugih agenata.
 - [Drugi gradovi, cula, organi i organizam](DRUGI_GRADOVI_CULA_I_ORGANI.md): uporedni projekti, 12 dodatnih cula, precizan recnik i kontrolisano poredjenje O0/O1/O2.
-- [Sta preuzeti iz Pazarca](../_trail/PAZARAC_TRANSFER_AUDIT.md): konkretne lekcije iz koda, bez prenosa lokalnih pretpostavki ili menjanja tog projekta.
-- [Protokol kontrolisanih eksperimenata](../01-programme/PULSE_RESEARCH_PROTOCOL.md): osnovna evaluacija, dopunjena zivim otiskom u ovom dokumentu.
+- Sta preuzeti iz Pazarca (private working record): konkretne lekcije iz koda, bez prenosa lokalnih pretpostavki ili menjanja tog projekta.
+- Protokol kontrolisanih eksperimenata (private working record): osnovna evaluacija, dopunjena zivim otiskom u ovom dokumentu.
 - [Direktne probe](../evidence/): odgovori i metapodaci, vreme preuzimanja, SHA-256, obim i ogranicenja. Nisu produkcijski kolektori.
 
 ## 1. Sta je vec stvarno pronadjeno

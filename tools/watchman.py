@@ -83,6 +83,9 @@ def newest_receipt(sid: str):
     # rest are fallbacks for older receipt shapes.
     t = parse(r.get("attempted_at") or r.get("completed_at") or r.get("receivedTime")
               or r.get("claimed_at") or r.get("at"))
+        # Keep attempt and outcome separate: a fresh HTTP failure is not a healthy source.
+    if t and r.get("state") not in ("captured", "empty", "unchanged"):
+        return t, f"{r.get('state', 'unknown')} (HTTP {r.get('http_status')}); {str(r.get('error') or '')[:100]}"
     return (t, None) if t else (None, "receipt carries no time")
 
 
@@ -132,6 +135,8 @@ def sources(now: datetime) -> list[dict]:
             state, said = STALLED, f"we stopped asking {asked:.0f} min ago (cadence {cad} min) - this is ours, not the publisher's"
         elif asked > 2 * cad:
             state, said = LATE, f"last asked {asked:.0f} min ago, over two cadences of {cad} min"
+        elif rerr:
+            state, said = LATE, f"attempted {asked:.0f} min ago; last attempt {rerr}"
         elif heard is None:
             state, said = OK, f"asked {asked:.0f} min ago; nothing has ever arrived ({rowerr})"
         elif heard > 6 * cad:
@@ -313,17 +318,19 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry", action="store_true", help="read and print, write nothing")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--export", action="store_true", help="write a view of frozen inputs without appending a monitoring run")
     a = ap.parse_args()
     r = run()
     print(json.dumps(r, ensure_ascii=False, indent=1) if a.json else report(r))
     if not a.dry:
         LEDGER.parent.mkdir(parents=True, exist_ok=True)
-        with open(LEDGER, "a", encoding="utf-8") as f:
-            f.write(json.dumps({k: r[k] for k in ("schema", "at", "verdict", "counts", "figures", "not_current")},
-                               ensure_ascii=False) + "\n")
+        if not a.export:
+            with open(LEDGER, "a", encoding="utf-8") as f:
+                f.write(json.dumps({k: r[k] for k in ("schema", "at", "verdict", "counts", "figures", "not_current")},
+                                   ensure_ascii=False) + "\n")
         PUBLIC.parent.mkdir(parents=True, exist_ok=True)
         PUBLIC.write_text(json.dumps(r, ensure_ascii=False, indent=1), encoding="utf-8")
-    return {OK: 0, LATE: 1, UNKNOWN: 1, STALLED: 2}[r["verdict"]]
+    return 0 if a.export else {OK: 0, LATE: 1, UNKNOWN: 1, STALLED: 2}[r["verdict"]]
 
 
 if __name__ == "__main__":

@@ -35,6 +35,8 @@ Several of the refusals are entirely routine terms-of-use statements.
 from __future__ import annotations
 
 import csv
+import shutil
+from contracts import json_rows
 import hashlib
 import json
 import pathlib
@@ -46,7 +48,7 @@ OUT = ROOT / "public" / "dataset" / "permission-landscape"
 REG = ROOT / "research" / "SOURCE_REGISTRY.json"
 COLLECTORS = ROOT / "research" / "COLLECTORS.json"
 LEDGER = ROOT / "research" / "08-provenance" / "LEDGER.jsonl"
-VERSION = "1.1"
+VERSION = "1.2"
 
 # The sentence the dataset turns on. It is written once and quoted into both the dictionary and the
 # README, because when it lived in two places the two copies had already drifted: the README said
@@ -64,6 +66,7 @@ PUBLISHED = ("sources.csv", "refusals.csv", "captures.csv", "data_dictionary.md"
              "README.md", "CHANGES.md", "zenodo.json")
 
 CHANGES = [
+    ("1.2", "2026-09-11", "Capture manifest hashes are read and verified from stored evidence; outcomes are explicit allowed/refused/unknown. Each content edition is preserved under releases/<edition_id>."),
     ("1.1", "2026-09-10",
      "Three corrections, none of them to a row. (a) The data dictionary's caveat on `status` was "
      "shorter than the README's and had lost \"compliance score\" and \"ranking\"; both now quote "
@@ -99,15 +102,19 @@ def build() -> dict:
         coll = {c["sid"]: c for c in json.loads(COLLECTORS.read_text(encoding="utf-8"))["sources"]}
     except (OSError, ValueError):
         coll = {}
-    ledger = []
-    if LEDGER.exists():
-        for ln in LEDGER.read_text(encoding="utf-8", errors="replace").splitlines():
-            ln = ln.strip()
-            if ln.startswith("{"):
-                try:
-                    ledger.append(json.loads(ln))
-                except ValueError:
-                    pass
+    ledger = list(json_rows(LEDGER))
+    for entry in ledger:
+        path = ROOT / entry["evidence_dir"] / "MANIFEST.json"
+        raw = path.read_bytes()
+        sha = hashlib.sha256(raw).hexdigest()
+        if entry.get("manifest_sha256") and entry["manifest_sha256"] != sha:
+            raise ValueError("capture manifest mismatch: " + entry["sid"])
+        manifest = json.loads(raw)
+        if manifest.get("sid") != entry["sid"]:
+            raise ValueError("capture identity mismatch: " + entry["sid"])
+        entry["manifest_sha256"] = sha
+        entry["export_outcome"] = ("refused" if entry.get("manual_verdict") == "refused" or entry.get("allowed_for_us") is False else
+            "allowed" if entry.get("allowed_for_us") is True and entry.get("capture_ok") is True else "unknown")
     have_evidence = {str(e.get("sid")) for e in ledger if e.get("sid")}
 
     OUT.mkdir(parents=True, exist_ok=True)
@@ -139,7 +146,7 @@ def build() -> dict:
         w.writerow(["source_id", "captured_at_utc", "outcome", "manifest_sha256", "note"])
         for e in ledger:
             w.writerow([e.get("sid"), e.get("captured_at_utc") or e.get("at"),
-                        e.get("verdict") or e.get("outcome") or ("allowed" if e.get("allowed_for_us") else ""),
+                        e["export_outcome"],
                         e.get("manifest_sha256") or e.get("sha256") or "",
                         re.sub(r"\s+", " ", str(e.get("note") or ""))[:300]])
 
@@ -303,7 +310,20 @@ It contains no third-party content, no measurement values, and no personal data.
                            "by_status": counts},
                 "files": [{"name": p.name, "bytes": p.stat().st_size,
                            "sha256": hashlib.sha256(p.read_bytes()).hexdigest()} for p in files]}
+    edition = hashlib.sha256((VERSION + json.dumps([{k: f[k] for k in ("name", "sha256")} for f in manifest["files"] if f["name"].endswith(".csv")], sort_keys=True)).encode()).hexdigest()
+    manifest["edition_id"] = edition
+    manifest["edition_path"] = "releases/" + edition
     (OUT / "MANIFEST.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=1), encoding="utf-8")
+    version_dir = OUT / "releases" / edition
+    if not version_dir.exists():
+        version_dir.mkdir(parents=True)
+        for name in (*PUBLISHED, "MANIFEST.json"):
+            shutil.copyfile(OUT / name, version_dir / name)
+    else:
+        prior = json.loads((version_dir / "MANIFEST.json").read_text(encoding="utf-8"))
+        for f in prior["files"]:
+            if hashlib.sha256((version_dir/f["name"]).read_bytes()).hexdigest() != f["sha256"]:
+                raise ValueError("immutable dataset edition changed")
     return manifest
 
 

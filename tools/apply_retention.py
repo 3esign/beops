@@ -26,6 +26,7 @@ import hashlib
 import json
 import pathlib
 import sys
+from contracts import exclusive
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 POLICY = ROOT / "research" / "RETENTION.json"
@@ -59,7 +60,7 @@ def due(root: pathlib.Path, policy: dict, now: dt.datetime) -> dict:
     """What rules R1 and R2 have to say about the record as it stands. Reads only."""
     rules = {r["id"]: r for r in policy["rules"]}
     r1, r2 = rules["R1"], rules["R2"]
-    cut1 = now - dt.timedelta(days=r1["keep_days"])
+    cut1 = now - dt.timedelta(days=r1["keep_days"]) if r1["keep_days"] is not None else None
     cut2 = now - dt.timedelta(days=r2["keep_days"])
     plan = {"now": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "rows": [], "raw": [], "oldest_headline": None,
             "first_erasure_due": None}
@@ -84,7 +85,7 @@ def due(root: pathlib.Path, policy: dict, now: dt.datetime) -> dict:
                     continue
                 if oldest is None or t < oldest:
                     oldest = t
-                if t < cut1:
+                if cut1 is not None and t < cut1:
                     n += 1
             if n:
                 plan["rows"].append({"sid": sid, "file": str(f.relative_to(root)).replace("\\", "/"), "rows": n})
@@ -98,7 +99,7 @@ def due(root: pathlib.Path, policy: dict, now: dt.datetime) -> dict:
                                             "bytes": f.stat().st_size})
     if oldest:
         plan["oldest_headline"] = oldest.strftime("%Y-%m-%dT%H:%M:%SZ")
-        plan["first_erasure_due"] = (oldest + dt.timedelta(days=r1["keep_days"])).strftime("%Y-%m-%d")
+        plan["first_erasure_due"] = (oldest + dt.timedelta(days=r1["keep_days"])).strftime("%Y-%m-%d") if r1["keep_days"] is not None else None
     return plan
 
 
@@ -133,8 +134,13 @@ def redact_file(path: pathlib.Path, cut: dt.datetime, rule_id: str, now: dt.date
 
 
 def apply(root: pathlib.Path, policy: dict, now: dt.datetime, plan: dict) -> list[dict]:
+    with exclusive(root / "data/live/.write.lock"):
+        return _apply_locked(root, policy, now, due(root, policy, now))
+
+
+def _apply_locked(root, policy, now, plan):
     rules = {r["id"]: r for r in policy["rules"]}
-    cut1 = now - dt.timedelta(days=rules["R1"]["keep_days"])
+    cut1 = now - dt.timedelta(days=rules["R1"]["keep_days"]) if rules["R1"]["keep_days"] is not None else None
     entries = []
     for item in plan["rows"]:
         p = root / item["file"]
@@ -174,7 +180,7 @@ def main(argv=None) -> int:
     rows = sum(i["rows"] for i in plan["rows"])
     raw = len(plan["raw"])
     print(f"retention as of {plan['now']} (policy decided {policy['decided']})")
-    print(f"  headline rows past 90 days : {rows} in {len(plan['rows'])} files")
+    print(f"  headline rows due by policy : {rows} in {len(plan['rows'])} files")
     print(f"  raw news captures past 90 d: {raw} files, {sum(i['bytes'] for i in plan['raw'])} bytes")
     if plan["oldest_headline"]:
         print(f"  oldest headline held       : {plan['oldest_headline']}")

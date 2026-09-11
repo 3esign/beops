@@ -35,6 +35,10 @@ Usage
 from __future__ import annotations
 
 import argparse
+import pathlib
+import permission_policy
+import transport
+from contracts import exclusive
 import hashlib
 import json
 import os
@@ -145,7 +149,7 @@ def parse_groups(text: str) -> list[tuple[list[str], list[tuple[str, str]], dict
         field, _, value = line.partition(":")
         field, value = field.strip().lower(), value.strip()
         if field == "user-agent":
-            if not starting and rules:
+            if not starting:
                 groups.append((agents, rules, signals))
                 agents, rules, signals = [], [], {}
             agents.append(value.lower())
@@ -179,7 +183,12 @@ def rfc9309(text: str, ua: str, path: str) -> tuple[bool, str | None, dict]:
             else:
                 continue
             if score > best:
-                best, chosen = score, (rules, sig)
+                best, chosen = score, (list(rules), dict(sig))
+            elif score == best and chosen is not None:
+                chosen[0].extend(rules)
+                for key, value in sig.items():
+                    if value == "no" or chosen[1].get(key) != "no":
+                        chosen[1][key] = value
     if chosen is None:
         return True, None, {}
     rules, sig = chosen
@@ -205,25 +214,14 @@ def utcstamp() -> str:
 MAX_BODY = 2 * 1024 * 1024
 
 
+REQUEST_AGENTS = {}
+
+
 def fetch(url: str, timeout: int = 60):
-    """Return (status, headers_dict, body_bytes, error_or_None). Never raises."""
-    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "*/*"})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout, context=TLS_CTX) as r:
-            body = r.read(MAX_BODY + 1)
-            hdrs = dict(r.headers.items())
-            if len(body) > MAX_BODY:
-                body = body[:MAX_BODY]
-                hdrs["X-Beops-Body-Truncated"] = f"read {MAX_BODY} bytes of a larger response"
-            return r.status, hdrs, body, None
-    except urllib.error.HTTPError as e:
-        try:
-            body = e.read()
-        except Exception:
-            body = b""
-        return e.code, dict(e.headers.items()) if e.headers else {}, body, None
-    except Exception as e:  # DNS, TLS, timeout - the failure is itself evidence
-        return None, {}, b"", f"{type(e).__name__}: {e}"
+    res = transport.fetch(url, timeout, MAX_BODY)
+    if res.get("request_user_agent"):
+        REQUEST_AGENTS[url] = res["request_user_agent"]
+    return res["status"], res["headers"], res.get("body") or b"", res.get("error")
 
 
 def sha256(b: bytes) -> str:
@@ -278,16 +276,17 @@ def check_identity(sid: str, urls: list[str], new_source: bool) -> list[str]:
 
 def capture(sid: str, name: str, urls: list[str], terms: list[str], note: str, dry: bool = False,
             refused: str | None = None, needs_decision: str | None = None) -> dict:
+    REQUEST_AGENTS.clear()
     stamp = utcstamp()
     outdir = os.path.join(EVIDENCE, sid, stamp)
     manifest: dict = {"files": {}}
     if not dry:
-        os.makedirs(outdir, exist_ok=True)
+        os.makedirs(outdir, exist_ok=False)
 
     def store(fname: str, body: bytes, meta: dict) -> None:
         manifest["files"][fname] = dict(meta, sha256=sha256(body), bytes=len(body))
         if not dry:
-            with open(os.path.join(outdir, fname), "wb") as fh:
+            with open(os.path.join(outdir, fname), "xb") as fh:
                 fh.write(body)
 
     # --- robots.txt, one per distinct origin -------------------------------
@@ -301,7 +300,8 @@ def capture(sid: str, name: str, urls: list[str], terms: list[str], note: str, d
     verdicts: dict = {}
     for i, origin in enumerate(origins):
         rurl = origin + "/robots.txt"
-        st, hd, body, err = fetch(rurl)
+        st, hd, body, err = (None, {}, b"", "manual stop: no request") if (refused or needs_decision) else fetch(rurl)
+        agent = REQUEST_AGENTS.get(rurl, UA)
         fname = "robots.txt" if i == 0 else f"robots_{urllib.parse.urlparse(origin).netloc}.txt"
         store(fname, body, {"url": rurl, "status": st, "error": err, "fetched_at": utcstamp()})
 
@@ -335,16 +335,21 @@ def capture(sid: str, name: str, urls: list[str], terms: list[str], note: str, d
             body.decode("utf-8", "replace") if st == 200 else "")
         per_path, signals_here = {}, {}
         for u in urls + terms:
-            if not u.startswith(origin):
+            if (urllib.parse.urlsplit(u).scheme + "://" + urllib.parse.urlsplit(u).netloc) != origin:
                 continue
             readable = st == 200 or (st is not None and 400 <= st < 500)
-            path = urllib.parse.urlparse(u).path or "/"
-            py_ok = rp.can_fetch(UA, u) if readable else None
+            parsed = urllib.parse.urlparse(u)
+            path = (parsed.path or "/") + (("?" + parsed.query) if parsed.query else "")
+            py_ok = rp.can_fetch(agent, u) if readable else None
             py_star = rp.can_fetch("*", u) if readable else None
             if st == 200 and body_text:
-                rfc_ok, matched, sig = rfc9309(body_text, UA, path)
+                rfc_ok, matched, sig = rfc9309(body_text, agent, path)
                 rfc_star, _, _ = rfc9309(body_text, "*", path)
                 signals_here.update(sig)
+                named_ai = [a for agents, rules, signals in parse_groups(body_text) for a in agents
+                            if any(token in a for token in ("gpt", "openai", "claude", "anthropic", "google-extended", "ccbot"))]
+                if any(not rfc9309(body_text, a, path)[0] for a in named_ai):
+                    rfc_ok = py_ok = False
             else:
                 rfc_ok, rfc_star, matched = py_ok, py_star, None
             # When the two engines disagree, NEITHER is trusted and the
@@ -377,14 +382,22 @@ def capture(sid: str, name: str, urls: list[str], terms: list[str], note: str, d
                 "engines_disagree": (py_ok is not None and rfc_ok is not None and py_ok != rfc_ok),
             }
         verdicts[origin] = {"robots_url": rurl, "status": st, "regime": regime,
-                            "paths": per_path, "content_signal": signals_here}
+                            "paths": per_path, "content_signal": signals_here, "http_opt_out": signals(hd), "error": err}
 
     store("robots_verdict.json", json.dumps(verdicts, indent=2, ensure_ascii=False).encode(), {"generated": True})
+
+    def can_request(u):
+        if refused or needs_decision:
+            return False
+        origin = urllib.parse.urlsplit(u).scheme + "://" + urllib.parse.urlsplit(u).netloc
+        v = verdicts.get(origin, {})
+        return not v.get("error") and not permission_policy.header_refusals({"opt_out_signals_seen": {origin: v.get("http_opt_out", {})}}) and v.get("paths", {}).get(u, {}).get("allowed_for_us") is True and not any(
+            v.get("content_signal", {}).get(k) == "no" for k in ("ai-input", "search"))
 
     # --- the data URLs themselves ------------------------------------------
     heads: dict = {}
     for u in urls:
-        st, hd, body, err = fetch(u)
+        st, hd, body, err = fetch(u) if can_request(u) else (None, {}, b"", "permission stopped request")
         heads[u] = {
             "status": st,
             "error": err,
@@ -397,8 +410,10 @@ def capture(sid: str, name: str, urls: list[str], terms: list[str], note: str, d
     store("headers.json", json.dumps(heads, indent=2, ensure_ascii=False).encode(), {"generated": True})
 
     # --- terms / licence pages ---------------------------------------------
+    term_heads = {}
     for n, t in enumerate(terms, 1):
-        st, hd, body, err = fetch(t)
+        st, hd, body, err = fetch(t) if can_request(t) else (None, {}, b"", "permission stopped request")
+        term_heads[t] = {"status": st, "error": err, "opt_out_signals": signals(hd)}
         ext = "html"
         ctype = {k.lower(): v for k, v in hd.items()}.get("content-type", "")
         if "pdf" in ctype:
@@ -412,20 +427,20 @@ def capture(sid: str, name: str, urls: list[str], terms: list[str], note: str, d
 
     manifest.update({
         "sid": sid, "name": name, "captured_at_utc": stamp, "note": note,
-        "user_agent": UA, "urls": urls, "terms": terms,
+        "user_agent": next(iter(REQUEST_AGENTS.values()), UA), "request_user_agents": dict(REQUEST_AGENTS), "user_agent_recorded": bool(REQUEST_AGENTS), "urls": urls, "terms": terms,
         "tool": "tools/legal_capture.py",
     })
     store_path = os.path.join(outdir, "MANIFEST.json")
     if not dry:
-        with open(store_path, "w", encoding="utf-8") as fh:
+        with open(store_path, "x", encoding="utf-8") as fh:
             json.dump(manifest, fh, indent=2, ensure_ascii=False)
 
     # --- the permission verdict, in three states ---------------------------
     # A capture that could not read robots.txt, or could not reach the URL, is
     # NOT a permission. It is an unknown, and unknown never renders as allowed.
     per_path = [p["allowed_for_us"] for v in verdicts.values() for p in v["paths"].values()]
-    fetch_failed = [u for u, h in heads.items() if h["status"] is None]
-    robots_unreadable = [o for o, v in verdicts.items() if v["status"] is None]
+    fetch_failed = [u for u, h in {**heads, **term_heads}.items() if h["status"] != 200 or h.get("error")]
+    robots_unreadable = [o for o, v in verdicts.items() if v["status"] is None or v["status"] >= 500 or v.get("error")]
     if refused:
         # A refusal a person recognises but the parser does not. robots.txt at
         # pleiades.stoa.org disallows ClaudeBot, Claude-Web and anthropic-ai by
@@ -456,7 +471,7 @@ def capture(sid: str, name: str, urls: list[str], terms: list[str], note: str, d
         "allowed_for_us": allowed,
         "manual_verdict": ("refused" if refused else "needs_decision" if needs_decision else None),
         "manual_reason": refused or needs_decision,
-        "opt_out_signals_seen": {u: h["opt_out_signals"] for u, h in heads.items() if h["opt_out_signals"]},
+        "opt_out_signals_seen": {**{u: h["opt_out_signals"] for u, h in {**heads, **term_heads}.items() if h["opt_out_signals"]}, **{o: v["http_opt_out"] for o, v in verdicts.items() if v.get("http_opt_out")}},
         # Content-Signal also lives INSIDE robots.txt, which is where Cloudflare
         # puts it, and where it is declared an express Article 4 reservation.
         # It is per-purpose, not yes/no: ai-train=no with ai-input=yes means we
@@ -467,10 +482,17 @@ def capture(sid: str, name: str, urls: list[str], terms: list[str], note: str, d
         "status_by_url": {u: h["status"] for u, h in heads.items()},
         "note": note,
     }
+    if permission_policy.header_refusals(entry) or any(
+            signals.get(k) == "no" for signals in entry["content_signal"].values() for k in ("ai-input", "search")):
+        entry["allowed_for_us"] = False
+    entry["urls"] = urls
+    entry["terms"] = terms
     if not dry:
+        entry["manifest_sha256"] = sha256(pathlib.Path(store_path).read_bytes())
         os.makedirs(os.path.dirname(LEDGER), exist_ok=True)
-        with open(LEDGER, "a", encoding="utf-8") as fh:
-            fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        with exclusive(pathlib.Path(LEDGER).with_suffix(".lock")):
+            with open(LEDGER, "a", encoding="utf-8") as fh:
+                fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
     return entry
 
 
@@ -481,20 +503,30 @@ def recheck_collectors(dry: bool = False) -> int:
     with open(cfg_path, encoding="utf-8") as fh:
         cfg = json.load(fh)
     reg = _registry()
+    previous = permission_policy.latest(LEDGER)
     changed = 0
     for src in cfg.get("sources", []):
         sid = src.get("sid")
+        prior = previous.get(sid, {})
+        if not src.get("enabled", True) or prior.get("manual_verdict") in ("refused", "needs_decision"):
+            print(f"{sid}: disabled or held by manual decision - skipped")
+            continue
         if not sid or sid not in reg:
             print(f"{sid}: not in the registry - skipped")
             continue
         url = src.get("url") or ""
-        if "{" in url:   # a templated collector URL: capture the registry URL instead
-            url = reg[sid].get("url") or url.split("{")[0]
+        if "{" in url:
+            from collect_daemon import render_url
+            url = render_url(src, datetime.now(timezone.utc))
+        terms = prior.get("terms")
+        if terms is None and prior.get("evidence_dir"):
+            old_manifest = pathlib.Path(ROOT) / prior["evidence_dir"] / "MANIFEST.json"
+            terms = json.loads(old_manifest.read_text(encoding="utf-8")).get("terms", [])
         name = reg[sid].get("name") or src.get("name") or sid
         e = None
         for attempt in (1, 2):   # an unreadable robots.txt is 'unknown', and unknown stops the source: one retry before that happens
             try:
-                e = capture(sid, name, [url], [], "weekly re-check of a polled source" + (" (retry)" if attempt == 2 else ""), dry)
+                e = capture(sid, name, [url], terms or [], "weekly re-check of a polled source" + (" (retry)" if attempt == 2 else ""), dry)
             except Exception as ex:  # noqa: BLE001
                 print(f"{sid}: capture failed: {type(ex).__name__}: {str(ex)[:120]}")
                 e = None

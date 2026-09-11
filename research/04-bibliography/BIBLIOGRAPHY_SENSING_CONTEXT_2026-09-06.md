@@ -64,10 +64,10 @@ This was a targeted multilingual evidence-mapping pass, not a registered systema
 
 Missing coverage remains substantial: domestic theses and grey literature; sensory anthropology and artistic practices; ecology/phenology and local bioacoustics; riverbed and soil chemistry archives; infrastructure maintenance histories; comparative Balkan/postsocialist cities; unavailable or discontinued datasets; and sustained present-day device operation. Two prepared room agents have those complementary assignments:
 
-- [Domestic repositories, theses and institutional archives](../01-programme/ROOM_PROMPT_DOMACI_2026-09-06.md).
-- [International comparative methods and sensing theory](../01-programme/ROOM_PROMPT_KOMPARATIVNI_2026-09-06.md).
+- Domestic repositories, theses and institutional archives (private working record).
+- International comparative methods and sensing theory (private working record).
 
-Their real queue tasks and ownership appear in the[room board](../_trail/RICH_CONTEXT_BOARD_2026-09-06.json). Preparing prompts does not prove the external agents started. Startup/ACK was not observed at this checkpoint.
+Their real queue tasks and ownership appear in theroom board (private working record). Preparing prompts does not prove the external agents started. Startup/ACK was not observed at this checkpoint.
 
 ## Honest verdict
 

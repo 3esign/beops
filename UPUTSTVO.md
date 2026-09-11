@@ -48,11 +48,14 @@ Kasnjenje do 20 minuta belezi stvarno vreme prijema, ne vreme izvornog merenja. 
 - [Struktura projekta](research/STRUCTURE_CONTRACT_2026-09-11.md): sta je izvor, dokaz, generisano javno stanje, privatni audit, ziva memorija i ostatak.
 - [Operativni red](research/OPERATIONAL_ORDER_2026-09-11.md): privatni Beops, javni mirror, C/D pravilo, scheduler i publish safety.
 - [Research indeks](research/README.md): svi istrazivacki dokumenti i vazeci paper lineage.
-- [Detaljan program cula i modela](research/01-programme/PLAN_CULA_MODELI_2026-09-05.md): istrazivacki ciklus, 25 cula, 12 eksperimenata i 48 razrada postojecih zadataka.
-- [Banka pretrage](research/01-programme/PRETRAGA_KEYWORDS_2026-09-05.md): 64 pocetna upita, pravila izdvajanja i prosirivanja pojmova; nije automatski izvrsena pretraga.
+- Detaljan program cula i modela (private working record): istrazivacki ciklus, 25 cula, 12 eksperimenata i 48 razrada postojecih zadataka.
+- Banka pretrage (private working record): 64 pocetna upita, pravila izdvajanja i prosirivanja pojmova; nije automatski izvrsena pretraga.
 - [Katalog modela/provajdera](research/03-models/KATALOG_MODELA_I_PROVAJDERA_2026-09-05.md): konkretni izbori, statusi proba i razlike izmedju distributera i inference servisa.
 - [README](README.md): ulazi u dosije i status projekta.
-- [Radni program](research/01-programme/RADNI_PROGRAM.md): 65 zadataka, zavisnosti i dokaz zavrsetka; nije automatsko ovlascenje da se sve pokrene.
-- [Prostorni koncept](research/01-programme/ZONE_I_POVEZIVANJE.md): zajednicki filter, spoljne reference i bez mikronivoa.
-- [Provere](research/_trail/VERIFICATION_2026-09-05.md): istorija stvarno izvrsenih provera.
+- Radni program (private working record): 65 zadataka, zavisnosti i dokaz zavrsetka; nije automatsko ovlascenje da se sve pokrene.
+- Prostorni koncept (private working record): zajednicki filter, spoljne reference i bez mikronivoa.
+- Provere (private working record): istorija stvarno izvrsenih provera.
 - `RECNIK.jsonl`, `KNOWLEDGE.md`, `LOG.md`: definicije, odluke/lekcije i trag rada kroz postojeci projektni kit.
+
+
+Recovery entry (2026-09-11): `research/_trail/REPAIR_2026-09-11.md` records implemented changes, validation and unresolved limits. `npm run doctor` checks local build requirements; `npm start` serves the verified public mirror when available, otherwise local generated docs, on a loopback port (printed on startup), and `npm run start:legacy` explicitly starts the old prototype. Headlines are retained and the complete collected archive is at `naslovi.html`; article bodies are not published. Public Git history persists. Scheduled task definitions are in `tools/beops_tasks.ps1`, with individual execution limits; disabled tasks and operator pauses are preserved.

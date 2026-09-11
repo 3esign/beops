@@ -29,7 +29,7 @@ The fixed EMF route returns an entire archive, **225,410,096 bytes**, rather tha
 
 The audit finds **449,902 unique timestamps**, **7,796 additional repeated-time rows** and **496 gaps longer than six minutes**. The largest gap runs from 2024-09-30 to 2025-04-19. Of the repeated-time rows, 727 differ from the first payload at that time after excluding the row-number field. None were removed. Six bands contain the conspicuous value `99999.99`; its meaning is not declared in the inspected payload. Do not interpret it as a field-strength maximum or silently replace it with null.
 
-These checks describe the archive and the publishing instrument. They do not establish changes in the city's exposure. The exact audit method and counts are in [FIXED21_QA.json](../evidence/device-discovery-20260906/FIXED21_QA.json), with the [offline audit script](../audit_fixed21_20260906.py).
+These checks describe the archive and the publishing instrument. They do not establish changes in the city's exposure. The exact audit method and counts are in FIXED21_QA.json (private working record), with the [offline audit script](../audit_fixed21_20260906.py).
 
 ## Corrections and negative findings that prevent wasted work
 
@@ -54,12 +54,12 @@ A historical [BEOG GNSS study](https://www.geodetski-vestnik.com/en/clanek/10.15
 - [EMF lane](DEVICE_EMF_2026-09-06.md): source/file identity, measured coverage, historic instrument evidence and fixed-archive audit.
 - [Hydromet lane](DEVICE_HYDROMET_2026-09-06.md): lidar, sonar/ADCP, radiosondes and derived navigation products.
 - [Procurement lane](DEVICE_PROCUREMENT_2026-09-06.md): CEMS, traffic, heat and water devices, with installation dates separated from procurement plans.
-- [Native-agent board](../_trail/DEVICE_DISCOVERY_BOARD_2026-09-06.md), [one-shot collection plan](../_trail/DEVICE_COLLECTION_PLAN_2026-09-06.json), [compression proof](../evidence/device-discovery-20260906/COMPRESSION.json), [BCE table](../evidence/device-discovery-20260906/BCE_DAILY_QA.json), [AERONET spatial check](../evidence/device-discovery-20260906/AERONET_COVERAGE.json), [independent mobile recount](../evidence/device-discovery-20260906/DRIVE_BG_QA.json).
+- Native-agent board (private working record), one-shot collection plan (private working record), compression proof (private working record), BCE table (private working record), AERONET spatial check (private working record), independent mobile recount (private working record).
 
 Agents owned disjoint reports; coordinator independently checked local counts/hashes, ACTRIS responses, BCE date/table and Plovput's local-profile statement. Primary dates, exact URLs, captured permission evidence and retrieval manifests are retained. Public readability and a permissive robots result are not blanket redistribution licences.
 
 ## Honest verdict
 
-Verified: the stored pages and metadata, two concrete EMF archives, the BCE daily table, the source-association problem, and bounded device evidence described above. Offline suite: **44/44 passed**. The [integration receipt](../evidence/device-discovery-20260906/INTEGRATION_QA.json) verifies 186 unique records, eight legal reviews in five groups, 24 new manifests, 76 payload hashes/lengths, 11 collected routes matched to prior exact-route captures and 262 local links at that check. Independent review found no change in access-verdict logic and no missing legal-review links.
+Verified: the stored pages and metadata, two concrete EMF archives, the BCE daily table, the source-association problem, and bounded device evidence described above. Offline suite: **44/44 passed**. The integration receipt (private working record) verifies 186 unique records, eight legal reviews in five groups, 24 new manifests, 76 payload hashes/lengths, 11 collected routes matched to prior exact-route captures and 262 local links at that check. Independent review found no change in access-verdict logic and no missing legal-review links.
 
 Not established: exhaustive sensor coverage, current uptime of historical instruments, a continuous collector, public raw Plovput profiles, BGD optical profile contents, or reuse permission for every public document. No institution was contacted, UI changed, scheduler created, or deployment performed. The project-kit helper named by CONTRIBUTING is absent from Svemir; that gate cannot truthfully be reported as passed.

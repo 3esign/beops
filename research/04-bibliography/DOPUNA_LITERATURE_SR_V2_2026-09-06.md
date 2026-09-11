@@ -4,7 +4,7 @@ Author: BEOPS koordinator, uz pregled rada tri istraživačka agenta
 
 # Dopuna literature: od izvora podataka do urbanističkog znanja
 
-[Početni pred-rad](../06-paper/PRED_RAD_SR_V2_2026-09-06.md) · [Proverene institucionalne prakse](../06-paper/UVOD_PROVERENE_PRAKSE_SR_2026-09-06.md)
+Početni pred-rad (private working record) · Proverene institucionalne prakse (private working record)
 
 Ovaj talas dodaje **24 različite publikacije u radni izbor**, od kojih sedam proučava Beograd ili ga izričito uključuje. Provera njihovih DOI/ISBN oznaka ili karakterističnog naslova u osam dotadašnjih bibliografskih Markdown datoteka nije našla podudaranja. To znači novo u tom pregledanom lokalnom skupu, bez tvrdnje o potpunoj deduplikaciji svih projektnih beležaka ili naučnoj novini samih ideja.
 
@@ -92,6 +92,6 @@ Sledeći korak za diskusiju je izbor pitanja, prostornog obuhvata, korisnika i k
 
 ## Provera i trag
 
-[Zajednički dnevnik](../_trail/PRED_RAD_SR_WAVE7_SEARCH.json) čuva pet odvojenih tokova, originalne upite, načine čitanja, neuspešne pristupe i koordinatorske dopune. [QA zapis](../_trail/PRED_RAD_SR_WAVE7_QA.json) čuva obračune i lokalne provere. Agentov nalaz nije samim predavanjem postao prihvaćen; koordinator je pročitao dosijee i izabrao primarne provere. To nije dvostruko slepo ljudsko ocenjivanje.
+Zajednički dnevnik (private working record) čuva pet odvojenih tokova, originalne upite, načine čitanja, neuspešne pristupe i koordinatorske dopune. QA zapis (private working record) čuva obračune i lokalne provere. Agentov nalaz nije samim predavanjem postao prihvaćen; koordinator je pročitao dosijee i izabrao primarne provere. To nije dvostruko slepo ljudsko ocenjivanje.
 
 Provereno: identiteti uključenih publikacija do navedenog nivoa, citirane granice i veze sa predloženim izmenama. Zaključeno: predložene promene mogle bi da daju smisleniji urbanistički okvir. Nije provereno: iscrpnost svetske literature, rad svih pomenutih servisa danas ili učinak BEOPS-a na planske odluke. Nisu prikupljani novi sirovi podaci, kontaktirane institucije ili učesnici, niti pisan rukopis.
