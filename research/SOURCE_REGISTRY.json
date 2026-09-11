@@ -1968,10 +1968,10 @@
    "status": "probe_ok",
    "kind": "statistics",
    "rhythm": "per series: monthly, quarterly, semiannual, annual",
-   "access": "keyless REST, one URL pattern with a dataset code; robots.txt says User-agent: * Allow: / . NOTE: the JSON endpoint returns a ZIP archive containing <code>dataset.json, not bare JSON.",
+   "access": "keyless REST, one URL pattern with a dataset code; captured robots.txt says User-agent: * Allow: / . Payload format varies: the six 2026-09-06 captures contain one ZIP with JSON and five plain JSON payloads (one stored with gzip compression). Detect format from content and distinguish storage compression; see 01-programme/CONTEXT_AND_AI_FEED_PLAN_2026-09-12.md and its inventory.",
    "reuse": "sodl (Serbian Open Data Licence)",
    "measurement_time": "reference period of the series",
-   "next": "1034 RZS datasets on the portal, 48 with municipality or city in the title. Belgrade-relevant series identified: Nocenja turista po opstinama MONTHLY (220205IND02); Registrovana zaposlenost po opstini QUARTERLY (24021308IND01) and ANNUAL (24021105IND01); Prosecna cena prodatih stanova novogradnje SEMIANNUAL (05010107IND02); Prosecne bruto zarade MONTHLY (2403040111IND02, 2403040110IND02 public sector). Tourist overnight stays by municipality, monthly, is a genuine visitor pulse for the city."
+   "next": "Earlier discovery counted 1034 portal datasets, 48 with municipality or city in the title; those portal counts were not refreshed on 2026-09-12. Captured series: tourist nights by municipality MONTHLY (220205IND02); employment by residence QUARTERLY (24021308IND01) and ANNUAL (24021105IND01); new dwelling prices ANNUAL and SEMIANNUAL period codes 00/P1/P2 (05010107IND02). Wage captures 2403040111IND02 and 2403040110IND02 contain ONLY national territory RS, not Belgrade or municipal wages. Validate edition, dimensions, geography and rights before map/AI admission; the dated context/feed plan records measured coverage."
   },
   {
    "id": "S149",

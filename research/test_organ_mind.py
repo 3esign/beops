@@ -7,6 +7,7 @@ import pathlib
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -54,14 +55,15 @@ CONTEXT = {"hexes": [[20.4016, 44.8458, 5200], [20.405, 44.847, 3100], [20.70, 4
 class LiveDir(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
-        self._out, self._ctx = om.OUT_DIR, om.CONTEXT
+        self._out, self._ctx, self._live = om.OUT_DIR, om.CONTEXT, om.LIVE
+        om.LIVE = pathlib.Path(self.tmp.name) / "live"
         om.OUT_DIR = pathlib.Path(self.tmp.name) / "mind"
         om.CONTEXT = om.OUT_DIR / "context.json"
         self._reg = om.register
         om.register = lambda: dict(REG)
 
     def tearDown(self):
-        om.OUT_DIR, om.CONTEXT = self._out, self._ctx
+        om.OUT_DIR, om.CONTEXT, om.LIVE = self._out, self._ctx, self._live
         om.register = self._reg
         self.tmp.cleanup()
 
@@ -445,6 +447,24 @@ def fake_chat_factory(log: list):
 
 
 class ConversationTests(LiveDir):
+    def test_conversation_locks_stay_inside_the_fixture(self):
+        """Fake-model tests must never contend with the running collector's writer lock."""
+        targets = []
+        real_exclusive = om.exclusive
+
+        def isolated_lock(path, **kwargs):
+            target = pathlib.Path(path).resolve()
+            self.assertTrue(target.is_relative_to(pathlib.Path(self.tmp.name).resolve()),
+                            f"fixture attempted a lock outside its directory: {target}")
+            targets.append(target)
+            return real_exclusive(path, **kwargs)
+
+        with patch.object(om, "exclusive", isolated_lock):
+            rec = om.run(now=NOW, chat=fake_chat_factory([]), tags=lambda: MODELS,
+                         embed=fake_embed, snap=snapshot(), orchestration="council")
+        self.assertEqual(rec["state"], "derived")
+        self.assertTrue(targets, "the conversation did not exercise any writer lock")
+
     def test_council_two_rounds_voice_notebook_and_no_echo_of_refused(self):
         log = []
         rec = om.run(now=NOW, chat=fake_chat_factory(log), tags=lambda: MODELS, embed=fake_embed, snap=snapshot(), orchestration="council")
