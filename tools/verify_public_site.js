@@ -17,6 +17,8 @@ const RAW_INDEX_URL = process.env.BEOPS_RAW_INDEX_URL ||
 const PUBLIC_ROOT = process.env.BEOPS_PUBLIC_ROOT
   ? path.resolve(process.env.BEOPS_PUBLIC_ROOT)
   : path.resolve(ROOT, '..', 'Beops-public');
+const WAIT_SECONDS = Number(process.env.BEOPS_SITE_WAIT_SECONDS || '120');
+const POLL_MS = Number(process.env.BEOPS_SITE_POLL_MS || '10000');
 
 const CORE_ROUTES = [
   'podaci.html',
@@ -53,6 +55,10 @@ function asciiFold(s) {
 
 function sha256(s) {
   return crypto.createHash('sha256').update(normalizeText(s)).digest('hex');
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function firstExisting(paths) {
@@ -113,6 +119,7 @@ async function main() {
   const errors = [];
   const warnings = [];
   const routes = [];
+  const attempts = [];
   const localIndex = firstExisting([
     path.join(PUBLIC_ROOT, 'docs', 'index.html'),
     path.join(ROOT, 'docs', 'index.html')
@@ -122,19 +129,28 @@ async function main() {
     errors.push('no local docs/index.html found in public mirror or private build');
   }
 
-  const live = await fetchText(SITE_URL);
-  if (!live.ok) {
-    errors.push(`public site returned HTTP ${live.status}`);
-  }
-
   let localText = '';
   if (localIndex) {
     localText = fs.readFileSync(localIndex, 'utf8');
+  }
+
+  let live = null;
+  const localHash = localText ? sha256(localText) : '';
+  const deadline = Date.now() + Math.max(0, WAIT_SECONDS) * 1000;
+  do {
+    live = await fetchText(SITE_URL);
     const liveHash = sha256(live.text);
-    const localHash = sha256(localText);
-    if (liveHash !== localHash) {
-      errors.push(`public site hash ${liveHash} does not match ${localIndex} hash ${localHash}`);
-    }
+    attempts.push({ status: live.status, hash: liveHash, match: localHash ? liveHash === localHash : false });
+    if (live.ok && (!localHash || liveHash === localHash)) break;
+    if (Date.now() >= deadline) break;
+    await sleep(POLL_MS);
+  } while (true);
+
+  if (!live.ok) {
+    errors.push(`public site returned HTTP ${live.status}`);
+  }
+  if (localHash && sha256(live.text) !== localHash) {
+    errors.push(`public site hash ${sha256(live.text)} does not match ${localIndex} hash ${localHash}`);
   }
 
   const foldedLive = asciiFold(live.text);
@@ -172,10 +188,12 @@ async function main() {
     site: SITE_URL,
     local_index: localIndex,
     live_hash: sha256(live.text),
-    local_hash: localText ? sha256(localText) : '',
+    local_hash: localHash,
     live_status: live.status,
     live_last_modified: live.lastModified,
     live_cache_control: live.cacheControl,
+    wait_seconds: WAIT_SECONDS,
+    attempts,
     routes,
     warnings,
     errors

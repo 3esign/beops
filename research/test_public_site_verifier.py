@@ -39,6 +39,12 @@ class PublicSiteVerifierTests(unittest.TestCase):
         self.assertIn("does not match", self.script)
         self.assertIn("replace(/\\r\\n/g, '\\n')", self.script)
 
+    def test_the_verifier_allows_a_short_pages_propagation_window(self):
+        self.assertIn("BEOPS_SITE_WAIT_SECONDS", self.script)
+        self.assertIn("BEOPS_SITE_POLL_MS", self.script)
+        self.assertIn("attempts.push", self.script)
+        self.assertIn("await sleep(POLL_MS)", self.script)
+
     def test_the_verifier_treats_stale_public_words_as_failures(self):
         for marker in ("Claude, Anthropic", "Claude Fable", "Svemir (Claude"):
             self.assertIn(marker, self.script)
