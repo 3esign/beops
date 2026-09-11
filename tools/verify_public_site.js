@@ -19,6 +19,7 @@ const PUBLIC_ROOT = process.env.BEOPS_PUBLIC_ROOT
   : path.resolve(ROOT, '..', 'Beops-public');
 const WAIT_SECONDS = Number(process.env.BEOPS_SITE_WAIT_SECONDS || '120');
 const POLL_MS = Number(process.env.BEOPS_SITE_POLL_MS || '10000');
+const CHECK_RAW = process.env.BEOPS_CHECK_RAW === '1';
 
 const CORE_ROUTES = [
   'podaci.html',
@@ -174,7 +175,7 @@ async function main() {
     }
   }
 
-  if (process.env.BEOPS_CHECK_RAW !== '0') {
+  if (CHECK_RAW) {
     const raw = await fetchText(RAW_INDEX_URL);
     if (!raw.ok) {
       warnings.push(`raw GitHub index returned HTTP ${raw.status}`);
@@ -193,6 +194,7 @@ async function main() {
     live_last_modified: live.lastModified,
     live_cache_control: live.cacheControl,
     wait_seconds: WAIT_SECONDS,
+    raw_check: CHECK_RAW,
     attempts,
     routes,
     warnings,

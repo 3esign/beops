@@ -44,11 +44,15 @@ class PublicSiteVerifierTests(unittest.TestCase):
         self.assertIn("BEOPS_SITE_POLL_MS", self.script)
         self.assertIn("attempts.push", self.script)
         self.assertIn("await sleep(POLL_MS)", self.script)
+        self.assertIn("raw_check", self.script)
 
     def test_the_verifier_treats_stale_public_words_as_failures(self):
         for marker in ("Claude, Anthropic", "Claude Fable", "Svemir (Claude"):
             self.assertIn(marker, self.script)
         self.assertIn("local AI infrastructure", self.script)
+
+    def test_raw_github_comparison_is_opt_in(self):
+        self.assertIn("BEOPS_CHECK_RAW === '1'", self.script)
 
     def test_the_verifier_checks_the_embedded_interface_routes(self):
         for rel in ("podaci.html", "monolog.html", "sada.html", "traka.html", "svedoci.html"):
