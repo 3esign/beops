@@ -72,7 +72,7 @@ def hour_key(dt: datetime) -> str:
 def load_config() -> dict:
     try:
         cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+    except FileNotFoundError:
         return {}
     return {s["sid"]: s for s in cfg.get("sources", [])}
 

@@ -35,6 +35,9 @@
     "mind/voice_bench/*.jsonl": "one line per rendering in a benchmark run, made by hand and not part of the record's stream. This is where the undeclared state `failed` lives (C-057)."
    },
    "registers_inside_it": {
+    "news/_done.json": "Disposable completion cache; supported keys are reconstructed from retained monthly classification rows, never trusted as proof of completion.",
+    "news/attempts.json and news/retry.json": "Bounded retry counts, last and next attempt times, and the latest processing reason; atomic mutable caches under the live writer lock.",
+    "news/reconciliation/*.json": "Immutable before-key snapshots and reconciliation receipts; historical classifications remain unchanged.",
     "mind/claims.jsonl": "the PREDICTIONS register, and the correction to what this file first said about it. A row is written when a claim is MADE - carrying the claim, the entity, the model, the conversation and the instant it falls due - with `outcome` and `settled_at` null until the due time passes and the scorer fills them in. It is not a register of settlements: on 2026-09-10 it held 30 rows, 29 scored (true 15, unverifiable 11, false 3) and one still open, due ninety minutes after it was made. Writing the claim at the moment it is made is the whole point: a prediction cannot be added afterwards, cannot be quietly dropped, and cannot have its due time moved once the answer is visible. Every settlement is also told to the entity as a `claim_settled` line in its notebook, in prose, because the entity is told what happened to its prediction - the register is the record and the notebook line is the telling, and the two agree in count once the open claims are set aside.",
     "mind/claim-events.jsonl": "Append-only scoring and retraction events, keyed by claim_id; claims.jsonl is the current materialized view. Outcomes: true, false, unverifiable, retracted, or null while open."
    }
@@ -100,6 +103,7 @@
    ],
    "state_vocabulary": {
     "captured": "the source was asked and answered, whether or not it had anything to give",
+    "unparsed": "the source answered but parsing did not produce a recognized record. Historical rows may also carry storage errors under this label; the error remains authoritative. New storage failures use failed with payload_outcome=storage_failed.",
     "failed": "the attempt did not complete; the receipt carries the error"
    },
    "found_by": "the second run of test_record_shape.py (C-063). 2,738 receipts, undeclared."

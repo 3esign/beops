@@ -43,7 +43,7 @@ the only thing that goes back into the repository.
 from __future__ import annotations
 
 import argparse
-from contracts import json_rows, serialized, atomic_json, observation_rows
+from contracts import json_rows, json_object, serialized, atomic_json, observation_rows
 import gzip
 import hashlib
 from contracts import finite, belgrade_local, belgrade_offset, content_id, exclusive
@@ -392,15 +392,17 @@ def parse_rhmz_auto(body: bytes, received: datetime, src: dict) -> list[dict]:
     rows = []
     for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", text, re.S | re.I):
         c = _cells(tr)
-        if len(c) < 7 or c[0] not in RHMZ_BELGRADE:
+        if not c or c[0] not in RHMZ_BELGRADE:
             continue
-        if len(c) >= 8 and re.match(r"\d{1,2}:\d{2}$", c[1] or ""):
+        if len(c) == 8 and re.fullmatch(r"\d{1,2}:\d{2}", c[1] or ""):
             th, tm = (int(x) for x in c[1].split(":"))
             local = base_local.replace(hour=th, minute=tm)
             vals = c[2:7]
-        else:
+        elif len(c) == 7:
             local = base_local
             vals = c[1:6]
+        else:
+            raise ValueError("unrecognized RHMZ automatic station column layout")
         pt, off = belgrade_local(local)
         lat, lon = RHMZ_BELGRADE[c[0]]
         for name, unit, raw in (("temperature", "Cel", vals[0]), ("pressure", "hPa", vals[1]), ("humidity", "%", vals[2]),
@@ -428,6 +430,8 @@ def parse_rhmz_auto(body: bytes, received: datetime, src: dict) -> list[dict]:
                 "lat": lat, "lon": lon, "spatial_binding": "station coordinates approximate (RHMZ description), not from an official list",
                 "dedupe_key": f"{src['sid']}|{c[0]}|{name}|{iso(pt)}",
             })
+    if not rows:
+        raise ValueError("RHMZ automatic table has no recognized Belgrade station rows")
     return rows
 
 
@@ -491,7 +495,7 @@ def parse_rhmz_gauges(body: bytes, received: datetime, src: dict) -> list[dict]:
     rows = []
     for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", text, re.S | re.I):
         c = _cells(tr)
-        if len(c) < 6:
+        if len(c) < 3:
             continue
         key = (c[0].strip().upper(), c[2].strip().upper())
         if key not in RHMZ_GAUGES:
@@ -526,6 +530,8 @@ def parse_rhmz_gauges(body: bytes, received: datetime, src: dict) -> list[dict]:
                 "spatial_binding": "gauge coordinates approximate, not from an official list",
                 "dedupe_key": f"{src['sid']}|{station}|{name}|{iso(pt)}",
             })
+    if not rows:
+        raise ValueError("RHMZ gauge table has no recognized Belgrade station rows")
     return rows
 
 
@@ -560,7 +566,7 @@ def _row_key(r: dict) -> str:
 
 
 def append_rows(sid: str, rows: list[dict], received: datetime, dedupe_hours: int = 72) -> tuple[pathlib.Path, int]:
-    with exclusive(LIVE / ".write.lock"):
+    with exclusive(LIVE / ".write.lock", timeout=120):
         return _append_rows_locked(sid, rows, received, dedupe_hours)
 
 
@@ -622,7 +628,7 @@ def receipts(sid: str, since: datetime | None = None) -> list[dict]:
         if since and p.stem < stamp(since):
             continue
         try:
-            out.append(json.loads(p.read_text(encoding="utf-8")))
+            out.append(json_object(p))
         except (OSError, ValueError):
             out.append({"schema": SCHEMA_RECEIPT, "sid": sid, "state": "unreadable", "file": p.name})
     return out
@@ -718,6 +724,7 @@ def collect_one(src: dict, now: datetime, latest_gate: dict, fetcher=fetch) -> d
             item["raw_not_stored"] = "by rule: this source's body is not retained, only its hash (07-legal)"
         item["raw_sha256"] = digest
         item["raw_bytes"] = len(res["body"])
+        phase = 'parsing'
         try:
             rows = PARSERS[src["parser"]](res["body"], received, src)
             for r in rows:
@@ -726,6 +733,8 @@ def collect_one(src: dict, now: datetime, latest_gate: dict, fetcher=fetch) -> d
                 r["permission_capture"] = why
                 r["raw_sha256"] = digest
                 r["row_id"] = content_id(r)
+            item['rows_parsed'] = len(rows)
+            phase = 'storage'
             rows_path, written = append_rows(sid, rows, received)
             item["rows"] = len(rows)
             item["rows_new"] = written
@@ -734,7 +743,8 @@ def collect_one(src: dict, now: datetime, latest_gate: dict, fetcher=fetch) -> d
             item["state"] = "captured"
             item['payload_outcome'] = 'empty' if not rows else ('unchanged' if not written else 'rows')
         except Exception as exc:  # noqa: BLE001
-            item["state"] = "unparsed"
+            item["state"] = "unparsed" if phase == 'parsing' else 'failed'
+            item['payload_outcome'] = 'parse_failed' if phase == 'parsing' else 'storage_failed'
             item["error"] = {"type": type(exc).__name__, "message": str(exc)[:240]}
     item["completed_at"] = iso(utcnow())
     publish(target, item)
@@ -907,10 +917,7 @@ def export(now: datetime | None = None, hours: int = 24) -> pathlib.Path:
     orx = sorted((LIVE / "derived" / "news" / "receipts").glob("*.json")) if (LIVE / "derived" / "news" / "receipts").exists() else []
     out["organ_runs"] = []
     for rp in orx[-40:]:
-        try:
-            rec = json.loads(rp.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            continue
+        rec = json_object(rp)
         if (rec.get("at") or "") >= since:
             out["organ_runs"].append({"t": rec.get("at"), "organ": rec.get("organ"), "state": rec.get("state"),
                                       "derived": rec.get("derived"), "model": rec.get("model"),
@@ -974,10 +981,7 @@ def export(now: datetime | None = None, hours: int = 24) -> pathlib.Path:
         out["mind_scores"] = board
         mrx = sorted((md / "receipts").glob("*.json")) if (md / "receipts").exists() else []
         for rp in mrx[-40:]:
-            try:
-                rec = json.loads(rp.read_text(encoding="utf-8"))
-            except (OSError, ValueError):
-                continue
+            rec = json_object(rp)
             if (rec.get("at") or "") >= since:
                 out["organ_runs"].append({"t": rec.get("at"), "organ": "mind", "state": rec.get("state"),
                                           "derived": rec.get("utterances"), "rejected": rec.get("rejected"),

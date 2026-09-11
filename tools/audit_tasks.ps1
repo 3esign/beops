@@ -8,6 +8,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'beops_tasks.ps1')
+. (Join-Path $PSScriptRoot 'publish_safety.ps1')
 
 function Normalize-TaskPath([string]$PathText) {
   if (-not $PathText) { return '' }
@@ -34,17 +35,23 @@ $rows = foreach ($spec in Get-BeopsTaskSpecs) {
     $execute = [string]$task.Actions.Execute
     $workingDirectory = [string]$task.Actions.WorkingDirectory
     $triggerCount = @($task.Triggers).Count
+    if (@($task.Actions).Count -ne 1) { $issues += 'action count drift' }
     if (-not (Ends-WithTaskPath $execute $spec.Bat)) {
       $issues += 'action drift'
     } elseif ((Normalize-TaskPath $execute) -ne (Normalize-TaskPath $expectedExecute)) {
-      $issues += 'root alias'
+      if ((Normalize-TaskPath (Get-BeopsFullPath $execute)) -eq (Normalize-TaskPath (Get-BeopsFullPath $expectedExecute))) {
+        $issues += 'root alias'
+      } else { $issues += 'action physical target drift' }
     }
+    if ([string]$task.Actions.Arguments) { $issues += 'action arguments drift' }
     if (-not $workingDirectory) {
       $issues += 'missing working directory'
     } elseif (-not (Test-Path -LiteralPath $workingDirectory)) {
       $issues += 'working directory missing on disk'
     } elseif ((Normalize-TaskPath $workingDirectory) -ne (Normalize-TaskPath $root)) {
-      $issues += 'working directory alias'
+      if ((Normalize-TaskPath (Get-BeopsFullPath $workingDirectory)) -eq (Normalize-TaskPath (Get-BeopsFullPath $root))) {
+        $issues += 'working directory alias'
+      } else { $issues += 'working directory physical target drift' }
     }
     if ($triggerCount -lt 2) {
       $issues += 'missing repeat or logon trigger'
@@ -54,8 +61,15 @@ $rows = foreach ($spec in Get-BeopsTaskSpecs) {
     $interval = [System.Xml.XmlConvert]::ToString([TimeSpan]::FromMinutes($spec.Minutes))
     if (-not @($task.Triggers | Where-Object { $_.Repetition.Interval -eq $interval }).Count) { $issues += 'repeat interval drift' }
     if ([string]$task.Principal.LogonType -ne 'S4U' -or [string]$task.Principal.RunLevel -ne 'Limited') { $issues += 'principal drift' }
+    $expectedUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+    function Get-UserSid([string]$Identity) {
+      try { return ([System.Security.Principal.NTAccount]$Identity).Translate([System.Security.Principal.SecurityIdentifier]).Value }
+      catch { return $Identity }
+    }
+    if ((Get-UserSid ([string]$task.Principal.UserId)) -ne (Get-UserSid $expectedUser)) { $issues += 'principal user drift' }
     $logs = @($task.Triggers | Where-Object { $_.CimClass.CimClassName -eq 'MSFT_TaskLogonTrigger' })
     if (-not $logs.Count -or @($logs | Where-Object { -not $_.UserId }).Count) { $issues += 'unscoped logon trigger' }
+    if (@($logs | Where-Object { $_.UserId -and (Get-UserSid ([string]$_.UserId)) -ne (Get-UserSid $expectedUser) }).Count) { $issues += 'logon user drift' }
   }
   $bad = @($issues | Where-Object { $_ -notlike '*alias' })
   $status = if ($bad.Count -gt 0) { 'DRIFT' } elseif ($issues.Count -gt 0) { 'ALIAS' } else { 'OK' }

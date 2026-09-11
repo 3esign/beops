@@ -95,21 +95,51 @@ def atomic_json(path, value):
             os.unlink(tmp)
 
 
-def json_rows(path):
-    """Corrupt/truncated input fails visibly with a location; it is never silently lost."""
+class RecordFormatError(ValueError):
+    """A location in immutable input; never include arbitrary source content."""
+    def __init__(self, path, line, offset, kind):
+        self.path, self.line, self.offset, self.kind = str(path), line, offset, kind
+        super().__init__(f"invalid JSONL {pathlib.Path(path).name}:{line} at byte {offset}: {kind}")
+
+
+def json_object(path):
+    """A stored receipt is either an object or a visible error, never silent absence."""
     path = pathlib.Path(path)
+    try:
+        value = json.loads(path.read_text(encoding='utf-8-sig'),
+                           parse_constant=lambda s: (_ for _ in ()).throw(ValueError(s)))
+        if not isinstance(value, dict):
+            raise ValueError('expected an object')
+        return value
+    except (OSError, UnicodeError, ValueError) as exc:
+        raise ValueError(f"invalid JSON object {path}: {type(exc).__name__}") from exc
+
+
+def json_rows(path, stats=None):
+    """Strict streaming reader with byte locations and optional completeness counters."""
+    path = pathlib.Path(path)
+    stats = stats if stats is not None else {}
+    stats.update(valid=0, blank=0, corrupt=0, truncated_tail=0)
     if not path.exists():
         return
-    with path.open(encoding="utf-8-sig") as f:
-        for number, line in enumerate(f, 1):
-            if not line.strip():
+    with path.open('rb') as f:
+        for number, raw in enumerate(f, 1):
+            offset = f.tell() - len(raw)
+            if not raw.strip() or (number == 1 and raw.strip() == b'\xef\xbb\xbf'):
+                stats['blank'] += 1
                 continue
             try:
+                line = raw.decode('utf-8-sig' if number == 1 else 'utf-8')
                 row = json.loads(line, parse_constant=lambda s: (_ for _ in ()).throw(ValueError(s)))
                 if not isinstance(row, dict):
                     raise ValueError("row is not an object")
-            except (ValueError, TypeError) as exc:
-                raise ValueError(f"invalid JSONL {path.name}:{number}: {exc}") from exc
+            except (UnicodeError, ValueError, TypeError) as exc:
+                # An invalid last unterminated line may be an interrupted append;
+                # it is never repaired or discarded by a reader.
+                kind = 'truncated_tail' if not raw.endswith(b'\n') else 'corrupt'
+                stats[kind] += 1
+                raise RecordFormatError(path, number, offset, kind) from exc
+            stats['valid'] += 1
             yield row
 
 

@@ -25,6 +25,7 @@ import argparse
 from contracts import json_rows, serialized, atomic_json
 from contracts import exclusive, finite, organ_pause_reason
 import local_models
+import news_state
 import hashlib
 import json
 import os
@@ -40,7 +41,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 LIVE = ROOT / "data" / "live"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "news-sorter"
-ORGAN_VERSION = "0.2.0"
+ORGAN_VERSION = "0.2.1"
 OLLAMA = os.environ.get("BEOPS_OLLAMA", "http://127.0.0.1:11434")
 
 CATEGORIES = ["saobracaj", "radovi", "iskljucenja", "javni_prevoz", "vreme_i_vazduh", "voda_i_reke",
@@ -71,7 +72,7 @@ def stamp(dt: datetime) -> str:
 
 
 # ------------------------------------------------------------------ inputs
-def headlines(hours: int = 48) -> list[dict]:
+def headlines(hours: int = 168) -> list[dict]:
     """Text rows from every rows/<sid>/ file, newest window only."""
     since = iso(utcnow() - timedelta(hours=hours))
     out = []
@@ -88,25 +89,30 @@ def headlines(hours: int = 48) -> list[dict]:
                 r = dict(r)
                 r["dedupe_key"] = r.get("row_id") or r.get("dedupe_key")
                 out.append(r)
-    return out
+    # Each retained revision is attempted once per batch; fresh headlines come
+    # first, then the bounded historical backlog. The archive retains all ages.
+    unique = {}
+    for row in sorted(out, key=lambda r: r.get('receivedTime') or '', reverse=True):
+        unique.setdefault(row.get('dedupe_key'), row)
+    return list(unique.values())
 
 
 def done_keys() -> set:
     p = LIVE / "derived" / "news" / "_done.json"
     if p.exists():
         try:
-            return set(json.loads(p.read_text(encoding="utf-8")))
+            value = json.loads(p.read_text(encoding="utf-8"))
+            if not isinstance(value, list) or any(not isinstance(k, str) for k in value):
+                raise ValueError('expected a list of keys')
         except ValueError as exc:
             raise ValueError(f'Invalid completion cache {p}: {exc}') from exc
-    return set()
+    return news_state.completed_keys(LIVE / 'derived/news', CATEGORIES)
 
 
 def save_done(keys: set) -> None:
     p = LIVE / "derived" / "news" / "_done.json"
-    p.parent.mkdir(parents=True, exist_ok=True)
-    tmp = p.with_suffix(".tmp")
-    tmp.write_text(json.dumps(sorted(keys)), encoding="utf-8")
-    os.replace(tmp, p)
+    with exclusive(LIVE / '.write.lock'):
+        atomic_json(p, sorted(keys))
 
 
 # ------------------------------------------------------------------- model
@@ -188,7 +194,8 @@ def ollama_chat(model: str, prompt: str, timeout: int = 600) -> dict:
 # --------------------------------------------------------------------- run
 def derive(batch: list[dict], answer: dict, model: str, prompt_sha: str, now: datetime) -> list[dict]:
     out = []
-    items = [it for it in answer.get("items", []) if isinstance(it, dict)]
+    raw_items = answer.get('items', []) if isinstance(answer, dict) else []
+    items = [it for it in raw_items if isinstance(it, dict)] if isinstance(raw_items, list) else []
     by_i = {}
     for it in items:
         try:
@@ -220,6 +227,9 @@ def derive(batch: list[dict], answer: dict, model: str, prompt_sha: str, now: da
                         "note": "model returned no item for this headline"})
             continue
         cat = it.get("category") if it.get("category") in CATEGORIES else None
+        if cat is None or not isinstance(it.get('belgrade'), bool):
+            base['state'] = 'incomplete'
+            base['note'] = 'model item lacks a valid category or Belgrade decision'
         zones = []
         for z in it.get("zones") or []:
             name = z.get("name") if isinstance(z, dict) else None
@@ -267,20 +277,31 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
         limit = int(os.environ.get("BEOPS_ORGAN_LIMIT", "60"))
     if batch_size is None:
         batch_size = int(os.environ.get("BEOPS_ORGAN_BATCH", "5"))
+    if batch_size < 1 or limit < 0:
+        raise ValueError('batch_size must be positive and limit nonnegative')
     reg = json.loads(ORGANS.read_text(encoding="utf-8"))
     organ = next(o for o in reg["organs"] if o["id"] == ORGAN_ID)
     receipt_path = LIVE / "derived" / "news" / "receipts" / f"{stamp(now)}.json"
     done = done_keys()
     attempts_path = LIVE / "derived/news/attempts.json"
     attempts = json.loads(attempts_path.read_text(encoding="utf-8")) if attempts_path.exists() else {}
-    todo = [r for r in headlines() if r.get("dedupe_key") and r["dedupe_key"] not in done and attempts.get(r["dedupe_key"], 0) < 3][:limit]
+    retry_path = LIVE / 'derived/news/retry.json'
+    retry = json.loads(retry_path.read_text(encoding='utf-8')) if retry_path.exists() else {}
+    pending = [r for r in headlines() if r.get('dedupe_key') and r['dedupe_key'] not in done]
+    eligible = [r for r in pending if attempts.get(r['dedupe_key'], 0) < 3
+                and retry.get(r['dedupe_key'], {}).get('next_attempt_at', '') <= iso(now)]
+    todo = eligible[:limit]
     rec = {"schema": "beops-organ-receipt/v1", "organ": ORGAN_ID, "organ_version": ORGAN_VERSION, "at": iso(now),
            "waiting": len(todo), "state": "nothing_to_do", "derived": 0, "model": None, "calls": 0}
+    rec.update(waiting_total=len(pending), waiting_eligible=len(eligible),
+               incomplete_exhausted=sum(1 for r in pending if attempts.get(r['dedupe_key'], 0) >= 3))
     if organ_pause_reason(organ, LIVE / "derived" / "news"):
         rec.update(state="paused", reason="operator pause or inactive organ")
         publish(receipt_path, rec)
         return rec
     if not todo:
+        if pending:
+            rec['state'] = 'retry_exhausted' if rec['incomplete_exhausted'] == len(pending) else 'waiting_retry'
         publish(receipt_path, rec)
         return rec
     available = tags()
@@ -302,13 +323,22 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
         sha = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
         rec["calls"] += 1
         for row in batch:
-            attempts[row["dedupe_key"]] = attempts.get(row["dedupe_key"], 0) + 1
+            key = row['dedupe_key']
+            attempts[key] = attempts.get(key, 0) + 1
+            retry[key] = {'last_attempt_at': iso(now),
+                          'next_attempt_at': iso(now + timedelta(minutes=5 * 2 ** (attempts[key] - 1))),
+                          'state': 'attempted'}
         with exclusive(LIVE / ".write.lock"):
             atomic_json(attempts_path, attempts)
+            atomic_json(retry_path, retry)
         try:
             answer = chat(model, prompt)
         except Exception as exc:  # noqa: BLE001
             errors.append(f"{type(exc).__name__}: {str(exc)[:160]}")
+            for row in batch:
+                retry[row['dedupe_key']].update(state='failed', reason=type(exc).__name__)
+            with exclusive(LIVE / '.write.lock'):
+                atomic_json(retry_path, retry)
             continue
         rows = derive(batch, answer, model, sha, now)
         with exclusive(LIVE / ".write.lock"):
@@ -316,8 +346,12 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
                 for r in rows:
                     fh.write(json.dumps(r, ensure_ascii=False) + "\n")
         for r in rows:
-            if r.get("state") != "incomplete" and r.get("category") is not None:
+            if news_state.complete(r, CATEGORIES):
                 done.add(r["input_key"])
+            retry[r['input_key']].update(state='completed' if r['input_key'] in done else 'incomplete',
+                                         reason=r.get('note'))
+        with exclusive(LIVE / '.write.lock'):
+            atomic_json(retry_path, retry)
         derived_n += len(rows)
     save_done(done)
     rec["derived"] = derived_n
@@ -329,14 +363,34 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
     return rec
 
 
+@serialized(lambda: LIVE / 'derived/news/.job.lock')
+def reconcile_completion():
+    """Repair only the disposable cache, retaining its previous keys and a receipt."""
+    directory = LIVE / 'derived/news'
+    cache = directory / '_done.json'
+    old = json.loads(cache.read_text(encoding='utf-8')) if cache.exists() else []
+    if not isinstance(old, list) or any(not isinstance(k, str) for k in old):
+        raise ValueError('invalid completion cache; preserve and inspect before reconciliation')
+    with exclusive(LIVE / '.write.lock'):
+        when = utcnow()
+        backup = directory / 'reconciliation' / f'{stamp(when)}-cache-before.json'
+        publish(backup, {'at': iso(when), 'keys': old})
+        result = news_state.reconcile(directory, CATEGORIES, set(old))
+        result.update(at=iso(when), state='reconciled', cache_before=str(backup),
+                      scope='completion only, not independent quality annotation')
+        publish(directory / 'reconciliation' / f'{stamp(when)}-result.json', result)
+        return result
+
+
 def status() -> dict:
     d = LIVE / "derived" / "news"
     receipts = sorted(d.glob("receipts/*.json")) if d.exists() else []
     last = json.loads(receipts[-1].read_text(encoding="utf-8")) if receipts else None
-    waiting = [r for r in headlines() if r.get("dedupe_key") and r["dedupe_key"] not in done_keys()]
+    done = done_keys()
+    waiting = [r for r in headlines() if r.get("dedupe_key") and r["dedupe_key"] not in done]
     tags = ollama_tags()
     return {"organ": ORGAN_ID, "version": ORGAN_VERSION, "model_daemon": OLLAMA,
-            "models_available": tags, "waiting_headlines": len(waiting), "done": len(done_keys()),
+            "models_available": tags, "waiting_headlines": len(waiting), "done": len(done),
             "runs": len(receipts), "last_run": last}
 
 
@@ -350,9 +404,9 @@ def check() -> dict:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["run", "status", "check"])
+    ap.add_argument("command", choices=["run", "status", "check", "reconcile"])
     a = ap.parse_args()
-    fn = {"run": run, "status": status, "check": check}[a.command]
+    fn = {"run": run, "status": status, "check": check, "reconcile": reconcile_completion}[a.command]
     print(json.dumps(fn(), ensure_ascii=False, indent=1))
     return 0
 

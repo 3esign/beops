@@ -29,6 +29,7 @@ Everything it does is appended to data/live/guard-ledger.jsonl. ASCII output onl
 from __future__ import annotations
 
 import json
+from contracts import json_rows
 from permission_policy import MAX_AGE_HOURS
 import pathlib
 import re
@@ -97,46 +98,48 @@ def sh(args: list[str]) -> str:
 
 
 def task_state(name: str) -> dict:
-    """Read one task through schtasks. A task we cannot read is unknown, never ok."""
-    out = sh(["schtasks", "/query", "/tn", name, "/fo", "LIST", "/v"])
-    if not out.strip() or "ERROR" in out[:6]:
-        return {"task": name, "state": UNKNOWN, "why": "cannot be read"}
-    f = {}
-    for line in out.splitlines():
-        if ":" in line:
-            k, _, v = line.partition(":")
-            f.setdefault(k.strip().lower(), v.strip())
-    status = f.get("status", "")
-    scheduled = f.get("scheduled task state", "")
-    last = f.get("last run time", "")
-    result = f.get("last result", "")
-    d = {"task": name, "status": status, "scheduled": scheduled, "last_run": last, "last_result": result}
-    if scheduled.lower() == "disabled" or status.lower() == "disabled":
-        d.update(state=WARN, why="disabled", fix="disabled")
-        return d
-    age = None
-    for fmt in ("%m/%d/%Y %I:%M:%S %p", "%d.%m.%Y. %H:%M:%S", "%d/%m/%Y %H:%M:%S", "%Y-%m-%d %H:%M:%S"):
-        try:
-            age = (datetime.now() - datetime.strptime(last, fmt)).total_seconds() / 3600.0
-            break
-        except ValueError:
-            continue
-    d["hours_since_last_run"] = None if age is None else round(age, 2)
+    """Read scheduler fields as JSON, independent of the Windows display language."""
+    if name not in MAX_SILENCE_H:
+        return {'task': name, 'state': UNKNOWN, 'why': 'unknown BEOPS task'}
+    script = ("$ErrorActionPreference='Stop'; [Console]::OutputEncoding=[Text.UTF8Encoding]::new(); "
+              "$t=Get-ScheduledTask -TaskName '" + name + "'; "
+              "$i=Get-ScheduledTaskInfo -TaskName '" + name + "'; "
+              "[pscustomobject]@{status=[int]$t.State;enabled=[bool]$t.Settings.Enabled;"
+              "last_run=$i.LastRunTime.ToUniversalTime().ToString('o');"
+              "last_result=[long]$i.LastTaskResult} | ConvertTo-Json -Compress")
+    out = sh(['powershell.exe', '-NoProfile', '-Command', script])
     try:
-        code = int(result, 0) if result.lower().startswith("0x") else int(result)
-    except ValueError:
-        code = None
-    if code not in (0, 267009) and code is not None:
-        d.update(state=WARN, why=f"last execution failed with result {result}")
-        return d
-    if age is None:
-        d.update(state=UNKNOWN, why="last run time could not be read: " + last)
-    elif age > MAX_SILENCE_H.get(name, 1.0) * 3:
-        d.update(state=WARN, why=f"has not run for {age:.1f} h", fix="not running")
-    elif age > MAX_SILENCE_H.get(name, 1.0):
-        d.update(state=WARN, why=f"late by {age:.1f} h")
+        fields = json.loads(out)
+        if not isinstance(fields, dict) or not isinstance(fields.get('enabled'), bool):
+            raise ValueError('missing scheduler fields')
+        status, code = fields['status'], fields['last_result']
+        if type(status) is not int or type(code) is not int:
+            raise ValueError('invalid scheduler numeric fields')
+        last = parse_iso(fields.get('last_run'))
+        if last is None or last.tzinfo is None:
+            raise ValueError('invalid scheduler clock')
+    except (ValueError, KeyError, TypeError):
+        return {'task': name, 'state': UNKNOWN, 'why': 'structured scheduler observation unavailable'}
+    age = (now() - last).total_seconds() / 3600.0
+    d = {'task': name, 'status': {3:'Ready',4:'Running',1:'Disabled'}.get(status, str(status)),
+         'scheduled': 'Enabled' if fields['enabled'] else 'Disabled',
+         'last_run': fields['last_run'], 'last_result': code, 'hours_since_last_run': round(age, 2)}
+    if not fields['enabled'] or status == 1:
+        d.update(state=WARN, why='disabled', fix='disabled')
+    elif status == 4:
+        d.update(state=OK, why='scheduler reports running; artefact checks determine the outcome')
+    elif code == 267011:
+        d.update(state=UNKNOWN, why='task has not yet run')
+    elif code != 0:
+        d.update(state=WARN, why=f'last execution failed with result {code}')
+    elif age < -0.05:
+        d.update(state=UNKNOWN, why='scheduler clock is in the future')
+    elif age > MAX_SILENCE_H[name] * 3:
+        d.update(state=WARN, why=f'has not run for {age:.1f} h', fix='not running')
+    elif age > MAX_SILENCE_H[name]:
+        d.update(state=WARN, why=f'late by {age:.1f} h')
     else:
-        d.update(state=OK, why=f"ran {age:.2f} h ago")
+        d.update(state=OK, why=f'ran {age:.2f} h ago with result 0; artefact checks determine success')
     return d
 
 
@@ -172,16 +175,11 @@ def permission_invariants() -> list[dict]:
     led = set()
     p = RESEARCH / "08-provenance" / "LEDGER.jsonl"
     try:
-        for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
-            if line.strip():
-                try:
-                    r = json.loads(line)
-                except ValueError:
-                    continue
-                if r.get("sid"):
-                    led.add(r["sid"])
-    except OSError:
-        out.append({"check": "permission evidence", "state": UNKNOWN, "why": "ledger unreadable"})
+        for r in json_rows(p):
+            if r.get('sid'):
+                led.add(r['sid'])
+    except (OSError, ValueError) as exc:
+        out.append({"check": "permission evidence", "state": UNKNOWN, "why": f"ledger unreadable: {exc}"})
         led = None
     if led is not None:
         missing = sorted(polled - led)
@@ -394,7 +392,11 @@ def publish_gate() -> list[dict]:
         out.append({"check": "the publish is gated", "state": OK,
                     "why": "last publish ran the suite and it passed (%s)" % (r.get("tests") or "no summary")})
     else:
-        start_dt = publish_failure_started_at(at_dt)
+        try:
+            start_dt = publish_failure_started_at(at_dt)
+        except (OSError, ValueError) as exc:
+            out.append({'check': 'publish failure history', 'state': UNKNOWN, 'why': str(exc)})
+            start_dt = None
         fail_h = None if start_dt is None else (now_dt - start_dt).total_seconds() / 3600.0
         state = STOP if (fail_h is not None and fail_h >= 0.5) else WARN
         out.append({"check": "the publish is gated", "state": state,
@@ -437,18 +439,7 @@ def publish_failure_started_at(current_receipt_at: datetime | None) -> datetime 
         return None
     started = current_receipt_at
     p = LIVE / "guard-ledger.jsonl"
-    try:
-        lines = p.read_text(encoding="utf-8", errors="replace").splitlines()
-    except OSError:
-        return started
-    for line in reversed(lines):
-        line = line.strip()
-        if not line.startswith("{"):
-            continue
-        try:
-            row = json.loads(line)
-        except ValueError:
-            continue
+    for row in reversed(list(json_rows(p))):
         check = None
         for item in row.get("lawful", []):
             if item.get("check") == "the publish is gated":
@@ -485,28 +476,20 @@ def predictions() -> list[dict]:
         return []
     open_late, n = [], 0
     try:
-        with open(p, encoding="utf-8", errors="replace") as fh:
-            for line in fh:
-                line = line.strip()
-                if not line.startswith("{"):
-                    continue
-                try:
-                    r = json.loads(line)
-                except ValueError:
-                    continue
-                n += 1
-                if r.get("outcome") is not None:
-                    continue
-                try:
-                    due = datetime.fromisoformat(str(r.get("due")).replace("Z", "+00:00"))
-                except ValueError:
-                    continue
-                late_h = (now() - due).total_seconds() / 3600.0
-                if late_h > CLAIM_GRACE_H:
-                    open_late.append("%s due %s (%.1f h ago)" % (r.get("entity"), r.get("due"), late_h))
-    except OSError as e:                                     # noqa: BLE001
+        for r in json_rows(p):
+            n += 1
+            if r.get("outcome") is not None:
+                continue
+            try:
+                due = datetime.fromisoformat(str(r.get("due")).replace("Z", "+00:00"))
+            except ValueError as exc:
+                raise ValueError('claim has no valid due time') from exc
+            late_h = (now() - due).total_seconds() / 3600.0
+            if late_h > CLAIM_GRACE_H:
+                open_late.append("%s due %s (%.1f h ago)" % (r.get("entity"), r.get("due"), late_h))
+    except (OSError, ValueError, TypeError) as e:
         return [{"check": "no prediction was left unscored", "state": UNKNOWN,
-                 "why": "the claims register could not be read: %s" % type(e).__name__}]
+                 "why": "the claims register could not be read: %s" % e}]
     if not n:
         return []
     return [{"check": "no prediction was left unscored",

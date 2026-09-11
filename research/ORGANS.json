@@ -5,10 +5,10 @@
   "organs": [
     {
       "id": "news-sorter",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "tool": "tools/organ_news.py",
       "purpose": "Sort headlines the collector received into a fixed topic list, say whether they concern Belgrade, and propose up to three candidate zones from the project's gazetteer, keeping every candidate with its score.",
-      "inputs": "headline (<=200 chars), link, publication time - never the article body (07-legal)",
+      "inputs": "complete retained headline, link, publication time; seven-day processing window, all ages retained in the archive; never the article body (07-legal)",
       "outputs": "data/live/derived/news/<YYYY-MM>.jsonl - rows of state 'estimated' with category, belgrade, zones[], event_time_text, model, prompt_sha256",
       "runs_where": "on the PC body only (local model daemon at 127.0.0.1:11434); no headline leaves the machine",
       "models_preferred": [

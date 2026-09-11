@@ -36,7 +36,7 @@ DOCS = ROOT / "docs"
 def read_json(p: pathlib.Path, default=None):
     try:
         return json.loads(p.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+    except FileNotFoundError:
         return default
 
 def registry() -> dict:

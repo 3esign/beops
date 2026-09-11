@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from contracts import json_rows
 import pathlib
 import subprocess
 from datetime import datetime, timedelta, timezone
@@ -96,19 +97,12 @@ def newest_row(sid: str):
     newest = None
     for f in sorted(d.glob("*.jsonl")):
         try:
-            lines = f.read_text(encoding="utf-8", errors="replace").splitlines()
+            for row in json_rows(f):
+                t = parse(row.get('receivedTime'))
+                if t and (newest is None or t > newest):
+                    newest = t
         except Exception as e:                                    # noqa: BLE001
-            return None, f"unreadable rows: {type(e).__name__}"
-        for line in reversed(lines[-400:]):
-            if not line.strip():
-                continue
-            try:
-                t = parse(json.loads(line).get("receivedTime"))
-            except ValueError:
-                continue
-            if t and (newest is None or t > newest):
-                newest = t
-            break
+            return None, f"unreadable rows: {e}"
     return (newest, None) if newest else (None, "no dated row")
 
 
@@ -212,18 +206,12 @@ def mind(now: datetime) -> dict:
     newest = None
     try:
         for f in sorted(d.glob("*.jsonl")):
-            for line in reversed(f.read_text(encoding="utf-8", errors="replace").splitlines()[-200:]):
-                if not line.strip():
-                    continue
-                try:
-                    t = parse(json.loads(line).get("derivedTime") or json.loads(line).get("at"))
-                except ValueError:
-                    continue
+            for row in json_rows(f):
+                t = parse(row.get('derivedTime') or row.get('at'))
                 if t and (newest is None or t > newest):
                     newest = t
-                break
     except Exception as e:                                        # noqa: BLE001
-        return check("mind", UNKNOWN, f"the drops could not be read ({type(e).__name__})")
+        return check("mind", UNKNOWN, f"the drops could not be read ({e})")
     if newest is None:
         return check("mind", UNKNOWN, "no dated drop")
     age = mins(now, newest)
@@ -236,14 +224,10 @@ def continuity(now: datetime) -> tuple[dict, dict | None]:
     prev = None
     if LEDGER.exists():
         try:
-            for line in LEDGER.read_text(encoding="utf-8", errors="replace").splitlines():
-                if line.strip():
-                    try:
-                        prev = json.loads(line)
-                    except ValueError:
-                        continue
-        except Exception:                                         # noqa: BLE001
-            prev = None
+            for row in json_rows(LEDGER):
+                prev = row
+        except (OSError, ValueError) as exc:
+            return check('watchman', UNKNOWN, f'prior ledger unreadable: {exc}'), None
     if prev is None:
         return check("watchman", UNKNOWN, "no earlier reading - this is the first, and it vouches for nothing before it"), None
     t = parse(prev.get("at"))

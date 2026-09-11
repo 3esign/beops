@@ -1606,11 +1606,7 @@ def voice_bench(model_names: list[str], n: int = 8) -> dict:
     rows = []
     for f in sorted(OUT_DIR.glob("*.jsonl")):
         if f.name[:4].isdigit():
-            for line in f.read_text(encoding="utf-8").splitlines():
-                try:
-                    r = json.loads(line)
-                except ValueError:
-                    continue
+            for r in json_rows(f):
                 if r.get("state") == "thought" and r.get("en"):
                     rows.append(r)
     rows = rows[-n:]

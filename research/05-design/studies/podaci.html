@@ -424,7 +424,7 @@ function renderHist(){
     'History starts '+HIST.history_starts+'Z and spans '+have+' h. In the window shown, '+withData+' of '+shown+' hours had any reception'+(peak?'; the highest hour is '+peak.h+'Z at '+peak.max.toFixed(1)+' '+unit:'')+'. Values are as the source published them, preliminary, and a mean here is the mean of what arrived in that hour, not of the hour.');
 }
 
-function renderAll(){ document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); if(!SNAP) return; const ck=document.getElementById('clock');ck.textContent=S('prozor','window')+' '+SNAP.window_hours+' h · '+SNAP.as_of.slice(0,16).replace('T',' ')+' UTC';ck.setAttribute('data-ago',SNAP.as_of); paintAges(); renderSepa(); drawMap(); renderHist(); renderSC(); renderParking(); renderNews(); renderMind(); }
+function renderAll(){ document.documentElement.lang=LANG; document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); if(!SNAP) return; const ck=document.getElementById('clock');ck.textContent=S('prozor','window')+' '+SNAP.window_hours+' h · '+SNAP.as_of.slice(0,16).replace('T',' ')+' UTC';ck.setAttribute('data-ago',SNAP.as_of); paintAges(); renderSepa(); drawMap(); renderHist(); renderSC(); renderParking(); renderNews(); renderMind(); }
 document.getElementById('lang').addEventListener('click',()=>{LANG=LANG==='sr'?'en':'sr'; renderAll();});
 
 setInterval(()=>{if(!beopsVisible())return;Promise.all([load('live-snapshot.json'),load('history.json')]).then(([s,h])=>{if(s){SNAP=s;if(h)HIST=h;renderAll();}});},60000);

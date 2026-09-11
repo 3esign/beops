@@ -12,6 +12,9 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
+import time
+import zipfile
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from contracts import atomic_json, exclusive
 
@@ -22,6 +25,117 @@ def git(root, *args):
         env.pop(name, None)
     return subprocess.run(['git', '-C', str(root), *args], env=env, check=True,
         capture_output=True, text=True, encoding='utf-8', timeout=120).stdout.strip()
+
+
+def capture_inputs(source, dest):
+    """Bound RAM with one temporary spool, then write destination files unlocked."""
+    with tempfile.TemporaryFile() as spool:
+        return _capture_inputs(source, dest, spool)
+
+
+def _capture_inputs(source, dest, spool):
+    """Hold writer locks while spooling mutable bytes, not while writing many copies.
+
+    Immutable evidence and receipts use a frozen path/stat inventory. Their bytes
+    are copied after release and any intervening modification refuses the release.
+    Mutable streams/caches enter one temporary container in 1 MiB chunks under
+    the shared locks. Extraction and immutable copying happen after unlocking.
+    """
+    source, dest = pathlib.Path(source).resolve(), pathlib.Path(dest).resolve()
+    immutable, inputs = [], []
+    captured = set()
+    cap = int(os.environ.get('BEOPS_CAPTURE_LIMIT_MB', '2048')) * 1024 * 1024
+    total = 0
+
+    def identity(path):
+        rel = path.relative_to(source)
+        if (path.is_symlink() or not path.resolve().is_relative_to(source)
+                or any(x.lower().startswith(('.env', 'secrets.', 'kaggle.')) for x in rel.parts)):
+            raise ValueError('unsafe release input path')
+        st = path.stat()
+        return rel, (st.st_size, st.st_mtime_ns)
+
+    def verify(path, expected):
+        rel, before = identity(path)
+        if before != expected:
+            raise RuntimeError('input changed after capture: ' + rel.as_posix())
+
+    def collect(path, frozen_bytes):
+        nonlocal total
+        if path.suffix in ('.lock', '.tmp') or path in captured:
+            return
+        captured.add(path)
+        rel, stat = identity(path)
+        if frozen_bytes:
+            total += stat[0]
+            if total > cap:
+                raise RuntimeError('mutable release input exceeds capture size limit; no release produced')
+            with path.open('rb') as src, archive.open(rel.as_posix(), 'w') as member:
+                shutil.copyfileobj(src, member, 1024 * 1024)
+            verify(path, stat)
+        else:
+            immutable.append((path, rel, stat))
+
+    with zipfile.ZipFile(spool, 'w', compression=zipfile.ZIP_STORED) as archive, exclusive(source/'research/08-provenance/LEDGER.lock'):
+        for folder in ('research/evidence', 'data/live/receipts'):
+            directory = source / folder
+            for path in sorted(directory.rglob('*')) if directory.exists() else []:
+                if path.is_file():
+                    collect(path, False)
+        with exclusive(source/'data/live/.write.lock'):
+            started = time.monotonic()
+            # Refresh only new immutable receipts after the writer boundary.
+            for path in sorted((source/'data/live/receipts').glob('*/*.json')):
+                if path not in captured:
+                    collect(path, False)
+            for folder in ('research/observations', 'data/live/rows', 'data/live/derived'):
+                directory = source / folder
+                for path in sorted(directory.rglob('*')) if directory.exists() else []:
+                    if path.is_file():
+                        collect(path, True)
+            for rel in ('research/08-provenance/LEDGER.jsonl', 'data/ca-bundle-windows.pem',
+                        'data/live/corrections.jsonl', 'data/live/retention-ledger.jsonl',
+                        'data/live/guard-ledger.jsonl', 'data/live/publish-receipt.json'):
+                if (source/rel).is_file():
+                    collect(source/rel, True)
+            shape = dest/'research/RECORD_SHAPE.json'
+            if shape.exists():
+                names = json.loads(shape.read_text(encoding='utf-8')).get('files_directly_in_data_live', {}).get('files', {})
+                for name in names:
+                    if pathlib.Path(name).name == name and (source/'data/live'/name).is_file():
+                        collect(source/'data/live'/name, True)
+            captured_at = datetime.now(timezone.utc).isoformat()
+            lock_seconds = round(time.monotonic() - started, 3)
+
+    def write(rel, stream):
+        target = dest / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        digest, size = hashlib.sha256(), 0
+        with target.open('wb') as out:
+            for block in iter(lambda: stream.read(1024 * 1024), b''):
+                out.write(block)
+                digest.update(block)
+                size += len(block)
+        return {'path': rel.as_posix(), 'bytes': size, 'sha256': digest.hexdigest()}
+
+    spool.seek(0)
+    with zipfile.ZipFile(spool) as archive:
+        for name in archive.namelist():
+            with archive.open(name) as stream:
+                inputs.append(write(pathlib.PurePosixPath(name), stream))
+    def copy_immutable(entry):
+        path, rel, stat = entry
+        verify(path, stat)
+        with path.open('rb') as stream:
+            result = write(rel, stream)
+        verify(path, stat)
+        return result
+    # These files share no output path. Bounded parallel I/O avoids spending an
+    # entire publish cadence waiting for thousands of individual file operations.
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        inputs.extend(pool.map(copy_immutable, immutable))
+    inputs.sort(key=lambda r: r['path'])
+    return inputs, captured_at, lock_seconds
 
 
 def prepare(source, destination, oid=None):
@@ -50,42 +164,11 @@ def prepare(source, destination, oid=None):
                 raise ValueError('release archive contains a link or device')
         tar.extractall(dest, filter='data')
     archive.unlink()  # our own temporary archive
-    inputs = []
-    def copy_input(path):
-        rel = path.relative_to(source)
-        if path.is_symlink() or any(x.lower() in ('.env', 'secrets.json', 'kaggle.json') for x in rel.parts):
-            raise ValueError('unsafe release input path')
-        before = path.stat()
-        data = path.read_bytes()
-        after = path.stat()
-        if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
-            raise RuntimeError('input changed during capture: ' + rel.as_posix())
-        target = dest / rel
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(data)
-        inputs.append({'path':rel.as_posix(), 'bytes':len(data), 'sha256':hashlib.sha256(data).hexdigest()})
-    with exclusive(source/'research/08-provenance/LEDGER.lock'), exclusive(source/'data/live/.write.lock'):
-        for folder in ('research/evidence', 'research/observations', 'data/live/rows', 'data/live/derived', 'data/live/receipts'):
-            directory = source / folder
-            for path in sorted(directory.rglob('*')) if directory.exists() else []:
-                if path.is_file() and path.suffix not in ('.lock', '.tmp'):
-                    copy_input(path)
-        for rel in ('research/08-provenance/LEDGER.jsonl', 'data/ca-bundle-windows.pem',
-                    'data/live/corrections.jsonl', 'data/live/retention-ledger.jsonl', 'data/live/guard-ledger.jsonl', 'data/live/publish-receipt.json'):
-            if (source/rel).is_file(): copy_input(source/rel)
-        shape = dest/'research/RECORD_SHAPE.json'
-        if shape.exists():
-            names=json.loads(shape.read_text(encoding='utf-8')).get('files_directly_in_data_live',{}).get('files',{})
-            copied={item['path'] for item in inputs}
-            for name in names:
-                if pathlib.Path(name).name!=name or name.endswith(('.lock','.tmp')):
-                    continue
-                path=source/'data/live'/name
-                if path.is_file() and path.relative_to(source).as_posix() not in copied:copy_input(path)
+    inputs, captured_at, lock_seconds = capture_inputs(source, dest)
     manifest = {'schema':'beops-release-inputs/v1','source_oid':oid,'source_tree':tree,
-        'captured_at':datetime.now(timezone.utc).isoformat(), 'files':inputs}
+        'captured_at':captured_at, 'writer_lock_seconds':lock_seconds, 'files':inputs}
     atomic_json(dest/'runtime/release-inputs.json',manifest)
-    return {'workspace':str(dest),'source_oid':oid,'source_tree':tree,'input_files':len(inputs)}
+    return {'workspace':str(dest),'source_oid':oid,'source_tree':tree,'input_files':len(inputs), 'writer_lock_seconds':lock_seconds}
 
 
 if __name__=='__main__':

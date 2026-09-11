@@ -30,6 +30,10 @@
    "estimated": "the news organ's own classification of a headline - the ONE value that appears in both vocabularies, and it is the epistemic one: a category this record computed rather than received",
    "derived": "an organ tick that produced something. It is written on the TICK RECEIPT rather than on a row, and it travels into the published snapshot, where it was being allowed by a hard-coded exception in the test instead of being declared here.",
    "nothing_to_do": "an organ tick that found nothing to work on. Not a fault and not a silence: there was no work, and the receipt says so rather than saying nothing.",
+   "incomplete": "the model omitted a headline or a required classification field; retained as an incomplete attempt and never marked completed",
+   "waiting_retry": "unfinished headlines exist but their backoff or batch limit defers this attempt",
+   "retry_exhausted": "unfinished headlines reached the three-attempt limit; they remain visible and incomplete rather than being silently marked completed",
+   "reconciled": "a disposable completion cache was rebuilt from retained classification records; the prior keys and reconciliation result were retained",
    "paused": "an organ deliberately paused by a PAUSED file. A silence somebody chose, which is why it must never read as a silence somebody failed to notice.",
    "failed": "the call raised - the same event `organ_failed` names, written by the voice benchmark under a shorter name. Four rows from 2026-09-09 carry it. It is DECLARED rather than corrected because a row is never edited: the record contains this value, so the vocabulary has to contain it too. New code should write `organ_failed`."
   }
