@@ -41,7 +41,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 LIVE = ROOT / "data" / "live"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "news-sorter"
-ORGAN_VERSION = "0.2.1"
+ORGAN_VERSION = "0.2.2"
 OLLAMA = os.environ.get("BEOPS_OLLAMA", "http://127.0.0.1:11434")
 
 CATEGORIES = ["saobracaj", "radovi", "iskljucenja", "javni_prevoz", "vreme_i_vazduh", "voda_i_reke",
@@ -154,6 +154,8 @@ def ollama_tags(timeout: int = 5) -> list[str] | None:
     try:
         doc = local_models.request(OLLAMA, "/api/tags", timeout=timeout)
         return [m["name"] for m in doc.get("models", []) if not m.get("remote_host") and not m.get("remote_model")]
+    except local_models.ModelDeferred:
+        raise
     except Exception:  # noqa: BLE001 - silence is a state
         return None
 
@@ -304,7 +306,12 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
             rec['state'] = 'retry_exhausted' if rec['incomplete_exhausted'] == len(pending) else 'waiting_retry'
         publish(receipt_path, rec)
         return rec
-    available = tags()
+    try:
+        available = tags()
+    except local_models.ModelDeferred as exc:
+        rec.update(state='waiting_model', reason=str(exc))
+        publish(receipt_path, rec)
+        return rec
     model = pick_model(available or [], organ["models_preferred"], bool(organ.get("allow_cloud"))) if available else None
     if not model:
         rec["state"] = "organ_silent"
@@ -317,6 +324,7 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
     out_path.parent.mkdir(parents=True, exist_ok=True)
     derived_n = 0
     errors = []
+    deferred = None
     for k in range(0, len(todo), batch_size):
         batch = todo[k:k + batch_size]
         prompt = prompt_for(batch)
@@ -333,6 +341,22 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
             atomic_json(retry_path, retry)
         try:
             answer = chat(model, prompt)
+        except local_models.ModelDeferred as exc:
+            # Capacity waiting is not a classification attempt. Undo the durable
+            # reservation, keep a visible backoff, and leave the remaining batch.
+            rec['calls'] -= 1
+            deferred = str(exc)
+            for row in batch:
+                key = row['dedupe_key']
+                attempts[key] -= 1
+                if attempts[key] == 0:
+                    del attempts[key]
+                retry[key] = {'deferred_at': iso(now), 'state': 'waiting_model',
+                              'next_attempt_at': iso(now + timedelta(minutes=5)), 'reason': deferred}
+            with exclusive(LIVE / '.write.lock', timeout=120):
+                atomic_json(attempts_path, attempts)
+                atomic_json(retry_path, retry)
+            break
         except Exception as exc:  # noqa: BLE001
             errors.append(f"{type(exc).__name__}: {str(exc)[:160]}")
             for row in batch:
@@ -357,7 +381,9 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
     rec["derived"] = derived_n
     rec["errors"] = errors
     rec["incomplete_exhausted"] = sum(1 for key, count in attempts.items() if count >= 3 and key not in done)
-    rec["state"] = "derived" if derived_n else ("organ_failed" if errors else "nothing_to_do")
+    rec["state"] = "derived" if derived_n else ('waiting_model' if deferred else ("organ_failed" if errors else "nothing_to_do"))
+    if deferred:
+        rec['reason'] = deferred
     rec["output"] = str(out_path)
     publish(receipt_path, rec)
     return rec
@@ -388,10 +414,14 @@ def status() -> dict:
     last = json.loads(receipts[-1].read_text(encoding="utf-8")) if receipts else None
     done = done_keys()
     waiting = [r for r in headlines() if r.get("dedupe_key") and r["dedupe_key"] not in done]
-    tags = ollama_tags()
+    model_waiting = None
+    try:
+        tags = ollama_tags()
+    except local_models.ModelDeferred as exc:
+        tags, model_waiting = None, str(exc)
     return {"organ": ORGAN_ID, "version": ORGAN_VERSION, "model_daemon": OLLAMA,
             "models_available": tags, "waiting_headlines": len(waiting), "done": len(done),
-            "runs": len(receipts), "last_run": last}
+            "runs": len(receipts), "last_run": last, "model_waiting": model_waiting}
 
 
 def check() -> dict:

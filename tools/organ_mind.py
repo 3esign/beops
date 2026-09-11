@@ -1643,8 +1643,7 @@ def main() -> int:
         # Publication builds in isolation. Model input must therefore refresh
         # independently from the current canonical record on every CLI run.
         from collect_daemon import export
-        with exclusive(LIVE / '.write.lock'):
-            export()
+        export()
     if cmd == "run":
         print(json.dumps(run(), ensure_ascii=False, indent=1))
     elif cmd == "step":

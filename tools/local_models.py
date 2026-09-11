@@ -15,6 +15,20 @@ _job = threading.local()
 LOCK = pathlib.Path(os.environ.get("BEOPS_MODEL_LOCK", "C:/Svemir/data/locks/beops-model.lock"))
 
 
+class ModelDeferred(TimeoutError):
+    """No inference request was sent: wait for capacity without spending a retry."""
+
+
+@contextlib.contextmanager
+def model_slot(timeout):
+    with contextlib.ExitStack() as stack:
+        try:
+            stack.enter_context(exclusive(LOCK, timeout=timeout))
+        except TimeoutError as exc:
+            raise ModelDeferred('local model capacity is busy') from exc
+        yield
+
+
 def endpoint(base):
     p = urlsplit(base)
     local = p.hostname == "localhost"
@@ -36,7 +50,15 @@ def request(base, path, payload=None, timeout=60, verify_model=True):
     base = endpoint(base)
     remaining = getattr(_job, "deadline", time.monotonic() + timeout) - time.monotonic()
     if remaining <= 0:
-        raise TimeoutError("model job deadline reached")
+        raise ModelDeferred("model job deadline reached before request")
+    with model_slot(min(30, max(0, remaining))):
+        return _request_locked(base, path, payload, timeout, verify_model)
+
+
+def _request_locked(base, path, payload, timeout, verify_model):
+    remaining = getattr(_job, "deadline", time.monotonic() + timeout) - time.monotonic()
+    if remaining <= 0:
+        raise ModelDeferred("model job deadline reached before request")
     if payload and payload.get("model") and verify_model:
         model = payload["model"]
         if "cloud" in model.lower():
@@ -47,15 +69,14 @@ def request(base, path, payload=None, timeout=60, verify_model=True):
     data = json.dumps(payload).encode() if payload is not None else None
     req = urllib.request.Request(base + path, data=data, headers={"Content-Type": "application/json"})
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
-    with exclusive(LOCK, timeout=min(30, max(0, remaining))):
-        remaining = getattr(_job, "deadline", time.monotonic() + timeout) - time.monotonic()
-        if remaining <= 0:
-            raise TimeoutError("model job deadline reached")
-        with opener.open(req, timeout=min(timeout, remaining)) as response:
-            body = response.read(8 * 1024 * 1024 + 1)
-            if len(body) > 8 * 1024 * 1024:
-                raise ValueError("model response too large")
-            return json.loads(body)
+    remaining = getattr(_job, "deadline", time.monotonic() + timeout) - time.monotonic()
+    if remaining <= 0:
+        raise ModelDeferred("model job deadline reached before request")
+    with opener.open(req, timeout=min(timeout, remaining)) as response:
+        body = response.read(8 * 1024 * 1024 + 1)
+        if len(body) > 8 * 1024 * 1024:
+            raise ValueError("model response too large")
+        return json.loads(body)
 
 
 def budget(seconds):

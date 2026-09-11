@@ -18,6 +18,9 @@ import guard as G
 import build_site as S
 import prepare_release as P
 import concurrent.futures
+import contextlib
+import local_models as LM
+from live_view import observation_view
 from test_collect_daemon import RHMZ_HTML, GAUGE_HTML
 
 NOW = datetime(2026, 9, 11, 13, tzinfo=timezone.utc)
@@ -111,6 +114,24 @@ class Corruption(unittest.TestCase):
 
 
 class NewsCompletion(unittest.TestCase):
+    def test_capacity_deferral_preserves_attempt_budget_and_defers_the_batch(self):
+        with tempfile.TemporaryDirectory() as td:
+            live = pathlib.Path(td)
+            organs = live / 'organs.json'
+            organs.write_text(json.dumps({'organs':[{'id':'news-sorter', 'models_preferred':['fixture:local']}]}))
+            rows = [dict(sid='S1', result='Naslov', dedupe_key='a')]
+            def busy(*args):
+                raise LM.ModelDeferred('busy fixture')
+            with patch.object(N, 'LIVE', live), patch.object(N, 'ORGANS', organs), patch.object(N, 'headlines', return_value=rows):
+                rec = N.run(NOW, chat=busy, tags=lambda: ['fixture:local'])
+                self.assertEqual((rec['state'], rec['calls']), ('waiting_model', 0))
+                self.assertEqual(C.json_object(live/'derived/news/attempts.json'), {})
+                self.assertEqual(N.done_keys(), set())
+                rec = N.run(NOW + timedelta(minutes=1), chat=lambda *a: self.fail('ignored backoff'))
+                self.assertEqual(rec['state'], 'waiting_retry')
+                rec = N.run(NOW + timedelta(minutes=6), chat=lambda *a: {'items':[]}, tags=lambda: ['fixture:local'])
+                self.assertEqual(C.json_object(live/'derived/news/attempts.json'), {'a':1})
+
     def test_reconcile_drops_phantom_completion_and_recovers_interrupted_cache_write(self):
         with tempfile.TemporaryDirectory() as td:
             directory = pathlib.Path(td)
@@ -171,7 +192,67 @@ class SchedulerObservation(unittest.TestCase):
         with patch.object(G, 'sh', side_effect=AssertionError('must not enable a disabled task')):
             self.assertIn('explicit operator resume', G.repair('Beops_Collect', 'disabled'))
         with patch.object(G, 'sh', return_value='ERROR exit 1'), patch.object(G, 'task_state', side_effect=AssertionError('failed run')):
-            self.assertIn('start failed', G.repair('Beops_Collect', 'not running'))
+                self.assertIn('start failed', G.repair('Beops_Collect', 'not running'))
+
+
+class ModelCapacity(unittest.TestCase):
+    def test_waiting_for_lock_never_sends_request_and_transport_timeout_is_not_deferral(self):
+        @contextlib.contextmanager
+        def busy(*a, **kw):
+            raise TimeoutError('resource busy')
+            yield
+        with patch.object(LM, 'exclusive', busy), patch.object(LM.urllib.request, 'build_opener') as opener:
+            with self.assertRaises(LM.ModelDeferred):
+                LM.request('http://127.0.0.1:11434', '/api/tags')
+            opener.assert_not_called()
+        with tempfile.TemporaryDirectory() as td, patch.object(LM, 'LOCK', pathlib.Path(td)/'model.lock'), patch.object(LM.urllib.request, 'build_opener') as opener:
+            opener.return_value.open.side_effect = TimeoutError('transport timed out')
+            with self.assertRaises(TimeoutError) as failure:
+                LM.request('http://127.0.0.1:11434', '/api/tags')
+            self.assertNotIsInstance(failure.exception, LM.ModelDeferred)
+
+    def test_receipt_reading_and_rendering_do_not_hold_live_writer_lock(self):
+        with tempfile.TemporaryDirectory() as td:
+            live = pathlib.Path(td)/'live'
+            path = live/'rows/S1/2026-09.jsonl'
+            path.parent.mkdir(parents=True)
+            before = b'{"sid":"S1","kind":"text","result":"Sacuvan naslov","receivedTime":"2026-09-11T13:00:00Z"}\n'
+            path.write_bytes(before)
+            metrics = {}
+            with observation_view(live, metrics) as frozen:
+                def writer():
+                    with C.exclusive(live/'.write.lock', timeout=.05):
+                        path.write_bytes(before + b'{"new":true}\n')
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                    pool.submit(writer).result()
+                self.assertEqual((frozen/'rows/S1/2026-09.jsonl').read_bytes(), before)
+                def status(*a):
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                        pool.submit(writer).result()
+                    return {'sources':[]}
+                with patch.object(D, 'LIVE', live), patch.object(D, 'ROOT', pathlib.Path(td)), patch.object(D, 'load_config', return_value={'sources':[{'sid':'S1','name':'Fixture','cadence_seconds':60}]}), patch.object(D, 'status', side_effect=status):
+                    result = C.json_object(D._export_captured(NOW, 24, frozen))
+                self.assertEqual(result['sources'][0]['events'][0]['title'], 'Sacuvan naslov')
+            self.assertEqual(metrics['bytes'], len(before))
+
+    def test_metadata_and_inference_share_one_model_slot(self):
+        calls = []
+        class Response:
+            def __enter__(self): return self
+            def __exit__(self, *a): pass
+            def read(self, size): return b'{}'
+        with tempfile.TemporaryDirectory() as td, patch.object(LM, 'LOCK', pathlib.Path(td)/'model.lock'), patch.object(LM.urllib.request, 'build_opener') as opener:
+            def send(req, **kw):
+                calls.append(req.full_url)
+                def competing_writer():
+                    with C.exclusive(LM.LOCK, timeout=.02):
+                        return True
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                    with self.assertRaises(TimeoutError): pool.submit(competing_writer).result()
+                return Response()
+            opener.return_value.open.side_effect = send
+            LM.request('http://127.0.0.1:11434', '/api/chat', {'model':'fixture'})
+        self.assertEqual([p.rsplit('/',1)[-1] for p in calls], ['show', 'chat'])
 
 
 class ReleaseCapture(unittest.TestCase):

@@ -848,6 +848,14 @@ def report(now: datetime | None = None) -> pathlib.Path:
 
 
 def export(now: datetime | None = None, hours: int = 24) -> pathlib.Path:
+    # Mutable rows share one cut. Immutable receipt/status reads and rendering
+    # happen afterwards, so thousands of receipts cannot block live writers.
+    from live_view import observation_view
+    with observation_view(LIVE) as inputs:
+        return _export_captured(now, hours, inputs)
+
+
+def _export_captured(now, hours, inputs) -> pathlib.Path:
     """Snapshot of the last `hours` of rows per datastream for the UI studies (public/live-snapshot.json).
 
     Everything in it is a copy of rows on disk: no aggregation, no filling, no rounding. Datastreams
@@ -861,7 +869,7 @@ def export(now: datetime | None = None, hours: int = 24) -> pathlib.Path:
         streams: dict = {}
         events: list = []
         keep_ids = set(map(str, src.get("station_ids") or []))
-        d = LIVE / "rows" / src["sid"]
+        d = inputs / "rows" / src["sid"]
         if d.exists():
             for mf in sorted(d.glob("*.jsonl")):
                 for r in observation_rows(mf):
@@ -901,7 +909,7 @@ def export(now: datetime | None = None, hours: int = 24) -> pathlib.Path:
     # model, the prompt hash and the input row it was derived from, so the interface can draw it
     # structurally and label it as model-derived (AI Act Art. 50 marking).
     derived = []
-    dd = LIVE / "derived" / "news"
+    dd = inputs / "derived" / "news"
     if dd.exists():
         for mf in sorted(dd.glob("*.jsonl")):
             for r in json_rows(mf):
@@ -924,7 +932,7 @@ def export(now: datetime | None = None, hours: int = 24) -> pathlib.Path:
                                       "waiting": rec.get("waiting"), "reason": rec.get("reason")})
     # The mind: validated utterances of the three entities (state "thought" only - a refused utterance
     # never reaches the public), the last conversations' receipts, and the public scoreboard.
-    md = LIVE / "derived" / "mind"
+    md = inputs / "derived" / "mind"
     thoughts = []
     try:   # the ekavica guard of the organ (tools/organ_mind.py); rows voiced before it existed are re-checked at export
         sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -979,7 +987,7 @@ def export(now: datetime | None = None, hours: int = 24) -> pathlib.Path:
                           "true": sum(1 for r in c if r.get("outcome") == "true"), "false": sum(1 for r in c if r.get("outcome") == "false"),
                           "open": sum(1 for r in c if r.get("outcome") is None), "unverifiable": sum(1 for r in c if r.get("outcome") == "unverifiable")}
         out["mind_scores"] = board
-        mrx = sorted((md / "receipts").glob("*.json")) if (md / "receipts").exists() else []
+        mrx = sorted((LIVE / "derived/mind/receipts").glob("*.json"))
         for rp in mrx[-40:]:
             rec = json_object(rp)
             if (rec.get("at") or "") >= since:
@@ -991,9 +999,7 @@ def export(now: datetime | None = None, hours: int = 24) -> pathlib.Path:
     out["thoughts"] = sorted(thoughts, key=lambda e: (e["t"] or "", e.get("round") or 0))
     target = ROOT / "public" / "live-snapshot.json"
     target.parent.mkdir(parents=True, exist_ok=True)
-    tmp = target.with_suffix(".tmp")
-    tmp.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
-    os.replace(tmp, target)
+    atomic_json(target, out)
     return target
 
 

@@ -159,7 +159,8 @@ class Permission(unittest.TestCase):
 class Data(unittest.TestCase):
     def test_raw_replay_accepts_relative_root_but_refuses_escaped_raw_path(self):
         import repair_record as R
-        with tempfile.TemporaryDirectory() as td:
+        # Windows cannot express C: temp paths relative to a D: project junction.
+        with tempfile.TemporaryDirectory(dir=pathlib.Path.cwd()) as td:
             root=pathlib.Path(td);src={'sid':'S1','parser':'rhmz_gauges'}
             body=b'<p>11.09.2026 vreme: 8:00 (06:00 UTC)</p><tr><td>SAVA</td><td>x</td><td>BEOGRAD</td><td>100</td><td>2</td><td>500</td><td>20</td></tr>'
             row=D.parse_rhmz_gauges(body,NOW,src)[0];row['result']=999

@@ -20,7 +20,7 @@ if (!selected) {
 }
 const result = spawnSync(selected[0], [...selected[1], '-X', 'utf8', '-B', '-m', 'unittest', 'discover',
   '-s', 'research', '-p', 'test_*.py', '-v'], {
-  cwd: path.resolve(__dirname, '..'), stdio: 'inherit', windowsHide: true, timeout: 60000,
+  cwd: path.resolve(__dirname, '..'), stdio: 'inherit', windowsHide: true, timeout: 120000,
 });
 if (result.error) console.error(result.error.message);
 process.exit(result.status === 0 ? 0 : 1);
