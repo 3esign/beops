@@ -46,39 +46,57 @@ $pub = Assert-BeopsPublicRootSafe -SourceRoot $src -PublicRoot $pub -ExpectedRem
 $py = Resolve-BeopsPython
 $env:GIT_HTTP_USER_AGENT = (Get-BeopsNativeOutput 'workspace Git transport identity' 'node' @('-e', "const fs=require('node:fs');const p=[process.env.BEOPS_INCOGNITO,'C:/Svemir/lib/incognito.js','D:/Svemir/lib/incognito.js'].filter(Boolean).find(p=>fs.existsSync(p));if(!p)throw Error('Incognito provider missing');process.stdout.write(require(p).headers('https://github.com/3esign/beops.git')['User-Agent']);")).Trim()
 if (-not $Isolated -and -not $DryRun) {
-  $oid = (Get-BeopsNativeOutput 'resolve release OID' 'git' @('-C', $src, 'rev-parse', '--verify', 'HEAD^{commit}')).Trim()
-  $releaseBase = if ($env:BEOPS_RELEASE_ROOT) { Get-BeopsFullPath $env:BEOPS_RELEASE_ROOT } else { Join-Path (Split-Path (Get-BeopsFullPath $src) -Parent) '_runtime\beops-releases' }
-  $runRoot = Join-Path $releaseBase ('beops-release-' + [guid]::NewGuid().ToString('N'))
-  try {
-    $prepared = Get-BeopsNativeOutput 'prepare isolated release' $py @('-X', 'utf8', '-B', (Join-Path $src 'tools\prepare_release.py'), '--source', $src, '--destination', $runRoot, '--oid', $oid)
-  } catch {
-    $failurePath = Join-Path $src 'data\live\publish-receipt.json'
-    $failureTmp = $failurePath + '.' + $PID + '.tmp'
-    New-Item -ItemType Directory -Path (Split-Path $failurePath -Parent) -Force | Out-Null
-    @{schema='beops-publish-receipt/v1';at=(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ');source_head=$oid;built=$false;tests_ok=$false;pushed=$false;site_verified=$false;published=$false;why=('release preparation failed: '+$_.Exception.Message)} | ConvertTo-Json | Set-Content -LiteralPath $failureTmp -Encoding UTF8
-    Move-Item -LiteralPath $failureTmp -Destination $failurePath -Force
-    Save-BeopsReleaseDiagnostic -SourceRoot $src -RunRoot $runRoot -SourceOid $oid -Outcome 'preparation-failed'
-    Remove-BeopsGeneratedRelease -Path $runRoot -SourceRoot $src -BaseRoot $releaseBase
-    throw
+  # The export lock below protects the mirror, but taking it only after preparing a
+  # 600+ MB workspace still lets two callers duplicate all capture work. Serialize
+  # the outer lifecycle before allocating a release; the inner process keeps the
+  # separate mirror lock because it may also be invoked directly in tests/review.
+  $preparationLockFile = Join-Path $src 'runtime\publish-preparation.lock'
+  $preparationLock = Enter-BeopsPublishLock -Path $preparationLockFile -MaxAgeMinutes 15
+  if (-not $preparationLock.Acquired) {
+    Write-Output ("STOP: {0}. NO RELEASE WAS PREPARED." -f $preparationLock.Message)
+    exit 75
   }
-  $capture = $prepared | ConvertFrom-Json
-  $env:BEOPS_PUBLIC_ROOT = $pub
-  $env:TEMP = Join-Path $runRoot 'runtime\tmp'
-  $env:TMP = $env:TEMP
-  New-Item -ItemType Directory -Path $env:TEMP -Force | Out-Null
-  $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $capture.workspace 'tools\publish_github.ps1'), '-Isolated', '-SourceOid', $oid, '-StateRoot', $src)
-  if ($PrepareOnly) { $args += '-PrepareOnly' }
+  $publishExit = 1
   try {
-    & powershell @args
-    $publishExit = $LASTEXITCODE
-    $manifest = Join-Path $runRoot 'runtime\release-inputs.json'
-    if (Test-Path -LiteralPath $manifest) { Copy-Item -LiteralPath $manifest -Destination (Join-Path $src 'runtime\release-inputs-last.json') -Force }
-  } finally {
-    Save-BeopsReleaseDiagnostic -SourceRoot $src -RunRoot $runRoot -SourceOid $oid -Outcome $(if ($PrepareOnly) { 'prepared-retained' } else { 'publish-finished' })
-    if ($PrepareOnly) {
-      Write-Output ('Prepared release retained for review: ' + $runRoot)
-    } else {
+    $oid = (Get-BeopsNativeOutput 'resolve release OID' 'git' @('-C', $src, 'rev-parse', '--verify', 'HEAD^{commit}')).Trim()
+    $releaseBase = if ($env:BEOPS_RELEASE_ROOT) { Get-BeopsFullPath $env:BEOPS_RELEASE_ROOT } else { Join-Path (Split-Path (Get-BeopsFullPath $src) -Parent) '_runtime\beops-releases' }
+    $runRoot = Join-Path $releaseBase ('beops-release-' + [guid]::NewGuid().ToString('N'))
+    try {
+      $prepared = Get-BeopsNativeOutput 'prepare isolated release' $py @('-X', 'utf8', '-B', (Join-Path $src 'tools\prepare_release.py'), '--source', $src, '--destination', $runRoot, '--oid', $oid)
+    } catch {
+      $failurePath = Join-Path $src 'data\live\publish-receipt.json'
+      $failureTmp = $failurePath + '.' + $PID + '.tmp'
+      New-Item -ItemType Directory -Path (Split-Path $failurePath -Parent) -Force | Out-Null
+      @{schema='beops-publish-receipt/v1';at=(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ');source_head=$oid;built=$false;tests_ok=$false;pushed=$false;site_verified=$false;published=$false;why=('release preparation failed: '+$_.Exception.Message)} | ConvertTo-Json | Set-Content -LiteralPath $failureTmp -Encoding UTF8
+      Move-Item -LiteralPath $failureTmp -Destination $failurePath -Force
+      Save-BeopsReleaseDiagnostic -SourceRoot $src -RunRoot $runRoot -SourceOid $oid -Outcome 'preparation-failed'
       Remove-BeopsGeneratedRelease -Path $runRoot -SourceRoot $src -BaseRoot $releaseBase
+      throw
+    }
+    $capture = $prepared | ConvertFrom-Json
+    $env:BEOPS_PUBLIC_ROOT = $pub
+    $env:TEMP = Join-Path $runRoot 'runtime\tmp'
+    $env:TMP = $env:TEMP
+    New-Item -ItemType Directory -Path $env:TEMP -Force | Out-Null
+    $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $capture.workspace 'tools\publish_github.ps1'), '-Isolated', '-SourceOid', $oid, '-StateRoot', $src)
+    if ($PrepareOnly) { $args += '-PrepareOnly' }
+    try {
+      & powershell @args
+      $publishExit = $LASTEXITCODE
+      $manifest = Join-Path $runRoot 'runtime\release-inputs.json'
+      if (Test-Path -LiteralPath $manifest) { Copy-Item -LiteralPath $manifest -Destination (Join-Path $src 'runtime\release-inputs-last.json') -Force }
+    } finally {
+      Save-BeopsReleaseDiagnostic -SourceRoot $src -RunRoot $runRoot -SourceOid $oid -Outcome $(if ($PrepareOnly) { 'prepared-retained' } else { 'publish-finished' })
+      if ($PrepareOnly) {
+        Write-Output ('Prepared release retained for review: ' + $runRoot)
+      } else {
+        Remove-BeopsGeneratedRelease -Path $runRoot -SourceRoot $src -BaseRoot $releaseBase
+      }
+    }
+  } finally {
+    if ((Test-Path -LiteralPath $preparationLockFile) -and
+        (Test-BeopsPublishLockOwnedByCurrentProcess -Path $preparationLockFile)) {
+      Remove-Item -LiteralPath $preparationLockFile -Force -ErrorAction SilentlyContinue
     }
   }
   exit $publishExit

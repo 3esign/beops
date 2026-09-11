@@ -239,8 +239,22 @@ function Save-BeopsReleaseDiagnostic {
   $run = Split-Path $RunRoot -Leaf
   if ($run -notmatch '^beops-release-[a-f0-9]{32}$') { throw 'unexpected release diagnostic name' }
   $receiptFile = Join-Path $SourceRoot 'data\live\publish-receipt.json'
-  $lastReceipt = if (Test-Path -LiteralPath $receiptFile) { Get-Content -LiteralPath $receiptFile -Raw | ConvertFrom-Json } else { $null }
-  @{schema='beops-release-diagnostic/v1'; at=(Get-Date).ToUniversalTime().ToString('o'); source_oid=$SourceOid; workspace=$RunRoot; outcome=$Outcome; receipt=$lastReceipt} |
+  $lastReceipt = $null
+  $receiptNote = 'no receipt exists'
+  if (Test-Path -LiteralPath $receiptFile) {
+    try {
+      $candidate = Get-Content -LiteralPath $receiptFile -Raw | ConvertFrom-Json
+      if ($candidate.source_head -eq $SourceOid) {
+        $lastReceipt = $candidate
+        $receiptNote = 'matching receipt attached'
+      } else {
+        $receiptNote = 'existing receipt belongs to another source OID'
+      }
+    } catch {
+      $receiptNote = 'existing receipt is unreadable'
+    }
+  }
+  @{schema='beops-release-diagnostic/v1'; at=(Get-Date).ToUniversalTime().ToString('o'); source_oid=$SourceOid; workspace=$RunRoot; outcome=$Outcome; receipt_note=$receiptNote; receipt=$lastReceipt} |
     ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $folder ($run + '.json')) -Encoding UTF8
   # This directory contains our diagnostics, not source/evidence. Keep ten runs.
   $older = Get-ChildItem -LiteralPath $folder -File -Filter 'beops-release-*.json' | Sort-Object LastWriteTime -Descending | Select-Object -Skip 10

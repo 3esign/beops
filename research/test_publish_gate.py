@@ -97,6 +97,16 @@ class Gate(unittest.TestCase):
         self.assertIn("[System.IO.FileMode]::CreateNew", self.safety,
                       "the publish lock is not taken atomically")
 
+    def test_two_outer_publishers_cannot_duplicate_release_preparation(self):
+        """The mirror lock is too late to prevent two full captures from filling disk."""
+        outer = self.s.find("$preparationLock = Enter-BeopsPublishLock")
+        prepare = self.s.find("prepare isolated release")
+        self.assertGreater(outer, -1, "the outer publisher has no preparation lock")
+        self.assertLess(outer, prepare, "a release workspace is allocated before the preparation lock")
+        segment = self.s[outer:self.s.find("if (-not $StateRoot)")]
+        self.assertIn("Test-BeopsPublishLockOwnedByCurrentProcess", segment)
+        self.assertIn("Remove-Item -LiteralPath $preparationLockFile", segment)
+
     def test_publish_test_transcript_is_per_run(self):
         self.assertIn("publish-tests-{0}.txt", self.s)
         self.assertIn("$script:publishTestsOutRun", self.s)
