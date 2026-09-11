@@ -12,6 +12,7 @@ file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ## Start here
 
+- **[_trail/AUDIT_ORDER_2026-09-11.md](_trail/AUDIT_ORDER_2026-09-11.md)** — detailed project-order audit: 39 findings, isolated failure reproductions, 519 passing offline tests, scheduler and browser checks; findings are not fixes.
 - **[STRUCTURE_CONTRACT_2026-09-11.md](STRUCTURE_CONTRACT_2026-09-11.md)** — current structure rule: public site as main surface, source/proof/live/generated/private zones, and how to name surplus and missing.
 - **[OPERATIONAL_ORDER_2026-09-11.md](OPERATIONAL_ORDER_2026-09-11.md)** — current operational order: active private repo vs public mirror, C/D path rule, scheduler source of truth and publish safety.
 - **[PROJECT_MAP_2026-09-09.md](PROJECT_MAP_2026-09-09.md)** — useful historical map of where things live; now superseded for structure by the contract above.

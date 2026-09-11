@@ -1,0 +1,165 @@
+#!/usr/bin/env python3
+"""Behavioral tests for the publish safety helpers."""
+import pathlib
+import subprocess
+import tempfile
+import textwrap
+import unittest
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+SAFETY = ROOT / "tools" / "publish_safety.ps1"
+
+
+def ps(script: str, *, cwd: pathlib.Path | None = None) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-Command",
+            script,
+        ],
+        cwd=str(cwd or ROOT),
+        text=True,
+        capture_output=True,
+        timeout=20,
+    )
+
+
+class PublishSafety(unittest.TestCase):
+    def run_helper(self, body: str) -> subprocess.CompletedProcess[str]:
+        script = textwrap.dedent(
+            f"""
+            $ErrorActionPreference = 'Stop'
+            . '{SAFETY}'
+            {body}
+            """
+        )
+        return ps(script)
+
+    def assert_ps_ok(self, body: str) -> str:
+        got = self.run_helper(body)
+        self.assertEqual(got.returncode, 0, got.stderr + got.stdout)
+        return got.stdout
+
+    def assert_ps_fails(self, body: str, needle: str) -> str:
+        got = self.run_helper(body)
+        self.assertNotEqual(got.returncode, 0, got.stderr + got.stdout)
+        text = got.stderr + got.stdout
+        self.assertIn(" ".join(needle.split()), " ".join(text.split()))
+        return text
+
+    def test_default_public_root_outside_source_is_allowed(self):
+        with tempfile.TemporaryDirectory() as d:
+            base = pathlib.Path(d)
+            src = base / "source" / "Beops"
+            pub = base / "Beops-public"
+            src.mkdir(parents=True)
+            out = self.assert_ps_ok(
+                f"Assert-BeopsPublicRootSafe -SourceRoot '{src}' -PublicRoot '{pub}'"
+            )
+            self.assertIn(str(pub), out)
+
+    def test_public_root_cannot_be_source_or_inside_source(self):
+        with tempfile.TemporaryDirectory() as d:
+            src = pathlib.Path(d) / "Beops"
+            src.mkdir()
+            self.assert_ps_fails(
+                f"Assert-BeopsPublicRootSafe -SourceRoot '{src}' -PublicRoot '{src}'",
+                "source repository or inside it",
+            )
+            self.assert_ps_fails(
+                f"Assert-BeopsPublicRootSafe -SourceRoot '{src}' -PublicRoot '{src / 'Beops-public'}'",
+                "source repository or inside it",
+            )
+
+    def test_public_root_cannot_contain_source(self):
+        with tempfile.TemporaryDirectory() as d:
+            pub = pathlib.Path(d) / "Beops-public"
+            src = pub / "nested" / "Beops"
+            src.mkdir(parents=True)
+            self.assert_ps_fails(
+                f"Assert-BeopsPublicRootSafe -SourceRoot '{src}' -PublicRoot '{pub}'",
+                "contains the source repository",
+            )
+
+    def test_custom_public_root_requires_expected_remote(self):
+        with tempfile.TemporaryDirectory() as d:
+            base = pathlib.Path(d)
+            src = base / "Beops"
+            custom = base / "CustomMirror"
+            src.mkdir()
+            custom.mkdir()
+            subprocess.run(["git", "-C", str(custom), "init", "-q"], check=True)
+            subprocess.run(
+                ["git", "-C", str(custom), "remote", "add", "origin", "https://github.com/example/wrong.git"],
+                check=True,
+            )
+            self.assert_ps_fails(
+                f"Assert-BeopsPublicRootSafe -SourceRoot '{src}' -PublicRoot '{custom}'",
+                "custom target must be the expected public remote",
+            )
+            subprocess.run(
+                ["git", "-C", str(custom), "remote", "set-url", "origin", "https://github.com/3esign/beops.git"],
+                check=True,
+            )
+            self.assert_ps_ok(
+                f"Assert-BeopsPublicRootSafe -SourceRoot '{src}' -PublicRoot '{custom}'"
+            )
+
+    def test_deletion_target_must_be_inside_public_root_and_not_root(self):
+        with tempfile.TemporaryDirectory() as d:
+            pub = pathlib.Path(d) / "Beops-public"
+            child = pub / "docs"
+            outside = pathlib.Path(d) / "outside"
+            child.mkdir(parents=True)
+            outside.mkdir()
+            self.assert_ps_ok(
+                f"Assert-BeopsDeletionTarget -PublicRoot '{pub}' -Target '{child}'"
+            )
+            self.assert_ps_fails(
+                f"Assert-BeopsDeletionTarget -PublicRoot '{pub}' -Target '{pub}'",
+                "refusing to delete export root",
+            )
+            self.assert_ps_fails(
+                f"Assert-BeopsDeletionTarget -PublicRoot '{pub}' -Target '{outside}'",
+                "not inside export root",
+            )
+
+    def test_abandoned_lock_is_removed_and_retaken(self):
+        with tempfile.TemporaryDirectory() as d:
+            lock = pathlib.Path(d) / "publish.lock"
+            lock.write_text("pid 999999 at old", encoding="utf-8")
+            old = "2001-01-01T00:00:00Z"
+            self.assert_ps_ok(
+                f"""
+                (Get-Item -LiteralPath '{lock}').LastWriteTimeUtc = [datetime]'{old}'
+                $lock = Enter-BeopsPublishLock -Path '{lock}' -MaxAgeMinutes 15
+                if (-not $lock.Acquired -or -not $lock.Recovered) {{ throw 'lock was not recovered' }}
+                if (-not (Test-BeopsPublishLockOwnedByCurrentProcess -Path '{lock}')) {{ throw 'new lock is not ours' }}
+                """
+            )
+
+    def test_old_lock_with_live_owner_is_not_removed(self):
+        with tempfile.TemporaryDirectory() as d:
+            lock = pathlib.Path(d) / "publish.lock"
+            self.assert_ps_ok(
+                f"""
+                Set-Content -LiteralPath '{lock}' -Value ('pid ' + $PID + ' at old') -Encoding UTF8
+                (Get-Item -LiteralPath '{lock}').LastWriteTimeUtc = [datetime]'2001-01-01T00:00:00Z'
+                $lockResult = Enter-BeopsPublishLock -Path '{lock}' -MaxAgeMinutes 15
+                if ($lockResult.Acquired) {{ throw 'live owner lock was acquired' }}
+                if ($lockResult.Reason -ne 'owner-running') {{ throw ('wrong reason ' + $lockResult.Reason) }}
+                """
+            )
+
+    def test_native_failure_throws(self):
+        self.assert_ps_fails(
+            "Invoke-BeopsNative 'expected failure' 'powershell' @('-NoProfile', '-Command', 'exit 7')",
+            "expected failure failed with exit code 7",
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -12,6 +12,7 @@
 #   powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish_github.ps1 -DryRun    # show what would go
 param([switch]$DryRun)
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'publish_safety.ps1')
 function Resolve-BeopsBundledPython {
   $bundled = Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
   if (Test-Path $bundled) { return $bundled }
@@ -31,11 +32,12 @@ function Resolve-BeopsTestPython {
   if ($bundled -and (Test-Path $bundled)) { return $bundled }
   return (Resolve-BeopsPython)
 }
+$remote = 'https://github.com/3esign/beops.git'
 $src = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $projectParent = Split-Path $src -Parent
 $pub = if ($env:BEOPS_PUBLIC_ROOT) { $env:BEOPS_PUBLIC_ROOT } else { Join-Path $projectParent 'Beops-public' }
+$pub = Assert-BeopsPublicRootSafe -SourceRoot $src -PublicRoot $pub -ExpectedRemote $remote
 $py = Resolve-BeopsPython
-$remote = 'https://github.com/3esign/beops.git'
 $exclude = @('research/evidence','research/_scratch','research/06-paper','research/_trail','research/01-programme','archive','runtime','data/live','node_modules',
              'research/06-paper/conference/Prvi-poziv-2026.pdf','research/06-paper/conference/Uputstvo-za-autore3.pdf',
              'research/06-paper/conference/call-1.png','research/06-paper/conference/call-2.png','research/06-paper/conference/call-3.png',
@@ -43,7 +45,9 @@ $exclude = @('research/evidence','research/_scratch','research/06-paper','resear
 Set-Location $src
 $null = New-Item -ItemType Directory -Path (Join-Path $src 'runtime') -Force
 $head = (git rev-parse --short HEAD).Trim()
+if ($LASTEXITCODE -ne 0 -or -not $head) { throw "git rev-parse --short HEAD failed" }
 $files = (git ls-files) -split "`n" | Where-Object { $_ -ne '' }
+if ($LASTEXITCODE -ne 0) { throw "git ls-files failed" }
 $keep = $files | Where-Object { $f = $_; -not ($exclude | Where-Object { $f -eq $_ -or $f.StartsWith($_ + '/') }) }
 # C-020, second occurrence. The folder list above excludes research/06-paper, so pre-papers and
 # working documents never reach the export - but research/07-legal is exported whole, and the letters
@@ -61,49 +65,48 @@ if ($DryRun) { $keep | Select-Object -First 40; exit 0 }
 # minutes is treated as abandoned, because a publish that takes that long has died.
 $lockFile = Join-Path $src 'runtime\publish.lock'
 $script:publishTestsOutRun = $null
-function New-BeopsPublishLock {
-  param([string]$Path)
-  try {
-    $fs = [System.IO.File]::Open($Path, [System.IO.FileMode]::CreateNew, [System.IO.FileAccess]::Write, [System.IO.FileShare]::None)
-    try {
-      $bytes = [System.Text.Encoding]::UTF8.GetBytes("pid $PID at " + (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))
-      $fs.Write($bytes, 0, $bytes.Length)
-    } finally {
-      $fs.Close()
-    }
-    return $true
-  } catch [System.IO.IOException] {
-    return $false
-  }
+$receiptPath = Join-Path $src 'data\live\publish-receipt.json'
+$receipt = [ordered]@{
+  schema        = 'beops-publish-receipt/v1'
+  at            = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+  source_head   = $head
+  built         = $false
+  tests_ok      = $false
+  tests         = ''
+  export_changed = $false
+  committed     = $false
+  pushed        = $false
+  remote_head   = ''
+  published     = $false
+  why           = ''
+}
+function Write-BeopsPublishReceipt {
+  $receipt.at = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+  $receipt | ConvertTo-Json -Depth 4 | Set-Content -Path $receiptPath -Encoding UTF8
 }
 function Release-BeopsPublishRun {
   if ($script:publishTestsOutRun -and (Test-Path $script:publishTestsOutRun)) {
-    Remove-Item $script:publishTestsOutRun -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $script:publishTestsOutRun -Force -ErrorAction SilentlyContinue
   }
-  if ($lockFile -and (Test-Path $lockFile)) {
-    Remove-Item $lockFile -Force -ErrorAction SilentlyContinue
+  if ($lockFile -and (Test-Path $lockFile) -and (Test-BeopsPublishLockOwnedByCurrentProcess -Path $lockFile)) {
+    Remove-Item -LiteralPath $lockFile -Force -ErrorAction SilentlyContinue
   }
 }
-if (Test-Path $lockFile) {
-  $age = (Get-Date) - (Get-Item $lockFile).LastWriteTime
-  if ($age.TotalMinutes -lt 15) {
-    Write-Output ("STOP: another publish holds the lock (taken {0:N1} min ago). NOTHING WAS PUBLISHED." -f $age.TotalMinutes)
-    exit 4
-  }
-  Write-Output ("note: a publish lock {0:N1} min old was abandoned and is being taken over." -f $age.TotalMinutes)
-}
-if (-not (New-BeopsPublishLock $lockFile)) {
-  Write-Output "STOP: another publish took the lock first. NOTHING WAS PUBLISHED."
+$lock = Enter-BeopsPublishLock -Path $lockFile -MaxAgeMinutes 15
+if (-not $lock.Acquired) {
+  Write-Output ("STOP: {0}. NOTHING WAS PUBLISHED." -f $lock.Message)
   exit 4
 }
+if ($lock.Recovered) { Write-Output ("note: {0}" -f $lock.Message) }
 try {
 
 # the site: docs/ is what GitHub Pages serves (main branch, /docs). It is GENERATED by
 # tools/build_site.py from the registry, the provenance index, the corrections and the last export,
 # so the public page cannot state a number the files do not support.
-& $py -X utf8 -B tools\build_site.py
+Invoke-BeopsNative 'build_site.py' $py @('-X', 'utf8', '-B', 'tools\build_site.py')
 # the three maps of the document, regenerated from the snapshot the site is about to serve
-& $py -X utf8 -B tools\make_maps.py --out docs | Out-Null
+Invoke-BeopsNative 'make_maps.py' $py @('-X', 'utf8', '-B', 'tools\make_maps.py', '--out', 'docs') -Quiet
+$receipt.built = $true
 
 # ---------------------------------------------------------------- PUBLISH GATE
 # Every ship batch ran the full suite and refused to commit when it failed. The scheduled publish
@@ -138,15 +141,8 @@ if (Test-Path $script:publishTestsOutRun) {
   }
   $summary = ((Get-Content $script:publishTestsOutRun | Select-String -Pattern '^Ran |^OK$|^FAILED') -join ' ').Trim()
 }
-$receipt = [ordered]@{
-  schema      = 'beops-publish-receipt/v1'
-  at          = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
-  source_head = $head
-  tests_ok    = ($testsRc -eq 0)
-  tests       = $summary
-  published   = $false
-  why         = ''
-}
+$receipt.tests_ok = ($testsRc -eq 0)
+$receipt.tests = $summary
 if ($testsRc -ne 0) {
   $first = ''
   if (Test-Path $script:publishTestsOutRun) {
@@ -155,7 +151,7 @@ if ($testsRc -ne 0) {
     if ($i -ge 0) { $first = $raw.Substring($i, [Math]::Min(400, $raw.Length - $i)) }
   }
   $receipt.why = "the suite did not pass, so nothing was published. $first"
-  $receipt | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $src 'data\live\publish-receipt.json') -Encoding UTF8
+  Write-BeopsPublishReceipt
   Write-Output "STOP: the suite did not pass ($summary). NOTHING WAS PUBLISHED and the site stays as it was."
   Write-Output $first
   # PowerShell does not run a finally block on `exit`, and a lock left behind by a failing gate would
@@ -166,9 +162,15 @@ if ($testsRc -ne 0) {
 Write-Output "gate: $summary"
 # ------------------------------------------------------------ END PUBLISH GATE
 
-if (-not (Test-Path $pub)) { New-Item -ItemType Directory -Path $pub | Out-Null; git -C $pub init -q -b main }
+if (-not (Test-Path -LiteralPath $pub)) {
+  New-Item -ItemType Directory -Path $pub | Out-Null
+  Invoke-BeopsNative 'git init public export' 'git' @('-C', $pub, 'init', '-q', '-b', 'main')
+}
 # clear the export tree (never the .git of the export repo), after the gate has passed
-Get-ChildItem -Path $pub -Force | Where-Object { $_.Name -ne '.git' } | Remove-Item -Recurse -Force
+Get-ChildItem -LiteralPath $pub -Force | Where-Object { $_.Name -ne '.git' } | ForEach-Object {
+  $target = Assert-BeopsDeletionTarget -PublicRoot $pub -Target $_.FullName
+  Remove-Item -LiteralPath $target -Recurse -Force
+}
 foreach ($f in $keep) {
   $d = Split-Path (Join-Path $pub $f)
   if (-not (Test-Path $d)) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
@@ -215,12 +217,21 @@ $note2 = @'
 The working documents, pre-papers, research trails and programme notes are internal and stay on the authors' own machine. The public repository carries the observatory itself: the source registry, the provenance index and ledger, the corrections, the collectors, the organ register, the tools, the tests and the generated site. Links into these folders from the research index are therefore not resolvable here.
 '@
 foreach ($d in @('research/06-paper','research/_trail','research/01-programme')) { New-Item -ItemType Directory -Path (Join-Path $pub $d) -Force | Out-Null; Set-Content -Path (Join-Path $pub "$d/README.md") -Value $note2 -Encoding UTF8 }
-git -C $pub add -A
+Invoke-BeopsNative 'git add public export' 'git' @('-C', $pub, 'add', '-A')
 # The source .gitignore travels with the export and lists docs/ (generated locally, never committed
 # in the source repo). In the EXPORT repo docs/ is the published site, so it must be forced in.
 # Without -f, only the files added before that ignore rule existed stayed tracked, and every page
 # added later - monolog.html, basemap-belgrade.json - was silently dropped and served as 404.
-git -C $pub add -A -f docs
+foreach ($f in @('docs',
+                 'public/history.json',
+                 'public/watch.json',
+                 'public/dataset/permission-landscape',
+                 'research/08-provenance/CORRECTION_TIMES.json',
+                 'research/observations/live')) {
+  if (Test-Path -LiteralPath (Join-Path $pub $f)) {
+    Invoke-BeopsNative "git force-add $f" 'git' @('-C', $pub, 'add', '-A', '-f', $f)
+  }
+}
 # One commit per publish: the public history becomes a free archive of what the observatory held at
 # each moment - the "git scraping" pattern - and a second, independent record against our own receipts.
 $snap = Join-Path $src 'public\live-snapshot.json'
@@ -237,24 +248,73 @@ $status = git -C $pub status --porcelain 2>&1
 $rc = $LASTEXITCODE
 if ($rc -ne 0) {
   Write-Output "STOP: could not read the export status (git exit $rc). Nothing was published, and this is NOT 'nothing changed'."
+  $receipt.why = "could not read the export status (git exit $rc)"
+  Write-BeopsPublishReceipt
   Release-BeopsPublishRun
   exit 2
 }
 $changed = @($status | Where-Object { $_ -ne $null -and "$_".Trim() -ne '' }).Count -gt 0
 if (-not $changed) {
-  $receipt.published = $false
-  $receipt.why = 'nothing changed since the last publish'
-  $receipt | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $src 'data\live\publish-receipt.json') -Encoding UTF8
-  Write-Output 'nothing changed since the last publish'
+  $publicHead = Get-BeopsNativeOutput 'git public HEAD' 'git' @('-C', $pub, 'rev-parse', 'HEAD')
+  $remoteLine = Get-BeopsNativeOutput 'git remote main HEAD' 'git' @('-C', $pub, 'ls-remote', 'origin', 'refs/heads/main')
+  $remoteHead = (($remoteLine -split '\s+')[0])
+  if ($remoteHead -eq $publicHead) {
+    $receipt.remote_head = $remoteHead
+    $receipt.why = 'nothing changed since the last publish'
+    Write-BeopsPublishReceipt
+    Write-Output 'nothing changed since the last publish'
+    Release-BeopsPublishRun
+    exit 0
+  }
+  Write-Output 'export is clean locally but remote is behind; pushing the existing export commit'
+  Invoke-BeopsNative 'git push public export' 'git' @('-C', $pub, 'push', '-u', 'origin', 'main')
+  $remoteLine = Get-BeopsNativeOutput 'git remote main HEAD after push' 'git' @('-C', $pub, 'ls-remote', 'origin', 'refs/heads/main')
+  $remoteHead = (($remoteLine -split '\s+')[0])
+  $receipt.pushed = $true
+  $receipt.remote_head = $remoteHead
+  if ($remoteHead -ne $publicHead) {
+    $receipt.why = "push returned success but remote head is $remoteHead, expected $publicHead"
+    Write-BeopsPublishReceipt
+    Write-Output ("STOP: {0}. NOTHING WAS PUBLISHED." -f $receipt.why)
+    Release-BeopsPublishRun
+    exit 6
+  }
+  $receipt.published = $true
+  $receipt.why = "Pushed existing export commit $publicHead for source $head"
+  Write-BeopsPublishReceipt
+  Write-Output ("published: {0}" -f $receipt.why)
   Release-BeopsPublishRun
   exit 0
 }
-git -C $pub -c user.name='Semir Poturak' -c user.email='scumutator@gmail.com' commit -q -m $msg
-if (-not (git -C $pub remote | Select-String -SimpleMatch 'origin')) { git -C $pub remote add origin $remote }
-git -C $pub push -u origin main
+$receipt.export_changed = $true
+Invoke-BeopsNative 'git commit public export' 'git' @('-C', $pub, '-c', 'user.name=Semir Poturak', '-c', 'user.email=scumutator@gmail.com', 'commit', '-q', '-m', $msg)
+$receipt.committed = $true
+$remotes = Get-BeopsNativeOutput 'git remote list' 'git' @('-C', $pub, 'remote')
+if (-not (($remotes -split "`n") | Where-Object { $_ -eq 'origin' })) {
+  Invoke-BeopsNative 'git add public remote' 'git' @('-C', $pub, 'remote', 'add', 'origin', $remote)
+}
+$publicHead = Get-BeopsNativeOutput 'git public HEAD' 'git' @('-C', $pub, 'rev-parse', 'HEAD')
+Invoke-BeopsNative 'git push public export' 'git' @('-C', $pub, 'push', '-u', 'origin', 'main')
+$receipt.pushed = $true
+$remoteLine = Get-BeopsNativeOutput 'git remote main HEAD after push' 'git' @('-C', $pub, 'ls-remote', 'origin', 'refs/heads/main')
+$remoteHead = (($remoteLine -split '\s+')[0])
+$receipt.remote_head = $remoteHead
+if ($remoteHead -ne $publicHead) {
+  $receipt.why = "push returned success but remote head is $remoteHead, expected $publicHead"
+  Write-BeopsPublishReceipt
+  Write-Output ("STOP: {0}. NOTHING WAS PUBLISHED." -f $receipt.why)
+  Release-BeopsPublishRun
+  exit 6
+}
 $receipt.published = $true
 $receipt.why = $msg
-$receipt | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $src 'data\live\publish-receipt.json') -Encoding UTF8
+Write-BeopsPublishReceipt
 Write-Output "published: $msg"
 
+} catch {
+  $receipt.why = "publish failed before confirmed push: " + $_.Exception.Message
+  Write-BeopsPublishReceipt
+  Write-Output ("STOP: {0}. NOTHING WAS PUBLISHED." -f $receipt.why)
+  Release-BeopsPublishRun
+  exit 5
 } finally { Release-BeopsPublishRun }

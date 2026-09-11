@@ -151,3 +151,12 @@ Errors: A temporary git diff check with core.autocrlf=false reinterpreted histor
 - Iskustva: Raw GitHub endpoint moze kasniti drugacije od Pages-a i pokazivati prethodni cache-busted build stamp iako zivi site vec sluzi novi public mirror. Lek: raw poredjenje je dijagnostika (`BEOPS_CHECK_RAW=1`), ne podrazumevani health signal.
 - Vestine: `npm run test:site` pokrece `tools/verify_public_site.js`; koristi Svemirov `incognito.js` kada postoji, zatim proverava live hash, osnovne ugradjene rute i poznate stale javne recenice.
 - Odluke: `npm test` ostaje offline publish gate, a `npm run test:site` je posle-publish provera glavnog interfejsa. Zivi sajt je health surface projekta, ne sporedni output.
+
+## Publish safety first pass — 2026-09-11T05:16:17Z
+
+- Greske: Audit je nasao da `published=true` moze biti upisan posle neuspesnog `git push`, a stari lock stariji od 15 minuta samo bude najavljen kao preuzet i zatim zauvek odbijen kroz `CreateNew`. Uzrok: native exit kod i udaljeni HEAD nisu bili deo istine o objavi, a recovery nije stvarno menjao lock fajl. Lek: potvrdena objava je tek push sa exit 0 i remote HEAD jednak public export HEAD-u; napusten lock se brise samo ako je star i njegov proces vise ne zivi.
+- Greske: `BEOPS_PUBLIC_ROOT` je pre ove promene mogao da pokaze na pogresan folder, a publisher bi rekurzivno obrisao sve osim `.git`. Lek: `Assert-BeopsPublicRootSafe` odbija source repo, podfolder source-a, folder koji sadrzi source, drive root i custom mirror bez ocekivanog remote-a; svaka meta za brisanje mora proci `Assert-BeopsDeletionTarget`.
+- Iskustva: `finally` plus rucni `Release` moze dvaput pokusati cleanup; drugi publish moze preuzeti lock izmedju ta dva trenutka. Lek: cleanup sme obrisati samo lock ciji je zapisani pid trenutni PowerShell proces.
+- Iskustva: Scheduler tick koji nastavi posle neuspelog export/report/history koraka pravi objavu iz polupodignutog stanja. Lek: batch wrapper mora odmah izaci na prvi `errorlevel 1`, pre poziva publishera.
+- Vestine: `tools/publish_safety.ps1` je izolovan helper da se opasne granice testiraju bez stvarnog publish-a: safe public root, safe deletion target, stale-lock recovery, live-owner refusal i native-command failure.
+- Odluke: Ignorisani generated public artefakti ostaju nepraceni u privatnom source repou, ali su deo javne arhive kada publisher eksplicitno kopira i force-add-uje `public/history.json`, `public/watch.json`, `public/dataset/permission-landscape`, `CORRECTION_TIMES.json` i `research/observations/live`.

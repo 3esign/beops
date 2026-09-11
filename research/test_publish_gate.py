@@ -13,6 +13,7 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PS = ROOT / "tools" / "publish_github.ps1"
+SAFETY = ROOT / "tools" / "publish_safety.ps1"
 TICK = ROOT / "tools" / "publish_tick.bat"
 RECEIPT = ROOT / "data" / "live" / "publish-receipt.json"
 
@@ -21,6 +22,7 @@ class Gate(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.s = PS.read_text(encoding="utf-8")
+        cls.safety = SAFETY.read_text(encoding="utf-8")
 
     def test_the_publisher_runs_the_suite(self):
         self.assertIn("unittest discover", self.s,
@@ -46,14 +48,14 @@ class Gate(unittest.TestCase):
 
     def test_a_failing_suite_publishes_nothing_and_says_so(self):
         gate = self.s.find("unittest discover")
-        push = self.s.find("git -C $pub push")
+        push = self.s.find("Invoke-BeopsNative 'git push public export'")
         self.assertGreater(push, gate, "the push happens before the gate")
         self.assertIn("NOTHING WAS PUBLISHED", self.s)
         self.assertIn("exit 3", self.s)
 
     def test_the_export_tree_is_not_touched_until_the_gate_passes(self):
         gate = self.s.find('Write-Output "gate:')
-        clear = self.s.find("Get-ChildItem -Path $pub")
+        clear = self.s.find("Get-ChildItem -LiteralPath $pub")
         copy = self.s.find("Copy-Item -LiteralPath (Join-Path $src $f)")
         self.assertGreater(gate, -1)
         self.assertGreater(clear, gate, "the public mirror is cleared before the gate passes")
@@ -63,12 +65,14 @@ class Gate(unittest.TestCase):
         """A gate that stops the site silently has exchanged one failure for a quieter one."""
         self.assertIn("publish-receipt.json", self.s)
         self.assertIn("beops-publish-receipt/v1", self.s)
+        for k in ("built", "export_changed", "committed", "pushed", "remote_head"):
+            self.assertIn(k, self.s, f"the receipt no longer records {k}")
 
     def test_two_publishers_cannot_race_for_the_export(self):
         """C-045: the loser of a race for git's index.lock read exactly like a clean tree."""
         self.assertIn("publish.lock", self.s)
-        self.assertIn("another publish holds the lock", self.s)
-        self.assertIn("[System.IO.FileMode]::CreateNew", self.s,
+        self.assertIn("another publish holds the lock", self.safety)
+        self.assertIn("[System.IO.FileMode]::CreateNew", self.safety,
                       "the publish lock is not taken atomically")
 
     def test_publish_test_transcript_is_per_run(self):
@@ -78,8 +82,12 @@ class Gate(unittest.TestCase):
     def test_a_failing_gate_releases_the_lock(self):
         """PowerShell does not run finally on exit. A lock left by a failing gate would block every
         publish for fifteen minutes - a second outage caused by the first."""
-        release = self.s[self.s.find("function Release-BeopsPublishRun"):self.s.find("if (Test-Path $lockFile)")]
-        self.assertIn("Remove-Item $lockFile", release,
+        start = self.s.find("function Release-BeopsPublishRun")
+        end = self.s.find("$lock = Enter-BeopsPublishLock")
+        release = self.s[start:end]
+        self.assertIn("Test-BeopsPublishLockOwnedByCurrentProcess", release,
+                      "the shared cleanup may remove a lock held by another publisher")
+        self.assertIn("Remove-Item -LiteralPath $lockFile", release,
                       "the shared publish cleanup no longer removes the lock")
         i = self.s.find("NOTHING WAS PUBLISHED")
         j = self.s.find("exit 3")
@@ -90,6 +98,24 @@ class Gate(unittest.TestCase):
     def test_an_unreadable_status_is_never_reported_as_clean(self):
         """C-045's own correction, held in place."""
         self.assertIn("could not read the export status", self.s)
+
+    def test_generated_public_files_are_force_added(self):
+        for path in (
+            "public/history.json",
+            "public/watch.json",
+            "public/dataset/permission-landscape",
+            "research/08-provenance/CORRECTION_TIMES.json",
+            "research/observations/live",
+        ):
+            self.assertIn(path, self.s, f"{path} is not explicitly copied and force-added to the export")
+
+    def test_scheduler_stops_after_failed_pre_publish_steps(self):
+        tick = TICK.read_text(encoding="utf-8")
+        for step in ("collect_daemon.py export", "collect_daemon.py report", "build_history.py"):
+            pos = tick.find(step)
+            self.assertGreater(pos, -1)
+            guard = tick.find("if errorlevel 1 exit /b %ERRORLEVEL%", pos)
+            self.assertGreater(guard, pos, f"publish_tick.bat continues after {step} fails")
 
 
 class Receipt(unittest.TestCase):
