@@ -16,7 +16,12 @@
       "adapter": "ollama",
       "interval_minutes": 35,
       "offset_minutes": 0,
-      "allow_remote": true,
+      "allow_remote": false,
+      "models": [
+        "qwen2.5:1.5b",
+        "qwen3.5:0.8b",
+        "llama3.2:1b"
+      ],
       "discover_models": true
     },
     {
@@ -41,10 +46,15 @@
       "adapter": "antigravity-cli",
       "interval_minutes": 50,
       "offset_minutes": 27,
-      "catalogue_bridge": "antigravity"
+      "catalogue_bridge": "antigravity",
+      "models": [
+        "gemini-3.8-flash-low",
+        "gemini-3.8-flash-medium",
+        "gemini-3.8-flash-high"
+      ]
     }
   ],
-  "policy": "All models in the live local Svemir CLI menu are eligible when runnable. One attempt per five-minute tick; at least 30 minutes between accepted monologues, at most 72 attempts per UTC day and 24 per route family. Failed models cool down; account quota errors also defer sibling models. Every attempt and complete response is retained. No catch-up bursts. Hourly output remains an availability target.",
+  "policy": "Runnable models in the live local Svemir CLI menu are eligible only inside each provider's reviewed model family. Ollama is restricted to reviewed local chat models; remote and embedding-only models are excluded. Antigravity is restricted to Gemini Flash and does not mix in Claude or GPT aliases. One attempt per five-minute tick; at least 30 minutes between accepted monologues, at most 72 attempts per UTC day and 24 per route family. Failed models cool down; account quota errors also defer sibling models. Every attempt and complete response is retained. No catch-up bursts. Hourly output remains an availability target.",
   "max_live_facts": 3,
   "max_attempts_per_provider_per_day": 24,
   "global_min_interval_minutes": 30,

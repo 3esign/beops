@@ -41,6 +41,13 @@ class Gate(unittest.TestCase):
         self.assertIn("Resolve-BeopsBundledPython", seg)
         self.assertIn("Resolve-BeopsPython", seg)
 
+    def test_network_identity_uses_a_reviewable_script_not_inline_code(self):
+        helper = (ROOT / "tools" / "incognito_user_agent.js").read_text(encoding="utf-8")
+        self.assertNotIn("'-e'", self.s)
+        self.assertIn("incognito_user_agent.js", self.s)
+        self.assertIn("incognito.js", helper)
+        self.assertIn("User-Agent", helper)
+
     def test_the_suite_runs_after_the_site_is_built(self):
         """Tests placed before build_site.py would check yesterday's page and pass it while today's
         went out untested. That was the first design and reading the file refuted it."""

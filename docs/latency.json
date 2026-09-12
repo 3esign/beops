@@ -1,6 +1,6 @@
 {
  "schema": "beops-latency/v1",
- "made_at": "2026-09-12T12:20:08.225253Z",
+ "made_at": "2026-09-12T17:44:03.111756Z",
  "sources_read": 6,
  "sources_publishing_a_measurement_time": 4,
  "sources_publishing_no_measurement_time": 1,
@@ -19,9 +19,9 @@
    "median_age_minutes": 5.9,
    "age_by_clock": {
     "measured": {
-     "n": 2715,
+     "n": 2915,
      "min": 0.0,
-     "p10": 3.2,
+     "p10": 2.8,
      "median": 5.9,
      "p90": 10.0,
      "max": 13.0
@@ -32,22 +32,22 @@
    "clocks": [
     "measured"
    ],
-   "rows_read": 2715,
-   "rows_with_a_measurement_time": 2715,
+   "rows_read": 2915,
+   "rows_with_a_measurement_time": 2915,
    "rows_without_a_measurement_time": 0,
    "source_clock_note": null,
    "what_this_source_publishes": null
   },
   "S03": {
-   "median_age_minutes": 9.9,
+   "median_age_minutes": 10.1,
    "age_by_clock": {
     "measured": {
-     "n": 695,
+     "n": 745,
      "min": 4.2,
-     "p10": 7.9,
-     "median": 9.9,
-     "p90": 19.3,
-     "max": 29.8
+     "p10": 9.1,
+     "median": 10.1,
+     "p90": 19.5,
+     "max": 34.2
     }
    },
    "mixed_clocks": null,
@@ -55,8 +55,8 @@
    "clocks": [
     "measured"
    ],
-   "rows_read": 695,
-   "rows_with_a_measurement_time": 695,
+   "rows_read": 745,
+   "rows_with_a_measurement_time": 745,
    "rows_without_a_measurement_time": 0,
    "source_clock_note": null,
    "what_this_source_publishes": null
@@ -65,7 +65,7 @@
    "median_age_minutes": 3.4,
    "age_by_clock": {
     "measured": {
-     "n": 144434,
+     "n": 153354,
      "min": 0.1,
      "p10": 1.3,
      "median": 3.4,
@@ -78,8 +78,8 @@
    "clocks": [
     "measured"
    ],
-   "rows_read": 144434,
-   "rows_with_a_measurement_time": 144434,
+   "rows_read": 153354,
+   "rows_with_a_measurement_time": 153354,
    "rows_without_a_measurement_time": 0,
    "source_clock_note": null,
    "what_this_source_publishes": null
@@ -90,9 +90,9 @@
    "mixed_clocks": null,
    "polling_interval_minutes": 15,
    "clocks": [],
-   "rows_read": 8991,
+   "rows_read": 9531,
    "rows_with_a_measurement_time": 0,
-   "rows_without_a_measurement_time": 8991,
+   "rows_without_a_measurement_time": 9531,
    "source_clock_note": null,
    "what_this_source_publishes": "no measurement time at all: we know the value and when it reached us, never when it was true. No age can be computed and none is shown."
   },
@@ -100,10 +100,10 @@
    "median_age_minutes": null,
    "age_by_clock": {
     "corrected": {
-     "n": 45606,
+     "n": 49214,
      "min": 11.3,
-     "p10": 34.6,
-     "median": 73.9,
+     "p10": 23.9,
+     "median": 74.2,
      "p90": 133.9,
      "max": 176.9
     },
@@ -125,8 +125,8 @@
     "corrected",
     "measured"
    ],
-   "rows_read": 48083,
-   "rows_with_a_measurement_time": 48083,
+   "rows_read": 51691,
+   "rows_with_a_measurement_time": 51691,
    "rows_without_a_measurement_time": 0,
    "source_clock_note": "SEPA HVD labels local time (UTC+2, CEST) as 'Z': published_at_utc 22:50:17Z was received at 20:52Z on 2026-09-08 and hourly rows ending 22:00Z arrived at 20:52Z. Rows keep the label as received; phenomenonTimeCorrected/resultTimeCorrected are our ESTIMATE (minus 2 h) and are marked so. Re-check after the clocks change on 2026-10-25.",
    "what_this_source_publishes": "this source's rows are on more than one clock (corrected, measured): rows collected before its clock note was written carry only the label, later rows carry our corrected estimate beside it. Ages on two clocks are not one distribution and are not blended into one; see age_by_clock."

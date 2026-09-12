@@ -27,6 +27,20 @@ function codexQualification(){
   if(q.schema!=='beops-codex-qualification/v1'||q.request_tools?.length!==0||digest!==q.executable_sha256)throw Error('cli_qualification_required');
   return q;
 }
+function ollamaCatalogueRows(models,provider){
+  const configured=Array.isArray(provider.models)&&provider.models.length
+    ?new Map(provider.models.map((name,index)=>[name,index])):null;
+  return (models||[]).filter(m=>{
+    const name=m.name;
+    const remote=Boolean(m.remote_host||m.remote_model||m.remote_url||name.includes(':cloud'));
+    if(remote&&!provider.allow_remote)return false;
+    return !configured||configured.has(name);
+  }).map(m=>{
+    const remote=Boolean(m.remote_host||m.remote_model||m.remote_url||m.name.includes(':cloud'));
+    return {prov:'cli',bridge:'ollama',device:'local',id:'ollama:'+m.name,model:m.name,
+      runnable:true,status:'installed',costTier:configured?configured.get(m.name)+1:(remote?20:10),speedTier:1};
+  });
+}
 async function availability(provider,options={}){
   if(provider.catalogue_bridge){
     try {
@@ -55,7 +69,7 @@ async function availability(provider,options={}){
   if(provider.adapter==='ollama'){
     try{const d=await request(ollamaBase()+'/api/tags',null,{},5000);const names=new Set((d.models||[]).map(m=>m.name));
       if(provider.discover_models){
-        const rows=(d.models||[]).map(m=>({prov:'cli',bridge:'ollama',device:'local',id:'ollama:'+m.name,model:m.name,runnable:true,status:'installed',costTier:m.name.includes('cloud')?1:2,speedTier:m.name.includes('cloud')?3:1}));
+        const rows=ollamaCatalogueRows(d.models,provider);
         return selectModel(rows,{...provider,catalogue_bridge:'ollama'},options.state,options.now);
       }
       const model=provider.models.find(m=>names.has(m));return model?{ready:true,model}:{ready:false,reason:'no_configured_model'};
@@ -149,12 +163,17 @@ async function codex(prompt,system,model,cwd,timeout){
     child.stdin.end(prompt);
   });
 }
+function antigravityArgs(model,schemaFile,cwd,timeout){
+  // Antigravity model ids already encode their reasoning tier (for example
+  // gemini-3.8-flash-high). Combining one with --effort is rejected by the CLI.
+  return ['--input-format','stream-json','--output-format','stream-json','--model',model,'--sandbox','--mode','plan','--disable-slash-commands','--json-schema',schemaFile,'--print-timeout',Math.max(1,Math.floor(timeout/1000))+'s','--log-file',path.join(cwd,'agy.log')];
+}
 function antigravity(prompt,system,model,cwd,timeout){
   const executable=path.join(os.homedir(),'AppData/Local/agy/bin/agy.exe');
   return new Promise((resolve,reject)=>{
     const schema={type:'object',required:['title','paragraphs','question','limitations'],properties:{title:{type:'string'},paragraphs:{type:'array',items:{type:'object',required:['text','cites'],properties:{text:{type:'string'},cites:{type:'array',items:{type:'string'}}}}},question:{type:'string'},limitations:{type:'string'}}};
     const schemaFile=path.join(cwd,'observer-schema.json');fs.writeFileSync(schemaFile,JSON.stringify(schema));
-    const args=['--input-format','stream-json','--output-format','stream-json','--model',model,'--sandbox','--mode','plan','--effort','low','--disable-slash-commands','--json-schema',schemaFile,'--print-timeout',Math.max(1,Math.floor(timeout/1000))+'s','--log-file',path.join(cwd,'agy.log')];
+    const args=antigravityArgs(model,schemaFile,cwd,timeout);
     const child=spawn(executable,args,{cwd,windowsHide:true,stdio:['pipe','pipe','pipe']});
     let buffer='',bytes=0,text='',result=null,violation=false,timedOut=false,failureKind='runtime';
     const timer=setTimeout(()=>{timedOut=true;child.kill();},timeout);
@@ -222,4 +241,4 @@ async function generate(provider,model,packet,system,cwd,timeout=110000){
   }
   throw Error('unsupported_adapter');
 }
-module.exports={availability,generate,parseObject,parseAntigravity,request,ollamaBase};
+module.exports={availability,generate,parseObject,parseAntigravity,request,ollamaBase,ollamaCatalogueRows,antigravityArgs};

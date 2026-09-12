@@ -40,6 +40,12 @@ class Dataset(unittest.TestCase):
             self.assertEqual(hashlib.sha256(p.read_bytes()).hexdigest(), f["sha256"],
                              f"{f['name']} does not match the hash the manifest publishes for it")
 
+    def test_edition_id_covers_every_published_file(self):
+        files = [{k: f[k] for k in ("name", "sha256")} for f in self.manifest["files"]]
+        expected = hashlib.sha256((ex.VERSION + json.dumps(files, sort_keys=True)).encode()).hexdigest()
+        self.assertEqual(self.manifest["edition_id"], expected,
+                         "documentation or metadata could change without creating a new edition")
+
     def test_it_carries_the_files_it_says_it_carries(self):
         names = {f["name"] for f in self.manifest["files"]}
         for need in ("sources.csv", "refusals.csv", "captures.csv", "data_dictionary.md", "README.md"):

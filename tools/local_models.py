@@ -14,6 +14,7 @@ from model_capacity import shared_slot, CapacityBusy
 
 _job = threading.local()
 LOCK = pathlib.Path(os.environ.get("BEOPS_MODEL_LOCK", "C:/Svemir/data/locks/beops-model.lock"))
+CAPACITY_WAIT_SECONDS = 0.0
 
 
 class ModelDeferred(CapacityBusy):
@@ -61,7 +62,9 @@ def request(base, path, payload=None, timeout=60, verify_model=True):
     remaining = getattr(_job, "deadline", time.monotonic() + timeout) - time.monotonic()
     if remaining <= 0:
         raise ModelDeferred("model job deadline reached before request")
-    with model_slot(min(30, max(0, remaining))):
+    # A scheduled tick must never sit behind another GPU user. If the slot is busy,
+    # leave a waiting_model receipt and let the next periodic tick try again.
+    with model_slot(min(CAPACITY_WAIT_SECONDS, max(0, remaining))):
         return _request_locked(base, path, payload, timeout, verify_model)
 
 

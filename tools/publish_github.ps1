@@ -44,7 +44,7 @@ $projectParent = Split-Path $src -Parent
 $pub = if ($env:BEOPS_PUBLIC_ROOT) { $env:BEOPS_PUBLIC_ROOT } else { Join-Path $projectParent 'Beops-public' }
 $pub = Assert-BeopsPublicRootSafe -SourceRoot $src -PublicRoot $pub -ExpectedRemote $remote
 $py = Resolve-BeopsPython
-$env:GIT_HTTP_USER_AGENT = (Get-BeopsNativeOutput 'workspace Git transport identity' 'node' @('-e', "const fs=require('node:fs');const p=[process.env.BEOPS_INCOGNITO,'C:/Svemir/lib/incognito.js','D:/Svemir/lib/incognito.js'].filter(Boolean).find(p=>fs.existsSync(p));if(!p)throw Error('Incognito provider missing');process.stdout.write(require(p).headers('https://github.com/3esign/beops.git')['User-Agent']);")).Trim()
+$env:GIT_HTTP_USER_AGENT = (Get-BeopsNativeOutput 'workspace Git transport identity' 'node' @((Join-Path $src 'tools\incognito_user_agent.js'))).Trim()
 if (-not $Isolated -and -not $DryRun) {
   # The export lock below protects the mirror, but taking it only after preparing a
   # 600+ MB workspace still lets two callers duplicate all capture work. Serialize

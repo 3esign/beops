@@ -88,7 +88,7 @@ SNAPSHOT = ROOT / "public" / "live-snapshot.json"
 CONTEXT_POP = ROOT / "public" / "context-population.json"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "mind"
-ORGAN_VERSION = "0.5.0"
+ORGAN_VERSION = "0.5.1"
 OUT_DIR = LIVE / "derived" / "mind"
 ORCHESTRATIONS = ("council", "relay")   # for `run`; the scheduled mode is the drip (see STEPS)
 
@@ -390,7 +390,8 @@ def _people_near(lat: float, lon: float, km: float, ctx: dict) -> int:
 
 # ================================================================ L1: organelles
 def ollama_embed(model: str, texts: list[str], timeout: int = 120) -> list[list[float]]:
-    doc = local_models.request(OLLAMA, "/api/embed", {"model": model, "input": texts}, timeout)
+    doc = local_models.request(OLLAMA, "/api/embed",
+                               {"model": model, "input": texts, "keep_alive": "0s"}, timeout)
     return doc.get("embeddings", [])
 
 
@@ -701,7 +702,9 @@ def ollama_chat(model: str, prompt: str, schema: dict | None = None, num_predict
     # Measured on this body: a cold load of the 4b is 84 s and generation about 38 s, so 210 s leaves
     # margin for a cold load and still fits inside a step. A call that overruns it now hands the step
     # to the next model in the register order (C-036) instead of eating the schedule.
-    payload = {"model": model, "stream": False, "format": schema or SCHEMA, "keep_alive": "30m",
+    # This PC also carries Svemir. Release the model with the response instead of retaining
+    # several gigabytes until a 30-minute idle timer expires; the next drip may cold-start.
+    payload = {"model": model, "stream": False, "format": schema or SCHEMA, "keep_alive": "0s",
                "options": {"temperature": temperature, "num_ctx": 6144, "num_predict": num_predict},
                "messages": [{"role": "user", "content": prompt}]}
     if model.split(":")[0].startswith(THINKING_MODELS):

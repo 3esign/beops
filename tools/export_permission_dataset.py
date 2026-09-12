@@ -310,7 +310,11 @@ It contains no third-party content, no measurement values, and no personal data.
                            "by_status": counts},
                 "files": [{"name": p.name, "bytes": p.stat().st_size,
                            "sha256": hashlib.sha256(p.read_bytes()).hexdigest()} for p in files]}
-    edition = hashlib.sha256((VERSION + json.dumps([{k: f[k] for k in ("name", "sha256")} for f in manifest["files"] if f["name"].endswith(".csv")], sort_keys=True)).encode()).hexdigest()
+    # An edition is every published byte, not only the CSV tables. Otherwise a change to the
+    # dictionary, licence/caveat, changelog or deposition metadata reuses an existing immutable
+    # directory and can only be detected after the working files have already drifted.
+    edition_files = [{k: f[k] for k in ("name", "sha256")} for f in manifest["files"]]
+    edition = hashlib.sha256((VERSION + json.dumps(edition_files, sort_keys=True)).encode()).hexdigest()
     manifest["edition_id"] = edition
     manifest["edition_path"] = "releases/" + edition
     (OUT / "MANIFEST.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=1), encoding="utf-8")

@@ -227,7 +227,8 @@ class Claims(unittest.TestCase):
     def test_registry_pause_stops_both_mind_entry_points_without_model_calls(self):
         with tempfile.TemporaryDirectory() as td:
             def no_model(): raise AssertionError('model call while paused')
-            with patch.object(M,'OUT_DIR',pathlib.Path(td)),patch.object(M,'CONTEXT',pathlib.Path(td)/'context.json'),patch.object(M,'register',return_value={'enabled':False}):
+            root=pathlib.Path(td)
+            with patch.object(M,'LIVE',root/'live'),patch.object(M,'OUT_DIR',root/'mind'),patch.object(M,'CONTEXT',root/'context.json'),patch.object(M,'register',return_value={'enabled':False}):
                 self.assertEqual(M.run(now=NOW,snap={},tags=no_model)['state'],'paused')
                 self.assertEqual(M.step(now=NOW,snap={},tags=no_model)['state'],'paused')
 

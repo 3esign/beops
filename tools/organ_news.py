@@ -41,7 +41,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 LIVE = ROOT / "data" / "live"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "news-sorter"
-ORGAN_VERSION = "0.2.2"
+ORGAN_VERSION = "0.2.3"
 OLLAMA = os.environ.get("BEOPS_OLLAMA", "http://127.0.0.1:11434")
 
 CATEGORIES = ["saobracaj", "radovi", "iskljucenja", "javni_prevoz", "vreme_i_vazduh", "voda_i_reke",
@@ -179,9 +179,10 @@ THINKING_MODELS = ("qwen3", "deepseek-r1", "gpt-oss", "magistral")   # Ollama ac
 
 def ollama_chat(model: str, prompt: str, timeout: int = 600) -> dict:
     """One constrained call. Small local models on a CPU are slow: a batch of five headlines took
-    minutes on qwen2.5:3b, so the timeout is generous and keep_alive holds the model in memory
-    between batches. num_ctx is capped because the prompt is short and a big context slows it."""
-    payload = {"model": model, "stream": False, "format": SCHEMA, "keep_alive": "30m",
+    minutes on qwen2.5:3b, so the inference timeout is generous. The model is released immediately
+    after the answer: periodic work may cold-start, but idle work must not consume the PC's RAM.
+    num_ctx is capped because the prompt is short and a big context slows it."""
+    payload = {"model": model, "stream": False, "format": SCHEMA, "keep_alive": "0s",
                "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 1500},
                "messages": [{"role": "user", "content": prompt}]}
     if model.split(":")[0].startswith(THINKING_MODELS):

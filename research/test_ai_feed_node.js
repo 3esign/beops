@@ -21,6 +21,7 @@ async function main(){
  const broken={models:{'openai|small':{provider:'openai',model:'small',state:'failed',at:now.toISOString(),next_at:new Date(+now+600000).toISOString()}}};
  assert.equal(R.selectModel(menu,provider,broken,now,local).model,'large','failed model must not pin the whole family');
  assert.equal(R.selectModel([row('brand-new')],provider,{},now,local).model,'brand-new','new menu models require no name allowlist');
+ assert.equal(R.selectModel(menu,{...provider,models:['large']},{},now,local).model,'large','a reviewed provider family excludes unrelated live aliases');
  broken.models['openai|small'].failure_kind='rate-limit';
  assert.equal(R.selectModel(menu,provider,broken,now,local).reason,'account_cooldown','shared quota must not hammer sibling models');
  assert.equal(R.selectModel(menu,provider,broken,new Date(+now+660000),local).ready,true);
@@ -28,6 +29,18 @@ async function main(){
  assert.equal(R.classifyFailure('model is not supported'),'unsupported-model');
  const cloudFailure={models:{'ollama|cloud':{provider:'ollama',model:'example:cloud',state:'failed',failure_kind:'rate-limit',next_at:new Date(+now+600000).toISOString()}}};
  assert.equal(R.selectModel([{...row('local-small'),bridge:'ollama'}],{id:'ollama',catalogue_bridge:'ollama'},cloudFailure,now).ready,true,'remote Ollama quota must not block a local model');
+ const ollamaProvider={id:'ollama',allow_remote:false,models:['qwen2.5:1.5b','qwen3.5:0.8b']};
+ const ollamaRows=P.ollamaCatalogueRows([
+   {name:'paraphrase-multilingual:latest'},
+   {name:'qwen3.5:cloud',remote_model:'qwen3.5'},
+   {name:'qwen3.5:0.8b'},
+   {name:'qwen2.5:1.5b'}
+ ],ollamaProvider);
+ assert.deepEqual(ollamaRows.map(r=>r.model).sort(),['qwen2.5:1.5b','qwen3.5:0.8b']);
+ assert.equal(R.selectModel(ollamaRows,{id:'ollama',catalogue_bridge:'ollama'},{},now).model,'qwen2.5:1.5b');
+ const agyArgs=P.antigravityArgs('gemini-3.8-flash-high','schema.json',tmp,30000);
+ assert.ok(agyArgs.includes('gemini-3.8-flash-high'));
+ assert.equal(agyArgs.includes('--effort'),false,'model tier and --effort must not conflict');
  assert.equal(C.validateOutput(good,packet).ok,true);
  // G-503: metadata/sign must not license measurements; legitimate rounding/time survives.
  const typed=[{id:'F2026',sid:'S999',url:'https://example.org/79014',location:[44,20],
