@@ -101,6 +101,13 @@ function parseAntigravity(text){
   if(!require('node:util').isDeepStrictEqual(first,last))throw Error('conflicting_cli_answers');
   return first;
 }
+function antigravityFinal(result,text){
+  // JSON-schema mode exposes one canonical object even when the printable
+  // response repeats the same answer as narrative and completion output.
+  const structured=result?.structured_output;
+  if(structured&&typeof structured==='object'&&!Array.isArray(structured))return JSON.stringify(structured);
+  return result?.response??result?.text??result?.result??text;
+}
 function claude(prompt,system,model,cwd,timeout){
   return new Promise((resolve,reject)=>{
     // Safe mode preserves CLI-owned authentication but disables user customisations/hooks/plugins.
@@ -192,7 +199,7 @@ function antigravity(prompt,system,model,cwd,timeout){
     child.on('error',e=>{clearTimeout(timer);reject(Error('cli_start_'+e.code));});
     child.on('close',code=>{
       clearTimeout(timer);if(violation)return reject(Error('cli_unexpected_tool_or_large_output'));
-      const final=result?.response??result?.text??result?.result??text;
+      const final=antigravityFinal(result,text);
       if(result?.error)failureKind=classifyFailure(result.error);
       if(code!==0||!result||result.error||result.is_error||/^(ERROR|FAILED|FAILURE|CANCELLED|CANCELED|TIMEOUT)$/i.test(result.status||'')||!final)return reject(Object.assign(Error(timedOut?'cli_timed_out':'cli_'+failureKind),{failureKind:timedOut?'timeout':failureKind}));
       resolve({text:typeof final==='string'?final:JSON.stringify(final),provider_result:result,model,identity:'requested_alias',usage:result?.usage||null,transport:'Antigravity CLI; sandbox plan mode; tool events refused',tools_observed:[],instruction_delivery:'user_preamble',submitted_prompt:system+'\n\n'+prompt});
@@ -241,4 +248,4 @@ async function generate(provider,model,packet,system,cwd,timeout=110000){
   }
   throw Error('unsupported_adapter');
 }
-module.exports={availability,generate,parseObject,parseAntigravity,request,ollamaBase,ollamaCatalogueRows,antigravityArgs};
+module.exports={availability,generate,parseObject,parseAntigravity,antigravityFinal,request,ollamaBase,ollamaCatalogueRows,antigravityArgs};

@@ -12,7 +12,8 @@ file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ## Start here
 
-- **Execution plan: evidence to a verified decision (private working record)** — current critical path from the live observatory to blind AI evaluation, bounded decision D-001, a 30-day eligible baseline, one non-air domain and one canonical public map. It sequences existing work; its milestones are not completed results.
+- **Execution plan: evidence to a verified decision (private working record)** — current critical path from the live observatory to blind AI evaluation, bounded decision D-002, a 30-day eligible baseline, one non-air domain and one canonical public map. It sequences existing work; its milestones are not completed results.
+- **[D-002 preregistration](D002_POLICY.json)** and **ten frozen replay candidates (private working record)** — deterministic, unreviewed and unsettled selection of what to verify next; it does not claim an urban intervention, cause, trend, anomaly or normality. The discarded first ranking is retained as a **rejected-run summary (private working record)**.
 - **Experimental observations: implementation and operations (private working record)** — implemented feed, admitted context, durable record, provider qualifications and honest deployment evidence; browser and CLI qualification (private working record).
 
 - **Context and experimental AI feed plan (private working record)** — working implementation plan: validated datasets first, qualified historical comparisons, bounded Svemir model routing, inspectable full-width feed and automatic public release after gates (user option 2). Grounded in a reproducible selected inventory (private working record), scan script (private working record) and 42-file hash/coverage report (private working record). A plan, not deployed feature code.

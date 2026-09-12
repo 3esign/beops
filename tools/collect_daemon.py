@@ -501,11 +501,21 @@ def parse_rhmz_gauges(body: bytes, received: datetime, src: dict) -> list[dict]:
         key = (c[0].strip().upper(), c[2].strip().upper())
         if key not in RHMZ_GAUGES:
             continue
-        cells_html = re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S | re.I)
-        # Live RHMZ has two image-only navigation columns before four measurements.
-        # The compact archived layout has seven columns. Missing measurement cells stay put.
+        cells_html = re.findall(r"<t[dh]\b[^>]*>.*?</t[dh]>", tr, re.S | re.I)
+        # RHMZ places two image-only navigation cells before the measurements. The live page may
+        # insert an additional empty separator there, so find the first four consecutive data cells
+        # rather than assuming the next column is the water level. Missing values keep their cell.
         if len(c) >= 9 and all(re.search(r"<img\b", x, re.I) for x in cells_html[3:5]):
-            vals = c[5:9]
+            if len(c) == 9:  # compact archived form: two navigation cells, then exactly four values
+                vals = c[5:9]
+            else:
+                starts = [i for i in range(5, len(c) - 3)
+                          if all(re.search(r'class\s*=\s*["\'][^"\']*\bbela75\b', cells_html[j], re.I)
+                                 and not re.search(r"<img\b", cells_html[j], re.I)
+                                 for j in range(i, i + 4))]
+                if not starts:
+                    raise ValueError("RHMZ gauge measurement columns were not found")
+                vals = c[starts[0]:starts[0] + 4]
         elif len(c) == 7:
             vals = c[3:7]
         else:

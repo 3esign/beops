@@ -1,0 +1,94 @@
+{
+  "schema": "beops-d002-policy/v1",
+  "decision_id": "D-002",
+  "preregistered_at": "2026-09-12T22:40:00Z",
+  "question": "Koju široku zonu i pojavu Beops treba sledeće ciljano da proveri zato što nova provera može najviše da smanji trenutno vidljivu neizvesnost?",
+  "alternatives": [
+    "proveri_sada",
+    "nastavi_pracenje",
+    "nedovoljno_dokaza"
+  ],
+  "signal": {
+    "rule": "same_direction_two_adjacent_intervals",
+    "minimum_points": 3,
+    "minimum_persistent_intervals": 2,
+    "zero_change_is_not_movement": true,
+    "uncertainty_reduction_proxy": "absolute_three_point_span_divided_by_max_absolute_value_in_those_points",
+    "maximum_verification_window_minutes": 120,
+    "independent_domain_max_age_minutes": 1440
+  },
+  "ranking": [
+    "permission_and_trace_complete",
+    "phenomenon_or_effective_time_before_reception_only",
+    "persistent_adjacent_intervals",
+    "independent_domain_present",
+    "freshest_evidence",
+    "next_check_can_remove_named_uncertainty",
+    "stable_source_and_stream_id_tiebreak"
+  ],
+  "retain_ranked_candidates_per_episode": 12,
+  "sources": {
+    "S146": {
+      "domain": "air_official",
+      "expected_cadence_seconds": 3600,
+      "maximum_age_minutes": 180,
+      "bindings": {
+        "Ada Ciganlija": "Ada Ciganlija",
+        "Banovo brdo": "Banovo brdo",
+        "Bežanijska kosa": "Bežanijska kosa",
+        "Borča": "Borča",
+        "Mirijevo": "Mirijevo",
+        "Novi Beograd": "Novi Beograd",
+        "Obrenovac Centar": "Obrenovac",
+        "Rakovica": "Rakovica",
+        "Stari grad": "Stari grad",
+        "Surčin": "Surčin",
+        "Vinča": "Vinča",
+        "Vračar": "Vračar",
+        "Vračar Dom zdravlja": "Vračar",
+        "Zemun TB": "Zemun",
+        "Zemun Ugrinovačka": "Zemun"
+      }
+    },
+    "S10": {
+      "domain": "parking",
+      "expected_cadence_seconds": 900,
+      "maximum_age_minutes": 60,
+      "bindings": {
+        "Parkiralište \"Ada\"": "Ada Ciganlija",
+        "Parkiralište \"Bežanijska kosa\"": "Bežanijska kosa",
+        "Parkiralište \"Blok 43\"": "Blokovi",
+        "Parkiralište \"Čukarica\"": "Čukarica",
+        "Parkiralište \"Kalemegdan\"": "Kalemegdan",
+        "Parkiralište \"Opština NBGD\"": "Novi Beograd",
+        "Parkiralište \"Slavija\"": "Slavija"
+      }
+    },
+    "S01": {
+      "domain": "weather",
+      "expected_cadence_seconds": 900,
+      "maximum_age_minutes":  60,
+      "bindings": {
+        "Košutnjak": "Košutnjak"
+      }
+    },
+    "S52": {
+      "domain": "river",
+      "expected_cadence_seconds": 86400,
+      "maximum_age_minutes": 1800,
+      "bindings": {
+        "Zemun (Dunav)": "Zemun"
+      }
+    }
+  },
+  "binding_method": "asserted_by_us_from_exact_source_place_label",
+  "binding_evidence": "research/01-programme/ZONE_I_POVEZIVANJE.md",
+  "limits": [
+    "Odluka bira samo narednu proveru; nije preporuka gradske intervencije.",
+    "Isti smer kroz tri tačke nije trend, anomalija ni uzrok.",
+    "Drugi domen u istoj širokoj zoni samo pokazuje dostupnost nezavisnog pogleda; ne potvrđuje prvi signal.",
+    "Bezdimenzioni udeo trotačkastog pomeranja razdvaja inače jednake kandidate; nije mera rizika, važnosti, trenda ili odstupanja od normale.",
+    "Nepovezana ili dvosmislena mesta ostaju van kandidata, bez nagađanja zone.",
+    "AI ne bira kandidata, red, vreme, zonu ili dokaz."
+  ]
+}

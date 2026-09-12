@@ -18,6 +18,7 @@
     "latency.py",
     "record.py",
     "watchman.py",
+    "execution_baseline.py",
     "test_permission_dataset.py",
     "test_refusal_route.py",
     "test_source_clock.py"
@@ -113,7 +114,12 @@
    "nests": true,
    "max_depth": 4,
    "shape": "Immutable contexts, prompts, responses, entries and per-attempt start/finish receipts; append-only events.jsonl; mutable status and OS-process worker lock; per-attempt CLI work directories.",
-   "enumerate": "Read all receipt files to reconstruct cadence; accepted entries alone feed public pages. Rejected responses stay private.",
+  "enumerate": "Read all receipt files to reconstruct cadence; accepted entries alone feed public pages. Rejected responses stay private.",
+   "read_by": [
+    "ai_feed.js",
+    "ai_feed_review.py",
+    "execution_baseline.py"
+   ],
    "retention": "No automatic deletion of attempts, responses, prompts, contexts or entries. Off-machine recovery is deferred."
   }
  ],

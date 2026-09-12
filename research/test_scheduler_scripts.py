@@ -89,6 +89,8 @@ class RegisterTasks(unittest.TestCase):
     def test_audit_is_read_only_and_reports_alias_separately(self):
         self.assertIn("root alias", self.audit)
         self.assertIn("action drift", self.audit)
+        self.assertIn("beops-task-audit/v1", self.audit)
+        self.assertIn("ConvertTo-Json", self.audit)
         self.assertNotIn("Register-ScheduledTask", self.audit)
         self.assertNotIn("Set-ScheduledTask", self.audit)
 

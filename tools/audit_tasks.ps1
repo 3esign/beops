@@ -4,7 +4,8 @@
 #   powershell -NoProfile -ExecutionPolicy Bypass -File tools\audit_tasks.ps1
 #   powershell -NoProfile -ExecutionPolicy Bypass -File tools\audit_tasks.ps1 -WarnOnly
 param(
-  [switch]$WarnOnly
+  [switch]$WarnOnly,
+  [switch]$Json
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'beops_tasks.ps1')
@@ -85,6 +86,17 @@ $rows = foreach ($spec in Get-BeopsTaskSpecs) {
   }
 }
 
-$rows | Format-Table Task,Status,Issues,TriggerCount,Execute -AutoSize
+$summary = [pscustomobject]@{
+  schema = 'beops-task-audit/v1'
+  at = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+  root = $root
+  expected = @(Get-BeopsTaskSpecs).Count
+  ok = @($rows | Where-Object { $_.Status -eq 'OK' }).Count
+  alias = @($rows | Where-Object { $_.Status -eq 'ALIAS' }).Count
+  drift = @($rows | Where-Object { $_.Status -eq 'DRIFT' }).Count
+  tasks = @($rows)
+}
+if ($Json) { $summary | ConvertTo-Json -Depth 6 }
+else { $rows | Format-Table Task,Status,Issues,TriggerCount,Execute -AutoSize }
 $drift = @($rows | Where-Object { $_.Status -eq 'DRIFT' })
 if ($drift.Count -gt 0 -and -not $WarnOnly) { exit 1 }

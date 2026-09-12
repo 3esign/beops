@@ -390,6 +390,15 @@ GAUGE_HTML = """<html><body><div id="sadrzaj">
      <td class="bela75 "><img src="nema.gif" /></td></tr>
 </table></div></body></html>""".encode("utf-8")
 
+GAUGE_LIVE_SPACER_HTML = """<html><body>
+<h1>Hidrološki podaci: 12.09.2026. vreme: 8:00 (06:00 UTC)</h1><table>
+<tr><td class="bela75 levo">SAVA</td><td class="bela75"><img src="0.gif"></td>
+<td class="bela75 levo">BEOGRAD</td><td class="bela75"><img src="nrt.gif"></td>
+<td class="bela75"><img src="izv.gif"></td><td class=" "></td>
+<td class="bela75 ">122</td><td class="bela75 ">-5</td><td class="bela75 ">*</td>
+<td class="bela75 ">26.0</td><td class="bela75 "><img src="trend.gif"></td><td class="bela75"></td></tr>
+</table></body></html>""".encode("utf-8")
+
 
 class MetarTests(unittest.TestCase):
     """The airport observation states its own instant; the parser must never invent one, and must never
@@ -449,6 +458,13 @@ class RiverGaugeTests(unittest.TestCase):
         self.assertIsNone(d["result"])
         self.assertEqual(d["resultQuality"], "missing")
         self.assertEqual(d["unit"], "m3/s")
+
+    def test_live_empty_separator_is_not_the_water_level(self):
+        by = {r["datastream"]: r for r in cd.parse_rhmz_gauges(GAUGE_LIVE_SPACER_HTML, NOW, {"sid": "S52"})}
+        self.assertEqual(by["Beograd (Sava)|water_level"]["result"], 122.0)
+        self.assertEqual(by["Beograd (Sava)|water_level_change"]["result"], -5.0)
+        self.assertIsNone(by["Beograd (Sava)|discharge"]["result"])
+        self.assertEqual(by["Beograd (Sava)|water_temperature"]["result"], 26.0)
 
     def test_coordinates_say_they_are_approximate_and_a_page_without_a_time_yields_nothing(self):
         rows = cd.parse_rhmz_gauges(GAUGE_HTML, NOW, {"sid": "S52"})
