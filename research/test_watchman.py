@@ -187,6 +187,11 @@ class WatchmanTests(unittest.TestCase):
             if c["state"] != W.OK:
                 self.assertIn(c["check"], text)
 
+    def test_a_policy_block_does_not_make_the_watch_process_fail(self):
+        self.assertEqual(W.exit_code({"verdict": W.BLOCKED}), 0)
+        self.assertEqual(W.exit_code({"verdict": W.PAUSED}), 0)
+        self.assertEqual(W.exit_code({"verdict": W.STALLED}), W.RANK[W.STALLED])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

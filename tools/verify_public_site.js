@@ -21,6 +21,7 @@ const WAIT_SECONDS = Number(process.env.BEOPS_SITE_WAIT_SECONDS || '120');
 const POLL_MS = Number(process.env.BEOPS_SITE_POLL_MS || '10000');
 const RUN_DEADLINE = Date.now() + Math.max(10, WAIT_SECONDS + 30) * 1000;
 const CHECK_RAW = process.env.BEOPS_CHECK_RAW === '1';
+const MAX_AGE_MINUTES = Number(process.env.BEOPS_SITE_MAX_AGE_MINUTES || '60');
 
 const CORE_ROUTES = [
   'ai-feed.html', 'ai-feed/latest.json', 'kontekst.html', 'context-catalog.json',
@@ -130,6 +131,7 @@ async function main() {
   const warnings = [];
   const routes = [];
   const attempts = [];
+  let freshness = null;
   const localIndex = firstExisting([
     path.join(PUBLIC_ROOT, 'docs', 'index.html'),
     path.join(ROOT, 'docs', 'index.html')
@@ -188,6 +190,20 @@ async function main() {
     if (!item.ok) {
       errors.push(`${rel} returned HTTP ${item.status}`);
     }
+    if (rel === 'live-snapshot.json' && item.ok) {
+      try {
+        const snapshot = JSON.parse(normalizeText(item.text));
+        const asOfMs = Date.parse(snapshot.as_of);
+        if (!Number.isFinite(asOfMs)) throw new Error('missing or invalid as_of');
+        const ageMinutes = (Date.now() - asOfMs) / 60000;
+        freshness = {as_of: snapshot.as_of, age_minutes: Math.round(ageMinutes * 10) / 10,
+          max_age_minutes: MAX_AGE_MINUTES, ok: ageMinutes >= -5 && ageMinutes <= MAX_AGE_MINUTES};
+        if (!freshness.ok) errors.push(`public snapshot is ${freshness.age_minutes} min old; freshness limit is ${MAX_AGE_MINUTES} min`);
+      } catch (error) {
+        freshness = {as_of: null, age_minutes: null, max_age_minutes: MAX_AGE_MINUTES, ok: false};
+        errors.push(`public snapshot freshness is unreadable: ${error.message}`);
+      }
+    }
     const localRoute = localRouteFile(rel);
     if (localRoute) {
       const liveRouteHash = crypto.createHash('sha256').update(item.bytes).digest('hex');
@@ -215,6 +231,8 @@ async function main() {
 
   const summary = {
     ok: errors.length === 0,
+    operational_verdict: errors.length === 0 ? 'CURRENT_AND_VERIFIED' : (freshness && !freshness.ok ? 'STALE_OR_FAILED' : 'FAILED'),
+    freshness,
     site: SITE_URL,
     local_index: localIndex,
     live_hash: sha256(live.text),

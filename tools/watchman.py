@@ -356,6 +356,13 @@ def report(r: dict) -> str:
     return "\n".join(L)
 
 
+def exit_code(r: dict, exporting: bool = False) -> int:
+    """A safe policy refusal is a finding, not a failed monitor process."""
+    if exporting or r['verdict'] in (OK, BLOCKED, PAUSED):
+        return 0
+    return RANK[r['verdict']]
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry", action="store_true", help="read and print, write nothing")
@@ -373,7 +380,7 @@ def main() -> int:
                                        ensure_ascii=False) + "\n")
         PUBLIC.parent.mkdir(parents=True, exist_ok=True)
         atomic_json(PUBLIC, r)
-    return 0 if a.export else RANK[r['verdict']]
+    return exit_code(r, a.export)
 
 
 if __name__ == "__main__":

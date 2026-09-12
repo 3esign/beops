@@ -51,6 +51,13 @@ class PublicSiteVerifierTests(unittest.TestCase):
             self.assertIn(marker, self.script)
         self.assertIn("local AI infrastructure", self.script)
 
+    def test_integrity_and_freshness_form_one_operational_verdict(self):
+        self.assertIn("BEOPS_SITE_MAX_AGE_MINUTES", self.script)
+        self.assertIn("live-snapshot.json", self.script)
+        self.assertIn("public snapshot is", self.script)
+        self.assertIn("operational_verdict", self.script)
+        self.assertIn("CURRENT_AND_VERIFIED", self.script)
+
     def test_raw_github_comparison_is_opt_in(self):
         self.assertIn("BEOPS_CHECK_RAW === '1'", self.script)
 
