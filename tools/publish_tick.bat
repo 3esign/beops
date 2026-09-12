@@ -1,7 +1,12 @@
 @echo off
 rem Disk maintenance: pause only publishing before starting any release preparation.
 if exist "%~dp0..\runtime\PUBLISH_PAUSED" exit /b 0
-rem BEOPS publish tick - scheduled task Beops_Publish, every 10 minutes.
+rem BEOPS publish tick - scheduled task Beops_Publish, every 30 minutes.
+rem Older task registrations may still wake every 10 minutes. Cap successful full
+rem releases here as well, before environment setup or release allocation.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0publish_due.ps1"
+if "%ERRORLEVEL%"=="75" exit /b 0
+if not "%ERRORLEVEL%"=="0" exit /b 9
 rem Exports the current tree (without the captured evidence) and the generated docs/ to
 rem github.com/3esign/beops, so the public site shows the last receptions rather than a frozen day.
 rem The schedule is owned by the scheduler and verified with: schtasks /query /tn Beops_Publish

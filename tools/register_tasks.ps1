@@ -23,7 +23,7 @@ foreach ($t in $tasks) {
   $bat = Join-Path $root $t.Bat
   if (-not (Test-Path $bat)) { throw ("task action is missing: " + $bat) }
   $action = New-ScheduledTaskAction -Execute $bat -WorkingDirectory $root
-  $repeat = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes $t.Minutes)
+  $repeat = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes($t.OffsetMinutes) -RepetitionInterval (New-TimeSpan -Minutes $t.Minutes)
   $user = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
   $logon = New-ScheduledTaskTrigger -AtLogOn -User $user
   $logonType = if ($t.LogonType) { $t.LogonType } else { 'S4U' }
@@ -31,6 +31,6 @@ foreach ($t in $tasks) {
   $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes $t.Limit) -MultipleInstances IgnoreNew
   Register-ScheduledTask -TaskName $t.Name -Action $action -Trigger @($repeat, $logon) -Principal $principal -Settings $settings -Description $t.Desc -Force | Out-Null
   if ($wasDisabled) { Disable-ScheduledTask -TaskName $t.Name | Out-Null }
-  Write-Output ("registered {0} every {1} min" -f $t.Name, $t.Minutes)
+  Write-Output ("registered {0} every {1} min, first start +{2} min" -f $t.Name, $t.Minutes, $t.OffsetMinutes)
 }
 Get-ScheduledTask -TaskName 'Beops_*' | Select-Object TaskName, State | Format-Table -AutoSize
