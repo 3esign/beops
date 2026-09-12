@@ -5,7 +5,7 @@
   "language": "sr-Latn",
   "tick_minutes": 5,
   "job_timeout_seconds": 120,
-  "max_attempts_per_day": 192,
+  "max_attempts_per_day": 72,
   "max_context_bytes": 5500,
   "max_output_characters": 5000,
   "stale_snapshot_minutes": 30,
@@ -14,41 +14,38 @@
       "id": "ollama",
       "label": "Ollama",
       "adapter": "ollama",
-      "models": [
-        "qwen2.5:1.5b",
-        "qwen2.5:3b"
-      ],
       "interval_minutes": 35,
       "offset_minutes": 0,
-      "allow_remote": false
+      "allow_remote": true,
+      "discover_models": true
     },
     {
       "id": "claude",
       "label": "Claude",
       "adapter": "claude-cli",
-      "model": "sonnet",
       "interval_minutes": 40,
-      "offset_minutes": 9
+      "offset_minutes": 9,
+      "catalogue_bridge": "claude"
     },
     {
       "id": "openai",
       "label": "OpenAI / ChatGPT",
       "adapter": "codex-cli",
-      "model": "gpt-5.6-sol",
       "interval_minutes": 45,
-      "offset_minutes": 18
+      "offset_minutes": 18,
+      "catalogue_bridge": "codex"
     },
     {
       "id": "gemini",
-      "label": "Gemini",
-      "adapter": "gemini",
-      "model": "gemini-3.1-pro-preview",
-      "key_env": "GEMINI_API_KEY",
+      "label": "Antigravity / Gemini, Claude, GPT",
+      "adapter": "antigravity-cli",
       "interval_minutes": 50,
-      "offset_minutes": 27
+      "offset_minutes": 27,
+      "catalogue_bridge": "antigravity"
     }
   ],
-  "policy": "One inference at a time. Retain every attempt and response; only validated comments enter the public feed. Missed slots are recorded, never replayed in bursts. Hourly output is an operating target while the machine, sources and providers are available, not a fabricated guarantee.",
+  "policy": "All models in the live local Svemir CLI menu are eligible when runnable. One attempt per five-minute tick; at least 30 minutes between accepted monologues, at most 72 attempts per UTC day and 24 per route family. Failed models cool down; account quota errors also defer sibling models. Every attempt and complete response is retained. No catch-up bursts. Hourly output remains an availability target.",
   "max_live_facts": 3,
-  "max_attempts_per_provider_per_day": 48
+  "max_attempts_per_provider_per_day": 24,
+  "global_min_interval_minutes": 30
 }

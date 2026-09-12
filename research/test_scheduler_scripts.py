@@ -39,14 +39,16 @@ class RegisterTasks(unittest.TestCase):
     def test_heavy_clocks_start_apart_and_publish_at_most_twice_an_hour(self):
         import re
         rows = re.findall(
-            r"Name='([^']+)'.*?Minutes=(\d+);\s+OffsetMinutes=(\d+);",
+            r"Name='([^']+)'.*?Minutes=(\d+);\s+OffsetMinutes=(\d+);\s+Limit=(\d+);",
             self.specs,
         )
         self.assertEqual(len(rows), 9)
-        specs = {name: (int(minutes), int(offset)) for name, minutes, offset in rows}
+        specs = {name: (int(minutes), int(offset), int(limit))
+                 for name, minutes, offset, limit in rows}
         self.assertEqual(specs["Beops_AIFeed"][0], 5)
         self.assertEqual(specs["Beops_Publish"][0], 30)
-        self.assertEqual(len({offset for _, offset in specs.values()}), len(specs))
+        self.assertEqual(specs["Beops_Publish"][2], 30)
+        self.assertEqual(len({offset for _, offset, _ in specs.values()}), len(specs))
         self.assertIn("AddMinutes($t.OffsetMinutes)", self.s)
         self.assertNotIn("AddMinutes(1)", self.s)
 

@@ -2,6 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {buildContext,validateOutput,readJSON,hash}=require('./ai_feed_context');
 const providers=require('./ai_feed_providers');
+const {classifyFailure}=require('./ai_feed_catalogue');
 const ROOT=path.resolve(__dirname,'..');
 function durable(file,text,exclusive=false){
   fs.mkdirSync(path.dirname(file),{recursive:true});
@@ -88,7 +89,8 @@ function exportFeed(root=ROOT, now=new Date()){
     const system=fs.readFileSync(path.join(dir,'prompts',e.prompt_hash+'.txt'),'utf8');
     if(hash(system)!==e.prompt_hash)throw Error('prompt_hash_mismatch');
     atomic(path.join(out,e.id+'.json'),{entry:e,system_prompt:system,
-      user_prompt:'Write your monologue about this frozen situation. Data packet:\n'+JSON.stringify(packet),context:packet,
+      user_prompt:(e.instruction_delivery==='user_preamble'?system+'\n\n':'')+'Write your monologue about this frozen situation. Data packet:\n'+JSON.stringify(packet),context:packet,
+      instruction_delivery:e.instruction_delivery||'system',
       provider_internal_instructions:'Not exposed by the provider; no claim of access to hidden reasoning.'});
   }
   atomic(path.join(out,'latest.json'),{schema:'beops-ai-index/v1',exported_at:now.toISOString(),total:entries.length,
@@ -135,15 +137,18 @@ async function tick(root=ROOT, options={}){
         }else if(prior?.state==='deferred_capacity'&&models.includes(prior.model))models=[prior.model,...models.filter(m=>m!==prior.model)];
         candidate={...p,models};
       }
-      const ready=(counts[p.id]||0)>=(config.max_attempts_per_provider_per_day||48)?{ready:false,reason:'daily_provider_budget'}:await (options.availability||providers.availability)(candidate);
+      const ready=(counts[p.id]||0)>=(config.max_attempts_per_provider_per_day||48)?{ready:false,reason:'daily_provider_budget'}:await (options.availability||providers.availability)(candidate,{state,now,directory:dir});
       checked.push({...p,...ready,last_at:state.providers[p.id]?.at||null,next_at:state.providers[p.id]?.next_at||null});
     }
     let eligible=checked.filter(p=>p.ready && (!p.next_at||Date.parse(p.next_at)<=+now || options.retry && ['failed','deferred_capacity'].includes(state.providers[p.id]?.state)));
     eligible.sort((a,b)=>(a.last_at?Date.parse(a.last_at):0)-(b.last_at?Date.parse(b.last_at):0)||a.offset_minutes-b.offset_minutes);
     const status={schema:'beops-ai-status/v1',at:now.toISOString(),state:'waiting',last_success:state.last_success,
-      providers:checked.map(p=>({id:p.id,label:p.label,ready:p.ready,reason:p.reason||null,interval_minutes:p.interval_minutes,last_at:p.last_at,next_at:p.next_at})),
+      providers:checked.map(p=>({id:p.id,label:p.label,ready:p.ready,reason:p.reason||null,interval_minutes:p.interval_minutes,last_at:p.last_at,next_at:p.next_at,selected_model:p.model||null,route_id:p.route_id||null,candidate_count:p.candidate_count??null,held_count:p.held_count??null,qualification_held:p.qualification_held||0})),
+      global_min_interval_minutes:config.global_min_interval_minutes||0,
+      next_generation_at:state.last_success?new Date(Date.parse(state.last_success)+(config.global_min_interval_minutes||0)*60000).toISOString():null,
       overdue:!state.last_success||+now-Date.parse(state.last_success)>3600000};
     const recordStatus=()=>{atomic(path.join(dir,'status.json'),status);append(path.join(dir,'events.jsonl'),{at:status.at,event:'tick',state:status.state,overdue:status.overdue,providers:status.providers});};
+    if(status.next_generation_at&&Date.parse(status.next_generation_at)>+now){status.state='global_interval';recordStatus();return status;}
     if(!eligible.length){status.state=checked.some(p=>p.ready)?'waiting':'providers_unavailable';recordStatus();return status;}
     if(attemptsToday>=config.max_attempts_per_day){status.state='daily_budget';recordStatus();return status;}
     let packet;try{packet=(options.buildContext||buildContext)(root,now,config);}catch(e){status.state=e.message;recordStatus();return status;}
@@ -153,7 +158,7 @@ async function tick(root=ROOT, options={}){
     const promptFile=path.join(dir,'prompts',promptHash+'.txt');immutableBytes(promptFile,system);
     const prefix=now.toISOString().replace(/:/g,'-')+'-'+id;
     const start={schema:'beops-ai-attempt/v1',id,at:now.toISOString(),provider:provider.id,model:provider.model,
-      next_at:new Date(+now+provider.interval_minutes*60000).toISOString(),
+      next_at:new Date(+now+provider.interval_minutes*60000).toISOString(),route_id:provider.route_id||null,
       context_hash:contextHash,prompt_hash:promptHash,state:'started'};
     immutable(path.join(receipts,prefix+'-start.json'),start);append(path.join(dir,'events.jsonl'),start);
     // Persist interruption accounting BEFORE invoking a provider; recovery honours this attempt's cooldown.
@@ -166,17 +171,23 @@ async function tick(root=ROOT, options={}){
       response=await (options.generate||providers.generate)(provider,provider.model,packet,system,cwd,remaining);
       // Save exact final response before parsing or validating it, including rejected attempts.
       immutable(path.join(dir,'responses',id+'.json'),response);
-      let value;try{value=providers.parseObject(response.text);}catch{throw Error('response_not_json');}
+      let value;try{value=provider.adapter==='antigravity-cli'?providers.parseAntigravity(response.text):providers.parseObject(response.text);}catch{throw Error('response_not_json');}
       const validation=validateOutput(value,packet,config.max_output_characters);
       finish.validation=validation;
       if(!validation.ok)throw Error('validation_rejected');
       const entry={schema:'beops-ai-entry/v1',id,at:new Date().toISOString(),as_of:packet.as_of,provider:provider.id,
         provider_label:provider.label,model:response.model,identity:response.identity,transport:response.transport,
-        context_hash:contextHash,prompt_hash:promptHash,validation,content:value};
+        context_hash:contextHash,prompt_hash:promptHash,validation,content:value,route_id:provider.route_id||null,
+        instruction_delivery:response.instruction_delivery||'system'};
       immutable(path.join(dir,'entries',id+'.json'),entry);
       finish.state='accepted';finish.failure_count=0;finish.at=entry.at;status.last_success=entry.at;status.overdue=false;
+      status.next_generation_at=new Date(Date.parse(entry.at)+(config.global_min_interval_minutes||0)*60000).toISOString();
     }catch(e){finish.state=e.code==='EMINDLOCK'?'deferred_capacity':'failed';finish.reason=String(e.message||e.code||'provider_failed').slice(0,160);
-      if(finish.state==='failed')finish.failure_count++;
+      if(finish.state==='failed'){
+        finish.failure_count++;
+        finish.failure_kind=e.failureKind||classifyFailure(finish.reason);
+        finish.cooldown_until=new Date(+now+(['rate-limit','auth','unsupported-model'].includes(finish.failure_kind)?60:15)*60000).toISOString();
+      }
       const retryMinutes=finish.state==='deferred_capacity'?5:Math.min(provider.interval_minutes,5*2**Math.min(finish.failure_count-1,4));
       finish.next_at=new Date(+now+retryMinutes*60000).toISOString();
     }

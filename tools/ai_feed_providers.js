@@ -2,6 +2,8 @@
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {spawn}=require('node:child_process');
 const crypto=require('node:crypto');
+const {selectModel,classifyFailure}=require('./ai_feed_catalogue');
+const {qualify}=require('./ai_feed_codex_qualification');
 const svemirRoot=()=>process.env.BEOPS_SVEMIR_ROOT||'C:/Svemir';
 function persona(url){return require(path.join(svemirRoot(),'lib/incognito.js')).headers(url);}
 async function request(url,body,headers={},timeout=110000){
@@ -25,7 +27,23 @@ function codexQualification(){
   if(q.schema!=='beops-codex-qualification/v1'||q.request_tools?.length!==0||digest!==q.executable_sha256)throw Error('cli_qualification_required');
   return q;
 }
-async function availability(provider){
+async function availability(provider,options={}){
+  if(provider.catalogue_bridge){
+    try {
+      const bridge=require(path.join(svemirRoot(),'lib/cli_bridge.js'));
+      let rows=bridge.chatModels({includeUnavailable:true,includeAuto:false}),held=0,probes=0;
+      while(rows.length){
+        const selected=selectModel(rows,provider,options.state,options.now,bridge.isLocalDevice);
+        if(!selected.ready||provider.adapter!=='codex-cli')return {...selected,qualification_held:held};
+        const proof=await qualify(codexExecutable(),codexQualification(),selected.model,options.directory||path.join(__dirname,'../runtime/ai-feed'));
+        if(!proof.cached)probes++;
+        if(proof.ok)return {...selected,qualification_held:held};
+        rows=rows.filter(r=>r.id!==selected.route_id);held++;
+        if(probes>=3)return {ready:false,reason:'model_qualification_pending',qualification_held:held};
+      }
+      return {ready:false,reason:'no_qualified_catalogue_model',qualification_held:held};
+    }catch{return {ready:false,reason:'catalogue_or_qualification_unavailable'};}
+  }
   if(provider.adapter==='codex-cli'){
     try{
       const q=codexQualification();
@@ -36,6 +54,10 @@ async function availability(provider){
   }
   if(provider.adapter==='ollama'){
     try{const d=await request(ollamaBase()+'/api/tags',null,{},5000);const names=new Set((d.models||[]).map(m=>m.name));
+      if(provider.discover_models){
+        const rows=(d.models||[]).map(m=>({prov:'cli',bridge:'ollama',device:'local',id:'ollama:'+m.name,model:m.name,runnable:true,status:'installed',costTier:m.name.includes('cloud')?1:2,speedTier:m.name.includes('cloud')?3:1}));
+        return selectModel(rows,{...provider,catalogue_bridge:'ollama'},options.state,options.now);
+      }
       const model=provider.models.find(m=>names.has(m));return model?{ready:true,model}:{ready:false,reason:'no_configured_model'};
     }catch{return {ready:false,reason:'ollama_unavailable'};}
   }
@@ -53,6 +75,17 @@ async function availability(provider){
 function parseObject(text){
   const t=String(text||'').trim().replace(/^```(?:json)?\s*/,'').replace(/\s*```$/,'');
   return JSON.parse(t);
+}
+function parseAntigravity(text){
+  try{return parseObject(text);}catch{}
+  // AGY may emit the same answer twice: a fenced narrative and its schema-completion
+  // envelope. Accept only identical answers, retaining both raw bytes in the response.
+  const match=String(text).trim().match(/^```(?:json)?\s*([\s\S]*?)\s*```\s*(\{[\s\S]*\})$/);
+  if(!match)throw Error('response_not_json');
+  const first=JSON.parse(match[1]),last=JSON.parse(match[2]);
+  for(const key of ['toolAction','toolSummary'])delete last[key];
+  if(!require('node:util').isDeepStrictEqual(first,last))throw Error('conflicting_cli_answers');
+  return first;
 }
 function claude(prompt,system,model,cwd,timeout){
   return new Promise((resolve,reject)=>{
@@ -78,22 +111,23 @@ function claude(prompt,system,model,cwd,timeout){
     child.on('error',e=>{clearTimeout(timer);reject(Error('cli_start_'+e.code));});
     child.on('close',code=>{if(closed)return;closed=true;clearTimeout(timer);
       if(violation || !toolsetSeen) return reject(Error('cli_tool_isolation_unverified'));
-      if(code!==0 || !result || result.is_error) return reject(Error('cli_failed_or_timed_out'));
+      if(code!==0 || !result || result.is_error){const kind=classifyFailure(result?.result||'cli_failed_or_timed_out');return reject(Object.assign(Error('cli_'+kind),{failureKind:kind}));}
       resolve({text:result.result,model,identity:'requested_alias',usage:result.usage||null,transport:'Claude CLI; built-in and MCP tools disabled',tools:[]});
     });
     child.stdin.end(prompt);
   });
 }
-function codex(prompt,system,model,cwd,timeout){
+async function codex(prompt,system,model,cwd,timeout){
   const q=codexQualification();
-  if(q.model!==model)throw Error('model_qualification_required');
+  const proof=await qualify(codexExecutable(),q,model,path.resolve(cwd,'../..'));if(!proof.ok)throw Error('model_tool_qualification_failed');
   fs.writeFileSync(path.join(cwd,'observer-system.txt'),system);
   const schema={type:'object',additionalProperties:false,required:['title','paragraphs','question','limitations'],properties:{title:{type:'string'},paragraphs:{type:'array',items:{type:'object',additionalProperties:false,required:['text','cites'],properties:{text:{type:'string'},cites:{type:'array',items:{type:'string'}}}}},question:{type:'string'},limitations:{type:'string'}}};
   fs.writeFileSync(path.join(cwd,'observer-schema.json'),JSON.stringify(schema));
   return new Promise((resolve,reject)=>{
-    const args=[...q.args,'-c','model_instructions_file='+JSON.stringify(path.join(cwd,'observer-system.txt')),'--output-schema',path.join(cwd,'observer-schema.json'),'-'];
+    const base=[...q.args],slot=base.indexOf('--model');if(slot<0)throw Error('qualification_missing_model_argument');base[slot+1]=model;
+    const args=[...base,'-c','model_instructions_file='+JSON.stringify(path.join(cwd,'observer-system.txt')),'--output-schema',path.join(cwd,'observer-schema.json'),'-'];
     const child=spawn(codexExecutable(),args,{cwd,windowsHide:true,stdio:['pipe','pipe','pipe'],env:{...process.env,OTEL_SDK_DISABLED:'true'}});
-    let out='',bytes=0,text='',usage=null,violation=false,completed=false,timedOut=false;
+    let out='',bytes=0,text='',usage=null,violation=false,completed=false,timedOut=false,failureKind='runtime';
     const timer=setTimeout(()=>{timedOut=true;child.kill();},timeout);
     child.stdout.setEncoding('utf8');child.stdin.on('error',()=>{});
     child.stdout.on('data',chunk=>{
@@ -102,22 +136,56 @@ function codex(prompt,system,model,cwd,timeout){
         if(e.item&&['command_execution','mcp_tool_call','web_search','file_change','collab_tool_call'].includes(e.item.type)){violation=true;child.kill();}
         if(e.type==='item.completed'&&e.item?.type==='agent_message')text=e.item.text||'';
         if(e.type==='turn.completed'){completed=true;usage=e.usage||null;}
+        if(e.type==='error'||e.type==='turn.failed')failureKind=classifyFailure(e.message||e.error?.message||JSON.stringify(e));
       }
     });
-    child.stderr.on('data',()=>{});
+    child.stderr.on('data',b=>{const kind=classifyFailure(b.toString());if(kind!=='runtime')failureKind=kind;});
     child.on('error',e=>{clearTimeout(timer);reject(Error('cli_start_'+e.code));});
     child.on('close',code=>{clearTimeout(timer);
       if(violation)return reject(Error('cli_unexpected_tool_or_large_output'));
-      if(code!==0||!completed||!text)return reject(Error(timedOut?'cli_timed_out':'cli_failed'));
+      if(code!==0||!completed||!text)return reject(Object.assign(Error(timedOut?'cli_timed_out':'cli_'+failureKind),{failureKind:timedOut?'timeout':failureKind}));
       resolve({text,model,identity:'requested_alias',usage,transport:'Codex CLI; pinned executable qualified with empty tools',tools:[],qualification:q.executable_sha256});
     });
     child.stdin.end(prompt);
+  });
+}
+function antigravity(prompt,system,model,cwd,timeout){
+  const executable=path.join(os.homedir(),'AppData/Local/agy/bin/agy.exe');
+  return new Promise((resolve,reject)=>{
+    const schema={type:'object',required:['title','paragraphs','question','limitations'],properties:{title:{type:'string'},paragraphs:{type:'array',items:{type:'object',required:['text','cites'],properties:{text:{type:'string'},cites:{type:'array',items:{type:'string'}}}}},question:{type:'string'},limitations:{type:'string'}}};
+    const schemaFile=path.join(cwd,'observer-schema.json');fs.writeFileSync(schemaFile,JSON.stringify(schema));
+    const args=['--input-format','stream-json','--output-format','stream-json','--model',model,'--sandbox','--mode','plan','--effort','low','--disable-slash-commands','--json-schema',schemaFile,'--print-timeout',Math.max(1,Math.floor(timeout/1000))+'s','--log-file',path.join(cwd,'agy.log')];
+    const child=spawn(executable,args,{cwd,windowsHide:true,stdio:['pipe','pipe','pipe']});
+    let buffer='',bytes=0,text='',result=null,violation=false,timedOut=false,failureKind='runtime';
+    const timer=setTimeout(()=>{timedOut=true;child.kill();},timeout);
+    child.stdin.on('error',()=>{});child.stdout.setEncoding('utf8');
+    child.stdout.on('data',chunk=>{
+      bytes+=Buffer.byteLength(chunk);if(bytes>1024*1024){violation=true;child.kill();return;}buffer+=chunk;
+      let at;while((at=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,at);buffer=buffer.slice(at+1);let e;try{e=JSON.parse(line);}catch{continue;}
+        const s=e.step_update||{};
+        if(['tool','tool_call'].includes(s.step_type)||e.type==='tool_use'||e.event==='tool_call'){violation=true;child.kill();}
+        if(s.step_type==='agent_response'&&s.text_delta)text+=s.text_delta;
+        if(e.event==='result'||e.type==='result')result=e.result&&typeof e.result==='object'?e.result:e;
+        if(e.event==='error'||e.type==='error')failureKind=classifyFailure(JSON.stringify(e));
+      }
+    });
+    child.stderr.on('data',b=>{const k=classifyFailure(b.toString());if(k!=='runtime')failureKind=k;});
+    child.on('error',e=>{clearTimeout(timer);reject(Error('cli_start_'+e.code));});
+    child.on('close',code=>{
+      clearTimeout(timer);if(violation)return reject(Error('cli_unexpected_tool_or_large_output'));
+      const final=result?.response??result?.text??result?.result??text;
+      if(result?.error)failureKind=classifyFailure(result.error);
+      if(code!==0||!result||result.error||result.is_error||/^(ERROR|FAILED|FAILURE|CANCELLED|CANCELED|TIMEOUT)$/i.test(result.status||'')||!final)return reject(Object.assign(Error(timedOut?'cli_timed_out':'cli_'+failureKind),{failureKind:timedOut?'timeout':failureKind}));
+      resolve({text:typeof final==='string'?final:JSON.stringify(final),provider_result:result,model,identity:'requested_alias',usage:result?.usage||null,transport:'Antigravity CLI; sandbox plan mode; tool events refused',tools_observed:[],instruction_delivery:'user_preamble',submitted_prompt:system+'\n\n'+prompt});
+    });
+    child.stdin.end(JSON.stringify({event:'user',message:{role:'user',content:system+'\n\n'+prompt}})+'\n');
   });
 }
 async function generate(provider,model,packet,system,cwd,timeout=110000){
   const deadline=Date.now()+timeout;
   const prompt='Write your monologue about this frozen situation. Data packet:\n'+JSON.stringify(packet);
   if(provider.adapter==='codex-cli')return codex(prompt,system,model,cwd,timeout);
+  if(provider.adapter==='antigravity-cli')return antigravity(prompt,system,model,cwd,timeout);
   if(provider.adapter==='ollama'){
     const mutex=require(path.join(svemirRoot(),'lib/mind_lock.js'));
     return mutex.withLock('ollama',async()=>{
@@ -154,4 +222,4 @@ async function generate(provider,model,packet,system,cwd,timeout=110000){
   }
   throw Error('unsupported_adapter');
 }
-module.exports={availability,generate,parseObject,request,ollamaBase};
+module.exports={availability,generate,parseObject,parseAntigravity,request,ollamaBase};

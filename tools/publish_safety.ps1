@@ -255,6 +255,11 @@ function Save-BeopsReleaseDiagnostic {
     }
   }
   $transcript = Get-ChildItem -LiteralPath (Join-Path $RunRoot 'runtime') -File -Filter 'publish-tests-*.txt' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+  # The child deletes its PID-specific transcript after writing this completed copy.
+  # Preserve it before the outer publisher removes the generated workspace.
+  if (-not $transcript) {
+    $transcript = Get-Item -LiteralPath (Join-Path $RunRoot 'runtime\publish-tests.txt') -ErrorAction SilentlyContinue
+  }
   $transcriptName = $null
   if ($transcript) {
     $transcriptName = $run + '-tests.txt'

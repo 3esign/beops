@@ -29,6 +29,22 @@ def ps(script: str, *, cwd: pathlib.Path | None = None) -> subprocess.CompletedP
 
 
 class PublishSafety(unittest.TestCase):
+    def test_diagnostic_keeps_transcript_after_child_cleanup(self):
+        import json
+        with tempfile.TemporaryDirectory() as d:
+            base = pathlib.Path(d); src = base/'source'; src.mkdir()
+            release = base/('beops-release-' + 'a'*32)
+            (release/'runtime').mkdir(parents=True)
+            # The child removes its PID-specific file; its final copy must survive
+            # the parent's later removal of the entire generated workspace.
+            transcript = b'last complete test output\nactual failure or timeout\n'
+            (release/'runtime/publish-tests.txt').write_bytes(transcript)
+            self.assert_ps_ok(f"Save-BeopsReleaseDiagnostic -SourceRoot '{src}' -RunRoot '{release}' -SourceOid abc -Outcome publish-finished")
+            folder = src/'runtime/release-diagnostics'
+            diagnostic = json.loads((folder/(release.name+'.json')).read_text(encoding='utf-8-sig'))
+            self.assertIsNotNone(diagnostic['test_transcript'])
+            self.assertEqual((folder/diagnostic['test_transcript']).read_bytes(), transcript)
+
     def test_cleanup_removes_only_owned_generated_workspace(self):
         import json
         with tempfile.TemporaryDirectory() as d:
