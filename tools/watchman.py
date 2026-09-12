@@ -253,6 +253,24 @@ def mind(now: datetime) -> dict:
     return check("mind", state, f"newest drop {age:.0f} min ago", age_min=age)
 
 
+def ai_feed(now: datetime) -> dict:
+    config = ROOT / 'research/AI_FEED.json'
+    if not config.exists():
+        return check('AI observations', UNKNOWN, 'experimental feed is not configured')
+    try:
+        if not json.loads(config.read_text(encoding='utf-8')).get('enabled'):
+            return check('AI observations', PAUSED, 'experimental feed is disabled')
+        status = json.loads((ROOT/'runtime/ai-feed/status.json').read_text(encoding='utf-8'))
+        tick_at, success = parse(status.get('at')), parse(status.get('last_success'))
+        if tick_at is None or mins(now,tick_at) > 20:
+            return check('AI observations', STALLED, 'no recent durable feed tick')
+        if success is None or mins(now,success) > 60:
+            return check('AI observations', LATE, 'no accepted monologue within one hour; '+str(status.get('state')), last_success=status.get('last_success'))
+        return check('AI observations', OK, 'latest accepted monologue is within one hour', age_min=mins(now,success))
+    except (OSError, ValueError) as exc:
+        return check('AI observations', UNKNOWN, 'feed status unavailable: '+type(exc).__name__)
+
+
 def continuity(now: datetime) -> tuple[dict, dict | None]:
     """The watchman's own record. A gap here is a period nothing below can speak for."""
     prev = None
@@ -295,7 +313,7 @@ def rows_did_not_shrink(cur: dict, prev: dict | None) -> dict | None:
 def run(now: datetime | None = None) -> dict:
     now = now or now_utc()
     cont, prev = continuity(now)
-    checks = [cont, published(now), history(now), mind(now)]
+    checks = [cont, published(now), history(now), mind(now), ai_feed(now)]
     rt = rows_total()
     checks.append(rt)
     kept = rows_did_not_shrink(rt, prev)

@@ -107,6 +107,14 @@
     "failed": "the attempt did not complete; the receipt carries the error"
    },
    "found_by": "the second run of test_record_shape.py (C-063). 2,738 receipts, undeclared."
+  },
+  {
+   "path": "runtime/ai-feed",
+   "nests": true,
+   "max_depth": 4,
+   "shape": "Immutable contexts, prompts, responses, entries and per-attempt start/finish receipts; append-only events.jsonl; mutable status and OS-process worker lock; per-attempt CLI work directories.",
+   "enumerate": "Read all receipt files to reconstruct cadence; accepted entries alone feed public pages. Rejected responses stay private.",
+   "retention": "No automatic deletion of attempts, responses, prompts, contexts or entries. Off-machine recovery is deferred."
   }
  ],
  "files_directly_in_data_live": {

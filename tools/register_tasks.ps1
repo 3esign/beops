@@ -26,7 +26,8 @@ foreach ($t in $tasks) {
   $repeat = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes $t.Minutes)
   $user = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
   $logon = New-ScheduledTaskTrigger -AtLogOn -User $user
-  $principal = New-ScheduledTaskPrincipal -UserId $user -LogonType S4U -RunLevel Limited
+  $logonType = if ($t.LogonType) { $t.LogonType } else { 'S4U' }
+  $principal = New-ScheduledTaskPrincipal -UserId $user -LogonType $logonType -RunLevel Limited
   $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes $t.Limit) -MultipleInstances IgnoreNew
   Register-ScheduledTask -TaskName $t.Name -Action $action -Trigger @($repeat, $logon) -Principal $principal -Settings $settings -Description $t.Desc -Force | Out-Null
   if ($wasDisabled) { Disable-ScheduledTask -TaskName $t.Name | Out-Null }

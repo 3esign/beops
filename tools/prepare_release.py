@@ -94,7 +94,7 @@ def _capture_inputs(source, dest, spool):
             immutable.append((path, rel, stat))
 
     with zipfile.ZipFile(spool, 'w', compression=zipfile.ZIP_STORED) as archive, exclusive(source/'research/08-provenance/LEDGER.lock'):
-        for folder in ('research/evidence', 'data/live/receipts'):
+        for folder in ('research/evidence', 'data/live/receipts', 'runtime/ai-feed/entries', 'runtime/ai-feed/contexts', 'runtime/ai-feed/prompts'):
             directory = source / folder
             for path in sorted(directory.rglob('*')) if directory.exists() else []:
                 if path.is_file():
@@ -117,6 +117,7 @@ def _capture_inputs(source, dest, spool):
                     if path.is_file():
                         collect(path, True)
             for rel in ('research/08-provenance/LEDGER.jsonl', 'data/ca-bundle-windows.pem',
+                        'runtime/ai-feed/status.json',
                         'data/live/corrections.jsonl', 'data/live/retention-ledger.jsonl',
                         'data/live/guard-ledger.jsonl', 'data/live/publish-receipt.json'):
                 if (source/rel).is_file():
@@ -173,7 +174,7 @@ def prepare(source, destination, oid=None):
     dest.parent.mkdir(parents=True, exist_ok=True)
     # The spool and final input copy coexist. Refuse before allocating anything
     # large; a publish must never consume the operating system's last free bytes.
-    input_bytes = sum(p.stat().st_size for folder in ('data/live', 'research/evidence', 'research/observations')
+    input_bytes = sum(p.stat().st_size for folder in ('data/live', 'research/evidence', 'research/observations', 'runtime/ai-feed')
                       for p in (source/folder).rglob('*') if p.is_file() and p.suffix not in ('.lock', '.tmp'))
     required = 2 * input_bytes + 512 * 1024 * 1024
     available = shutil.disk_usage(dest.parent).free

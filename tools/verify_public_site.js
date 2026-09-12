@@ -23,6 +23,7 @@ const RUN_DEADLINE = Date.now() + Math.max(10, WAIT_SECONDS + 30) * 1000;
 const CHECK_RAW = process.env.BEOPS_CHECK_RAW === '1';
 
 const CORE_ROUTES = [
+  'ai-feed.html', 'ai-feed/latest.json', 'kontekst.html', 'context-catalog.json',
   'podaci.html',
   'monolog.html',
   'sada.html',

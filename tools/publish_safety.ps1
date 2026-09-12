@@ -254,13 +254,23 @@ function Save-BeopsReleaseDiagnostic {
       $receiptNote = 'existing receipt is unreadable'
     }
   }
-  @{schema='beops-release-diagnostic/v1'; at=(Get-Date).ToUniversalTime().ToString('o'); source_oid=$SourceOid; workspace=$RunRoot; outcome=$Outcome; receipt_note=$receiptNote; receipt=$lastReceipt} |
+  $transcript = Get-ChildItem -LiteralPath (Join-Path $RunRoot 'runtime') -File -Filter 'publish-tests-*.txt' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+  $transcriptName = $null
+  if ($transcript) {
+    $transcriptName = $run + '-tests.txt'
+    Copy-Item -LiteralPath $transcript.FullName -Destination (Join-Path $folder $transcriptName) -Force
+  }
+  @{schema='beops-release-diagnostic/v1'; at=(Get-Date).ToUniversalTime().ToString('o'); source_oid=$SourceOid; workspace=$RunRoot; outcome=$Outcome; receipt_note=$receiptNote; receipt=$lastReceipt; test_transcript=$transcriptName} |
     ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $folder ($run + '.json')) -Encoding UTF8
   # This directory contains our diagnostics, not source/evidence. Keep ten runs.
   $older = Get-ChildItem -LiteralPath $folder -File -Filter 'beops-release-*.json' | Sort-Object LastWriteTime -Descending | Select-Object -Skip 10
   foreach ($item in $older) {
     $record = Get-Content -LiteralPath $item.FullName -Raw | ConvertFrom-Json
-    if ($record.schema -eq 'beops-release-diagnostic/v1' -and $item.Name -match '^beops-release-[a-f0-9]{32}\.json$') { Remove-Item -LiteralPath $item.FullName -Force }
+    if ($record.schema -eq 'beops-release-diagnostic/v1' -and $item.Name -match '^beops-release-[a-f0-9]{32}\.json$') {
+      $oldTranscript = Join-Path $folder ($item.BaseName + '-tests.txt')
+      if (Test-Path -LiteralPath $oldTranscript) { Remove-Item -LiteralPath $oldTranscript -Force }
+      Remove-Item -LiteralPath $item.FullName -Force
+    }
   }
 }
 

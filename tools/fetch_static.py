@@ -3,7 +3,7 @@
 fetch_static.py - the static and semi-static context of the city, taken once, lawfully, with a hash.
 
     python -B tools/fetch_static.py kontur           population per H3 hexagon for Serbia (Kontur, CC BY) -> evidence under S120
-    python -B tools/fetch_static.py derive-kontur    -> public/context-population.json (hexes in the Belgrade window, centroid + people)
+    python -B tools/fetch_static.py derive-kontur    -> public/context-population.json (hexes in the Belgrade window, representative point + people)
     python -B tools/fetch_static.py status           what context files exist, from which capture
 
 Why this exists (research/STATIC_LAYERS.json is the register): the mind needs to know the SHAPE of
@@ -53,7 +53,7 @@ def layer(lid: str) -> dict:
     for x in reg["layers"]:
         if lid in (x.get("id"), x.get("sid"), x.get("file"),
                    pathlib.Path(str(x.get("file") or "")).stem):
-            return x
+            return {**x.get("provenance_as_the_file_carries_it", {}), **x}
     raise KeyError("no layer %r in the register; it holds: %s"
                    % (lid, ", ".join(str(x.get("id") or x.get("file")) for x in reg["layers"])))
 
@@ -194,12 +194,18 @@ def derive_kontur() -> pathlib.Path:
                 continue
             hexes.append([round(cx, 5), round(cy, 5), int(round(row[1] or 0))] + ([row[2]] if hcol else []))
         con.close()
-    out = {"name": "context-population", "layer": L["id"], "source": {"sid": sid, "capture": man["captured_at_utc"], "srs_as_shipped": srs},
-           "resolution": L["resolution"], "attribution": L["attribution"], "licence": L["licence"],
-           "note": ("Population per H3 hexagon (resolution 8, about 0.74 km2) from the Kontur Population Dataset, clipped to the Belgrade "
-                    "window by hexagon centroid; each entry is [lon, lat, people" + (", h3" if hcol else "") + "]. A modelled estimate "
-                    "(built-up area x census), not a count; the mind uses it only as context and says so."),
-           "people_total": sum(h[2] for h in hexes), "hexes": hexes}
+    # The downloaded resource names its edition; a dataset page may also list newer resources.
+    import re
+    match = re.search(r"_RS_(\d{4})(\d{2})(\d{2})", gz.name)
+    release = "-".join(match.groups()) if match else "unknown resource edition"
+    out = {"name": "context-population", "layer": L["id"], "source": {
+        "sid": sid, "capture": man["captured_at_utc"], "srs_as_shipped": srs,
+        "release": release, "demographic_reference_period": "Mixed source vintages; not established as a single census date."},
+        "resolution": "H3 resolution 8; representative points displayed as schematic hexagons, not exact cell boundaries.",
+        "attribution": f"Kontur Population, Serbia resource release {release}, CC BY 4.0; filtered by BEOPS.",
+        "licence": L["licence"],
+        "note": f"Modelled population per H3 cell from the {release} resource. Points are arithmetic means of supplied outer-ring vertices; symbols are schematic. Window and radius selections use those points, not administrative boundaries or exact population exposure.",
+        "people_total": sum(h[2] for h in hexes), "hexes": hexes}
     PUBLIC.mkdir(parents=True, exist_ok=True)
     p = PUBLIC / "context-population.json"
     p.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
@@ -208,7 +214,7 @@ def derive_kontur() -> pathlib.Path:
 
 
 def people_near(lat: float, lon: float, km: float = 1.0, ctx: dict | None = None) -> int | None:
-    """Sum of hexagon populations whose centroid lies within `km` of (lat, lon). Used by the digest."""
+    """Sum of hexagon populations whose representative point lies within `km` of (lat, lon). Used by the digest."""
     ctx = ctx or (json.loads((PUBLIC / "context-population.json").read_text(encoding="utf-8")) if (PUBLIC / "context-population.json").exists() else None)
     if not ctx or not ctx.get("hexes"):
         # A layer that is present and empty is not a city with nobody in it. Returning 0 here would
@@ -229,7 +235,7 @@ def status() -> dict:
     out = {}
     for f in PUBLIC.glob("context-*.json"):
         d = json.loads(f.read_text(encoding="utf-8"))
-        out[f.name] = {"layer": d.get("layer"), "source": d.get("source"), "entries": len(d.get("hexes") or d.get("features") or []),
+        out[f.name] = {"layer": d.get("layer"), "source": d.get("source"), "entries": len(d.get("hexes") or d.get("features") or d.get("datasets") or []),
                        "bytes": f.stat().st_size}
     return out
 

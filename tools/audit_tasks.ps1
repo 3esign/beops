@@ -60,7 +60,8 @@ $rows = foreach ($spec in Get-BeopsTaskSpecs) {
     if ([string]$task.Settings.MultipleInstances -ne 'IgnoreNew') { $issues += 'overlap policy drift' }
     $interval = [System.Xml.XmlConvert]::ToString([TimeSpan]::FromMinutes($spec.Minutes))
     if (-not @($task.Triggers | Where-Object { $_.Repetition.Interval -eq $interval }).Count) { $issues += 'repeat interval drift' }
-    if ([string]$task.Principal.LogonType -ne 'S4U' -or [string]$task.Principal.RunLevel -ne 'Limited') { $issues += 'principal drift' }
+    $expectedLogon = if ($spec.LogonType) { $spec.LogonType } else { 'S4U' }
+    if ([string]$task.Principal.LogonType -ne $expectedLogon -or [string]$task.Principal.RunLevel -ne 'Limited') { $issues += 'principal drift' }
     $expectedUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
     function Get-UserSid([string]$Identity) {
       try { return ([System.Security.Principal.NTAccount]$Identity).Translate([System.Security.Principal.SecurityIdentifier]).Value }

@@ -447,6 +447,9 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
     <div class="stage">
       <iframe id="stage" src="monolog.html?v={stamp}" title="BEOPS · Monolog + Puls" loading="eager"></iframe>
     </div>
+    <div class="ai-stage" style="width:100%;height:420px;max-height:65vh;border:1px solid var(--ink12);margin-top:18px;overflow:hidden">
+      <iframe id="aifeed" src="ai-feed.html?v={stamp}" title="BEOPS · Zapažanja / AI observations" style="width:100%;height:100%;border:0;display:block" loading="lazy"></iframe>
+    </div>
   </div>
 </div>
 
@@ -821,9 +824,14 @@ addEventListener('message',function(ev){
   var d=ev.data; if(!d||d.beops!=='height'||!d.h||d.h>20000) return;   // a runaway frame is ignored, not obeyed
   var fr=document.querySelectorAll('iframe');
   for(var i=0;i<fr.length;i++) if(fr[i].contentWindow===ev.source){
+    if(fr[i].id==='aifeed') return; // This is an independently scrolling feed, never autoheight.
     var box=fr[i].parentElement; box.classList.add('fit'); box.style.height=(d.h+2)+'px';
   }
 });
+// Keep the experimental margin visibly smaller than the main instrument at every viewport height.
+(function(){var main=document.querySelector('.stage'),feed=document.querySelector('.ai-stage');if(!main||!feed)return;
+function size(){feed.style.height=Math.max(1,Math.min(480,main.getBoundingClientRect().height*.65))+'px';}
+size();if(window.ResizeObserver)new ResizeObserver(size).observe(main);else addEventListener('resize',size);})();
 
 // The four front-door answers carry their own language switch: Serbian, English, Chinese and German.
 // It is separate from the page's SR/EN switch on purpose - the generated tables below exist in two
@@ -954,6 +962,9 @@ def main() -> int:
                      ("research/05-design/studies/accessibility.js", "accessibility.js"),
                      ("research/05-design/studies/headlines.js", "headlines.js"),
                      ("research/05-design/studies/monolog-puls.html", "monolog.html"),
+                     ("research/05-design/studies/ai-feed.html", "ai-feed.html"),
+                     ("research/05-design/studies/kontekst.html", "kontekst.html"),
+                     ("public/context-catalog.json", "context-catalog.json"),
                      ("research/05-design/studies/podaci.html", "podaci.html"),
                      ("research/05-design/studies/sada.html", "sada.html"),
                      ("research/05-design/studies/slojevi.svg", "slojevi.svg"),
@@ -971,6 +982,9 @@ def main() -> int:
         p = ROOT / src
         if p.exists():
             shutil.copy(p, DOCS / dst)
+    context_tables = ROOT / 'public/context-tables'
+    if context_tables.exists():
+        shutil.copytree(context_tables, DOCS / 'context-tables', dirs_exist_ok=True)
     # A document reaches the site by existing rather than by being listed - except the kinds that
     # are internal by policy. Working documents, letters and programme notes are not published;
     # research/test_public_docs.py holds this, because the first version of this loop published

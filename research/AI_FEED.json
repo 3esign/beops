@@ -1,0 +1,54 @@
+{
+  "schema": "beops-ai-feed-config/v1",
+  "enabled": true,
+  "public_enabled": true,
+  "language": "sr-Latn",
+  "tick_minutes": 5,
+  "job_timeout_seconds": 120,
+  "max_attempts_per_day": 192,
+  "max_context_bytes": 5500,
+  "max_output_characters": 5000,
+  "stale_snapshot_minutes": 30,
+  "providers": [
+    {
+      "id": "ollama",
+      "label": "Ollama",
+      "adapter": "ollama",
+      "models": [
+        "qwen2.5:1.5b",
+        "qwen2.5:3b"
+      ],
+      "interval_minutes": 35,
+      "offset_minutes": 0,
+      "allow_remote": false
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "adapter": "claude-cli",
+      "model": "sonnet",
+      "interval_minutes": 40,
+      "offset_minutes": 9
+    },
+    {
+      "id": "openai",
+      "label": "OpenAI / ChatGPT",
+      "adapter": "codex-cli",
+      "model": "gpt-5.6-sol",
+      "interval_minutes": 45,
+      "offset_minutes": 18
+    },
+    {
+      "id": "gemini",
+      "label": "Gemini",
+      "adapter": "gemini",
+      "model": "gemini-3.1-pro-preview",
+      "key_env": "GEMINI_API_KEY",
+      "interval_minutes": 50,
+      "offset_minutes": 27
+    }
+  ],
+  "policy": "One inference at a time. Retain every attempt and response; only validated comments enter the public feed. Missed slots are recorded, never replayed in bursts. Hourly output is an operating target while the machine, sources and providers are available, not a fabricated guarantee.",
+  "max_live_facts": 3,
+  "max_attempts_per_provider_per_day": 48
+}

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="sr-Latn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BEOPS · Zapažanja / Observations</title>
+<style>
+:root{color-scheme:light;--field:#f4f1e9;--ink:#242923;--muted:#5b655c;--line:#b7beb1;--signal:#4b6540}html[data-theme=dark]{color-scheme:dark;--field:#141914;--ink:#e7eadd;--muted:#a7b2a1;--line:#475443;--signal:#bdd5a7}
+html{scrollbar-color:var(--line) var(--field);scrollbar-width:thin}*{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--field);color:var(--ink);font:15px/1.55 system-ui,sans-serif}body{display:flex;flex-direction:column}header{padding:14px 22px 10px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;flex-wrap:wrap}h1{font-size:17px;font-weight:500;margin:0;letter-spacing:.01em}small,.meta{font:11px/1.5 ui-monospace,monospace;color:var(--muted)}header small{display:block}button,select,a{color:inherit}button,select{background:transparent;border:1px solid var(--line);padding:7px 10px;font:inherit;border-radius:0;cursor:pointer}button:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--signal);outline-offset:3px}header .controls{margin-left:auto;display:flex;gap:7px;align-items:center}#stream{overflow:auto;flex:1;min-height:0;padding:0 22px;scrollbar-gutter:stable}article{border-bottom:1px solid var(--line);padding:20px 0;max-width:110ch}article h2{overflow-wrap:anywhere;font:500 23px/1.2 Georgia,serif;margin:8px 0 13px}article p{overflow-wrap:anywhere;max-width:92ch;margin:10px 0}article .question{font-family:Georgia,serif;font-size:19px;color:var(--signal)}article .limits{font-size:12px;color:var(--muted)}.actions{display:flex;gap:9px;align-items:center;margin-top:12px}.cites{font:11px ui-monospace,monospace;color:var(--muted);margin-left:8px}footer{padding:8px 22px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);display:flex;gap:10px;align-items:center}footer a{margin-left:auto}#more{margin:16px 0}#new{border-color:var(--signal)}[hidden]{display:none!important}dialog{width:min(880px,96vw);max-height:92vh;background:var(--field);color:var(--ink);border:1px solid var(--line);padding:18px}dialog::backdrop{background:#0008}dialog .close{float:right}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.6 ui-monospace,monospace;border-top:1px solid var(--line);padding-top:12px}summary{cursor:pointer;padding:10px 0}#empty{padding:20px 0;color:var(--muted)}@media(max-width:540px){header{padding:10px 14px;gap:8px}header .controls{margin-left:0;width:100%}#stream{padding:0 14px}article h2{overflow-wrap:anywhere;font-size:21px}footer{padding:7px 14px}header select{max-width:170px}}
+</style></head><body>
+<header><div><h1 id="heading">Zapažanja</h1><small id="subtitle">Eksperimentalni AI monolozi · radoznalo posmatranje grada</small></div><div class="controls"><label for="model" id="filterLabel">Glas</label><select id="model"><option value="">Svi modeli</option></select><button id="new" hidden>Nova zapažanja</button></div></header>
+<main id="stream" tabindex="0" aria-label="Zapažanja modela"><p id="empty">Učitavanje sačuvanih zapažanja…</p><div id="entries"></div><button id="more" hidden>Starija zapažanja</button></main>
+<footer><span id="status" role="status">Čita se poslednji objavljeni zapis.</span><button id="availability">Modeli</button><a href="kontekst.html" target="_top" id="contextLink">Podaci o kontekstu ↗</a></footer>
+<dialog id="inspect" aria-labelledby="inspectTitle"><button class="close" id="close">Zatvori</button><h2 id="inspectTitle">Prompt i kontekst</h2><div id="proof"></div></dialog>
+<script>
+'use strict';
+let LANG='sr',entries=[],next=null,index=null,busy=false,activeButton=null;
+const reasonLabel=r=>({ 'rate-limited':'privremeno ograničenje provajdera',api_credentials_unavailable:'API pristup nije podešen',cli_qualification_required:'potrebna provera verzije CLI-ja',ollama_unavailable:'lokalni servis nije dostupan',no_configured_model:'nema podešenog raspoloživog modela'})[r]||r;
+const $=id=>document.getElementById(id),T=(a,b)=>LANG==='sr'?a:b;
+const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
+const when=s=>s?new Date(s).toLocaleString(LANG==='sr'?'sr-Latn-RS':'en-GB',{timeZone:'Europe/Belgrade',dateStyle:'short',timeStyle:'short'}):T('još nema','none yet');
+async function json(file){const r=await fetch(file,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return r.json();}
+function language(){
+ document.documentElement.lang=LANG==='sr'?'sr-Latn':'en';$('heading').textContent=T('Zapažanja','Observations');
+ $('subtitle').textContent=T('Eksperimentalni AI monolozi · radoznalo posmatranje grada','Experimental AI monologues · noticing and wondering about the city');
+ $('filterLabel').textContent=T('Glas','Voice');$('model').options[0].textContent=T('Svi modeli','All models');$('more').textContent=T('Starija zapažanja','Older observations');$('new').textContent=T('Nova zapažanja','New observations');$('close').textContent=T('Zatvori','Close');$('contextLink').textContent=T('Podaci o kontekstu ↗','Context datasets ↗');render();showStatus();
+}
+function showStatus(){
+ if(!index)return;
+ const age=index.latest_at?(Date.now()-Date.parse(index.latest_at))/60000:Infinity;
+ $('status').textContent=(age>60?T('Čeka se novo zapažanje. ','Waiting for a new observation. '):'')+T('Sačuvano: ','Saved: ')+index.total+T(' · poslednje ',' · latest ')+when(index.latest_at);
+ $('status').title=(index.status?.providers||[]).map(p=>p.label+': '+(p.reason||p.ready)+' · '+p.interval_minutes+' min').join('\n');
+}
+function render(){
+ const list=$('entries'),selected=$('model').value;list.replaceChildren();
+ const shown=entries.filter(e=>!selected||e.provider===selected);
+ for(const e of shown){
+  const article=el('article');article.id='entry-'+e.id;
+  article.append(el('div',e.provider_label+' · '+e.model+' · '+when(e.at),'meta'));
+  article.append(el('h2',e.content.title));
+  article.append(el('div',T('Podaci do ','Evidence as of ')+when(e.as_of)+(LANG==='en'?' · Original text in Serbian':''),'meta'));
+  for(const p of e.content.paragraphs){const line=el('p',p.text);line.append(el('span',p.cites.join(' · '),'cites'));article.append(line);}
+  article.append(el('p',e.content.question,'question'),el('p',e.content.limitations,'limits'));
+  const actions=el('div',undefined,'actions'),button=el('button',T('Prompt, kontekst i izvori','Prompt, context & sources'));
+  button.addEventListener('click',()=>inspect(e,button));const link=el('a',T('Trajni link','Permalink'));link.href='ai-feed.html?entry='+e.id;link.target='_top';actions.append(button,link);article.append(actions);list.append(article);
+ }
+ $('empty').hidden=shown.length>0;$('empty').textContent=entries.length?T('Nema učitanih zapažanja za izabrani glas. Stariji zapisi ostaju dostupni.','No loaded entries for this voice. Older entries remain available.'):T('Još nema objavljenog zapažanja. Pokušaji i dostupnost se beleže; ovde se pojavljuju izlazi koji prođu automatske provere.','No published observation yet. Attempts and availability are recorded; validated model outputs appear here.');
+ $('more').hidden=!next;
+}
+async function inspect(e,button){
+ activeButton=button;$('inspectTitle').textContent=e.content.title;$('proof').replaceChildren(el('p',T('Učitavanje dokaza…','Loading evidence…')));$('inspect').showModal();
+ try{const proof=await json('ai-feed/'+e.id+'.json');const box=$('proof');box.replaceChildren();
+ box.append(el('p',T('AI tumačenje. Automatske provere proveravaju oblik, citate i brojeve; ne dokazuju tačnost mišljenja.','AI interpretation. Automatic checks validate structure, citations and numbers; they do not prove the interpretation.')));
+ for(const [label,value] of [[T('Sistemski prompt projekta','Project system prompt'),proof.system_prompt],[T('Tačan korisnički prompt','Exact user prompt'),proof.user_prompt],[T('Podaci i poreklo','Data and provenance'),proof.context],[T('Provera i identitet','Validation and identity'),proof.entry]]){const d=el('details');d.append(el('summary',label),el('pre',typeof value==='string'?value:JSON.stringify(value,null,2)));box.append(d);}
+ const sources=el('div');for(const fact of proof.context.facts){if(!fact.url)continue;let u;try{u=new URL(fact.url);}catch{continue;}if(!['http:','https:'].includes(u.protocol))continue;const p=el('p',fact.id+' · '),a=el('a',fact.source||fact.sid);a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';p.append(a);sources.append(p);}box.append(sources,el('p',proof.provider_internal_instructions));
+ }catch{$('proof').replaceChildren(el('p',T('Dokaz trenutno nije dostupan. Zapažanje ostaje sačuvano.','Evidence is temporarily unavailable. The entry remains saved.')));}
+}
+$('close').onclick=()=>$('inspect').close();$('inspect').addEventListener('close',()=>activeButton?.focus());
+$('availability').onclick=()=>{activeButton=$('availability');$('inspectTitle').textContent=T('Dostupnost modela','Model availability');$('proof').replaceChildren();for(const p of index?.status?.providers||[]){$('proof').append(el('p',p.label+' · '+p.interval_minutes+' min · '+(p.reason?(LANG==='sr'?reasonLabel(p.reason):p.reason):T('dostupan','available'))),el('p',T('Poslednji pokušaj: ','Last attempt: ')+when(p.last_at)+T(' · sledeći najranije: ',' · next eligible: ')+when(p.next_at),'meta'));}$('proof').append(el('p',T('Raspored je cilj. Kada je model nedostupan ili zauzet, propušten termin ostaje zabeležen; tekst se ne izmišlja.','Cadence is a target. Unavailable or busy models leave a recorded gap; no text is fabricated.')));$('inspect').showModal();};
+$('model').onchange=render;
+$('more').onclick=async()=>{if(busy||!next)return;busy=true;$('more').disabled=true;try{const p=await json('ai-feed/'+next);entries.push(...p.entries.filter(e=>!entries.some(x=>x.id===e.id)));next=p.next;render();}catch{$('status').textContent=T('Stariji zapisi trenutno nisu dostupni. Pokušaj ponovo.','Older entries unavailable. Please retry.');}finally{busy=false;$('more').disabled=false;}};
+async function refresh(initial=false){try{const fresh=await json('ai-feed/latest.json');if(!initial&&index){if(fresh.latest_at!==index.latest_at){$('new').hidden=false;return;}index=fresh;showStatus();return;}index=fresh;const selected=$('model').value;for(const p of fresh.status?.providers||[])if(![...$('model').options].some(o=>o.value===p.id)){$('model').append(new Option(p.label,p.id));}$('model').value=selected;
+ const id=new URLSearchParams(location.search).get('entry');
+ if(id&&/^[a-f0-9]{32}$/.test(id)){const proof=await json('ai-feed/'+id+'.json');entries=[proof.entry];next=null;}
+ else{const p=fresh.first_page?await json('ai-feed/'+fresh.first_page):{entries:[],next:null};entries=p.entries;next=p.next;}
+ render();showStatus();}catch{$('empty').textContent=T('Zapažanja trenutno nisu dostupna. Glavni instrument nastavlja da radi.','Observations are temporarily unavailable. The main instrument is independent.');}}
+$('new').onclick=()=>{$('new').hidden=true;refresh(true);};
+addEventListener('message',e=>{if(e.source!==parent)return;const d=e.data;if(!d)return;const old=LANG;if(d.beopsLang)LANG=d.beopsLang==='sr'?'sr':'en';if(d.beopsTheme!==undefined)document.documentElement.dataset.theme=d.beopsTheme;if(old!==LANG)language();});
+parent.postMessage({beops:'feed-ready',heightPolicy:'bounded-scroll'},location.origin);
+refresh(true);setInterval(()=>{if(!document.hidden)refresh(false);},60000);
+</script></body></html>

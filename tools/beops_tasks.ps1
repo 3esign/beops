@@ -8,6 +8,7 @@ function Get-BeopsRoot {
 
 function Get-BeopsTaskSpecs {
   return @(
+    [pscustomobject]@{ Name='Beops_AIFeed'; Bat='tools\ai_feed_tick.bat'; Minutes=5; Limit=4; LogonType='Interactive'; Desc='BEOPS: durable experimental citizen-style AI observations, staggered model cadence within one hour' },
     [pscustomobject]@{ Name='Beops_Collect';  Bat='tools\collect_tick.bat';  Minutes=5;     Limit=10; Desc='BEOPS: one bounded pass over permitted sources' },
     [pscustomobject]@{ Name='Beops_Organ';    Bat='tools\organ_tick.bat';    Minutes=10;    Limit=9;  Desc='BEOPS: one bounded pass of the news-sorter organ on a local model' },
     [pscustomobject]@{ Name='Beops_Publish';  Bat='tools\publish_tick.bat';  Minutes=10;    Limit=8;  Desc='BEOPS: export and push the public site (github.com/3esign/beops)' },

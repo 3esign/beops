@@ -40,5 +40,16 @@
   }
  },
  "the_ambiguity_named": "In public/live-snapshot.json both vocabularies appear under 'state'. A reader sees \"state\": \"estimated\" beside \"state\": \"thought\" and cannot tell that the first is a claim about knowledge and the second a note about a pipeline. This is not fixed today: renaming a published field is a change to something other people may already read, and it is worth doing deliberately rather than in the same hour it was noticed. It is written down here, and in the corrections ledger, so that it is a known defect rather than an unnoticed one.",
- "how_to_add_a_state": "Add it here with a sentence a stranger could act on, then to the code, then run the suite. In that order: the record describes what it does before it does it, or the description is a reconstruction. Never add an allowance to the test instead - an exception in a test is a declaration nobody can find."
+ "how_to_add_a_state": "Add it here with a sentence a stranger could act on, then to the code, then run the suite. In that order: the record describes what it does before it does it, or the description is a reconstruction. Never add an allowance to the test instead - an exception in a test is a declaration nobody can find.",
+ "ai_feed": {
+  "where_it_lives": "runtime/ai-feed/receipts; separate from measured observations and the existing Mind stream",
+  "states": {
+   "started": "The prompt and frozen context are durable before inference.",
+   "accepted": "Complete response saved and automatic structural/citation/numeric validation passed.",
+   "failed": "Attempt failed or complete response was rejected; no public entry.",
+   "interrupted": "Worker stopped without a completion receipt; recovered as uncertainty.",
+   "deferred_capacity": "Shared Ollama resource busy; no model call made."
+  },
+  "tick_states": "waiting, providers_unavailable, daily_budget, paused or a named input failure; written to status.json and the append-only events journal."
+ }
 }

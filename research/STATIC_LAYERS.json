@@ -7,9 +7,9 @@
    "id": "belgrade-basemap",
    "file": "public/basemap-belgrade.json",
    "sid": "S98/S115",
-   "what": "the ground the maps are drawn on: river banks, municipality outlines, the city's frame",
+   "what": "Generalised rivers, water bodies and built-up footprint from Natural Earth; no municipal boundaries.",
    "built_by": "tools/fetch_basemap.py",
-   "why_no_expiry": "the Sava and the Danube do not move, and a municipality outline changes by law rather than by the hour. An age limit here would report a fault every day and mean nothing on the day something actually changed.",
+   "why_no_expiry": "Generalised geographic features change independently of the live streams; review the dataset edition on the recorded calendar.",
    "review_every_days": 180,
    "must_be_named": [
     "Natural Earth"
@@ -33,7 +33,7 @@
    "id": "kontur-population",
    "file": "public/context-population.json",
    "sid": "S120",
-   "what": "how many people live near a station, as H3 hexagons - a modelled context layer, never a measurement, and labelled as one everywhere it appears",
+   "what": "Dated modelled population per H3 cell, shown as schematic symbols at representative points; not a census, exact catchment or exposure estimate.",
    "built_by": "tools/fetch_static.py",
    "why_no_expiry": "it is a dated RELEASE of an external dataset. It becomes out of date when its publisher issues a new release, which is a thing to check for on a calendar, not a thing to infer from a file's modification time.",
    "review_every_days": 365,
@@ -41,24 +41,32 @@
     "Kontur",
     "CC BY"
    ],
-   "bytes": 101972,
-   "sha256": "5dc8cb627411c0fd163be7194ab8e72a347511bd91b1694ea2496063a548d547",
-   "accepted_at": "2026-09-09T00:49:49Z",
+   "bytes": 102100,
+   "sha256": "bb48a9df2513d98629adca393431cf91f2c2fabdef0e63f7313b63e5e75735a3",
+   "accepted_at": "2026-09-12T00:06:00Z",
    "review_due": "2027-09-10",
    "provenance_as_the_file_carries_it": {
-    "source": "{'sid': 'S120', 'capture': '20260909T003600Z', 'srs_as_shipped': 3857}",
-    "attribution": "Kontur Population: Global Population Density for 400m H3 Hexagons (Kontur, 2023), CC BY 4.0",
+    "source": {
+     "sid": "S120",
+     "capture": "20260909T003600Z",
+     "srs_as_shipped": 3857,
+     "release": "2022-06-30",
+     "demographic_reference_period": "Mixed source vintages; not established as a single census date."
+    },
+    "attribution": "Kontur Population, Serbia resource release 2022-06-30, CC BY 4.0; filtered by BEOPS.",
     "licence": "CC BY 4.0",
-    "note": "Population per H3 hexagon (resolution 8, about 0.74 km2) from the Kontur Population Dataset, clipped to the Belgrade window by hexagon centroid; each entry is [lon, lat, people, h3]. A modelled estima",
+    "note": "Modelled population per H3 cell from the 2022-06-30 resource. Points are arithmetic means of supplied outer-ring vertices; symbols are schematic. Window and radius selections use those points, not administrative boundaries or exact population exposure.",
     "name": "context-population",
     "layer": "kontur-population",
-    "resolution": "H3 res 8, hexagon about 0.74 km2 (~460 m across)"
+    "resolution": "H3 resolution 8; representative points displayed as schematic hexagons, not exact cell boundaries."
    },
    "must_carry": [
     "attribution",
     "licence",
     "source"
-   ]
+   ],
+   "release": "2022-06-30",
+   "acceptance_note": "Metadata correction verified against S120 capture 20260909T003600Z and resource filename; all 2452 population values and representative points unchanged."
   }
  ]
 }
