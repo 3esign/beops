@@ -832,6 +832,10 @@ addEventListener('message',function(ev){
 (function(){var main=document.querySelector('.stage'),feed=document.querySelector('.ai-stage');if(!main||!feed)return;
 function size(){feed.style.height=Math.max(1,Math.min(480,main.getBoundingClientRect().height*.65))+'px';}
 size();if(window.ResizeObserver)new ResizeObserver(size).observe(main);else addEventListener('resize',size);})();
+// Native focus/scroll-into-view must leave room for the sticky site header, including inside frames.
+(function(){var header=document.querySelector('body>header');if(!header)return;
+function inset(){document.documentElement.style.scrollPaddingTop=(header.getBoundingClientRect().height+12)+'px';}
+inset();if(window.ResizeObserver)new ResizeObserver(inset).observe(header);else addEventListener('resize',inset);})();
 
 // The four front-door answers carry their own language switch: Serbian, English, Chinese and German.
 // It is separate from the page's SR/EN switch on purpose - the generated tables below exist in two

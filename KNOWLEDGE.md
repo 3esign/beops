@@ -1,6 +1,7 @@
 # Beops — Knowledge Base
 
 # Greske
+- [2026-09-12T01:05] Javna browser provera otvorila je stvarni prompt, ali zatvaranje je isteklo jer je sticky zaglavlje roditeljske stranice prekrilo dugme u iframe-u. Uzrok: native focus/scroll-into-view nije imao rezervisan prostor zaglavlja. Lek: merena scroll-padding-top margina roditeljskog dokumenta i browser regresija otvaranja/prosirivanja/zatvaranja prompta od pocetnog polozaja na cetiri sirine. — izvor: research/_trail/ai-feed-20260912/browser-qa.js
 - [2026-09-12T00:40] The release gate found the new QA README missing from the research index after commit; the pre-commit test saw only tracked files. Added the index link and a regression proving untracked research documents are discovered before commit. — izvor: research/test_research_index.py
 - [2026-09-12T00:18] Windows refuses ftruncate on a Node descriptor opened in append mode. The partial-journal regression exposed EPERM; preserve the incomplete fragment and truncate by its owned path before continuing append, with the worker lock held. — izvor: research/test_ai_feed_node.js
 - [2026-09-12T00:07] The isolated audit found missing input snapshots and a new catalogue missing its source field; fixed the new contracts and copied a consistent production record for the full release test. — izvor: research/test_ai_feed.py
@@ -37,6 +38,7 @@
 - [2026-09-05T14:15] Konfigurisana automatizacija nije domacin. beops-obs-001-trka-10k je bila kreirana ACTIVE u Codex sesiji, ali schtasks na PC-u nije imao nijedan Beops zadatak - kad je sesija prestala, raspored je prestao s njom. Posledica: 0/13 snimljeno na dan pilota, tri termina nepovratno propustena. Pravilo: raspored koji nije u trajnom domacinu ne postoji, bez obzira sto ga je alat prijavio kao ACTIVE. — izvor: research/observations/10k-2026-09-05/OPAZANJA.md
 
 # Iskustva
+- [2026-09-12T01:02] Publicni docs fajlovi se grade u izolovanom release-u i proveravaju u Beops-public/docs; aktivni izvorni repo nije mesto za citanje poslednjeg javnog feed-a. Pre citanja alata otkriti putanju kroz rg --files: verifier je JavaScript, a project_kit zivi u korenu Svemira. — izvor: research/_trail/AI_FEED_IMPLEMENTATION_2026-09-12.md
 - [2026-09-12T00:44] A single shared attempt cap can starve a healthy observer when another model repeatedly fails. Give each provider a separate daily quota, size the global ceiling to their sum, and back off repeated failures; a shared-capacity deferral is not a model call. — izvor: research/test_ai_feed_node.js
 - [2026-09-12T00:36] Windows denied creating an S4U feed task and elevation was canceled; registering a Limited Interactive task succeeded without admin. Declare that logon type explicitly and never claim the job runs after Windows sign-out. — izvor: tools/beops_tasks.ps1
 - [2026-09-12T00:24] Codex CLI 0.153.4 supports --ignore-user-config while retaining sign-in. With explicit feature disabling and zero project-document budget, the local mock Responses request had tools: []; pin the executable hash and refuse an upgrade until requalified. First real observer output passed in about 24 seconds. — izvor: research/AI_FEED_CODEX_QUALIFICATION.json
