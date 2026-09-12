@@ -216,9 +216,11 @@ def published(now: datetime) -> dict:
         return check('published', UNKNOWN, 'publication has no valid input snapshot time')
     age = mins(now, t)
     if age > 60:
-        state, said = STALLED, f"the public site is {age:.0f} min old - the publish is not publishing"
-    elif age > 25:
-        state, said = LATE, f"the public site is {age:.0f} min old, past two publish cadences"
+        state, said = STALLED, f"the public site is {age:.0f} min old - the one-hour freshness target is exceeded"
+    elif age > 45:
+        # The publish cadence is now 30 minutes, with measured end-to-end work
+        # around 18 minutes. These are DATA freshness targets, not task counts.
+        state, said = LATE, f"the public site is {age:.0f} min old, past the 45-minute freshness warning"
     else:
         state, said = OK, f"last verified publication carries inputs {age:.0f} min old"
     try:

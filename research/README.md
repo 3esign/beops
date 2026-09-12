@@ -386,6 +386,8 @@ The historical manuscript is intentionally unchanged. No manuscript, conference 
 
 ## Recovery implementation, 2026-09-11
 
+- 01-programme/DEVELOPMENT_PRIORITIES_2026-09-12.md (private working record): current feed/publish quality repairs, explicit limits and staged development acceptance criteria.
+
 - _trail/REPAIR_2026-09-11.md (private working record): current recovery record, all 63 audit findings, implementation and application/rollback steps.
 - _trail/repair-20260911/status.json (private working record): machine-readable per-finding recovery status.
 - _trail/DOCUMENT_STATUS_2026-09-11.md (private working record): explicit historical/undesignated-document exceptions and inventory.

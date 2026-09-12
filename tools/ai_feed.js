@@ -75,6 +75,19 @@ function exportFeed(root=ROOT, now=new Date()){
   const dir=path.join(root,'runtime/ai-feed'),out=path.join(root,'docs/ai-feed');
   fs.mkdirSync(out,{recursive:true});
   const entries=config.public_enabled?allEntries(dir):[];
+  const reviews={},reviewFile=path.join(root,'research/AI_FEED_REVIEWS.json');
+  if(fs.existsSync(reviewFile)){
+    const doc=readJSON(reviewFile,1024*1024);
+    if(doc.schema!=='beops-ai-reviews/v1'||!Array.isArray(doc.records))throw Error('invalid_review_ledger');
+    for(const r of doc.records){
+      if(!/^[a-f0-9]{32}$/.test(r.entry_id)||r.status!=='quality_flag'||
+        !/^[a-f0-9]{64}$/.test(r.entry_sha256)||!Number.isFinite(Date.parse(r.reviewed_at))||
+        !['reason_sr','reason_en','reviewer'].every(k=>typeof r[k]==='string'&&r[k].length>0&&r[k].length<1000))throw Error('invalid_review');
+      const entry=entries.find(e=>e.id===r.entry_id);
+      if(entry&&hash(entry)!==r.entry_sha256)throw Error('review_entry_hash_mismatch');
+      if(entry)(reviews[r.entry_id]||=[]).push(r);
+    }
+  }
   let status={state:'not_started',at:null,providers:[]};
   if(fs.existsSync(path.join(dir,'status.json')))status=readJSON(path.join(dir,'status.json'),65536);
   const pageSize=20,pages=[];
@@ -89,12 +102,14 @@ function exportFeed(root=ROOT, now=new Date()){
     const system=fs.readFileSync(path.join(dir,'prompts',e.prompt_hash+'.txt'),'utf8');
     if(hash(system)!==e.prompt_hash)throw Error('prompt_hash_mismatch');
     atomic(path.join(out,e.id+'.json'),{entry:e,system_prompt:system,
+      reviews:reviews[e.id]||[],
       user_prompt:(e.instruction_delivery==='user_preamble'?system+'\n\n':'')+'Write your monologue about this frozen situation. Data packet:\n'+JSON.stringify(packet),context:packet,
       instruction_delivery:e.instruction_delivery||'system',
       provider_internal_instructions:'Not exposed by the provider; no claim of access to hidden reasoning.'});
   }
   atomic(path.join(out,'latest.json'),{schema:'beops-ai-index/v1',exported_at:now.toISOString(),total:entries.length,
     first_page:pages[0]?.filename||null,latest_at:entries[0]?.at||null,status,
+    reviews,review_revision:hash(reviews),
     target_gap_minutes:60,experimental:true,scope:'AI interpretation; automatic checks do not establish factual truth.'});
   return {total:entries.length,status:status.state};
 }
@@ -148,11 +163,13 @@ async function tick(root=ROOT, options={}){
       next_generation_at:state.last_success?new Date(Date.parse(state.last_success)+(config.global_min_interval_minutes||0)*60000).toISOString():null,
       overdue:!state.last_success||+now-Date.parse(state.last_success)>3600000};
     const recordStatus=()=>{atomic(path.join(dir,'status.json'),status);append(path.join(dir,'events.jsonl'),{at:status.at,event:'tick',state:status.state,overdue:status.overdue,providers:status.providers});};
-    if(status.next_generation_at&&Date.parse(status.next_generation_at)>+now){status.state='global_interval';recordStatus();return status;}
+    if(status.global_min_interval_minutes>0&&status.next_generation_at&&Date.parse(status.next_generation_at)>+now){status.state='global_interval';recordStatus();return status;}
     if(!eligible.length){status.state=checked.some(p=>p.ready)?'waiting':'providers_unavailable';recordStatus();return status;}
     if(attemptsToday>=config.max_attempts_per_day){status.state='daily_budget';recordStatus();return status;}
-    let packet;try{packet=(options.buildContext||buildContext)(root,now,config);}catch(e){status.state=e.message;recordStatus();return status;}
-    const provider=eligible[0],system=fs.readFileSync(path.join(root,'research/03-models/AI_FEED_SYSTEM_PROMPT_v1.txt'),'utf8');
+    let packet;try{packet=(options.buildContext||buildContext)(root,now,config);}catch(e){status.state=e.message;if(e.diagnostic)status.diagnostic=e.diagnostic;recordStatus();return status;}
+    const promptVersion=config.prompt_version||1;
+    if(![1,2].includes(promptVersion))throw Error('invalid_prompt_version');
+    const provider=eligible[0],system=fs.readFileSync(path.join(root,'research/03-models/AI_FEED_SYSTEM_PROMPT_v'+promptVersion+'.txt'),'utf8');
     const contextHash=hash(packet),promptHash=hash(system),id=crypto.randomBytes(16).toString('hex');
     immutable(path.join(dir,'contexts',contextHash+'.json'),packet);
     const promptFile=path.join(dir,'prompts',promptHash+'.txt');immutableBytes(promptFile,system);
@@ -175,7 +192,7 @@ async function tick(root=ROOT, options={}){
       const validation=validateOutput(value,packet,config.max_output_characters);
       finish.validation=validation;
       if(!validation.ok)throw Error('validation_rejected');
-      const entry={schema:'beops-ai-entry/v1',id,at:new Date().toISOString(),as_of:packet.as_of,provider:provider.id,
+      const entry={schema:'beops-ai-entry/v1',id,at:(options.clock||(()=>new Date()))().toISOString(),as_of:packet.as_of,provider:provider.id,
         provider_label:provider.label,model:response.model,identity:response.identity,transport:response.transport,
         context_hash:contextHash,prompt_hash:promptHash,validation,content:value,route_id:provider.route_id||null,
         instruction_delivery:response.instruction_delivery||'system'};

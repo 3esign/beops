@@ -16,8 +16,15 @@ function allowedSources(root, now) {
   const bundled=path.join(process.env.USERPROFILE||'', '.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe');
   const exe=process.env.BEOPS_TEST_PYTHON || (fs.existsSync(bundled)?bundled:'python');
   const r=spawnSync(exe,['-X','utf8','-B',path.join(__dirname,'ai_feed_policy.py'),root,now.toISOString()],{windowsHide:true,timeout:20000,encoding:'utf8',maxBuffer:1024*1024});
-  if(r.status!==0)throw Error('permission_projection_failed');
-  return new Set(JSON.parse(r.stdout));
+  if(r.error || r.status!==0){
+    const e=Error('permission_projection_failed');
+    // Never copy child stderr (paths or secrets) into the public status.
+    e.diagnostic={code:r.error?.code||null,exit_code:r.status,signal:r.signal||null,
+      stderr_bytes:Buffer.byteLength(r.stderr||''),stderr_sha256:hash(r.stderr||'')};throw e;
+  }
+  let allowed;try{allowed=JSON.parse(r.stdout);}catch{throw Error('permission_projection_invalid_output');}
+  if(!Array.isArray(allowed)||allowed.some(s=>!/^S\d+$/.test(s)))throw Error('permission_projection_invalid_output');
+  return new Set(allowed);
 }
 function buildContext(root, now = new Date(), config = {}, permittedOverride) {
   const snapshot = readJSON(path.join(root, 'public/live-snapshot.json'));
@@ -97,6 +104,36 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
   if (Buffer.byteLength(JSON.stringify(packet))>(config.max_context_bytes||24000)) throw Error('context_budget_exceeded');
   return packet;
 }
+// Numbers in IDs, coordinates, URLs and timestamp fragments are NOT measurements.
+// This checks membership, not whether prose assigns the right value to the right noun.
+function numericReasons(text, facts) {
+  const reasons=[], values=facts.flatMap(f=>[f.value,f.comparison?.from_value,f.comparison?.delta]).filter(Number.isFinite);
+  const times=facts.flatMap(f=>[f.time,f.comparison?.from_time]).filter(s=>stamp(s)!==null).map(s=>new Date(s).toISOString().slice(11,16));
+  let rest=text.replace(/\b(\d{1,2})[:.](\d{2})\s*UTC\b/g,(whole,h,m)=>{
+    if(!times.includes(h.padStart(2,'0')+':'+m))reasons.push('unsupported_time');return ' ';
+  }).replace(/\b(\d{1,2})\s+(?:časova|čas|sati|sata)\s+UTC\b/g,(whole,h)=>{
+    if(!times.includes(h.padStart(2,'0')+':00'))reasons.push('unsupported_time');return ' ';
+  });
+  // Ambiguous local times cannot borrow digits from measurement values.
+  if(/\b\d{1,2}:\d{2}\b|\b\d{1,2}\.\d{2}\s*(?:čas|sat)|\b\d{1,2}\s+(?:časova|čas|sati|sata)\b/.test(rest))reasons.push('unsupported_time');
+  const escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  for(const f of facts){
+    const tokens=[f.metric,f.unit];
+    if(f.metric==='PM2.5')tokens.push('PM2,5');
+    // Only the exact supplied period can be named; unrelated years remain rejected.
+    if(typeof f.period==='string')tokens.push(f.period);
+    for(const token of tokens.filter(s=>typeof s==='string'&&/\d/.test(s))){
+      rest=rest.replace(new RegExp('(?<![\\p{L}\\d])'+escape(token)+'(?![\\p{L}\\d])','gu'),' ');
+    }
+  }
+  const numbers=rest.match(/[+−-]?\d+(?:[.,]\d+)?(?:[eE][+-]?\d+)?/g)||[];
+  for(const raw of numbers){
+    const n=Number(raw.replace('−','-').replace(',','.'));
+    if(!values.some(v=>Object.is(n,v)||n===v||
+      (Math.sign(n)===Math.sign(v)&&n===Number(v.toFixed(2)))))reasons.push('unsupported_number');
+  }
+  return [...new Set(reasons)];
+}
 function validateOutput(value, packet, cap=5000) {
   const reasons=[], keys=['title','paragraphs','question','limitations'];
   if (!value || typeof value!=='object' || Array.isArray(value)) return {ok:false,reasons:['not_an_object']};
@@ -109,16 +146,16 @@ function validateOutput(value, packet, cap=5000) {
   for(const p of paragraphs){
     if(!p || typeof p.text!=='string' || p.text.length<20 || p.text.length>1800 || Object.keys(p).some(k=>!['text','cites'].includes(k))) {reasons.push('paragraph');continue;}
     if(!Array.isArray(p.cites) || !p.cites.length || p.cites.length>4 || p.cites.some(c=>!facts.has(c))) {reasons.push('citation');continue;}
-    const allowed=new Set(numbers(p.cites.map(c=>JSON.stringify(facts.get(c))).join(' ')));
-    if(numbers(p.text).some(n=>!allowed.has(n))) reasons.push('unsupported_number');
+    reasons.push(...numericReasons(p.text,p.cites.map(c=>facts.get(c))));
   }
   const prose=[value.title,...paragraphs.map(p=>p?.text),value.question,value.limitations].join(' ');
+  if(/kratak naslov|zapažanje i oprezno tumačenje na srpskom|šta priloženi podaci ne mogu da objasne|frozen situation/i.test(prose))reasons.push('copied_prompt_template');
   if(/\p{Script=Cyrillic}/u.test(prose) || (prose.match(/\b(?:je|nije|ali|da|ne|se|u|na|kako|ovo|podaci|koji|kao|koje)\b/gi)||[]).length<6) reasons.push('serbian_latin_not_established');
   if(/\b(?:I (?:walk|saw|went|live)|video sam|videla sam|lično sam|dok šetam|šetao sam|šetala sam)\b/i.test(prose)) reasons.push('invented_firsthand_experience');
   if(prose.length>cap || /<[^>]*>|https?:|\b(?:system prompt|ignore previous|api[_ -]?key)\b/i.test(prose)) reasons.push('unsafe_or_large_text');
   // Uncited title/question/limitation must not introduce a numeric claim.
   if(numbers([value.title,value.question,value.limitations].join(' ')).length) reasons.push('uncited_number');
   if(!/[?？]/.test(value.question||'')) reasons.push('missing_question');
-  return {ok:!reasons.length,reasons:[...new Set(reasons)],version:'citizen-v1',scope:'Structural, citation and numeric checks; not proof of interpretation accuracy.'};
+  return {ok:!reasons.length,reasons:[...new Set(reasons)],version:'citizen-v2',scope:'Structure, template, cited numeric membership and explicit UTC times; not proof of claim-to-fact mapping or interpretation accuracy.'};
 }
-module.exports={buildContext,validateOutput,readJSON,hash,stamp,allowedSources};
+module.exports={buildContext,validateOutput,numericReasons,readJSON,hash,stamp,allowedSources};

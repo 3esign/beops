@@ -118,6 +118,21 @@ class WatchmanTests(unittest.TestCase):
         self.t.history("2026-09-10T11")            # 1 h behind
         self.assertEqual(self.states(W.run(NOW))["history"], W.OK)
 
+    def test_publication_freshness_is_not_the_retired_ten_minute_cadence(self):
+        self.t.history("2026-09-10T11")
+        for age, expected in ((30, W.OK), (44, W.OK), (46, W.LATE), (61, W.STALLED)):
+            receipt_path = W.LIVE/'publish-last-success.json'
+            receipt = json.loads(receipt_path.read_text(encoding='utf-8'))
+            receipt['generated_as_of'] = iso(NOW - timedelta(minutes=age))
+            receipt_path.write_text(json.dumps(receipt), encoding='utf-8')
+            self.assertEqual(W.published(NOW)['state'], expected)
+        # A newer failed attempt must still raise an alert even with fresh inputs.
+        receipt['generated_as_of'] = iso(NOW - timedelta(minutes=10))
+        receipt_path.write_text(json.dumps(receipt), encoding='utf-8')
+        (W.LIVE/'publish-receipt.json').write_text(json.dumps(dict(
+            published=False, at=iso(NOW + timedelta(seconds=1)))), encoding='utf-8')
+        self.assertEqual(W.published(NOW)['state'], W.LATE)
+
     def test_the_first_reading_vouches_for_nothing_before_it(self):
         r = W.run(NOW)
         c = [x for x in r["checks"] if x["check"] == "watchman"][0]
