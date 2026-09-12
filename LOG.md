@@ -154,3 +154,4 @@ Vreme · um · radnja · rezultat. Vodi `node tools/project_kit.js log`.
 - 2026-09-12T17:41:00Z · Svemir / Codex · Publish put više ne izvršava inline `node -e`; incognito Git transport identitet dobija kroz imenovani, pregledljiv helper i novu regresiju. · repaired
 - 2026-09-12T17:49:00Z · Svemir / Codex · Objavljen public 6991201 iz source 4d5e5ad: 629/629, 59 živih ruta, jednak hash i 95 sati istorije. Watch više nije stalled; njegov exit ugovor sada razlikuje bezbedno blokirane izvore od kvara procesa. · ok
 - 2026-09-12T17:52:00Z · Svemir / Codex · Javni verifier sada spaja integritet i starost `live-snapshot.json` u jednu operativnu presudu; jednak ali star mirror više ne može dati zeleni `CURRENT_AND_VERIFIED`. · repaired
+- 2026-09-12T18:20:00Z · Svemir / Codex · Završna provera oporavka: 631/631 testova, Guard ok, scheduler 9/9, Watch bez zastoja i javni sajt CURRENT_AND_VERIFIED; nova nedeljna pravna evidencija izdvojena je za zaseban commit. · ok
