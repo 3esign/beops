@@ -12,6 +12,7 @@ file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ## Start here
 
+- **Execution plan: evidence to a verified decision (private working record)** — current critical path from the live observatory to blind AI evaluation, bounded decision D-001, a 30-day eligible baseline, one non-air domain and one canonical public map. It sequences existing work; its milestones are not completed results.
 - **Experimental observations: implementation and operations (private working record)** — implemented feed, admitted context, durable record, provider qualifications and honest deployment evidence; browser and CLI qualification (private working record).
 
 - **Context and experimental AI feed plan (private working record)** — working implementation plan: validated datasets first, qualified historical comparisons, bounded Svemir model routing, inspectable full-width feed and automatic public release after gates (user option 2). Grounded in a reproducible selected inventory (private working record), scan script (private working record) and 42-file hash/coverage report (private working record). A plan, not deployed feature code.
@@ -137,6 +138,7 @@ benchmarks tied to a named experiment* go in the narrow one. Do not merge them.
 
 ## 01-programme — what we intend to do
 
+- **EXECUTION_PLAN_2026-09-12.md (private working record)** — the current gated execution order. It does not replace the protocols or claim that G0–G6 have been completed.
 - **RADNI_PROGRAM.md (private working record)** — 65 tasks in 13 themes with dependencies and completion evidence. A task count, not a completion count.
 - **PLAN_CULA_MODELI_2026-09-05.md (private working record)** — 25 candidate senses, 10 research questions, 12 experiment designs, 48 work items.
 - **PULSE_RESEARCH_PROTOCOL.md (private working record)** — layered pulses and controlled comparisons.
