@@ -59,7 +59,11 @@ if (-not $Isolated -and -not $DryRun) {
   $publishExit = 1
   try {
     $oid = (Get-BeopsNativeOutput 'resolve release OID' 'git' @('-C', $src, 'rev-parse', '--verify', 'HEAD^{commit}')).Trim()
-    $releaseBase = if ($env:BEOPS_RELEASE_ROOT) { Get-BeopsFullPath $env:BEOPS_RELEASE_ROOT } else { Join-Path (Split-Path (Get-BeopsFullPath $src) -Parent) '_runtime\beops-releases' }
+    # The live project can be a C: junction to the archival disk. Build/test I/O
+    # belongs on the operational disk, not beside the resolved archive path.
+    $releaseBase = if ($env:BEOPS_RELEASE_ROOT) { Get-BeopsFullPath $env:BEOPS_RELEASE_ROOT }
+      elseif (Test-Path -LiteralPath 'C:\Svemir\data\brain\scratch') { 'C:\Svemir\data\brain\scratch\beops-releases' }
+      else { Join-Path (Split-Path (Get-BeopsFullPath $src) -Parent) '_runtime\beops-releases' }
     $runRoot = Join-Path $releaseBase ('beops-release-' + [guid]::NewGuid().ToString('N'))
     try {
       $prepared = Get-BeopsNativeOutput 'prepare isolated release' $py @('-X', 'utf8', '-B', (Join-Path $src 'tools\prepare_release.py'), '--source', $src, '--destination', $runRoot, '--oid', $oid)
@@ -279,7 +283,7 @@ $previousGatePython = $env:BEOPS_PYTHON
 try {
   $ErrorActionPreference = 'Continue'
   $env:BEOPS_PYTHON = $gatePy
-  # Use the same bounded suite runner as local verification (120 s maximum).
+  # Same complete suite as local verification, with 120 s per discovery group.
   & node tools\test-research.js *> $script:publishTestsOutRun
   $testsRc = $LASTEXITCODE
 } finally {

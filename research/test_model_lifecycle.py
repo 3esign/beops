@@ -1,4 +1,4 @@
-"""The periodic local-model organs do work, then give RAM and the GPU queue back immediately."""
+"""Periodic organs keep their model residency within the measured hardware budget."""
 import pathlib
 import sys
 import unittest
@@ -18,11 +18,13 @@ class ModelLifecycle(unittest.TestCase):
             mind.ollama_chat("fixture:1b", "prompt")
         self.assertEqual(request.call_args.args[2]["keep_alive"], "0s")
 
-    def test_news_releases_ollama_model_with_each_answer(self):
-        answer = {"message": {"content": "{}"}}
+    def test_news_uses_cpu_and_only_short_bounded_warmth(self):
+        answer = {"message": {"content": "{}"}, "done": True}
         with patch.object(news.local_models, "request", return_value=answer) as request:
             news.ollama_chat("fixture:1b", "prompt")
-        self.assertEqual(request.call_args.args[2]["keep_alive"], "0s")
+        payload = request.call_args.args[2]
+        self.assertEqual(payload["keep_alive"], "2m")
+        self.assertEqual(payload["options"]["num_gpu"], 0)
 
     def test_embedding_model_is_released_too(self):
         with patch.object(mind.local_models, "request", return_value={"embeddings": []}) as request:

@@ -41,8 +41,10 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 LIVE = ROOT / "data" / "live"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "news-sorter"
-ORGAN_VERSION = "0.2.4"
+ORGAN_VERSION = "0.2.6"
 OLLAMA = os.environ.get("BEOPS_OLLAMA", "http://127.0.0.1:11434")
+MODEL_KEEP_ALIVE = "2m"
+MODEL_REQUEST_TIMEOUT = 210
 
 CATEGORIES = ["saobracaj", "radovi", "iskljucenja", "javni_prevoz", "vreme_i_vazduh", "voda_i_reke",
               "dogadjaj_kultura_sport", "bezbednost_incident", "uprava_odluke", "gradnja_urbanizam",
@@ -179,18 +181,32 @@ THINKING_MODELS = ("qwen3", "deepseek-r1", "gpt-oss", "magistral")   # Ollama ac
 
 def ollama_chat(model: str, prompt: str, timeout: int = 600) -> dict:
     """One constrained call. Small local models on a CPU are slow: a batch of five headlines took
-    minutes on qwen2.5:3b, so the inference timeout is generous. The model is released immediately
-    after the answer: periodic work may cold-start, but idle work must not consume the PC's RAM.
+    minutes on qwen2.5:3b, so the inference timeout is generous. The model remains warm only long
+    enough for adjacent batches, then Ollama releases it from RAM.
     num_ctx is capped because the prompt is short and a big context slows it."""
-    payload = {"model": model, "stream": False, "format": SCHEMA, "keep_alive": "0s",
-               "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 1500},
+    # Ollama 0.33.3 crashed both its schema grammar and generic JSON grammar,
+    # while the RX 580 Vulkan path returned a partial stream of repeated '@'
+    # tokens for the same prompt. CPU inference completed the five-row batch.
+    # The prompt still requires JSON. Parsing and derive() remain fail closed.
+    payload = {"model": model, "stream": False, "keep_alive": MODEL_KEEP_ALIVE,
+               "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 1500, "num_gpu": 0},
                "messages": [{"role": "user", "content": prompt}]}
     if model.split(":")[0].startswith(THINKING_MODELS):
         payload["think"] = False   # measured 2026-09-09: left thinking, qwen3.5 spends its whole budget thinking and returns empty content
-    body = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(OLLAMA + "/api/chat", data=body, headers={"Content-Type": "application/json"})
-    doc = local_models.request(OLLAMA, "/api/chat", payload, min(timeout, 120))
+    # Measured 2026-09-13: after another local model occupied the RX 580, loading this
+    # 1.5B model took 93 s before the first token. A 120 s request therefore expired
+    # during a normal cold start. Keep it warm only across this run's adjacent batches
+    # and leave enough time for the constrained answer.
+    doc = local_models.request(OLLAMA, "/api/chat", payload,
+                               min(timeout, MODEL_REQUEST_TIMEOUT))
+    if doc.get("done") is not True:
+        raise ValueError("incomplete Ollama response")
     content = (doc.get("message") or {}).get("content") or ""
+    stripped = content.strip()
+    if stripped.startswith("```json") and stripped.endswith("```"):
+        content = stripped[7:-3].strip()
+    elif stripped.startswith("```") and stripped.endswith("```"):
+        content = stripped[3:-3].strip()
     return json.loads(content)
 
 
@@ -424,13 +440,57 @@ def reconcile_completion():
         publish(backup, {'at': iso(when), 'keys': old, 'attempts': old_attempts})
         result = news_state.reconcile(directory, CATEGORIES, set(old))
         atomic_json(attempts_path, recorded_attempts)
+        delta = news_state.attempt_cache_delta(old_attempts, recorded_attempts,
+                                               news_state.completed_keys(directory, CATEGORIES))
         result.update(at=iso(when), state='reconciled', cache_before=str(backup),
                       attempts_cached_before=sum(old_attempts.values()),
                       attempts_supported_by_rows=sum(recorded_attempts.values()),
-                      unsupported_attempts_removed=sum(old_attempts.values()) - sum(recorded_attempts.values()),
+                      **delta,
                       scope='completion and attempt caches only, not independent quality annotation')
         publish(directory / 'reconciliation' / f'{stamp(when)}-result.json', result)
         return result
+
+
+@serialized(lambda: LIVE / 'derived/news/.job.lock')
+def correct_latest_reconciliation():
+    """Append a correction for the one legacy result that reported a net delta as removals."""
+    directory = LIVE / 'derived/news'
+    reconciliation = directory / 'reconciliation'
+    candidates = sorted(reconciliation.glob('*-result.json'))
+    target = None
+    for path in reversed(candidates):
+        value = json.loads(path.read_text(encoding='utf-8'))
+        if isinstance(value.get('unsupported_attempts_removed'), int) and value['unsupported_attempts_removed'] < 0:
+            target = (path, value)
+            break
+    if target is None:
+        return {'state': 'nothing_to_correct'}
+    target_path, result = target
+    for path in sorted(reconciliation.glob('*-result-correction.json')):
+        prior = json.loads(path.read_text(encoding='utf-8'))
+        if prior.get('corrects') == target_path.name:
+            return {'state': 'already_corrected', 'correction': str(path), **prior['metrics']}
+    backup_path = pathlib.Path(result['cache_before']).resolve()
+    try:
+        backup_path.relative_to(directory.resolve())
+    except ValueError as exc:
+        raise ValueError('reconciliation backup escaped the news directory') from exc
+    backup = json.loads(backup_path.read_text(encoding='utf-8'))
+    current = json.loads((directory / 'attempts.json').read_text(encoding='utf-8'))
+    completed = news_state.completed_keys(directory, CATEGORIES)
+    metrics = news_state.attempt_cache_delta(backup.get('attempts', {}), current, completed)
+    when = utcnow()
+    correction = {
+        'schema': 'beops-news-reconciliation-correction/v1',
+        'at': iso(when),
+        'state': 'corrected_metric_only',
+        'corrects': target_path.name,
+        'reason': 'The earlier field subtracted aggregate totals and could become negative; cache bytes were already repaired correctly.',
+        'metrics': metrics,
+    }
+    destination = reconciliation / f'{stamp(when)}-result-correction.json'
+    publish(destination, correction)
+    return {'state': 'corrected', 'correction': str(destination), **metrics}
 
 
 def status() -> dict:
@@ -459,9 +519,10 @@ def check() -> dict:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["run", "status", "check", "reconcile"])
+    ap.add_argument("command", choices=["run", "status", "check", "reconcile", "correct-reconcile"])
     a = ap.parse_args()
-    fn = {"run": run, "status": status, "check": check, "reconcile": reconcile_completion}[a.command]
+    fn = {"run": run, "status": status, "check": check, "reconcile": reconcile_completion,
+          "correct-reconcile": correct_latest_reconciliation}[a.command]
     print(json.dumps(fn(), ensure_ascii=False, indent=1))
     return 0
 

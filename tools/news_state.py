@@ -29,6 +29,22 @@ def attempt_counts(directory):
     return dict(sorted(counts.items()))
 
 
+def attempt_cache_delta(before, after, completed):
+    """Describe cache repair without mistaking a net total for removals."""
+    keys = set(before) | set(after)
+    removed = sum(max(0, before.get(key, 0) - after.get(key, 0)) for key in keys)
+    recovered = sum(max(0, after.get(key, 0) - before.get(key, 0)) for key in keys)
+    reopened = sum(before.get(key, 0) >= 3 and after.get(key, 0) < 3 and key not in completed
+                   for key in keys)
+    exhausted = sum(after.get(key, 0) >= 3 and key not in completed for key in keys)
+    return {
+        'unsupported_attempts_removed': removed,
+        'supported_attempts_recovered': recovered,
+        'pending_keys_reopened': reopened,
+        'pending_semantic_exhausted': exhausted,
+    }
+
+
 def reconcile(directory, categories, old_keys):
     keys = completed_keys(directory, categories)
     result = {'prior_cached': len(old_keys), 'supported_completed': len(keys),

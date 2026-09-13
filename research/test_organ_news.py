@@ -73,6 +73,21 @@ class OrganTests(unittest.TestCase):
         repaired = json.loads(attempts_path.read_text(encoding="utf-8"))
         self.assertEqual(repaired, {"S68|a": 1})
         self.assertEqual(result["unsupported_attempts_removed"], 2)
+        self.assertEqual(result["supported_attempts_recovered"], 0)
+        self.assertEqual(result["pending_keys_reopened"], 0)
+
+    def test_attempt_cache_delta_separates_recovery_from_removal(self):
+        delta = on.news_state.attempt_cache_delta(
+            {"transport-only": 3, "old-row": 0, "still-semantic": 3},
+            {"old-row": 2, "still-semantic": 3},
+            set(),
+        )
+        self.assertEqual(delta, {
+            "unsupported_attempts_removed": 3,
+            "supported_attempts_recovered": 2,
+            "pending_keys_reopened": 1,
+            "pending_semantic_exhausted": 1,
+        })
 
     def test_derived_rows_are_estimates_with_provenance_and_gazetteer_only(self):
         seed(on.LIVE, H)
@@ -114,6 +129,37 @@ class OrganTests(unittest.TestCase):
         self.assertIsNone(on.pick_model(["qwen3.5:cloud", "gemma4:cloud"], ["qwen3.5", "gemma4"]))
         self.assertEqual(on.pick_model(["qwen3.5:cloud", "qwen2.5:3b"], ["qwen3.5", "qwen2.5:3b"]), "qwen2.5:3b")
         self.assertEqual(on.pick_model(["qwen3.5:cloud"], ["qwen3.5"], allow_cloud=True), "qwen3.5:cloud")
+
+    def test_cold_model_has_time_to_load_and_stays_warm_between_batches(self):
+        captured = {}
+        original = on.local_models.request
+
+        def fake_request(base, path, payload, timeout):
+            captured.update(base=base, path=path, payload=payload, timeout=timeout)
+            return {"message": {"content": '```json\n{"ok": true}\n```'}, "done": True}
+
+        on.local_models.request = fake_request
+        try:
+            self.assertEqual(on.ollama_chat("qwen2.5:1.5b", "test"), {"ok": True})
+        finally:
+            on.local_models.request = original
+
+        self.assertEqual(captured["timeout"], 210)
+        self.assertEqual(captured["payload"]["keep_alive"], "2m")
+        self.assertFalse(captured["payload"]["stream"])
+        self.assertNotIn("format", captured["payload"])
+        self.assertEqual(captured["payload"]["options"]["num_gpu"], 0)
+
+    def test_partial_ollama_stream_is_rejected(self):
+        original = on.local_models.request
+        on.local_models.request = lambda *_args, **_kwargs: {
+            "message": {"content": "@@@@@@@@"}, "done": False
+        }
+        try:
+            with self.assertRaisesRegex(ValueError, "incomplete Ollama response"):
+                on.ollama_chat("qwen2.5:1.5b", "test")
+        finally:
+            on.local_models.request = original
 
     def test_registry_lists_the_organ_with_editor(self):
         c = on.check()

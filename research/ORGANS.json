@@ -5,7 +5,7 @@
   "organs": [
     {
       "id": "news-sorter",
-      "version": "0.2.4",
+      "version": "0.2.6",
       "tool": "tools/organ_news.py",
       "purpose": "Sort headlines the collector received into a fixed topic list, say whether they concern Belgrade, and propose up to three candidate zones from the project's gazetteer, keeping every candidate with its score.",
       "inputs": "complete retained headline, link, publication time; seven-day processing window, all ages retained in the archive; never the article body (07-legal)",
@@ -24,11 +24,11 @@
       "human_review": "a weekly sample of 30 derived rows is read by the editor of record and disagreements are appended to research/08-provenance/CORRECTIONS.md",
       "ai_act_art_50": "outputs are machine-marked ai_generated=true; any sentence shown to the public is labelled as model-derived; the editor of record holds editorial responsibility (Art. 50(4) exception path)",
       "editor_of_record": "doc. dr Semir Poturak, one of the two authors (editorial responsibility is the person's, not an institution's)",
-      "status": "built 2026-09-08; first run against a local model on 2026-09-09 (see receipts) ; 0.1.1 binds by echoed headline (C-013); 2026-09-09: moved to the same main model as the mind (qwen3.5:4b, Apache-2.0) - the body (8 GB RAM, 4 GB GPU) cannot hold two models, and the 500s of 10:19 UTC on the public page were the two organs evicting each other during the voice bench; 11:15 UTC: the 4b sorted five headlines in more than nine minutes (the task limit) - with fourteen feeds the sorter needs a small fast model: qwen2.5:1.5b, the Skeptic's model, already resident beside the 4b (1.0 + 3.1 GB fit the 4 GB GPU). Categorical JSON with the C-013 echo binding is a job a 1.5B model can do; its sorting is a model's estimate and is labelled so",
+      "status": "built 2026-09-08; first run against a local model on 2026-09-09 (see receipts) ; 0.1.1 binds by echoed headline (C-013); 2026-09-09: moved to the same main model as the mind (qwen3.5:4b, Apache-2.0) - the body (8 GB RAM, 4 GB GPU) cannot hold two models, and the 500s of 10:19 UTC on the public page were the two organs evicting each other during the voice bench; 11:15 UTC: the 4b sorted five headlines in more than nine minutes (the task limit) - with fourteen feeds the sorter needs a small fast model: qwen2.5:1.5b, the Skeptic's model, already resident beside the 4b (1.0 + 3.1 GB fit the 4 GB GPU). Categorical JSON with the C-013 echo binding is a job a 1.5B model can do; its sorting is a model's estimate and is labelled so. 0.2.5 measured a 93 s cold load after model eviction, so the request deadline is 210 s and the model remains warm for two minutes across adjacent batches. 0.2.6 does not delegate a grammar to Ollama because Ollama 0.33.3 crashed with both the full schema and generic JSON grammar on a valid token. The RX 580 Vulkan path also returned incomplete repeated-at-sign streams; the identical five-row prompt completed on CPU in 67.2 s. The prompt requires JSON, while json.loads() and derive() validate every field, enum, boolean, gazetteer candidate and quoted event time before a row is retained.",
       "allow_cloud": false,
       "why_local_only": "names ending in ':cloud' are Ollama-hosted; a headline sent there leaves the machine, which this entry forbids. Measured on the PC 2026-09-08: local qwen2.5:3b (2.0 GB), qwen3.5:0.8b, lfm2.5:1.2b, llama3.2:1b present",
       "operational_state": "active",
-      "local_execution_contract": "Loopback endpoint, remote metadata refusal, private OS lock plus the existing Svemir Ollama lease, and a total job deadline. Busy capacity and transport failures preserve the retry budget; only a retained semantic row consumes an attempt, and every response releases its model from RAM."
+      "local_execution_contract": "Loopback endpoint, remote metadata refusal, CPU inference for the measured RX 580 compatibility failure, private OS lock plus the existing Svemir Ollama lease, and a total job deadline. Busy capacity, partial streams and transport failures preserve the retry budget; only a retained semantic row consumes an attempt. The model stays warm for at most two minutes across adjacent batches, then Ollama releases it from RAM."
     },
     {
       "id": "mind",
