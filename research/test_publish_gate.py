@@ -41,12 +41,20 @@ class Gate(unittest.TestCase):
         self.assertIn("Resolve-BeopsBundledPython", seg)
         self.assertIn("Resolve-BeopsPython", seg)
 
-    def test_release_uses_operational_storage_before_archival_sibling(self):
+    def test_release_follows_physical_project_volume_without_filling_c(self):
         start = self.s.index('$releaseBase =')
         end = self.s.index('$runRoot =', start)
         choice = self.s[start:end]
-        self.assertLess(choice.index('BEOPS_RELEASE_ROOT'), choice.index('C:\\Svemir\\data\\brain\\scratch'))
-        self.assertLess(choice.index('C:\\Svemir\\data\\brain\\scratch'), choice.index('_runtime\\beops-releases'))
+        self.assertLess(choice.index('BEOPS_RELEASE_ROOT'), choice.index('_runtime\\beops-releases'))
+        self.assertIn('Get-BeopsFullPath $src', choice)
+        self.assertNotIn('C:\\Svemir', choice)
+
+    def test_python_prerequisites_are_checked_before_release_allocation(self):
+        check = self.s.index("Get-BeopsNativeOutput 'research gate prerequisites'")
+        prepare = self.s.index("Get-BeopsNativeOutput 'prepare isolated release'")
+        self.assertLess(check, prepare)
+        self.assertIn("'--check'", self.s[check:prepare])
+        self.assertIn('$env:BEOPS_PYTHON = Resolve-BeopsTestPython', self.s[:check])
 
     def test_network_identity_uses_a_reviewable_script_not_inline_code(self):
         helper = (ROOT / "tools" / "incognito_user_agent.js").read_text(encoding="utf-8")

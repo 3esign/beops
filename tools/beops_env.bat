@@ -14,7 +14,7 @@ if not defined BEOPS_PYTHON (
     set "BEOPS_PYTHON=%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
   )
 )
-if not defined BEOPS_TEST_PYTHON (
+if not defined BEOPS_TEST_PYTHON if not exist "%BEOPS_ROOT%\runtime\test-python.json" (
   if exist "%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" (
     set "BEOPS_TEST_PYTHON=%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
   ) else (
@@ -25,7 +25,7 @@ if not exist "%BEOPS_PYTHON%" (
   echo BEOPS_PYTHON does not exist: %BEOPS_PYTHON%
   exit /b 9
 )
-if not exist "%BEOPS_TEST_PYTHON%" (
+if defined BEOPS_TEST_PYTHON if not exist "%BEOPS_TEST_PYTHON%" (
   echo BEOPS_TEST_PYTHON does not exist: %BEOPS_TEST_PYTHON%
   exit /b 9
 )

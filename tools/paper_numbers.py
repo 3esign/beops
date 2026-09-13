@@ -88,7 +88,9 @@ def rows_on_disk():
     n, files = 0, 0
     for p in (ROOT / "data" / "live" / "rows").rglob("*.jsonl"):
         files += 1
-        with open(p, "rb") as f:
+        # A bounded sequential read avoids thousands of tiny HDD reads while
+        # other collectors use the same disk. Every nonblank line is still read.
+        with open(p, "rb", buffering=1024 * 1024) as f:
             n += sum(1 for line in f if line.strip())
     return {"rows": n, "files": files}
 

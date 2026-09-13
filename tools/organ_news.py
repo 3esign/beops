@@ -41,7 +41,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 LIVE = ROOT / "data" / "live"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "news-sorter"
-ORGAN_VERSION = "0.2.6"
+ORGAN_VERSION = "0.2.7"
 OLLAMA = os.environ.get("BEOPS_OLLAMA", "http://127.0.0.1:11434")
 MODEL_KEEP_ALIVE = "2m"
 MODEL_REQUEST_TIMEOUT = 210
@@ -199,7 +199,11 @@ def ollama_chat(model: str, prompt: str, timeout: int = 600) -> dict:
     # and leave enough time for the constrained answer.
     doc = local_models.request(OLLAMA, "/api/chat", payload,
                                min(timeout, MODEL_REQUEST_TIMEOUT))
-    if doc.get("done") is not True:
+    # `done: true` can still mean that Ollama exhausted num_predict. A JSON
+    # prefix may happen to close cleanly at that boundary, but it is not the
+    # model's completed answer. Accept only the normal stop (or an older
+    # server that omits done_reason) before parsing any content.
+    if doc.get("done") is not True or doc.get("done_reason") not in (None, "", "stop"):
         raise ValueError("incomplete Ollama response")
     content = (doc.get("message") or {}).get("content") or ""
     stripped = content.strip()

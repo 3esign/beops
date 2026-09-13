@@ -23,7 +23,7 @@ from contracts import json_rows
 
 def lines(path: pathlib.Path, errors: str = "replace"):
     """Every line of a file, one at a time. The file is never held whole."""
-    with open(path, encoding="utf-8", errors=errors) as fh:
+    with open(path, encoding="utf-8", errors=errors, buffering=1024 * 1024) as fh:
         for ln in fh:
             yield ln.rstrip("\n")
 

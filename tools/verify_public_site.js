@@ -126,6 +126,37 @@ async function fetchText(url) {
   };
 }
 
+async function fetchMatchingRoute(url, expectedHash, deadline, options = {}) {
+  const get = options.get || fetchText;
+  const now = options.now || Date.now;
+  const pause = options.pause || sleep;
+  const pollMs = options.pollMs ?? POLL_MS;
+  const verification_attempts = [];
+  let item;
+  do {
+    item = await get(url);
+    const hash = crypto.createHash('sha256').update(item.bytes).digest('hex');
+    const match = item.ok && (!expectedHash || hash === expectedHash);
+    verification_attempts.push({status: item.status, hash, match});
+    if (match || now() >= deadline) break;
+    await pause(Math.min(Math.max(1, pollMs), Math.max(0, deadline - now())));
+  } while (now() < deadline);
+  return {...item, verification_attempts};
+}
+
+async function mapBounded(items, limit, worker) {
+  const results = new Array(items.length);
+  let next = 0;
+  await Promise.all(Array.from({length: Math.min(limit, items.length)}, async () => {
+    for (;;) {
+      const index = next++;
+      if (index >= items.length) return;
+      results[index] = await worker(items[index]);
+    }
+  }));
+  return results;
+}
+
 async function main() {
   const errors = [];
   const warnings = [];
@@ -182,11 +213,29 @@ async function main() {
   const manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8').replace(/^\uFEFF/,''));
   const required=new Set(CORE_ROUTES);
   for(const item of manifest.files||[]){if(item.path.startsWith('docs/'))required.add(item.path.slice(5));}
-  for (const rel of required) {
-    if(Date.now()>=RUN_DEADLINE)throw new Error('Public verification total deadline reached');
-    const url = new URL(rel, SITE_URL).toString();
-    const item = await fetchText(url);
-    const route = { route: rel, status: item.status, ok: item.ok };
+  const expectedRoutes = [...required].map(rel => {
+    const localRoute = localRouteFile(rel);
+    const localRouteHash = localRoute
+      ? crypto.createHash('sha256').update(fs.readFileSync(localRoute)).digest('hex') : '';
+    return {rel, localRoute, localRouteHash};
+  });
+  const checked = await mapBounded(expectedRoutes, 6, async expected => {
+    try {
+      if(Date.now()>=RUN_DEADLINE)throw new Error('Public verification total deadline reached');
+      const item = await fetchMatchingRoute(new URL(expected.rel, SITE_URL).toString(), expected.localRouteHash, RUN_DEADLINE);
+      return {...expected, item};
+    } catch(error) {
+      return {...expected, error: error.message};
+    }
+  });
+  for (const {rel, localRoute, localRouteHash, item, error} of checked) {
+    if (error) {
+      errors.push(`${rel} verification failed: ${error}`);
+      routes.push({route: rel, ok: false, error});
+      continue;
+    }
+    const route = { route: rel, status: item.status, ok: item.ok,
+      verification_attempts: item.verification_attempts };
     if (!item.ok) {
       errors.push(`${rel} returned HTTP ${item.status}`);
     }
@@ -204,10 +253,8 @@ async function main() {
         errors.push(`public snapshot freshness is unreadable: ${error.message}`);
       }
     }
-    const localRoute = localRouteFile(rel);
     if (localRoute) {
       const liveRouteHash = crypto.createHash('sha256').update(item.bytes).digest('hex');
-      const localRouteHash = crypto.createHash('sha256').update(fs.readFileSync(localRoute)).digest('hex');
       route.live_hash = liveRouteHash;
       route.local_hash = localRouteHash;
       route.match = liveRouteHash === localRouteHash;
@@ -218,6 +265,15 @@ async function main() {
       errors.push(`no local public mirror file for ${rel}`);
     }
     routes.push(route);
+  }
+
+  // Retries take real time; report snapshot age at the end of verification too.
+  if (freshness && freshness.as_of) {
+    const ageMinutes = (Date.now() - Date.parse(freshness.as_of)) / 60000;
+    const wasFresh = freshness.ok;
+    freshness.age_minutes = Math.round(ageMinutes * 10) / 10;
+    freshness.ok = ageMinutes >= -5 && ageMinutes <= MAX_AGE_MINUTES;
+    if (wasFresh && !freshness.ok) errors.push(`public snapshot is ${freshness.age_minutes} min old; freshness limit is ${MAX_AGE_MINUTES} min`);
   }
 
   if (CHECK_RAW) {
@@ -251,7 +307,8 @@ async function main() {
   if (errors.length) process.exit(1);
 }
 
-main().catch(err => {
+module.exports = {fetchMatchingRoute, mapBounded};
+if (require.main === module) main().catch(err => {
   console.error(err && err.stack ? err.stack : String(err));
   process.exit(1);
 });

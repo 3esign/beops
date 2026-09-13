@@ -30,12 +30,20 @@ function Resolve-BeopsPython {
 }
 function Resolve-BeopsTestPython {
   if ($env:BEOPS_TEST_PYTHON -and (Test-Path $env:BEOPS_TEST_PYTHON)) { return $env:BEOPS_TEST_PYTHON }
+  if ($script:testRuntime.python) { return [string]$script:testRuntime.python }
   $bundled = Resolve-BeopsBundledPython
   if ($bundled -and (Test-Path $bundled)) { return $bundled }
   return (Resolve-BeopsPython)
 }
 $remote = 'https://github.com/3esign/beops.git'
 $src = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$testRuntimeRoot = if ($StateRoot) { $StateRoot } else { $src }
+$testRuntimePath = Join-Path $testRuntimeRoot 'runtime\test-python.json'
+$script:testRuntime = if (Test-Path -LiteralPath $testRuntimePath) { Get-Content -LiteralPath $testRuntimePath -Raw | ConvertFrom-Json } else { @{} }
+if (-not $env:BEOPS_TEST_PYTHON -and $script:testRuntime.python) {
+  $env:BEOPS_TEST_PYTHON = [string]$script:testRuntime.python
+  $env:BEOPS_TEST_PYTHONPATH = [string]$script:testRuntime.pythonpath
+}
 if (-not $Isolated -and (Test-Path -LiteralPath (Join-Path $src 'runtime\PUBLISH_PAUSED'))) {
   Write-Output 'Publication is explicitly paused by runtime/PUBLISH_PAUSED. Collectors are unaffected.'
   exit 75
@@ -59,13 +67,19 @@ if (-not $Isolated -and -not $DryRun) {
   $publishExit = 1
   try {
     $oid = (Get-BeopsNativeOutput 'resolve release OID' 'git' @('-C', $src, 'rev-parse', '--verify', 'HEAD^{commit}')).Trim()
-    # The live project can be a C: junction to the archival disk. Build/test I/O
-    # belongs on the operational disk, not beside the resolved archive path.
+    # Follow the physical project volume even when invoked through a C: junction.
+    # Session overrides remain explicit; regular releases must not fill C:.
     $releaseBase = if ($env:BEOPS_RELEASE_ROOT) { Get-BeopsFullPath $env:BEOPS_RELEASE_ROOT }
-      elseif (Test-Path -LiteralPath 'C:\Svemir\data\brain\scratch') { 'C:\Svemir\data\brain\scratch\beops-releases' }
       else { Join-Path (Split-Path (Get-BeopsFullPath $src) -Parent) '_runtime\beops-releases' }
     $runRoot = Join-Path $releaseBase ('beops-release-' + [guid]::NewGuid().ToString('N'))
     try {
+      # Refuse an incomplete interpreter before spending a release cycle on I/O.
+      # Use the same choice as the complete gate; never silently replace an override.
+      $previousPreflightPython = $env:BEOPS_PYTHON
+      try {
+        $env:BEOPS_PYTHON = Resolve-BeopsTestPython
+        $null = Get-BeopsNativeOutput 'research gate prerequisites' 'node' @((Join-Path $src 'tools/test-research.js'), '--check')
+      } finally { $env:BEOPS_PYTHON = $previousPreflightPython }
       $prepared = Get-BeopsNativeOutput 'prepare isolated release' $py @('-X', 'utf8', '-B', (Join-Path $src 'tools\prepare_release.py'), '--source', $src, '--destination', $runRoot, '--oid', $oid)
     } catch {
       $failurePath = Join-Path $src 'data\live\publish-receipt.json'

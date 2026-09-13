@@ -161,6 +161,17 @@ class OrganTests(unittest.TestCase):
         finally:
             on.local_models.request = original
 
+    def test_length_limited_ollama_response_is_rejected_even_when_json_is_valid(self):
+        original = on.local_models.request
+        on.local_models.request = lambda *_args, **_kwargs: {
+            "message": {"content": '{"items": []}'}, "done": True, "done_reason": "length"
+        }
+        try:
+            with self.assertRaisesRegex(ValueError, "incomplete Ollama response"):
+                on.ollama_chat("qwen2.5:1.5b", "test")
+        finally:
+            on.local_models.request = original
+
     def test_registry_lists_the_organ_with_editor(self):
         c = on.check()
         self.assertEqual(c["organ"], "news-sorter")

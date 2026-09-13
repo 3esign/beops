@@ -19,6 +19,8 @@ import pathlib
 import re
 import sys
 import unittest
+import tempfile
+from unittest.mock import patch
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
@@ -32,6 +34,21 @@ def flat(v, prefix=""):
             yield from flat(x, prefix + "/" + str(k))
     else:
         yield prefix, v
+
+
+class RowCounting(unittest.TestCase):
+    def test_binary_and_text_counts_preserve_blank_crlf_and_unterminated_rows(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=pathlib.Path(folder)
+            rows=root/'data/live/rows/S01'
+            rows.mkdir(parents=True)
+            (rows/'sample.jsonl').write_bytes(b'\n \t\r\n{"a":1}\r\n\n{"b":2}')
+            (rows/'empty.jsonl').write_bytes(b' \t\r\n')
+            with patch.object(pn, 'ROOT', root):
+                self.assertEqual(pn.rows_on_disk(), {'rows':2,'files':2})
+            self.assertEqual(record.count_lines(rows/'sample.jsonl'),2)
+            self.assertEqual(record.count_lines(rows/'sample.jsonl',non_blank=False),5)
+            self.assertEqual(record.count_lines(rows/'empty.jsonl'),0)
 
 
 class Figures(unittest.TestCase):
