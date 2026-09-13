@@ -5,7 +5,7 @@
   "organs": [
     {
       "id": "news-sorter",
-      "version": "0.2.3",
+      "version": "0.2.4",
       "tool": "tools/organ_news.py",
       "purpose": "Sort headlines the collector received into a fixed topic list, say whether they concern Belgrade, and propose up to three candidate zones from the project's gazetteer, keeping every candidate with its score.",
       "inputs": "complete retained headline, link, publication time; seven-day processing window, all ages retained in the archive; never the article body (07-legal)",
@@ -28,7 +28,7 @@
       "allow_cloud": false,
       "why_local_only": "names ending in ':cloud' are Ollama-hosted; a headline sent there leaves the machine, which this entry forbids. Measured on the PC 2026-09-08: local qwen2.5:3b (2.0 GB), qwen3.5:0.8b, lfm2.5:1.2b, llama3.2:1b present",
       "operational_state": "active",
-      "local_execution_contract": "Loopback endpoint, remote metadata refusal, private OS lock plus the existing Svemir Ollama lease, and a total job deadline. Busy capacity is refused immediately without an inference request and preserves the retry budget; every response releases its model from RAM."
+      "local_execution_contract": "Loopback endpoint, remote metadata refusal, private OS lock plus the existing Svemir Ollama lease, and a total job deadline. Busy capacity and transport failures preserve the retry budget; only a retained semantic row consumes an attempt, and every response releases its model from RAM."
     },
     {
       "id": "mind",

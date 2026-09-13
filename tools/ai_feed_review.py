@@ -30,6 +30,14 @@ CRITERIA = (
 RATINGS = {"yes", "no", "uncertain"}
 
 
+class CandidateExclusion(ValueError):
+    """A bad individual response that must stay visible without aborting the packet."""
+
+    def __init__(self, reason: str):
+        super().__init__(reason)
+        self.reason = reason
+
+
 def canonical_digest(value) -> str:
     raw = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
                      allow_nan=False).encode("utf-8")
@@ -113,7 +121,7 @@ def verified_candidate(directory: pathlib.Path, attempt: str, finish: dict) -> d
     response = json_object(response_path)
     output = response.get("text")
     if not isinstance(output, str) or not output.strip():
-        raise ValueError(f"attempt {attempt} has an empty response")
+        raise CandidateExclusion("empty_response")
     context = json_object(context_path)
     entry_path = directory / "entries" / f"{attempt}.json"
     accepted = finish.get("state") == "accepted"
@@ -197,7 +205,10 @@ def prepare(source, output, target=60, seed="beops-ai-quality-20260912") -> dict
         if state not in {"accepted", "failed"}:
             excluded[f"response_with_terminal:{state}"] += 1
             continue
-        candidates.append(verified_candidate(directory, attempt, finish))
+        try:
+            candidates.append(verified_candidate(directory, attempt, finish))
+        except CandidateExclusion as error:
+            excluded[f"invalid_response:{error.reason}"] += 1
     accepted = [row for row in candidates if row["private_terminal_state"] == "accepted"]
     rejected = [row for row in candidates if row["private_terminal_state"] == "failed"]
     accepted.sort(key=lambda row: canonical_digest([seed, row["id"], "accepted"]))

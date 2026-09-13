@@ -2,11 +2,13 @@
 import importlib.util
 import json
 import pathlib
+import sys
 import tempfile
 import unittest
 from datetime import datetime, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "tools"))
 SPEC = importlib.util.spec_from_file_location("organ_news", ROOT / "tools" / "organ_news.py")
 on = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(on)
@@ -45,6 +47,32 @@ class OrganTests(unittest.TestCase):
         self.assertEqual(rec["waiting"], 2)
         self.assertFalse((on.LIVE / "derived" / "news" / "2026-09.jsonl").exists())
         self.assertTrue((on.LIVE / "derived" / "news" / "receipts" / (on.stamp(NOW) + ".json")).exists())
+
+    def test_transport_failure_never_spends_a_headline_quality_attempt(self):
+        seed(on.LIVE, H)
+
+        def timeout(_model, _prompt):
+            raise TimeoutError("fixture timeout")
+
+        rec = on.run(NOW, chat=timeout, tags=lambda: ["qwen2.5:1.5b"])
+        self.assertEqual(rec["state"], "organ_failed")
+        attempts = json.loads((on.LIVE / "derived/news/attempts.json").read_text(encoding="utf-8"))
+        retry = json.loads((on.LIVE / "derived/news/retry.json").read_text(encoding="utf-8"))
+        self.assertEqual(attempts, {})
+        self.assertTrue(all(row["state"] == "failed" and row["transport_failures"] == 1
+                            for row in retry.values()))
+
+    def test_reconcile_rebuilds_attempt_budget_from_retained_rows(self):
+        seed(on.LIVE, H[:1])
+        answer = {"items": [{"i": 0, "headline": H[0]["result"], "category": "radovi",
+                             "belgrade": True, "zones": [], "event_time_text": "od ponedeljka"}]}
+        on.run(NOW, chat=lambda _m, _p: answer, tags=lambda: ["qwen2.5:1.5b"])
+        attempts_path = on.LIVE / "derived/news/attempts.json"
+        attempts_path.write_text(json.dumps({"S68|a": 3}), encoding="utf-8")
+        result = on.reconcile_completion()
+        repaired = json.loads(attempts_path.read_text(encoding="utf-8"))
+        self.assertEqual(repaired, {"S68|a": 1})
+        self.assertEqual(result["unsupported_attempts_removed"], 2)
 
     def test_derived_rows_are_estimates_with_provenance_and_gazetteer_only(self):
         seed(on.LIVE, H)

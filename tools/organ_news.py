@@ -41,7 +41,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 LIVE = ROOT / "data" / "live"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "news-sorter"
-ORGAN_VERSION = "0.2.3"
+ORGAN_VERSION = "0.2.4"
 OLLAMA = os.environ.get("BEOPS_OLLAMA", "http://127.0.0.1:11434")
 
 CATEGORIES = ["saobracaj", "radovi", "iskljucenja", "javni_prevoz", "vreme_i_vazduh", "voda_i_reke",
@@ -334,9 +334,12 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
         for row in batch:
             key = row['dedupe_key']
             attempts[key] = attempts.get(key, 0) + 1
+            prior_transport_failures = retry.get(key, {}).get('transport_failures', 0)
             retry[key] = {'last_attempt_at': iso(now),
                           'next_attempt_at': iso(now + timedelta(minutes=5 * 2 ** (attempts[key] - 1))),
                           'state': 'attempted'}
+            if prior_transport_failures:
+                retry[key]['transport_failures'] = prior_transport_failures
         with exclusive(LIVE / ".write.lock", timeout=120):
             atomic_json(attempts_path, attempts)
             atomic_json(retry_path, retry)
@@ -361,8 +364,19 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
         except Exception as exc:  # noqa: BLE001
             errors.append(f"{type(exc).__name__}: {str(exc)[:160]}")
             for row in batch:
-                retry[row['dedupe_key']].update(state='failed', reason=type(exc).__name__)
+                key = row['dedupe_key']
+                # No semantic row exists, so this is an operational failure and
+                # cannot consume the headline's three-attempt quality budget.
+                attempts[key] -= 1
+                if attempts[key] == 0:
+                    del attempts[key]
+                failures = int(retry[key].get('transport_failures', 0)) + 1
+                retry[key].update(
+                    state='failed', reason=type(exc).__name__, transport_failures=failures,
+                    next_attempt_at=iso(now + timedelta(minutes=min(60, 5 * 2 ** min(failures - 1, 4)))),
+                )
             with exclusive(LIVE / '.write.lock', timeout=120):
+                atomic_json(attempts_path, attempts)
                 atomic_json(retry_path, retry)
             continue
         rows = derive(batch, answer, model, sha, now)
@@ -392,19 +406,29 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
 
 @serialized(lambda: LIVE / 'derived/news/.job.lock')
 def reconcile_completion():
-    """Repair only the disposable cache, retaining its previous keys and a receipt."""
+    """Repair disposable caches from retained rows, preserving their prior bytes."""
     directory = LIVE / 'derived/news'
     cache = directory / '_done.json'
     old = json.loads(cache.read_text(encoding='utf-8')) if cache.exists() else []
     if not isinstance(old, list) or any(not isinstance(k, str) for k in old):
         raise ValueError('invalid completion cache; preserve and inspect before reconciliation')
+    attempts_path = directory / 'attempts.json'
+    old_attempts = json.loads(attempts_path.read_text(encoding='utf-8')) if attempts_path.exists() else {}
+    if not isinstance(old_attempts, dict) or any(not isinstance(k, str) or not isinstance(v, int) or v < 0
+                                                 for k, v in old_attempts.items()):
+        raise ValueError('invalid attempts cache; preserve and inspect before reconciliation')
+    recorded_attempts = news_state.attempt_counts(directory)
     with exclusive(LIVE / '.write.lock', timeout=120):
         when = utcnow()
         backup = directory / 'reconciliation' / f'{stamp(when)}-cache-before.json'
-        publish(backup, {'at': iso(when), 'keys': old})
+        publish(backup, {'at': iso(when), 'keys': old, 'attempts': old_attempts})
         result = news_state.reconcile(directory, CATEGORIES, set(old))
+        atomic_json(attempts_path, recorded_attempts)
         result.update(at=iso(when), state='reconciled', cache_before=str(backup),
-                      scope='completion only, not independent quality annotation')
+                      attempts_cached_before=sum(old_attempts.values()),
+                      attempts_supported_by_rows=sum(recorded_attempts.values()),
+                      unsupported_attempts_removed=sum(old_attempts.values()) - sum(recorded_attempts.values()),
+                      scope='completion and attempt caches only, not independent quality annotation')
         publish(directory / 'reconciliation' / f'{stamp(when)}-result.json', result)
         return result
 

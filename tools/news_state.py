@@ -1,4 +1,6 @@
-"""Completion is derived from retained classifications; caches are never evidence."""
+"""Completion and attempt counts are derived from retained classifications; caches are never evidence."""
+from collections import Counter
+
 from contracts import json_rows, atomic_json
 
 
@@ -10,6 +12,21 @@ def complete(row, categories):
 def completed_keys(directory, categories):
     return {row['input_key'] for path in sorted(directory.glob('????-??.jsonl'))
             for row in json_rows(path) if complete(row, categories)}
+
+
+def attempt_counts(directory):
+    """Count only model rows that actually reached the append-only record.
+
+    A transport timeout or malformed HTTP response has no row and therefore cannot
+    consume a headline's semantic retry budget.
+    """
+    counts = Counter()
+    for path in sorted(directory.glob('????-??.jsonl')):
+        for row in json_rows(path):
+            key = row.get('input_key')
+            if isinstance(key, str) and key:
+                counts[key] += 1
+    return dict(sorted(counts.items()))
 
 
 def reconcile(directory, categories, old_keys):

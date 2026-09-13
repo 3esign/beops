@@ -56,6 +56,11 @@ class FeedReview(unittest.TestCase):
             entry = {"id": attempt, "context_hash": self.context_hash, "prompt_hash": self.prompt_hash}
             (self.feed / "entries" / f"{attempt}.json").write_text(compact(entry), encoding="utf-8")
 
+    def _empty_response(self, attempt):
+        self._attempt(attempt, "failed", True, "empty-test", "validation_rejected")
+        (self.feed / "responses" / f"{attempt}.json").write_text(
+            compact({"text": "   ", "model": "empty-test", "transport": "fixture"}), encoding="utf-8")
+
     def test_prepare_counts_only_durable_text_as_quality_population_and_stays_blind(self):
         output = self.root / "review"
         result = review.prepare(self.root, output, target=3, seed="fixture")
@@ -91,6 +96,14 @@ class FeedReview(unittest.TestCase):
         self.assertEqual(agreement["overlap"], 1)
         self.assertEqual(agreement["state"], "insufficient_overlap")
         self.assertEqual(agreement["metrics"]["evidence_support"]["kappa"], 1.0)
+
+    def test_empty_response_is_counted_and_does_not_abort_the_packet(self):
+        self._empty_response("d" * 32)
+        output = self.root / "review-empty"
+        result = review.prepare(self.root, output, target=3, seed="fixture-empty")
+        self.assertEqual(result["items"], 2)
+        self.assertEqual(result["population"]["responses"], 3)
+        self.assertEqual(result["population"]["excluded"]["invalid_response:empty_response"], 1)
 
 
 if __name__ == "__main__":
