@@ -94,7 +94,12 @@ def _capture_inputs(source, dest, spool):
             immutable.append((path, rel, stat))
 
     with zipfile.ZipFile(spool, 'w', compression=zipfile.ZIP_STORED) as archive, exclusive(source/'research/08-provenance/LEDGER.lock'):
-        for folder in ('research/evidence', 'data/live/receipts', 'runtime/ai-feed/entries', 'runtime/ai-feed/contexts', 'runtime/ai-feed/prompts'):
+        # Receipts are not self-contained evidence: replayable receipts name the
+        # immutable raw payload whose hash they attest. Keep both halves of that
+        # reference in the isolated release. Raw captures are small compared with
+        # rows/derived state and are immutable once their timestamped path exists.
+        for folder in ('research/evidence', 'data/live/receipts', 'data/live/raw',
+                       'runtime/ai-feed/entries', 'runtime/ai-feed/contexts', 'runtime/ai-feed/prompts'):
             directory = source / folder
             for path in sorted(directory.rglob('*')) if directory.exists() else []:
                 if path.is_file():
@@ -107,10 +112,14 @@ def _capture_inputs(source, dest, spool):
                 collect(path, False)
         with exclusive(source/'data/live/.write.lock', timeout=120):
             started = time.monotonic()
-            # Refresh only new immutable receipts after the writer boundary.
-            for path in sorted((source/'data/live/receipts').glob('*/*.json')):
-                if path not in captured:
-                    collect(path, False)
+            # Refresh both sides of receipt -> raw references after the writer
+            # boundary. A collector may have completed between the first inventory
+            # and this lock, so refreshing receipts alone would create a release
+            # whose own recovery tests cannot replay its newest observation.
+            for pattern in ('data/live/receipts/*/*.json', 'data/live/raw/**/*'):
+                for path in sorted(source.glob(pattern)):
+                    if path.is_file() and path not in captured:
+                        collect(path, False)
             for folder in ('research/observations', 'data/live/rows', 'data/live/derived'):
                 directory = source / folder
                 for path in sorted(directory.rglob('*')) if directory.exists() else []:

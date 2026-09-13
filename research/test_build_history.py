@@ -65,6 +65,12 @@ class HistoryCase(unittest.TestCase):
         self.assertEqual((b["n"], b["missing"]), (3, 1))
         self.assertEqual((b["min"], b["max"], b["mean"]), (20.0, 30.0, 25.0))   # not 16.67
 
+    def test_a_revision_replaces_one_event_instead_of_becoming_an_extra_measurement(self):
+        first = row(result=5.0, dedupe_key="S01|event")
+        revised = row(result=20.0, receivedTime="2026-09-09T10:06:00Z", dedupe_key="S01|event")
+        bucket = self.fold({"S01": [first, revised]})["series"][0]["buckets"]["2026-09-09T10"]
+        self.assertEqual((bucket["n"], bucket["min"], bucket["max"]), (1, 20.0, 20.0))
+
     def test_a_source_without_a_measurement_time_is_bucketed_by_reception_and_says_so(self):
         d = self.fold({"S01": [row(phenomenonTime=None, phenomenonTimeUnknown=True,
                                    receivedTime="2026-09-09T12:20:00Z", result=5.0)]})

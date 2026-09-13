@@ -1,0 +1,25 @@
+{
+  "schema": "beops-history-qualification-policy/v1",
+  "windows_days": [7, 14, 30],
+  "day_boundary": "UTC",
+  "serious_baseline": {
+    "consecutive_complete_calendar_days": 30,
+    "minimum_receipt_coverage": 0.9,
+    "minimum_valid_observations_per_used_hour_bucket": 20,
+    "require_known_unit": true,
+    "require_spatial_label": true,
+    "require_known_clock": true,
+    "require_source_contract_hash": true
+  },
+  "counts": {
+    "duplicate_rows": "sum(max(0, receipt.rows - receipt.rows_new)) for captured receipts",
+    "late_receipt_slot": "a receipt slot following an inter-attempt gap greater than 1.5 declared cadences",
+    "revised_event": "same source, datastream and phenomenon/effective time with more than one distinct result, unit, quality or result-time signature"
+  },
+  "limits": [
+    "A successful receipt proves reception, not a valid measurement.",
+    "Missing slots remain missing; no interpolation is used to reach a threshold.",
+    "A source-level receipt gate cannot qualify a thin series bucket; both gates must pass.",
+    "A series below the serious-baseline gate may remain visible as short history but cannot support usual, anomaly or trend wording."
+  ]
+}

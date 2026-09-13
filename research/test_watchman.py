@@ -192,6 +192,31 @@ class WatchmanTests(unittest.TestCase):
         self.assertEqual(W.exit_code({"verdict": W.PAUSED}), 0)
         self.assertEqual(W.exit_code({"verdict": W.STALLED}), W.RANK[W.STALLED])
 
+    def test_expected_provider_capacity_is_visible_without_failing_the_watch_task(self):
+        (self.t.dir / 'research' / 'AI_FEED.json').write_text(
+            json.dumps({'enabled': True}), encoding='utf-8')
+        status_path = self.t.dir / 'runtime' / 'ai-feed' / 'status.json'
+        status_path.parent.mkdir(parents=True)
+        status = {
+            'at': iso(NOW - timedelta(minutes=5)),
+            'last_success': iso(NOW - timedelta(hours=2)),
+            'state': 'providers_unavailable',
+            'providers': [
+                {'id': 'local', 'ready': False, 'reason': 'daily_provider_budget'},
+                {'id': 'remote', 'ready': False, 'reason': 'rate-limited'},
+            ],
+        }
+        status_path.write_text(json.dumps(status), encoding='utf-8')
+
+        finding = W.ai_feed(NOW)
+        self.assertEqual(finding['state'], W.BLOCKED)
+        self.assertIn('stale', finding['said'])
+        self.assertEqual(W.exit_code({'verdict': finding['state']}), 0)
+
+        status['providers'][0]['reason'] = 'cli_missing'
+        status_path.write_text(json.dumps(status), encoding='utf-8')
+        self.assertEqual(W.ai_feed(NOW)['state'], W.LATE)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -254,9 +254,9 @@ class ValidatorTests(unittest.TestCase):
         self.assertIn("does not yet support", none[0]["en"])
 
         spread = next(f for f in dg["facts"] if f.get("kind") == "spread")
-        fake = {"schema": "beops-baseline/v1", "sid": "S146", "buckets": {
+        fake = {"schema": "beops-baseline/v3", "sid": "S146", "serious_baseline_eligible": True, "buckets": {
             "%s|%s|%02d" % (spread["hi_station"], spread["parameter"], int(spread["hour"][11:13])):
-            {"median": 12.0, "n": 30, "days": 5, "unit": "ug.m-3", "hour_is_the_measurement_s_own": True}}}
+            {"median": 12.0, "n": 30, "days": 30, "unit": "ug.m-3", "hour_is_the_measurement_s_own": True}}}
         om._USUAL_CACHE.clear()
         import baseline as bl
         real_load, real_usual = bl.load, bl.usual
@@ -272,7 +272,7 @@ class ValidatorTests(unittest.TestCase):
         en = u[0]["en"].lower()
         self.assertIn("in our record", en)
         self.assertIn("not a limit or a standard", en)
-        self.assertIn("across 5 days", en)
+        self.assertIn("across 30 days", en)
         self.assertIn("above", en)                    # 41 against a usual of 12
         for forbidden in ("safe", "unsafe", "exceeds the limit", "dangerous", "unhealthy"):
             self.assertNotIn(forbidden, en)

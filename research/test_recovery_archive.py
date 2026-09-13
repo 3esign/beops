@@ -71,9 +71,17 @@ class RecoveryFiles(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             base=pathlib.Path(tmp);root=base/'source';oid=self.repo(root);(root/'source.txt').write_text('second\n');git(root,'add','source.txt');git(root,'-c','user.name=Semir Poturak','-c','user.email=scumutator@gmail.com','commit','-qm','second')
             atomic_json(root/'data/live/rows/S01/value.json',{'real':42})
+            raw=b'captured source bytes'
+            raw_path=root/'data/live/raw/S01/capture.bin';raw_path.parent.mkdir(parents=True);raw_path.write_bytes(raw)
+            atomic_json(root/'data/live/receipts/S01/capture.json',{
+                'raw_file':'data/live/raw/S01/capture.bin','raw_sha256':hashlib.sha256(raw).hexdigest()})
             result=prepare_release.prepare(root,base/'release',oid)
             self.assertEqual((base/'release/source.txt').read_text(),'first\n');self.assertEqual(result['source_oid'],oid)
-            manifest=json.loads((base/'release/runtime/release-inputs.json').read_text());self.assertEqual(manifest['files'][0]['sha256'],hashlib.sha256((base/'release/data/live/rows/S01/value.json').read_bytes()).hexdigest())
+            manifest=json.loads((base/'release/runtime/release-inputs.json').read_text())
+            files={entry['path']:entry for entry in manifest['files']}
+            self.assertEqual(files['data/live/rows/S01/value.json']['sha256'],hashlib.sha256((base/'release/data/live/rows/S01/value.json').read_bytes()).hexdigest())
+            self.assertEqual(files['data/live/raw/S01/capture.bin']['sha256'],hashlib.sha256(raw).hexdigest())
+            self.assertEqual((base/'release/data/live/raw/S01/capture.bin').read_bytes(),raw)
 
     def test_archive_does_not_copy_evidence_twice_or_include_scratch(self):
         with tempfile.TemporaryDirectory() as tmp:

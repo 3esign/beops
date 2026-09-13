@@ -15,7 +15,10 @@ function allowedSources(root, now) {
   const {spawnSync}=require('node:child_process');
   const bundled=path.join(process.env.USERPROFILE||'', '.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe');
   const exe=process.env.BEOPS_TEST_PYTHON || (fs.existsSync(bundled)?bundled:'python');
-  const r=spawnSync(exe,['-X','utf8','-B',path.join(__dirname,'ai_feed_policy.py'),root,now.toISOString()],{windowsHide:true,timeout:20000,encoding:'utf8',maxBuffer:1024*1024});
+  // The projection normally takes about five seconds on the live ledger, but collection, publishing
+  // and the hourly baseline can legitimately contend for the same disk. Keep it inside the 120 s job
+  // deadline while avoiding a false failure at the old 20 s cliff.
+  const r=spawnSync(exe,['-X','utf8','-B',path.join(__dirname,'ai_feed_policy.py'),root,now.toISOString()],{windowsHide:true,timeout:45000,encoding:'utf8',maxBuffer:1024*1024});
   if(r.error || r.status!==0){
     const e=Error('permission_projection_failed');
     // Never copy child stderr (paths or secrets) into the public status.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""baseline.py - what is USUAL here, at this hour, in our own record.
+"""baseline.py - a serious same-hour reference from this observatory's own record.
 
 Why this exists. The entities see a six-hour window, so they cannot notice anything that takes longer
 than six hours to show itself - and almost everything a city does is daily. "PM10 is 41" is a number;
@@ -12,7 +12,8 @@ days it has been listening - a fact about the observatory, carrying its own samp
 for saying whether the air is safe.
 
 The rules it keeps:
-  - a bucket is published only with enough behind it (BUCKET_MIN_DAYS days, BUCKET_MIN_N values);
+  - a bucket is published only after the source receipt gate and with enough behind it
+    (BUCKET_MIN_DAYS complete days, BUCKET_MIN_N values);
     a thin bucket is ABSENT, never filled in, because missing is not zero
   - a source that publishes no measurement time is bucketed by the hour it ARRIVED, and says so
   - only numbers are counted; a missing value contributes nothing and does not pull a median down
@@ -25,19 +26,20 @@ from __future__ import annotations
 from contracts import observation_rows
 
 import json
-from contracts import row_clock, finite, atomic_json
+from contracts import row_clock, finite, atomic_json, content_id
 import pathlib
 import statistics
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ROWS = ROOT / "data" / "live" / "rows"
 OUT = ROOT / "data" / "live" / "derived" / "baseline"
-SCHEMA = "beops-baseline/v2"
+QUALIFICATION = ROOT / "data" / "live" / "derived" / "history-qualification" / "current.json"
+SCHEMA = "beops-baseline/v3"
 
-BUCKET_MIN_DAYS = 3       # fewer days than this is an anecdote, not a usual
-BUCKET_MIN_N = 5          # and fewer values than this is one bad afternoon
+BUCKET_MIN_DAYS = 30      # serious baseline gate; shorter history remains history, not usual
+BUCKET_MIN_N = 20         # minimum valid values in every published station/hour bucket
 MAX_DAYS = 30             # how far back a bucket may reach
 NOT_A_MEASURE = {"headline", "planned_outage", "notice"}
 
@@ -56,13 +58,30 @@ def _hour_of(row: dict) -> tuple[int | None, bool, str]:
     return (dt.hour if dt else None), frame in ("measured", "corrected"), frame
 
 
+def source_qualification(sid: str, now: datetime) -> dict | None:
+    """Return the current 30-day source receipt gate, or None when it is absent/stale."""
+    try:
+        report = json.loads(QUALIFICATION.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    yesterday = (now.astimezone(timezone.utc).date() - timedelta(days=1)).isoformat()
+    if report.get("schema") != "beops-history-qualification/v1" or report.get("as_of_complete_day") != yesterday:
+        return None
+    window = next((row for row in report.get("windows", []) if row.get("days") == 30), None)
+    if not window:
+        return None
+    found = next((row for row in window.get("sources", []) if row.get("sid") == sid), None)
+    return found if found and found.get("eligible_source_for_serious_baseline") is True else None
+
+
 def build_source(sid: str, now: datetime | None = None) -> dict | None:
     now = now or datetime.now(timezone.utc)
+    qualification = source_qualification(sid, now)
     d = ROWS / sid
     if not d.exists():
         return None
-    seen: dict[tuple, list] = {}
-    days: dict[tuple, set] = {}
+    seen: dict[tuple, dict[str, float]] = {}
+    days: dict[tuple, dict[str, str]] = {}
     timed: dict[tuple, bool] = {}
     frames: dict[tuple, str] = {}
     clock_note = None
@@ -89,8 +108,11 @@ def build_source(sid: str, now: datetime | None = None) -> dict | None:
             sample_time, _ = row_clock(r)
             if not sample_time or sample_time > now or (now - sample_time).days > MAX_DAYS:
                 continue
-            seen.setdefault(k, []).append(float(val))
-            days.setdefault(k, set()).add(sample_time.date().isoformat())
+            event_key = str(r.get("dedupe_key") or r.get("row_id") or content_id(r))
+            if not r.get("dedupe_key") and r.get("phenomenonTimeUnknown") is True:
+                event_key += "|received=" + str(r.get("receivedTime") or "")
+            seen.setdefault(k, {})[event_key] = float(val)
+            days.setdefault(k, {})[event_key] = sample_time.date().isoformat()
             timed[k] = own
             frames[k] = frame
             if r.get("unit"):
@@ -99,9 +121,10 @@ def build_source(sid: str, now: datetime | None = None) -> dict | None:
             last = rx if last is None or rx > last else last
     buckets = {}
     thin = 0
-    for k, vals in seen.items():
-        nd = len(days[k])
-        if nd < BUCKET_MIN_DAYS or len(vals) < BUCKET_MIN_N:
+    for k, events in seen.items():
+        vals = list(events.values())
+        nd = len(set(days[k].values()))
+        if qualification is None or nd < BUCKET_MIN_DAYS or len(vals) < BUCKET_MIN_N:
             thin += 1
             continue                      # absent on purpose: a thin bucket is not a usual
         vals.sort()
@@ -117,8 +140,11 @@ def build_source(sid: str, now: datetime | None = None) -> dict | None:
     return {"schema": SCHEMA, "sid": sid, "made_at": now.isoformat().replace("+00:00", "Z"),
             "record_from": first.isoformat().replace("+00:00", "Z") if first else None,
             "record_to": last.isoformat().replace("+00:00", "Z") if last else None,
-            "days_of_record": len({v for s in days.values() for v in s}),
+            "days_of_record": len({v for event_days in days.values() for v in event_days.values()}),
             "min_days_per_bucket": BUCKET_MIN_DAYS, "min_values_per_bucket": BUCKET_MIN_N,
+            "source_receipt_gate_passed": qualification is not None,
+            "serious_baseline_eligible": bool(qualification is not None and buckets),
+            "qualification": qualification,
             "buckets_published": len(buckets), "buckets_too_thin_to_publish": thin,
             "what_this_is": "the median of what this record received from this station at this hour of "
                             "the day. A fact about the observatory, not a norm, a limit or a health "
@@ -134,7 +160,7 @@ def usual(base: dict | None, station: str, parameter: str, hour: int) -> dict | 
     `hour` must be read off the same clock the buckets were built on - for a source whose labels are
     corrected, that is the corrected hour, never the label. The caller is given `hour_read_from` on
     every bucket so a mismatch is visible rather than silent."""
-    if not base:
+    if not base or base.get("serious_baseline_eligible") is not True:
         return None
     prefix = "|".join((str(station), str(parameter), "%02d" % int(hour)))
     matches = [v for k, v in (base.get("buckets") or {}).items() if k == prefix or k.startswith(prefix + "|")]

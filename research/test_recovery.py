@@ -157,6 +157,29 @@ class Permission(unittest.TestCase):
 
 
 class Data(unittest.TestCase):
+    def test_model_repair_tells_the_entity_about_an_already_settled_claim(self):
+        import repair_record as R
+        with tempfile.TemporaryDirectory(dir=pathlib.Path.cwd()) as td:
+            root = pathlib.Path(td)
+            mind = root/'data/live/derived/mind'
+            (mind/'notebook').mkdir(parents=True)
+            claim = {'claim_id':'claim-1','conversation':'test','entity':'observer',
+                     'claim':'fixture','due':'2099-01-01T00:00:00Z','outcome':'true',
+                     'settled_at':'2026-09-12T00:00:00Z','scoring_version':'closed-window/v2'}
+            (mind/'claims.jsonl').write_text(json.dumps(claim)+'\n', encoding='utf-8')
+            self.assertEqual(R.model_record(root)['pending_claim_notifications'], 1)
+            R.model_record(root, apply=True)
+            notices = list(R.json_rows(mind/'notebook/observer.jsonl'))
+            self.assertEqual([(r['state'], r['claim_id']) for r in notices],
+                             [('claim_settled', 'claim-1')])
+            self.assertEqual(R.model_record(root)['pending_claim_notifications'], 0)
+
+    def test_current_record_has_no_pending_gauge_replay_corrections(self):
+        import repair_record as R
+        result = R.gauges(ROOT)
+        self.assertEqual(result['unresolved'], [])
+        self.assertEqual(result['planned_corrections'], 0)
+
     def test_raw_replay_accepts_relative_root_but_refuses_escaped_raw_path(self):
         import repair_record as R
         # Windows cannot express C: temp paths relative to a D: project junction.

@@ -256,6 +256,31 @@ class DedupeAndExportTests(LiveDirCase):
         self.assertTrue(all(p["tu"] for d in park["datastreams"] for p in d["points"]))
         self.assertEqual(out["status"]["sources"][0]["captured"], 1)
 
+    def test_export_shows_only_the_current_revision_of_one_observation(self):
+        cfgp = cd.LIVE.parent / "COLLECTORS.json"
+        cfgp.write_text(json.dumps({"sources": [SRC_SEPA]}), encoding="utf-8")
+        rows = cd.LIVE / "rows" / "S146"
+        rows.mkdir(parents=True)
+        base = {
+            "sid": "S146", "datastream": "1|CO", "station_id": "1", "parameter": "CO",
+            "unit": "mg.m-3", "phenomenonTime": "2026-09-09T09:00:00Z",
+            "phenomenonTimeUnknown": False, "dedupe_key": "S146|1|CO|2026-09-09T09:00:00Z",
+        }
+        revisions = [
+            {**base, "result": 5.0, "receivedTime": "2026-09-09T09:05:00Z"},
+            {**base, "result": 20.0, "receivedTime": "2026-09-09T09:10:00Z"},
+        ]
+        (rows / "2026-09.jsonl").write_text(
+            "".join(json.dumps(row) + "\n" for row in revisions), encoding="utf-8")
+        old_config = cd.CONFIG
+        cd.CONFIG = cfgp
+        try:
+            out = json.loads(cd.export(NOW).read_text(encoding="utf-8"))
+        finally:
+            cd.CONFIG = old_config
+        points = out["sources"][0]["datastreams"][0]["points"]
+        self.assertEqual([(point["v"], point.get("revisions")) for point in points], [(20.0, 1)])
+
     def test_export_re_checks_ekavica_on_thoughts_voiced_under_the_old_guard(self):
         _cfg, _root = cd.CONFIG, cd.ROOT
         cfgp = cd.LIVE.parent / "COLLECTORS.json"

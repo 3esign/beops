@@ -118,6 +118,13 @@ class Gate(unittest.TestCase):
         self.assertIn("publish-tests-{0}.txt", self.s)
         self.assertIn("$script:publishTestsOutRun", self.s)
 
+    def test_timeout_or_crash_cannot_leave_an_empty_failure_reason(self):
+        """Node reports a killed Python suite as ETIMEDOUT, without unittest's
+        FAIL/ERROR markers. That failure must survive in the durable receipt."""
+        self.assertIn("IndexOf('ETIMEDOUT')", self.s)
+        self.assertIn('test runner exited $testsRc without a completion marker', self.s)
+        self.assertIn('test transcript tail:', self.s)
+
     def test_a_failing_gate_releases_the_lock(self):
         """PowerShell does not run finally on exit. A lock left by a failing gate would block every
         publish for fifteen minutes - a second outage caused by the first."""

@@ -41,6 +41,7 @@ class Tree(unittest.TestCase):
         bl.ROOT = base
         bl.ROWS = base / "data" / "live" / "rows"
         bl.OUT = base / "data" / "live" / "derived" / "baseline"
+        bl.QUALIFICATION = base / "data" / "live" / "derived" / "history-qualification" / "current.json"
         bl.ROWS.mkdir(parents=True)
 
     def tearDown(self):
@@ -50,6 +51,16 @@ class Tree(unittest.TestCase):
         d = bl.ROWS / sid
         d.mkdir(exist_ok=True)
         (d / "2026-09.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
+
+    def qualify(self, sid):
+        bl.QUALIFICATION.parent.mkdir(parents=True, exist_ok=True)
+        bl.QUALIFICATION.write_text(json.dumps({
+            "schema": "beops-history-qualification/v1",
+            "as_of_complete_day": "2026-09-09",
+            "windows": [{"days": 30, "sources": [
+                {"sid": sid, "eligible_source_for_serious_baseline": True}
+            ]}],
+        }), encoding="utf-8")
 
 
 class Buckets(Tree):
@@ -66,32 +77,49 @@ class Buckets(Tree):
         self.assertEqual(b["buckets"], {})
         self.assertEqual(b["buckets_too_thin_to_publish"], 1)
 
-        for day in range(2, 5):                    # now five days
+        self.qualify("S146")
+        for day in range(2, 30):                   # now thirty complete dates
             for i in range(6):
                 rows.append(row("S146", "Stari grad", "PM10", 20 + i, AT(9, i, day)))
         self.write("S146", rows)
         b = bl.build_source("S146", now=NOW)
         self.assertEqual(len(b["buckets"]), 1)
         got = bl.usual(b, "Stari grad", "PM10", 9)
-        self.assertEqual((got["median"], got["days"], got["n"]), (22.5, 5, 30))
+        self.assertEqual((got["median"], got["days"], got["n"]), (22.5, 30, 180))
 
     def test_a_missing_value_is_not_a_zero(self):
         rows = []
-        for day in range(5):
+        self.qualify("S146")
+        for day in range(30):
             for i in range(6):
                 rows.append(row("S146", "Zemun", "PM10", 40, AT(10, i, day)))
             rows.append(row("S146", "Zemun", "PM10", None, AT(10, 9, day)))
         self.write("S146", rows)
         b = bl.build_source("S146", now=NOW)
         got = bl.usual(b, "Zemun", "PM10", 10)
-        self.assertEqual((got["median"], got["n"], got["min"]), (40.0, 30, 40.0))
+        self.assertEqual((got["median"], got["n"], got["min"]), (40.0, 180, 40.0))
+
+    def test_a_revision_replaces_one_event_instead_of_inflating_the_baseline(self):
+        self.qualify("S146")
+        rows = []
+        for day in range(30):
+            for minute in range(6):
+                item = row("S146", "Zemun", "PM10", 40, AT(10, minute, day))
+                item["dedupe_key"] = f"S146|Zemun|PM10|{item['phenomenonTime']['end']}"
+                rows.append(item)
+        revised = dict(rows[0], result=400, receivedTime=AT(10, 20, 0).isoformat().replace("+00:00", "Z"))
+        rows.append(revised)
+        self.write("S146", rows)
+        got = bl.usual(bl.build_source("S146", now=NOW), "Zemun", "PM10", 10)
+        self.assertEqual((got["n"], got["max"]), (180, 400.0))
 
     def test_a_source_without_a_measurement_time_is_bucketed_by_ARRIVAL_and_says_so(self):
         """Parking publishes no measurement time. Its hour is the hour we heard from it, which is a
         different fact, and the bucket carries the difference rather than hiding it."""
+        self.qualify("S10")
         rows = [row("S10", "Pinki", "free_spaces", 90 + i, AT(11, i, d),
                     timed=False, unit="1")
-                for d in range(5) for i in range(6)]
+                for d in range(30) for i in range(6)]
         self.write("S10", rows)
         b = bl.build_source("S10", now=NOW)
         got = bl.usual(b, "Pinki", "free_spaces", 11)
@@ -99,7 +127,8 @@ class Buckets(Tree):
 
     def test_stations_parameters_and_hours_never_mix(self):
         rows = []
-        for d in range(5):
+        self.qualify("S146")
+        for d in range(30):
             for i in range(6):
                 rows.append(row("S146", "Stari grad", "PM10", 20, AT(8, i, d)))
                 rows.append(row("S146", "Zemun", "PM10", 60, AT(8, i, d)))
@@ -124,8 +153,9 @@ class Buckets(Tree):
     def test_it_says_what_it_is_and_refuses_to_be_a_threshold(self):
         """The wording is load-bearing: this number will be read by people and by models, and neither
         may take it for a limit."""
+        self.qualify("S146")
         rows = [row("S146", "Stari grad", "PM10", 20, AT(9, i, d))
-                for d in range(5) for i in range(6)]
+                for d in range(30) for i in range(6)]
         self.write("S146", rows)
         b = bl.build_source("S146", now=NOW)
         what = b["what_this_is"].lower()

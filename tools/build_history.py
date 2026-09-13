@@ -30,7 +30,7 @@ from __future__ import annotations
 from contracts import observation_rows
 
 import json
-from contracts import row_clock, finite
+from contracts import row_clock, finite, content_id
 import pathlib
 import sys
 from datetime import datetime, timedelta, timezone
@@ -120,22 +120,22 @@ def fold(now: datetime | None = None) -> dict:
                         "cadence_seconds": (cfg.get(sid) or {}).get("cadence_seconds"),
                         "buckets": {},
                     }
-                b = s["buckets"].setdefault(hour_key(t), {"n": 0, "missing": 0, "vals": []})
-                b["n"] += 1
-                v = r.get("result")
-                if finite(v):
-                    b["vals"].append(float(v))
-                else:
-                    b["missing"] += 1             # answered, nothing to say - a fact, not a zero
+                b = s["buckets"].setdefault(hour_key(t), {"events": {}})
+                event_key = str(r.get("dedupe_key") or r.get("row_id") or content_id(r))
+                if not r.get("dedupe_key") and untimed:
+                    event_key += "|received=" + str(r.get("receivedTime") or "")
+                b["events"][event_key] = r.get("result")
 
     out_series = []
     for key, s in sorted(series.items()):
         buckets = {}
         for hk, b in sorted(s["buckets"].items()):
-            vals = b["vals"]
-            row = {"n": b["n"]}
-            if b["missing"]:
-                row["missing"] = b["missing"]
+            events = b["events"]
+            vals = [float(value) for value in events.values() if finite(value)]
+            missing = len(events) - len(vals)
+            row = {"n": len(events)}
+            if missing:
+                row["missing"] = missing
             if vals:
                 row["min"] = round(min(vals), 4)
                 row["max"] = round(max(vals), 4)

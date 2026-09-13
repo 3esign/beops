@@ -243,16 +243,18 @@ class MindTree(unittest.TestCase):
 
     def test_every_settlement_is_told_to_the_entity_that_predicted_it(self):
         """Two records of one event: the register is the record, the notebook line is the telling.
-        The counts are compared over SETTLED rows only - the register also holds claims that are
-        still open, which is the thing the first version of this test got wrong."""
+        Identity is compared over SETTLED claims, not physical notebook rows: legacy notifications
+        had no claim_id and remain append-only after the keyed migration."""
         reg = list(record.objects(self.mind / "claims.jsonl"))
         settled = [r for r in reg if r.get("outcome") is not None]
         told = [r for r in self.notebook if r.get("state") == "claim_settled"]
         if not settled and not told:
             self.skipTest("nothing settled yet")
-        self.assertEqual(len(settled), len(told),
-                         f"{len(settled)} settled claims in the register and {len(told)} told to the "
-                         "entities")
+        expected = {r.get("claim_id") for r in settled}
+        actual = {r.get("claim_id") for r in told if r.get("claim_id")}
+        self.assertNotIn(None, expected, "a settled claim has no stable identity")
+        self.assertEqual(expected, actual,
+                         "settled claims and keyed entity notifications are no longer the same set")
 
     def test_a_claim_is_written_when_it_is_made_and_scored_when_it_falls_due(self):
         """The shape that makes a prediction a prediction. The row exists from the moment the claim is

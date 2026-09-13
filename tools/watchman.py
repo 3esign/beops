@@ -48,6 +48,9 @@ CADENCE_MIN = 10                      # the watchman's own schedule, for judging
 OK, LATE, STALLED, UNKNOWN = "ok", "late", "stalled", "unknown"
 BLOCKED, PAUSED = 'blocked', 'paused'
 RANK = {OK: 0, LATE: 1, UNKNOWN: 1, STALLED: 2, BLOCKED: 1, PAUSED: 1}
+EXPECTED_AI_CAPACITY_REASONS = {
+    'account_cooldown', 'daily_provider_budget', 'model_cooldown', 'rate-limited'
+}
 
 
 def now_utc() -> datetime:
@@ -267,6 +270,21 @@ def ai_feed(now: datetime) -> dict:
         if tick_at is None or mins(now,tick_at) > 20:
             return check('AI observations', STALLED, 'no recent durable feed tick')
         if success is None or mins(now,success) > 60:
+            providers = status.get('providers')
+            capacity_bound = status.get('state') == 'daily_budget' or (
+                status.get('state') == 'providers_unavailable'
+                and isinstance(providers, list)
+                and bool(providers)
+                and all(isinstance(provider, dict)
+                        and not provider.get('ready')
+                        and provider.get('reason') in EXPECTED_AI_CAPACITY_REASONS
+                        for provider in providers)
+            )
+            if capacity_bound:
+                return check('AI observations', BLOCKED,
+                             'accepted monologue is stale; every route is at its explicit budget '
+                             'or provider cooldown', last_success=status.get('last_success'),
+                             feed_state=status.get('state'))
             return check('AI observations', LATE, 'no accepted monologue within one hour; '+str(status.get('state')), last_success=status.get('last_success'))
         return check('AI observations', OK, 'latest accepted monologue is within one hour', age_min=mins(now,success))
     except (OSError, ValueError) as exc:

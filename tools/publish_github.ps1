@@ -294,6 +294,9 @@ if (Test-Path $script:publishTestsOutRun) {
     Write-Output ("note: could not update shared publish test transcript: {0}" -f $_.Exception.Message)
   }
   $summary = ((Get-Content $script:publishTestsOutRun | Select-String -CaseSensitive -Pattern '^Ran |^OK$|^FAILED') -join ' ').Trim()
+  if (-not $summary) {
+    $summary = "test runner exited $testsRc without a completion marker"
+  }
 }
 $receipt.tests_ok = ($testsRc -eq 0)
 $receipt.tests = $summary
@@ -304,7 +307,15 @@ if ($testsRc -ne 0) {
   if (Test-Path $script:publishTestsOutRun) {
     $raw = Get-Content $script:publishTestsOutRun -Raw
     $i = $raw.IndexOf('FAIL:'); if ($i -lt 0) { $i = $raw.IndexOf('ERROR:') }
-    if ($i -ge 0) { $first = $raw.Substring($i, [Math]::Min(400, $raw.Length - $i)) }
+    if ($i -lt 0) { $i = $raw.IndexOf('ETIMEDOUT') }
+    if ($i -ge 0) {
+      $first = $raw.Substring($i, [Math]::Min(400, $raw.Length - $i))
+    } elseif ($raw.Length -gt 0) {
+      # A killed or crashed runner can have no unittest marker. Preserve a
+      # bounded tail instead of replacing the actual failure with an empty why.
+      $start = [Math]::Max(0, $raw.Length - 400)
+      $first = 'test transcript tail: ' + $raw.Substring($start)
+    }
   }
   $receipt.why = "the suite did not pass, so nothing was published. $first"
   Write-BeopsPublishReceipt

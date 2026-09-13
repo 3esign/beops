@@ -70,7 +70,7 @@ def gauges(root=ROOT, apply=False):
                 if not new:unresolved.append({'id':oid,'reason':'row not present in replay'});continue
                 fields={k:new[k] for k in ('result','resultQuality') if new[k]!=row.get(k)}
                 if fields:
-                    entry={'schema':'beops-row-correction/v1','at':dt.datetime.now(dt.timezone.utc).isoformat(),'sid':src['sid'],'original_id':oid,'raw_sha256':digest,'fields':fields,'reason':'B03: preserve empty gauge measurement cells; replay verified original raw bytes'}
+                    entry={'schema':'beops-row-correction/v1','at':dt.datetime.now(dt.timezone.utc).isoformat(),'sid':src['sid'],'original_id':oid,'raw_sha256':digest,'fields':fields,'reason':'Replay the current RHMZ column contract against verified raw bytes; preserve the original row and overlay only result/resultQuality'}
                     entry['id']=content_id(entry);entries.append(entry)
     if apply and entries:
         with exclusive(live/'.write.lock'):
@@ -109,6 +109,15 @@ def model_record(root=ROOT, apply=False):
         if claim.get('outcome')!=new['outcome'] or claim.get('scoring_version') != 'closed-window/v2':
             old=claim.get('outcome');claim.update(new,settled_at=nowtext,scoring_version='closed-window/v2')
             changes.append({'kind':'rescored','at':nowtext,'claim_id':claim['claim_id'],'prior_outcome':old,**new})
+    told={r.get('claim_id') for p in (directory/'notebook').glob('*.jsonl')
+          for r in json_rows(p) if r.get('state')=='claim_settled'}
+    notifications=[{'at':claim.get('settled_at') or nowtext,
+                    'conversation':claim.get('conversation'),
+                    'state':'claim_settled','claim_id':claim['claim_id'],
+                    'text':'claim evaluated from a closed window',
+                    'claim_outcome':claim.get('outcome'),'reason':claim.get('reason')}
+                   for claim in claims
+                   if claim.get('outcome') is not None and claim.get('claim_id') not in told]
     if apply:
         old_live,old_out=mind.LIVE,mind.OUT_DIR
         try:
@@ -117,9 +126,13 @@ def model_record(root=ROOT, apply=False):
                 path=directory/'claims.jsonl';tmp=path.with_suffix('.repair.tmp')
                 tmp.write_text(''.join(json.dumps(r,ensure_ascii=False)+'\n' for r in claims),encoding='utf-8');tmp.replace(path)
                 for event in changes:mind._append(directory/'claim-events.jsonl',event)
+                for notice in notifications:
+                    claim=next(r for r in claims if r['claim_id']==notice['claim_id'])
+                    mind._append(directory/'notebook'/f"{claim['entity']}.jsonl",notice)
                 for r in invalid:mind.retract(r['conversation'],r['entity'],r['round'],'B08: cited fact absent from saved digest; original utterance preserved',now)
         finally:mind.LIVE,mind.OUT_DIR=old_live,old_out
-    return {'invalid_accepted_utterances':len(invalid),'claim_corrections':changes,'applied':bool(apply)}
+    return {'invalid_accepted_utterances':len(invalid),'claim_corrections':changes,
+            'pending_claim_notifications':len(notifications),'applied':bool(apply)}
 
 
 if __name__=='__main__':

@@ -862,11 +862,13 @@ def export(now: datetime | None = None, hours: int = 24) -> pathlib.Path:
 
 
 def _export_captured(now, hours, inputs) -> pathlib.Path:
-    """Snapshot of the last `hours` of rows per datastream for the UI studies (public/live-snapshot.json).
+    """Snapshot of the last `hours` of current events per datastream (public/live-snapshot.json).
 
-    Everything in it is a copy of rows on disk: no aggregation, no filling, no rounding. Datastreams
-    with no row in the window are still listed (from the seen-set) with an empty series, so absence
-    is visible rather than dropped."""
+    Every value is copied from a stored row after its explicit correction overlay: no aggregation,
+    filling or rounding. If the source revised one logical event, the last received revision is the
+    current public point and its revision count remains visible; every physical row remains private and
+    immutable. Datastreams with no row in the window are still listed (from the seen-set) with an empty
+    series, so absence is visible rather than dropped."""
     now = now or utcnow()
     cfg = load_config()
     since = iso(now - timedelta(hours=hours))
@@ -888,7 +890,7 @@ def _export_captured(now, hours, inputs) -> pathlib.Path:
                         continue   # rows captured before the Belgrade filter existed stay on disk, but are not the observatory's scope
                     ds = streams.setdefault(r["datastream"], {"datastream": r["datastream"], "station": r.get("station_name") or r.get("station_id"),
                                                                 "parameter": r.get("parameter"), "unit": r.get("unit"),
-                                                                "lat": r.get("lat"), "lon": r.get("lon"), "points": []})
+                                                                "lat": r.get("lat"), "lon": r.get("lon"), "_events": {}})
                     # The month file is append-only and older rows predate station_coords / station_names in
                     # COLLECTORS.json; a datastream created from such a row kept lat/lon/name null for ever and the
                     # 32 SEPA stations never appeared on the map. Later rows carry the values - take them.
@@ -906,7 +908,17 @@ def _export_captured(now, hours, inputs) -> pathlib.Path:
                         point["clock_note"] = "source clock correction requires renewed evidence"
                     if isinstance(pc, dict) and pc.get("end"):
                         point["tc"] = pc["end"]      # corrected placement (estimated); the received label stays in "t"
-                    ds["points"].append(point)
+                    event_key = str(r.get("dedupe_key") or r.get("row_id") or content_id(r))
+                    if not r.get("dedupe_key") and r.get("phenomenonTimeUnknown") is True:
+                        event_key += "|received=" + str(r.get("receivedTime") or "")
+                    prior = ds["_events"].get(event_key)
+                    if prior is not None:
+                        point["revisions"] = int(prior.get("revisions", 0)) + 1
+                    ds["_events"][event_key] = point
+        for stream in streams.values():
+            stream["points"] = sorted(stream.pop("_events").values(),
+                                      key=lambda point: (str(point.get("rx") or ""),
+                                                         str(point.get("t") or "")))
         out["sources"].append({"sid": src["sid"], "name": src["name"], "cadence_seconds": src["cadence_seconds"],
                                "phenomenon_time_published": src.get("phenomenon_time_published"),
                                "datastreams": sorted(streams.values(), key=lambda x: (str(x["station"]), str(x["parameter"]))),

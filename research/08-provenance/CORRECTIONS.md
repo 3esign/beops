@@ -3016,3 +3016,72 @@ show its failures, for as long as they have existed, and it was found by noticin
 number disagreed with a ledger number — not by any check. The system had no idea. It counted its
 corrections in three incompatible ways and never once compared them, which is precisely the fault
 this project accuses other people's dashboards of.
+
+## C-068, C-069 — repairs must reconcile every durable consumer
+
+### C-068 — the gauge parser was fixed, but its old rows remained current
+
+**Written with the repair and the regression that carry this entry.** Found during the second
+hygiene pass, by comparing the public S52 projection with the raw RHMZ capture.
+
+### What happened
+
+The live RHMZ table contains an extra empty separator that the compact archived fixture does not.
+An older parser therefore shifted water level, daily change, discharge and temperature by one
+column. The parser was later corrected, but the immutable rows produced by the older parser were
+left without overlays. The next collection wrote corrected revisions beside them.
+
+That exposed a second fault: the public snapshot, history and baseline builders counted every
+physical revision as another observation. One real reading could therefore appear twice and could
+inflate a future baseline even though both rows carried the same logical deduplication key.
+
+### Correction
+
+Sixteen correction overlays were appended from two retained, hash-verified raw captures. No source
+row or raw byte was changed. The public projection now keeps the latest received revision for each
+logical event and states its revision count. History and baseline calculations replace the value
+for that event instead of increasing `n`.
+
+The recovery suite now checks the real repository and fails if any RHMZ row that can be replayed
+still lacks its correction overlay. Unit regressions separately prove that a revised logical event
+is exported and counted once.
+
+### Honest verdict
+
+The repair closes every replayable S52 mismatch currently on disk: 16 repaired, 0 pending and 0
+unresolved gauge rows. S52 still has only four distinct phenomenon days, approximate station
+coordinates and no published result time; it therefore remains outside the qualified 30-day
+baseline. Three older non-gauge records whose raw captures were never retained remain declared and
+unresolved; this repair cannot reconstruct evidence that does not exist.
+
+### C-069 — a repair settled a claim without telling its entity
+
+**Written with the repair-tool correction and its live-data regression.** The full suite found it
+immediately after the first C-068 repair run.
+
+### What happened
+
+The normal Mind scorer writes a settlement into three related places: the current claim register,
+the append-only events journal and the predicting entity's notebook. `repair_record.py` updated the
+first two but omitted the notebook. One newly due claim therefore existed as settled in the register
+without the feedback event that its entity reads on the next round.
+
+Thirty-seven older notebook settlements also predated stable `claim_id` fields. A count-only check
+could say that the two sides agreed while being unable to prove which claim any legacy line meant.
+
+### Correction
+
+The repair now reconciles stable claim identities after rescoring and appends any missing keyed
+notebook notification under the same live-data lock. The current record received 38 keyed notices:
+37 identity backfills for legacy notifications and one notice that was genuinely absent. The old
+append-only lines remain intact.
+
+The regression creates an already-settled claim with no notebook notice, proves the repair adds it
+once, then proves a second dry run finds nothing pending. The record-shape gate now compares the set
+of stable claim identities rather than two totals that could agree by coincidence.
+
+### Honest verdict
+
+All 46 currently settled claims now have a keyed entity notification, and the repair's next dry run
+reports zero pending notices. Thirty-seven older unkeyed notebook lines remain as historical events;
+consumers must use stable `claim_id` when materialising current settlement feedback.
