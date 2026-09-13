@@ -24,6 +24,7 @@ const context = {__dirname: require('node:path').dirname(process.argv[2]),
       if (calls.length === 2 && mode === 'fail') return {status: 1};
       if (calls.length === 2 && mode === 'timeout') return {status: null, error: {message: 'ETIMEDOUT'}};
       if (calls.length === 5 && mode === 'empty') return {status: 5};
+      if (mode === 'all-empty') return {status: 5};
       return {status: 0};
     }};
     return require(name);
@@ -59,6 +60,11 @@ process.stdout.write(JSON.stringify({exitCode, calls}));
     def test_an_empty_disjoint_bucket_does_not_fail_the_full_gate(self):
         result = self.simulate('empty')
         self.assertEqual(result['exitCode'], 0)
+        self.assertEqual(len(result['calls']), 6)
+
+    def test_zero_discovered_tests_refuses_success(self):
+        result = self.simulate('all-empty')
+        self.assertEqual(result['exitCode'], 1)
         self.assertEqual(len(result['calls']), 6)
 
 

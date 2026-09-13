@@ -23,6 +23,7 @@ if (!selected) {
 // no longer loses its completed work when the shared disk is busy.
 const patterns = ['test_[a-f]*.py', 'test_[g-l]*.py', 'test_[m-r]*.py',
   'test_[s-z]*.py', 'test_[!a-z]*.py', 'test_.py'];
+let groupsWithTests = 0;
 for (const pattern of patterns) {
   console.error(`Research gate: ${pattern}`);
   const result = spawnSync(selected[0], [...selected[1], '-X', 'utf8', '-B', '-m', 'unittest', 'discover',
@@ -34,6 +35,11 @@ for (const pattern of patterns) {
   // That is expected for the catch-all buckets until such a filename exists;
   // every real failure retains a different non-zero status.
   if (result.error || (result.status !== 0 && result.status !== 5)) process.exit(1);
+  if (result.status === 0) groupsWithTests += 1;
+}
+if (groupsWithTests === 0) {
+  console.error('Research gate refused success: discovery ran zero tests.');
+  process.exit(1);
 }
 console.error('Full research gate passed: all discovery groups completed.');
 process.exit(0);
