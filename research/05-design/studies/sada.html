@@ -78,6 +78,14 @@ body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans)
    is a note that changes the height of the page sometimes. */
 .gapnote.none{background:transparent;color:transparent}
 .ago{font-style:normal}
+.tile{height:auto;min-height:86px}
+.p,.gapnote{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+.gapnote{height:auto;min-height:26px}
+.observation-clock{font-size:10px;line-height:1.35;margin-top:3px;color:var(--ink60);max-width:100%}
+.observation-clock summary{cursor:pointer;outline:none;user-select:none}
+.observation-clock summary:hover{color:var(--ink)}
+.observation-clock>span{display:block;margin-top:4px;padding:4px 6px;background:var(--ink06);border-radius:2px;border-left:2px solid var(--signal-untimed);font-size:9.5px;line-height:1.35;max-height:140px;overflow-y:auto}
+@media (max-width:600px){.tile{min-height:105px}.clock{white-space:normal}}
 @media (max-width:560px){
   .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
   .tile:nth-child(3n){border-right:1px solid var(--ink12)}
@@ -87,11 +95,6 @@ body{margin:0;background:var(--field);color:var(--ink);font:16px/1.5 var(--sans)
   .v{font-size:23px}
   .top{padding:calc(var(--u)*2)}
 }
-
-.tile{height:auto;min-height:86px}
-.p,.gapnote{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
-.gapnote{height:auto;min-height:26px}
-@media(max-width:600px){.tile{min-height:105px}.clock{white-space:normal}}
 </style>
 <link rel="stylesheet" href="accessibility.css"><script defer src="accessibility.js"></script>
 <script src="beops-view.js"></script>
