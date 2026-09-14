@@ -643,11 +643,7 @@ function voicedIn(th){ return LANG==='sr' ? !!(th.sr_state==='voiced'&&th.sr) : 
 // Serbian counts in three shapes, and 12 takes the same shape as 15, not the same as 2.
 function plSr(n,one,few,many){ const a=Math.abs(n)%100, b=a%10;
   if(a>=11&&a<=14) return many; if(b===1) return one; if(b>=2&&b<=4) return few; return many; }
-    }
-    col.appendChild(stack); box.appendChild(col);
-  }
-  paintAges();
-}
+
 function showLatest(){ PLAY=false; playT=T1; cursor=EVENTS.length; const box=document.getElementById('lines'); box.innerHTML=''; for(let i=Math.max(0,EVENTS.length-60);i<EVENTS.length;i++) addLine(EVENTS[i],false); setPressed(); }
 function startReplay(){ const first=EVENTS.find(e=>e.kind==='rx'||e.kind==='text'); playT=first?Math.max(T0,first.t-120e3):T0; cursor=0; document.getElementById('lines').innerHTML=''; PLAY=true; lastFrame=0; setPressed(); }
 function relang(){ document.documentElement.lang=LANG; document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); const box=document.getElementById('lines'); box.innerHTML=''; for(let i=Math.max(0,cursor-60);i<cursor;i++) addLine(EVENTS[i],false); speedLabel();  }
