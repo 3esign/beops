@@ -85,8 +85,8 @@ tr.max td{box-shadow:inset 3px 0 0 var(--signal)}
 .big{font-family:var(--mono);font-size:28px;color:var(--signal);line-height:1.1}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:calc(var(--u)*4);margin-bottom:calc(var(--u)*4)}
 .tile{border-left:3px solid var(--ink12);padding-left:calc(var(--u)*3)}
-.tile .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink60)}
-.tile .s{font-size:12px;color:var(--ink60);font-family:var(--mono)}
+.tile .k{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink60)}
+.tile .s{font-size:14px;color:var(--ink);font-family:var(--mono)}
 .bars{display:grid;grid-template-columns:minmax(0,1fr);gap:4px}
 .hist{display:flex;align-items:flex-end;gap:1px;height:190px;border-bottom:1px solid var(--ink30);padding-top:calc(var(--u)*2)}
 .hb{flex:1 1 0;min-width:2px;position:relative;height:100%}
@@ -112,7 +112,7 @@ tr.max td{box-shadow:inset 3px 0 0 var(--signal)}
 .hist{display:flex;align-items:flex-end;gap:2px;height:60px}
 .hist i{flex:1;background:var(--ink30);min-width:2px}
 .hist i.now{background:var(--signal)}
-.state{font-family:var(--mono);font-size:11px;color:var(--ink60)}
+.state{font-family:var(--mono);font-size:13px;color:var(--ink)}
 .foot{padding:calc(var(--u)*6) 0;color:var(--ink60);font-size:13px;max-width:80ch}
 .silent{color:var(--ink60);font-style:italic}
 
@@ -180,8 +180,16 @@ function beopsLoadJSON(name){
 function beopsVisible(){return !document.hidden&&(!window.frameElement||window.frameElement.getClientRects().length>0);}
 
 (function(){
-let SNAP=null, LANG='sr', BASEMAP=null, PAR='PM10', GENERATION=null, DETAILS=false, DETAILS_BUSY=false;
+let SNAP=null, LANG='sr', BASEMAP=null, FILTER_ZONE='', PAR='PM10', GENERATION=null, DETAILS=false, DETAILS_BUSY=false;
 const S=(a,b)=>LANG==='sr'?a:b;
+
+  window.addEventListener('message', e => {
+    if(e.data && e.data.type === 'filterZone') {
+      FILTER_ZONE = e.data.zone;
+      if(SNAP) renderAll();
+    }
+  });
+
 /* C-025. This page stamps everything in UTC and the reader's wall clock is not UTC. The age is
    printed for the RECEPTION - the instant the snapshot was taken, which the record knows exactly.
    It is deliberately NOT printed per measurement row: the hour in the table is the hour the SOURCE
@@ -326,7 +334,7 @@ function renderSepa(){
   const pars=[...new Set(src.datastreams.map(d=>d.parameter))].filter(p=>AIR_PARAMETERS.has(p)).sort();
   document.getElementById('partabs').innerHTML=pars.map(p=>`<button data-p="${esc(p)}" aria-pressed="${p===PAR}">${esc(p)}</button>`).join('');
   document.querySelectorAll('#partabs button').forEach(b=>b.addEventListener('click',()=>{PAR=b.dataset.p; renderSepa(); drawMap();}));
-  const rows=src.datastreams.filter(d=>d.parameter===PAR).map(d=>({d,l:latest(d),point:latestPoint(d)})).sort((a,b)=>((b.l&&b.l.v)??-1)-((a.l&&a.l.v)??-1));
+  const rows=src.datastreams.filter(d=>d.parameter===PAR && (!FILTER_ZONE || (d.station||'').toLowerCase().includes(FILTER_ZONE.toLowerCase()) || (d.station==='nepoznato'&&true))).map(d=>({d,l:latest(d),point:latestPoint(d)})).sort((a,b)=>((b.l&&b.l.v)??-1)-((a.l&&a.l.v)??-1));
   const mx=rows.find(r=>r.l); const unit=rows[0]?rows[0].d.unit:'';
   const miss=rows.filter(r=>!r.l).length;
   box.innerHTML=`<div class="tiles"><div class="tile"><div class="k">${S('najviša vrednost','highest value')} ${esc(PAR)}</div><div class="big">${mx?mx.l.v.toFixed(1):'—'}</div><div class="s">${mx?esc(mx.d.station)+beopsClocks.html(mx.point,LANG,src.clock_rules):''}</div></div><div class="tile"><div class="k">${S('stanica sa vrednošću','stations with a value')}</div><div class="big">${rows.length-miss}<span style="font-size:14px;color:var(--ink60)"> / ${rows.length}</span></div><div class="s">${miss?S('nedostaje','missing')+': '+miss+' — '+S('zapis, ne nula','a record, not a zero'):''}</div></div></div>
@@ -353,7 +361,7 @@ function renderSC(){
 }
 function renderParking(){
   const src=(SNAP.sources||[]).find(s=>s.sid==='S10'); const box=document.getElementById('parkbars'); if(!src){ box.innerHTML=`<p class="silent">${S('Parking servis ćuti u ovom prozoru.','Parking servis is silent in this window.')}</p>`; return; }
-  const rows=src.datastreams.map(d=>({d,l:latest(d),point:latestPoint(d)})).sort((a,b)=>(b.l?.v??-1)-(a.l?.v??-1)); const mx=Math.max(1,...rows.filter(r=>r.l).map(r=>r.l.v));
+  const rows=src.datastreams.filter(d=>!FILTER_ZONE || (d.station||'').toLowerCase().includes(FILTER_ZONE.toLowerCase())).map(d=>({d,l:latest(d),point:latestPoint(d)})).sort((a,b)=>(b.l?.v??-1)-(a.l?.v??-1)); const mx=Math.max(1,...rows.filter(r=>r.l).map(r=>r.l.v));
   box.innerHTML=rows.map(r=>`<div class="bar"><span class="n" title="${esc(r.d.station)}">${esc(r.d.station)}</span><span class="b"><i style="width:${r.l?Math.round(r.l.v/mx*100):0}%"></i></span><span class="num mono">${r.l?r.l.v:'—'}</span></div>${r.point?beopsClocks.html(r.point,LANG,src.clock_rules):''}`).join('')+`<div class="legend"><span>${S('Broj koji je izvor prikazao; vreme merenja i stvarno stanje garaže nisu potvrđeni.','The number displayed by the source; measurement time and actual garage conditions are unconfirmed.')}</span></div>`;
 }
 function safeNewsURL(raw){try{const u=new URL(raw);return ['http:','https:'].includes(u.protocol)&&!u.username&&!u.password?u.href:'#';}catch(e){return '#';}}
@@ -362,8 +370,8 @@ function renderNews(){
   const rows=[]; for(const s of srcs){ let latest=null; for(const e of s.events){ const t=P(e.t||e.rx); if(isFinite(t)){ const k=Math.floor((T1-t)/3600e3); if(k>=0&&k<H) cnt[H-1-k]++; } if(e.title&&(!latest||(e.t||'')>(latest.t||''))) latest=e; } rows.push({name:s.name,sid:s.sid,n:s.events.length,latest}); }
   const cm=Math.max(1,...cnt);
   document.getElementById('newshist').innerHTML=cnt.map((c,i)=>`<i title="${c}" style="height:${Math.round(c/cm*100)}%" class="${i===H-1?'now':''}"></i>`).join('');
-  const all=srcs.flatMap(s=>s.events.map(e=>({...e,source:s.name,sid:s.sid}))).sort((a,b)=>(b.t||b.rx||'').localeCompare(a.t||a.rx||''));
-  document.getElementById('newstable').innerHTML=`<table><thead><tr><th>${S('izvor','outlet')}</th><th>${S('svi naslovi','all headlines')} (${all.length})</th><th>${S('objavljeno','published')}</th><th>${S('primljeno','received')}</th></tr></thead><tbody>${all.map(r=>`<tr><td>${esc(r.source)} <span class="state">${esc(r.sid)}</span></td><td><a href="${esc(safeNewsURL(r.link))}" rel="noopener noreferrer" style="color:inherit">${esc(r.title||'—')}</a></td><td class="mono">${r.t?fmtD(r.t):S('nepoznato','unknown')}</td><td class="mono">${r.rx?fmtD(r.rx):'—'}</td></tr>`).join('')}</tbody></table>`;
+  const all=srcs.flatMap(s=>s.events.map(e=>({...e,source:s.name,sid:s.sid}))).filter(e=>!FILTER_ZONE || (e.title||'').toLowerCase().includes(FILTER_ZONE.toLowerCase()) || (e.title||'').toLowerCase().includes('beograd')).sort((a,b)=>(b.t||b.rx||'').localeCompare(a.t||a.rx||''));
+  document.getElementById('newstable').innerHTML=`<table><thead><tr><th>${S('izvor','outlet')}</th><th>${S('svi naslovi','all headlines')} (${all.length})</th><th>${S('objavljeno','published')}</th><th>${S('primljeno','received')}</th></tr></thead><tbody>${all.map(r=>`<tr><td>${esc(r.source)} <span class="state">${esc(r.sid)}</span></td><td><a href="${esc(safeNewsURL(r.link))}" rel="noopener noreferrer" style="color:inherit">${esc(r.title||'-')}</a>${r.author ? '<br><span style="font-size:13px;color:var(--ink60)">' + S('Autor: ', 'Author: ') + esc(r.author) + '</span>' : ''}</td><td class="mono">${r.t?fmtD(r.t):S('nepoznato','unknown')}</td><td class="mono">${r.rx?fmtD(r.rx):'-'}</td></tr>`).join('')}</tbody></table>`;
 }
 function renderMind(){
   const ms=SNAP.mind_scores||{}; const ths=(SNAP.thoughts||[]).filter(t=>t.state==='thought'); const voiced=ths.filter(t=>t.sr_state==='voiced').length;
@@ -605,3 +613,4 @@ refreshView();
 })();
 </script>
 </html>
+

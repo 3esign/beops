@@ -331,6 +331,8 @@ first and moves second, and the reverse order silently leaves every moved file p
 These files now have exact names in the index so they are not invisible. A later cleanup should move
 each into the right thematic section with a one-line scope.
 
+- [07-legal/MATRIX_SVRHE_I_PRAVA.md](07-legal/MATRIX_SVRHE_I_PRAVA.md)
+- _trail/REDACTION_PROOF.md (private working record)
 - _trail/AUDIT_V1_2026-09-05.md (private working record)
 - _trail/AUDIT_V2_2026-09-05.md (private working record)
 - _trail/INTAKE_2026-09-05.md (private working record)

@@ -87,9 +87,15 @@ journalistic/academic exemption at Article 92. It is the reverse:
   processing carried out for the purposes of journalistic reporting and publication of information
   in media, **as well as for the purposes of scientific, artistic or literary expression**, if in the
   concrete case such restriction is necessary to protect freedom of expression and information.
-- **Art. 92 is the safeguards article** — Serbia's equivalent of GDPR Art. 89: processing for
-  archiving in the public interest, scientific or historical research, or statistical purposes is
-  subject to appropriate safeguards.
+  - **Art. 92 is the safeguards article** — Serbia's equivalent of GDPR Art. 89: processing for
+    archiving in the public interest, scientific or historical research, or statistical purposes is
+    subject to appropriate safeguards, primarily pseudonymisation.
+
+### Handling of sensitive content (BEO-044 Resolution)
+BEOPS automatically collects media headlines for research purposes. The label `headline` does not inherently strip personal data; some headlines contain sensitive personal data (e.g., minors, health data, criminal incidents). To ensure privacy protection, BEOPS enforces the following constraints:
+1. **Minimization**: Only the headline, URL link, and publication time are retained. The full article body is never downloaded or processed by the system.
+2. **Categorization over extraction**: The AI organ maps headlines into broad categories (e.g., `bezbednost_incident`, `zdravlje`) rather than extracting named entities or tracking individuals.
+3. **Takedown and Redaction**: Upon request from an affected individual or discovery of highly problematic content (e.g., unauthorized disclosure of minors), BEOPS operators will manually redact the headline from the full repository history. The original row will be replaced with a tombstone marker (keeping the hash and timestamp, but destroying the text).
 
 **GDPR for comparison**, verbatim: Art. 85(1) requires Member States to reconcile data protection
 with *"the right to freedom of expression and information, including processing for journalistic

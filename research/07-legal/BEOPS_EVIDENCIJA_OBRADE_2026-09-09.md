@@ -31,13 +31,11 @@ dopustila. Sloj vesti postoji da bi se ono što je objavljeno moglo postaviti po
 izmereno istog dana. Nema druge svrhe, nema profilisanja, nema ciljanja, nema donošenja odluka o
 pojedincima.
 
-### 3 · Pravni osnov
+### 3 — Pravni osnov
 
-- **Član 12** ZZPL — zakonitost obrade. Osnov je obrada neophodna u svrhe naučnog istraživanja, uz
-  zaštitne mere iz **člana 92**; podredno, legitimni interes objavljivanja proverljivog zapisa o
-  javnim izvorima jednog grada, pri čemu su podaci već objavljeni od strane samih medija.
-- **Član 92** ZZPL — obrada u svrhe naučnog istraživanja, uz zaštitne mere iz odeljka 5 ovog
-  dokumenta.
+- **Član 12 stav 1 tačka 6** ZZPL — zakonitost obrade. Osnov je **legitimni interes** dokumentovanja i analize javnih informacija o gradu za potrebe informisanja javnosti, pri čemu obrada minimalno zadire u privatnost lica jer se odnose na već javno objavljene novinske vesti i preuzimaju se isključivo kao kratki metapodaci (naslov).
+- **Član 88** ZZPL — odstupanja za potrebe naučnog izražavanja. Obrada se vrši u svrhe naučnog izražavanja, uz zaštitu slobode izražavanja i informisanja.
+- **Član 92** ZZPL pruža okvir zaštitnih mera, a ne samostalan osnov obrade.
 - Naslov, link i vreme objave koriste se u obimu kratkog citata (**član 49** Zakona o autorskom i
   srodnim pravima); službeni materijali su van autorskopravne zaštite (**član 6 stav 2**). Srbija
   **nema izuzetak za rudarenje teksta i podataka** i ovaj rad se ni u jednom delu na njega ne
@@ -55,27 +53,23 @@ Nema podataka o pojedincima izvan onoga što je medij sam objavio kao naslov.
 
 ### 5 · Zaštitne mere (član 92)
 
-1. **Minimizacija na izvoru.** Uzima se isključivo naslov, link i vreme objave. Telo teksta se ne
-   preuzima nikada, ni privremeno.
+1. **Minimizacija izdvajanjem.** Sistem tehnički prima celokupan XML/RSS mrežni odgovor izvora koji može sadržati sažetke vesti (što se hešira, a kasnije u skladu sa R2 briše). Iz njega se, međutim, izdvajaju i trajno zadržavaju **samo naslov, link i vreme objave**. Telo samog članka nikada se ne posećuje niti preuzima, ni privremeno.
 2. **Dozvola kao uhvaćeni bajtovi.** Pre svakog prvog čitanja izvora sačuvan je bajt-po-bajt zapis
    njegovih pravila (robots.txt, uslovi korišćenja), sa nedeljnom ponovnom proverom. Četrnaest
    izdavača je reklo ne i njihova odluka se poštuje po imenu, nikada se ne zaobilazi.
-3. **Rok čuvanja.** `research/RETENTION.json`, pravilo R1: tekst naslova se briše posle **90 dana**;
+3. **Rok čuvanja.** `research/RETENTION.json` (od verzije v2, primenom odluke od 11.09.2026.): tekst naslova se zadržava **neograničeno** i prikazuje punu arhivu, dokle god to nalaže istraživačka potreba;
    red ostaje sa izvorom, linkom i vremenima, kao dokaz da je nešto objavljeno u tom minutu na toj
-   adresi — što je činjenica o izdavaču, ne o imenovanom licu. Pravilo R2 briše i sirove zapise
+   adresi — što je činjenica o izdavaču, ne o imenovanom licu. (Napomena: prethodno obećano brisanje posle 90 dana poništeno je v2 izmenom). Pravilo R2 briše i sirove zapise
    izvora. Brisanje sprovodi `tools/apply_retention.py`, a šta je obrisano beleži se u
    `data/live/retention-ledger.jsonl`, koji se nikada ne prepisuje.
 4. **Prigovor pre roka.** Pravilo R6: prigovor primljen na adresu iz odeljka 1 izvršava se u roku od
    **30 dana**, bez obzira na starost reda.
-5. **Nema primalaca.** Podaci se ne prosleđuju nikome, ne prodaju se i ne razmenjuju.
+5. **Ograničeni primaoci.** Podaci se ne prodaju i ne razmenjuju komercijalno. Infrastrukturni primaoci uključuju GitHub (za hosting javne arhive u inostranstvu) i, u pojedinim modulima izolovano, AI provajdere isključivo za numeričke/geografske klasifikacije (naslovi se *ne* šalju eksternim AI provajderima, već ih obrađuje lokalni model).
 6. **Nema praćenja posetilaca.** Sajt je statičan: bez kolačića, bez analitike, bez trekera, bez
    naloga.
 7. **Integritet.** Svaki red nosi sha256 sirovog zapisa iz kog je nastao; ispravke se dopisuju i
    nikada ne brišu (`research/08-provenance/CORRECTIONS.md`).
-8. **Ograničenje mašine.** Lokalni jezički modeli komentarišu zapis iza validatora koji odbija sve
-   što zapis ne podržava; svaki iskaz je mašinski označen kao veštački generisan (Akt o veštačkoj
-   inteligenciji EU, član 50) i nikada se ne prikazuje kao merenje. Urednik zapisa može zaustaviti
-   taj organ jednim fajlom.
+8. **Ograničenje mašine.** Lokalni jezički modeli komentarišu zapis iza validatora koji proverava format, citate i strogo prisustvo upotrebljenih brojeva u ulaznim podacima (ali ne može garantovati semantičku istinitost tumačenja); svaki iskaz je mašinski označen kao veštački generisan (Akt o veštačkoj inteligenciji EU, član 50) i nikada se ne prikazuje kao merenje. Urednik zapisa može zaustaviti taj organ jednim fajlom.
 
 ### 6 · Objavljivanje i iznošenje
 
@@ -85,14 +79,15 @@ dokumenta i navodi se otvoreno:** reč je o objavljivanju već objavljenih naslo
 rada, a ne o prenosu zbirke podataka trećem licu radi njegove obrade. Alternativa — hosting u zemlji
 — razmatra se i biće zabeležena kao izmena ovog dokumenta ako do nje dođe.
 
-### 7 · Zašto lica nisu obaveštena pojedinačno
+### 7 — Zašto lica nisu obaveštena pojedinačno
 
 Član 24 ZZPL traži obaveštavanje kada podaci nisu prikupljeni od lica na koje se odnose, i predviđa
 izuzetak kada je takvo obaveštavanje nemoguće ili iziskuje nesrazmeran napor, naročito kod obrade u
 svrhe naučnog istraživanja, uz uslov da postoje zaštitne mere i da je **obaveštenje javno
-objavljeno**. Zapis sadrži naslove više desetina hiljada objava; pojedinačno obaveštavanje svakog
-imenovanog lica nije izvodljivo bez prikupljanja kontakt podataka koje inače ne držimo — dakle bez
-šire obrade nego što je sama svrha. Zato:
+objavljeno**. Zapis sadrži nekoliko hiljada naslova; utvrđivanje identiteta svakog pojedinca
+pomenutog u vestima, pronalaženje njegovih kontakt podataka i upućivanje obaveštenja predstavljalo
+bi nesrazmeran napor koji bi ugrozio ostvarivanje ciljeva ovog dokumentacionog projekta. Javna
+evidencija (ovaj dokument) zamenjuje lično obaveštenje. Zato:
 
 - zaštitne mere iz odeljka 5 postoje i proverljive su u kodu i podacima,
 - ovo obaveštenje je javno objavljeno na sajtu projekta i u repozitorijumu,
@@ -132,17 +127,12 @@ it to be read. The news layer exists so that what was published can be set besid
 on the same day. There is no other purpose: no profiling, no targeting, no decisions about
 individuals.
 
-### 3 · Legal basis
+### 3 — Legal basis
 
-- **Article 12** of the Serbian Personal Data Protection Act (ZZPL) — lawfulness. The basis is
-  processing necessary for scientific research, with the safeguards of **Article 92**; in the
-  alternative, the legitimate interest in publishing a checkable record of one city's public sources,
-  where the data were already published by the outlets themselves.
-- **Article 92** — processing for scientific research purposes, with the safeguards in section 5.
-- Headline, link and publication time are used within the scope of short quotation (**Article 49** of
-  the Copyright and Related Rights Act); official materials fall outside copyright altogether
-  (**Article 6(2)**). Serbia has **no text-and-data-mining exception**, and no part of this work
-  relies on one.
+- **Article 12(1)(6)** of the Serbian Personal Data Protection Act (ZZPL) — lawfulness. The basis is the **legitimate interest** in documenting and analyzing public information about the city for public interest, where the processing minimally interferes with privacy since it uses already public media headlines and extracts only short metadata (headline text).
+- **Article 88** ZZPL — exemptions for scientific expression. Processing is performed for scientific expression, safeguarding freedom of expression and information.
+- **Article 92** ZZPL provides the framework for safeguards, not a standalone legal basis.
+- Headline, link and publication time are used within the scope of short quotation (**Article 49** of the Copyright and Related Rights Act); official materials fall outside copyright altogether (**Article 6(2)**). Serbia has **no text-and-data-mining exception**, and no part of this work relies on one.
 
 ### 4 · Categories of data subjects and data
 
@@ -156,26 +146,22 @@ itself published as a headline.
 
 ### 5 · Safeguards (Article 92)
 
-1. **Minimisation at the source.** Only the headline, the link and the publication time are taken.
-   The body of an article is never fetched, not even temporarily.
+1. **Minimisation by extraction.** The system technically receives the entire XML/RSS network response which may contain article summaries (this raw response is hashed and eventually deleted per rule R2). However, from it, **only the headline, link, and publication time** are extracted and retained. The body of an article itself is never fetched, not even temporarily.
 2. **Permission as captured bytes.** Before the first read of any source, its rules (robots.txt,
    terms) were stored byte for byte, and are re-checked weekly. Fourteen publishers said no; their
    decision is honoured by name and never circumvented.
-3. **Retention.** `research/RETENTION.json`, rule R1: headline text is erased after **90 days**; the
+3. **Retention.** `research/RETENTION.json` (as of v2, following the decision on Sept 11, 2026): headline text is retained **indefinitely** to present the full archive for research needs; the
    row survives with its source, link and times, as evidence that something was published at that
-   minute at that address — a fact about the publisher, not about the person named. Rule R2 deletes
+   minute at that address — a fact about the publisher, not about the person named. (Note: the previous 90-day deletion promise was superseded by v2). Rule R2 deletes
    the raw feed captures as well. `tools/apply_retention.py` enforces it and what it erased is
    recorded in `data/live/retention-ledger.jsonl`, which is never rewritten.
 4. **Objection before the window closes.** Rule R6: an objection received at the address in section 1
    is acted on within **30 days**, whatever the age of the row.
-5. **No recipients.** Nothing is passed on, sold or exchanged.
+5. **Limited recipients.** Data is not sold or commercially exchanged. Infrastructure recipients include GitHub (for hosting the public archive abroad) and, in isolated modules, external AI providers strictly for numerical/geographical classification (headlines are *not* sent to external AI providers, they are processed locally).
 6. **No visitor tracking.** The site is static: no cookies, no analytics, no trackers, no accounts.
 7. **Integrity.** Every row carries the sha256 of the raw capture it came from; corrections are
    appended and never erased (`research/08-provenance/CORRECTIONS.md`).
-8. **The machine is bounded.** Local language models comment on the record behind a validator that
-   refuses anything the record does not support; every utterance is machine-marked as AI-generated
-   (EU AI Act, Article 50) and is never presented as a measurement. The editor of record can stop
-   that organ with a single file.
+8. **The machine is bounded.** Local language models comment on the record behind a validator that checks format, citations, and the strict presence of any used numbers in the input facts (though it cannot guarantee semantic truth of interpretations); every utterance is machine-marked as AI-generated (EU AI Act, Article 50) and is never presented as a measurement. The editor of record can stop that organ with a single file.
 
 ### 6 · Publication and transfer abroad
 
@@ -186,16 +172,18 @@ as part of a scientific paper, not the transfer of a dataset to a third party fo
 processing. Hosting inside the country is under consideration, and would be recorded here as an
 amendment.
 
-### 7 · Why individuals were not notified one by one
+### 7 — Why individuals were not notified one by one
 
 Article 24 ZZPL requires notice where data were not collected from the data subject, and allows an
 exception where such notice is impossible or would take disproportionate effort — particularly for
 scientific research — provided safeguards exist and **the notice is made public**. The record holds
-the headlines of tens of thousands of publications; notifying every named person individually is not
-feasible without collecting contact data we deliberately do not hold, which would mean processing
-more than the purpose itself requires. Therefore: the safeguards in section 5 exist and are checkable
-in the code and in the data; this notice is published on the project's site and in the repository;
-and the objection address appears on every public page.
+a few thousand headlines; determining the identity of each named individual, finding their contact details,
+and sending individual notices would represent a disproportionate effort that would undermine the feasibility
+of this documentation project. Public notice (this document) stands in for individual notification. Therefore:
+
+- the safeguards in section 5 exist and are checkable in the code and in the data;
+- this notice is published on the project's site and in the repository;
+- and the objection address appears on every public page.
 
 ### 8 · Rights
 

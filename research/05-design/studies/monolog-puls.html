@@ -368,7 +368,7 @@ function paintAges(){
   });
 }
 setInterval(paintAges,30000);
-setInterval(()=>{if(!beopsVisible())return;load().then(s=>{if(!s||s.as_of===SNAP?.as_of)return;SNAP=s;T1=P(s.as_of);T0=T1-s.window_hours*3600e3;EVENTS=build(s);showLatest();renderMind();drawMap(performance.now());});},60000);
+setInterval(()=>{if(!beopsVisible())return;load().then(s=>{if(!s||s.as_of===SNAP?.as_of)return;SNAP=s;T1=P(s.as_of);T0=T1-s.window_hours*3600e3;EVENTS=build(s);showLatest();drawMap(performance.now());});},60000);
 function fmtD(t){const d=new Date(t);return d.toISOString().slice(5,10).replace('-','.')+' '+fmtT(t);}
 function hourRange(isoEnd){ if(!isoEnd) return ''; const e=P(isoEnd); return fmtT(e-3600e3)+'–'+fmtT(e)+' UTC'; }
 function sentence(e){
@@ -643,61 +643,6 @@ function voicedIn(th){ return LANG==='sr' ? !!(th.sr_state==='voiced'&&th.sr) : 
 // Serbian counts in three shapes, and 12 takes the same shape as 15, not the same as 2.
 function plSr(n,one,few,many){ const a=Math.abs(n)%100, b=a%10;
   if(a>=11&&a<=14) return many; if(b===1) return one; if(b>=2&&b<=4) return few; return many; }
-function mindCard(th,fresh){
-  const el=document.createElement('div');
-  const stamp='<div class="who"><span class="t" data-ago="'+esc(th.t)+'">'+esc(fmtD(th.t))+' UTC</span></div>';
-  if(!voicedIn(th)){
-    const why=String(th.sr_state||'').replace(/^refused at export: /,'').replace(/^refused: /,'').replace(/^failed: /,'');
-    // C-033. The refused Serbian is shown, marked as refused. It was written and it is the only
-    // Serbian this thought ever had; showing only the reason threw the sentence away twice - once
-    // in the record and once on the page. What it may never be is shown as if it had passed.
-    const raw=String(th.sr_refused||'').trim();
-    el.className='card refused';
-    el.innerHTML=stamp
-      +(raw?'<div class="say">'+esc(raw)+'</div>':'')
-      +'<div class="hyp">'+esc(LANG==='sr'
-         ?(raw?'Ovo nije prošlo proveru prevoda i ne stoji kao izgovorena rečenica.':'Misao postoji, ali srpski prevod nije sačuvan.')
-         :(raw?'This did not pass the translation check and does not stand as a voiced sentence.':'The utterance exists; this language has no saved rendering.'))+'</div>'
-      +'<div class="meta">'+esc(LANG==='sr'?'provera prevoda: ':'translation check: ')+esc(why)+(th.model?' · '+esc(th.model):'')+'</div>';
-    return el;
-  }
-  const text=LANG==='sr'?th.sr:th.en;
-  const hyp=LANG==='sr'?(th.hypotheses_sr||[]):(th.hypotheses||[]);
-  const q=LANG==='sr'?(th.questions_sr||[]):(th.questions||[]);
-  el.className='card'+(fresh?' fresh':'');
-  el.innerHTML=stamp
-    +'<div class="say">'+esc(text)+'</div>'
-    +(hyp.length?'<div class="hyp">'+(LANG==='sr'?'pretpostavka':'hypothesis')+': '+esc(hyp.join(' · '))+'</div>':'')
-    +(q.length?'<div class="hyp">'+(LANG==='sr'?'pitanje':'question')+': '+esc(q.join(' · '))+'</div>':'')
-    +'<div class="meta">'+esc(th.model||'')+(th.voice_model?' · '+(LANG==='sr'?'glas ':'voice ')+esc(th.voice_model):'')
-    +' · ai_generated=true · '+(LANG==='sr'?'svaki broj proveren prema digestu':'every number checked against the digest')
-    +(th.cites&&th.cites.length?' · '+esc(th.cites.join(' ')):'')+'</div>';
-  return el;
-}
-function renderMind(){
-  const box=document.getElementById('mindcards'); if(!box||!SNAP) return; box.innerHTML='';
-  const ths=(SNAP.thoughts||[]).filter(t=>t.state==='thought');
-  const asOf=P(SNAP.as_of);
-  for(const [id,nsr,nen] of ENT){
-    const mine=ths.filter(t=>t.entity===id).sort((a,b)=>P(b.t)-P(a.t));
-    const voiced=mine.filter(voicedIn).length;
-    const col=document.createElement('div'); col.className='ent';
-    const name=LANG==='sr'?nsr:nen;
-    const count=LANG==='sr' ? (mine.length+' · '+voiced+' sr') : String(mine.length);
-    const full=LANG==='sr'
-      ? (mine.length+' '+plSr(mine.length,'misao','misli','misli')+' u prozoru, '+voiced+' '+plSr(voiced,'izgovorena','izgovorene','izgovorenih')+' na srpskom')
-      : (mine.length+(mine.length===1?' utterance':' utterances')+' in the window');
-    col.innerHTML='<div class="entname"><b>'+esc(name)+'</b><span class="n" title="'+esc(full)+'">'+esc(count)+'</span></div>';
-    const stack=document.createElement('div'); stack.className='stack';
-    if(!mine.length){
-      const el=document.createElement('div'); el.className='card quiet';
-      el.innerHTML='<div class="say">'+esc(LANG==='sr'
-        ?'Nijedna misao u prozoru. Ćutanje je zapis kao i svako drugo.'
-        :'No utterance in the window. Silence is a record like any other.')+'</div>';
-      stack.appendChild(el);
-    } else {
-      let first=true;
-      for(const th of mine){ stack.appendChild(mindCard(th,first&&voicedIn(th)&&(asOf-P(th.t))<3600e3)); first=false; }
     }
     col.appendChild(stack); box.appendChild(col);
   }
@@ -705,7 +650,7 @@ function renderMind(){
 }
 function showLatest(){ PLAY=false; playT=T1; cursor=EVENTS.length; const box=document.getElementById('lines'); box.innerHTML=''; for(let i=Math.max(0,EVENTS.length-60);i<EVENTS.length;i++) addLine(EVENTS[i],false); setPressed(); }
 function startReplay(){ const first=EVENTS.find(e=>e.kind==='rx'||e.kind==='text'); playT=first?Math.max(T0,first.t-120e3):T0; cursor=0; document.getElementById('lines').innerHTML=''; PLAY=true; lastFrame=0; setPressed(); }
-function relang(){ document.documentElement.lang=LANG; document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); const box=document.getElementById('lines'); box.innerHTML=''; for(let i=Math.max(0,cursor-60);i<cursor;i++) addLine(EVENTS[i],false); speedLabel(); renderMind(); }
+function relang(){ document.documentElement.lang=LANG; document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); const box=document.getElementById('lines'); box.innerHTML=''; for(let i=Math.max(0,cursor-60);i<cursor;i++) addLine(EVENTS[i],false); speedLabel();  }
 document.getElementById('lang').addEventListener('click',()=>{LANG=LANG==='sr'?'en':'sr'; relang();});
 document.getElementById('play').addEventListener('click',()=>{ if(PLAY){ PLAY=false; setPressed(); } else startReplay(); });
 document.getElementById('live').addEventListener('click',showLatest);
@@ -750,7 +695,7 @@ window.addEventListener('message',ev=>{
 // schedule is a guess about when that happens and all three guesses were wrong.
 try{ if(window.parent&&window.parent!==window) window.parent.postMessage({beopsAsk:true},'*'); }catch(e){}
 
-Promise.all([loadBasemap(),loadPeople()]).then(()=>load()).then(snap=>{ if(!snap){document.getElementById('clock').textContent='no snapshot';return;} SNAP=snap; T1=P(snap.as_of); T0=T1-snap.window_hours*3600e3; EVENTS=build(snap); document.getElementById('mapnote').textContent=(snap.as_of.slice(0,19))+'Z'; speedLabel(); showLatest(); renderMind();
+Promise.all([loadBasemap(),loadPeople()]).then(()=>load()).then(snap=>{ if(!snap){document.getElementById('clock').textContent='no snapshot';return;} SNAP=snap; T1=P(snap.as_of); T0=T1-snap.window_hours*3600e3; EVENTS=build(snap); document.getElementById('mapnote').textContent=(snap.as_of.slice(0,19))+'Z'; speedLabel(); showLatest(); 
   // Paint once, straight away, before the animation loop starts. requestAnimationFrame does not
   // fire while a document is hidden, so a frame that loads out of view - a background tab, a
   // print, a thumbnail, an embedding whose host is not the foreground - kept a 300x150 default

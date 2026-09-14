@@ -1,4 +1,4 @@
-<!doctype html><html lang="sr"><meta name="beops-input-generation" content="b7de66df2a999c34ad3f6141f065a4d8f8c9c38820ac76cb3bc40bb59077ddfd"><script src="observation-clocks.js"></script><script src="beops-view.js"></script><meta charset="utf-8">
+<!doctype html><html lang="sr"><meta name="beops-input-generation" content="8c186110b458159fd3946dd4a510d7da0ef3925c40fd4eae9c6e8bf7fe43ed56"><script src="observation-clocks.js"></script><script src="beops-view.js"></script><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BEOPS Svedoci</title>
 <meta name="description" content="SVEDOCI — how old a value was when it reached us, and whether two independent sources describing the same hour said the same thing. Computed from rows already in the record; no source added, nobody asked for anything.">
@@ -104,7 +104,7 @@ h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink6
   <p class="notthis sr-only"><b>Prikazana je starost pri prijemu, računata od kraja mernog intervala.</b> Njegov kraj nije vreme kada je rezultat postao dostupan. Pauze, neuspešni ciklusi i prenos mogu dodati više planiranih intervala. Takt je opis rasporeda; nije gornja granica našeg kašnjenja. Razmaci završenih uspešnih ciklusa prikazani su zasebno. Bez dokaza dostupnosti rezultata ne razdvajamo doprinos izdavača i našeg rada. Trajanje merenja se ne dodaje starosti od kraja intervala; ovo nije ocena kvaliteta.</p>
   <p class="notthis en-only"><b>This is age at reception, measured from the measurement interval's end.</b> Its end is not when the result became available. Pauses, failed cycles and transport can add several planned intervals. Cadence describes the schedule; it is not an upper bound on our delay. Gaps between completed successful cycles are shown separately. Without availability evidence, publisher and collector contributions remain unknown. Measurement duration is not added to age measured from its end; this is not a quality score.</p>
   <div class="legend">
-    <span><i class="k1"></i><span class="sr-only">srednja starost</span><span class="en-only">median age</span></span>
+    <span><i class="k1"></i><span class="sr-only">medijana starosti</span><span class="en-only">median age</span></span>
     <span><i class="k2"></i><span class="sr-only">90. percentil</span><span class="en-only">90th percentile</span></span>
     <span><i class="k4"></i><span class="sr-only">raspodela starosti nije dostupna — nepoznat sat, nerešen sat ili premalo opažanja</span><span class="en-only">age distribution unavailable — unknown clock, unresolved clock or too few observations</span></span>
   </div>
@@ -303,3 +303,10 @@ refresh(); setInterval(function(){if(beopsVisible())refresh();},60000);
 window.addEventListener('resize',report);
 })();
 </script>
+
+<footer style="margin-top: 40px; padding: 20px 0; border-top: 1px solid #889681; font-size: 13px; font-family: system-ui, sans-serif; background: inherit; color: inherit;">
+  <div style="max-width:1100px; margin: 0 auto; padding: 0 16px;">
+    <p style="margin: 0 0 8px 0;"><a href="index.html" style="text-decoration:none; border-bottom:1px solid #D93A16;">&larr; Nazad na BEOPS / Back to BEOPS</a></p>
+    <p style="margin: 0;">Ovo je prateca stranica opservatorije / This is an auxiliary page. Kontakt / Contact: <a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a></p>
+  </div>
+</footer>

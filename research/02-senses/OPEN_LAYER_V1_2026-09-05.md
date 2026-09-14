@@ -1,6 +1,6 @@
 # BEOPS v1 — the layer that depends on nobody
 
-Status: current
+Status: historical/superseded (see research/README.md and live JSON registries)
 Date: 2026-09-05
 Author: claude-cowork
 

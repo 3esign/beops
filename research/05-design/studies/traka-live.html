@@ -179,7 +179,7 @@ function beopsVisible(){return !document.hidden&&(!window.frameElement||window.f
 'use strict';
 const U=4, LANE_H=U*10, SUB_H=U*7, PAD_L=8, PAD_R=8;
 const css=k=>getComputedStyle(document.documentElement).getPropertyValue(k).trim();
-let SNAP=null, T0=0, T1=0, HAIR=null, lanes=[];
+let SNAP=null, FILTER_ZONE='', T0=0, T1=0, HAIR=null, lanes=[];
 
 // ---------- data ------------------------------------------------------
 function load(){
@@ -191,11 +191,21 @@ const P=s=>s?Date.parse(s):NaN;
 function pointAt(p){const value=beopsClocks.placement(p).at;return value===null?NaN:beopsClocks.stamp(value);}
 
 // A lane is one sense: many datastreams (stations/sensors/lots) share a y-scale and a quorum row.
+
+  window.addEventListener('message', e => {
+    if(e.data && e.data.type === 'filterZone') {
+      FILTER_ZONE = e.data.zone;
+      if(SNAP) {
+         lanes=[]; lanes.groups=buildLanes(SNAP); render(); reading(HAIR||T1);
+      }
+    }
+  });
+
 function buildLanes(snap){
   const out=[];
   for(const src of snap.sources){
     const byParam=new Map();
-    for(const ds of src.datastreams){
+    for(const ds of src.datastreams){ if(FILTER_ZONE && !(ds.station||'').toLowerCase().includes(FILTER_ZONE.toLowerCase())) continue; 
       const k=ds.parameter||'?'; if(!byParam.has(k)) byParam.set(k,[]); byParam.get(k).push(ds);
     }
     const params=[...byParam.keys()].sort((a,b)=>ORDER(a)-ORDER(b)||a.localeCompare(b));
@@ -402,7 +412,18 @@ load().then(snap=>{
   document.getElementById('asof').innerHTML=S(`snimak ${esc(snap.as_of.slice(0,19))}Z<br>prozor ${snap.window_hours} h`,`snapshot ${esc(snap.as_of.slice(0,19))}Z<br>window ${snap.window_hours} h`);
   lanes=[]; lanes.groups=buildLanes(snap);
   render();
-  const rib=document.getElementById('ribbon');
+    const rib=document.getElementById('ribbon');
+  rib.setAttribute('tabindex','0');
+  rib.setAttribute('aria-label','Izbor vremena / Time selection');
+  rib.addEventListener('keydown',e=>{
+    if(e.key==='ArrowLeft'||e.key==='ArrowRight'){
+      e.preventDefault();
+      let step=e.shiftKey?3600000:300000;
+      if(e.key==='ArrowLeft') step=-step;
+      if(HAIR===null) HAIR=T1;
+      HAIR=Math.max(T0,Math.min(T1,HAIR+step)); drawAll(); reading(HAIR);
+    }
+  });
   rib.addEventListener('pointermove',e=>{
     const lc=e.target.closest('.lc'); if(!lc) return;
     const r=lc.getBoundingClientRect(); const fx=(e.clientX-r.left-PAD_L)/(r.width-PAD_L-PAD_R);

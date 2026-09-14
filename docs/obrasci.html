@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="sr-Latn"><head><meta name="beops-input-generation" content="b7de66df2a999c34ad3f6141f065a4d8f8c9c38820ac76cb3bc40bb59077ddfd"><script src="observation-clocks.js"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="sr-Latn"><head><meta name="beops-input-generation" content="8c186110b458159fd3946dd4a510d7da0ef3925c40fd4eae9c6e8bf7fe43ed56"><script src="observation-clocks.js"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>BEOPS · Opažanja kroz vreme</title>
 <link rel="stylesheet" href="accessibility.css"><script src="beops-view.js"></script>
 <style>
@@ -7,7 +7,11 @@
 </style></head><body><main>
 <header><a href="index.html">← BEOPS</a><p class="eyebrow">Opažanja · vremenski rasponi · dokaz</p><h1>Šta se vidi kroz vreme</h1><p>Jedan instrument i jedan parametar. Vidi se koliko podataka postoji, šta se u njima menja i gde zapis ima rupe. Razlike su opis opažanja; ponavljanje obrasca i uzrok zahtevaju zasebnu proveru.</p><p id="status" class="meta" role="status">Učitavanje poslednje objavljene generacije…</p></header>
 <p class="limit">Obuhvat instrumenata nije obuhvat celog grada. Prijem nije merenje. Nedostajuća vrednost ostaje nepoznata.</p>
-<section id="analysis" hidden><label for="instrument">Instrument / mesto / parametar</label><select id="instrument"></select><h2 id="name"></h2><p class="meta" id="basis"></p>
+<section id="analysis" hidden><div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+  <div style="flex:1; min-width:200px;"><label for="sel-sid" style="margin-top:0;">Izvor</label><select id="sel-sid"></select></div>
+  <div style="flex:1; min-width:200px;"><label for="sel-station" style="margin-top:0;">Stanica / Lokacija</label><select id="sel-station"></select></div>
+  <div style="flex:1; min-width:200px;"><label for="sel-param" style="margin-top:0;">Parametar</label><select id="sel-param"></select></div>
+</div><h2 id="name"></h2><p class="meta" id="basis"></p>
 <div class="scroll" role="region" aria-label="Poređenje vremenskih prozora" tabindex="0"><table><thead><tr><th>Šta je zabeleženo</th><th>24 sata</th><th>7 dana</th><th>30 dana</th></tr></thead><tbody id="values"></tbody></table></div>
 <p class="limit" id="pattern">Ponavljanje obrasca nije testirano. Razlika početnog i završnog sata nije dokaz trenda.</p>
 <p id="method">Račun zavisi od tipa veličine. Porede se završeni UTC sati; tekući nepotpuni sat nije uključen. Nepoznati i nevalidni rezultati ostaju zasebno prebrojani.</p>
@@ -16,8 +20,40 @@
 </main><script>
 'use strict';let view=null,analysis=null;
 const $=id=>document.getElementById(id),fmt=n=>typeof n==='number'&&Number.isFinite(n)?n.toLocaleString('sr-Latn',{maximumFractionDigits:2}):'—';
+
+  let SERIES = [];
+  function populateSelect(id, values, selected) {
+    const el = $(id); el.innerHTML = '';
+    values.forEach(v => { const o = document.createElement('option'); o.value=v; o.textContent=v; el.append(o); });
+    if(selected && values.includes(selected)) el.value = selected;
+    else if(values.length) el.value = values[0];
+  }
+  function updateDropdowns(fromUrl = false) {
+    let qSid = null, qStation = null, qParam = null;
+    if(fromUrl && location.hash) {
+      const params = new URLSearchParams(location.hash.slice(1));
+      qSid = params.get('sid'); qStation = params.get('station'); qParam = params.get('param');
+    }
+    const sids = [...new Set(SERIES.map(s => s.sid))].sort();
+    if(fromUrl) populateSelect('sel-sid', sids, qSid);
+    const selSid = $('sel-sid').value;
+    
+    const stations = [...new Set(SERIES.filter(s => s.sid === selSid).map(s => s.station||''))].sort();
+    if(fromUrl || !stations.includes($('sel-station').value)) populateSelect('sel-station', stations, qStation);
+    const selStation = $('sel-station').value;
+    
+    const params = [...new Set(SERIES.filter(s => s.sid === selSid && (s.station||'') === selStation).map(s => s.parameter))].sort();
+    if(fromUrl || !params.includes($('sel-param').value)) populateSelect('sel-param', params, qParam);
+    
+    render();
+  }
+  $('sel-sid').addEventListener('change', () => { updateDropdowns(); });
+  $('sel-station').addEventListener('change', () => { updateDropdowns(); });
+  $('sel-param').addEventListener('change', () => { updateDropdowns(); });
+  window.addEventListener('hashchange', () => { updateDropdowns(true); });
+
 function render(){
- const item=analysis.series[Number($('instrument').value)];if(!item)return;
+ const item = SERIES.find(s => s.sid===$('sel-sid').value && (s.station||'')===$('sel-station').value && s.parameter===$('sel-param').value); if(!item)return; location.replace('#sid='+encodeURIComponent(item.sid)+'&station='+encodeURIComponent(item.station||'')+'&param='+encodeURIComponent(item.parameter));
  $('name').textContent=[item.station,item.parameter,item.unit].filter(Boolean).join(' · ');
  const basis={measured:'vreme koje objavljuje izvor',corrected:'procenjena korekcija vremena izvora',received:'vreme prijema; vreme merenja nije poznato',arrival:'vreme prijema; vreme merenja nije poznato'};
  $('basis').textContent=item.sid+' · Vremenska osnova: '+(basis[item.time_basis]||'nepotvrđena')+'. Jedinica: '+(item.unit||'nije navedena');
@@ -35,10 +71,15 @@ async function load(){
   if(analysis.as_of!==view.as_of)throw Error('generation_mismatch');
   const age=(Date.now()-Date.parse(view.as_of))/60000;
   $('status').textContent='Objavljeni presek: '+view.as_of+' · '+analysis.series.length+' nizova.'+(!Number.isFinite(age)||age>60||age< -5?' Zapis je zastareo ili mu vreme nije potvrđeno.':'');
-  $('instrument').replaceChildren();analysis.series.forEach((item,index)=>{const option=document.createElement('option');option.value=index;option.textContent=[item.sid,item.station,item.parameter,item.unit,item.time_basis].filter(Boolean).join(' · ');$('instrument').append(option);});
+  SERIES = analysis.series; updateDropdowns(true);
   if(!analysis.series.length){$('status').textContent+=' Nema brojnih opažanja za poređenje.';$('analysis').hidden=true;return;}
   $('analysis').hidden=false;render();
  }catch(error){$('status').textContent='Analitički zapis nije potvrđen za ovu generaciju. Trenutno stanje i obrasci nisu potvrđeni.';$('analysis').hidden=true;$('retry').hidden=false;}
 }
-$('instrument').addEventListener('change',render);$('retry').addEventListener('click',load);load();
-</script></body></html>
+$('retry').addEventListener('click',load);load();
+</script>
+<footer style="margin-top: 40px; padding: 20px 0; border-top: 1px solid #889681; font-size: 13px; font-family: system-ui, sans-serif;">
+  <p style="margin: 0 0 8px 0;"><a href="index.html" style="text-decoration:none; border-bottom:1px solid #D93A16;">&larr; Nazad na BEOPS / Back to BEOPS</a></p>
+  <p style="margin: 0;">Ovo je prateca stranica opservatorije / This is an auxiliary page. Kontakt / Contact: <a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a></p>
+</footer>
+</body></html>

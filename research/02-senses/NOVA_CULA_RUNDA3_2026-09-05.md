@@ -1,6 +1,6 @@
 # BEOPS — New senses, round 3: Serbia's own instruments, and senses obtained by reasoning
 
-Status: current
+Status: historical/superseded (see research/README.md and live JSON registries)
 Date: 2026-09-05
 Author: claude-cowork
 

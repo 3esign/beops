@@ -1,4 +1,4 @@
-Status: current; accepted bounded literature supplement, not a collection approval.
+Status: historical/superseded (see research/README.md and live JSON registries); accepted bounded literature supplement, not a collection approval.
 Date: 2026-09-06.
 Author: Codex `/root/procurement`.
 

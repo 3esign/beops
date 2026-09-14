@@ -1,6 +1,6 @@
 # BEOPS — the city's past and the city's ground
 
-Status: current
+Status: historical/superseded (see research/README.md and live JSON registries)
 Date: 2026-09-05
 Author: claude-cowork
 

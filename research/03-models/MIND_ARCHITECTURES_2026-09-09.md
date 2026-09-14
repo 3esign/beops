@@ -1,6 +1,6 @@
 # The mind of the observatory: three entities, one conversation, checked by code
 
-Status: current · Date: 2026-09-09 · Author: Svemir (claude-cowork) for the authors · Supersedes: nothing (first document on the subject); extends `ORGANS.json` (organ `mind` 0.2.0) and §13 of the working document v1.1 · Editor of record: Semir Poturak
+Status: historical/superseded (see research/README.md and live JSON registries) · Date: 2026-09-09 · Author: Svemir (claude-cowork) for the authors · Supersedes: nothing (first document on the subject); extends `ORGANS.json` (organ `mind` 0.2.0) and §13 of the working document v1.1 · Editor of record: Semir Poturak
 
 ## 1. What the authors asked for, and what this answers
 

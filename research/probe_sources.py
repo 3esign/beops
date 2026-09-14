@@ -21,7 +21,7 @@ UA = "Beops-Research/0.1 (bounded source audit; no continuous polling)"
 SOURCES = [
     ("rhmz-automatic", "https://www.hidmet.gov.rs/latin/osmotreni/automatske.php", "rhmz"),
     ("lybe-metar", "https://aviationweather.gov/api/data/metar?ids=LYBE&format=json", "metar"),
-    ("sensor-community-box", "https://data.sensor.community/airrohr/v1/filter/box=44.70,20.27,44.92,20.62", "sensor"),
+    ("sensor-community-box", "https://data.sensor.community/airrohr/v1/filter/area=44.82,20.46,25", "sensor"),
     ("beoeko", "https://www.beoeko.com/", "air"),
     ("rhmz-zemun", "https://www.hidmet.gov.rs/latin/osmotreni/nrt_tabela_grafik.php?hm_id=42045&period=7", "river"),
     ("parking-servis", "https://www.parking-servis.co.rs/lat/garaze-i-parkiralista", "parking"),

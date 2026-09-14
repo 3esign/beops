@@ -252,11 +252,14 @@ def parse_rss(body: bytes, received: datetime, src: dict) -> list[dict]:
             link = (link_el.get("href") if link_el is not None else "") or ""
             guid = (it.findtext("a:id", default="", namespaces=ns) or link).strip()
             pub = (it.findtext("a:published", default="", namespaces=ns) or it.findtext("a:updated", default="", namespaces=ns) or "").strip()
+            author_el = it.find("a:author/a:name", namespaces=ns)
+            author = (author_el.text if author_el is not None else "").strip()
         else:
             title = (it.findtext("title") or "").strip()
             link = (it.findtext("link") or "").strip()
             guid = (it.findtext("guid") or link).strip()
             pub = (it.findtext("pubDate") or it.findtext("{http://purl.org/dc/elements/1.1/}date") or "").strip()
+            author = (it.findtext("author") or it.findtext("{http://purl.org/dc/elements/1.1/}creator") or "").strip()
         rt = None
         if pub:
             try:
@@ -273,6 +276,7 @@ def parse_rss(body: bytes, received: datetime, src: dict) -> list[dict]:
             "schema": SCHEMA_ROW, "sid": src["sid"], "kind": "text",
             "datastream": f"{src['sid']}|headline", "station_id": src["sid"], "parameter": "headline",
             "result": title or None, "unit": None, "link": link or None,
+            "author": author or None,
             "geography": src.get("geography", "Nepoznato"),
             "phenomenonTime": None, "phenomenonTimeUnknown": True,
             "phenomenonTimeReason": "a headline carries its publication time, not the time of what it reports",
@@ -899,7 +903,7 @@ def _export_captured(now, hours, inputs, generation=None) -> pathlib.Path:
                     if (r.get("receivedTime") or "") < since:
                         continue
                     if r.get("kind") == "text":
-                        events.append({"t": r.get("resultTime"), "rx": r.get("receivedTime"), "title": r.get("result"), "link": r.get("link")})
+                        events.append({"t": r.get("resultTime"), "rx": r.get("receivedTime"), "title": r.get("result"), "link": r.get("link"), "author": r.get("author")})
                         continue
                     if keep_ids and r.get("station_id") is not None and str(r.get("station_id")) not in keep_ids:
                         continue   # rows captured before the Belgrade filter existed stay on disk, but are not the observatory's scope

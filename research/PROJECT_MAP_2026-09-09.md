@@ -1,6 +1,6 @@
 # BEOPS — the map of the project, 9 September 2026
 
-Status: current (written after the day's last commit `f8a3ea7`; supersedes nothing — `research/README.md`
+Status: historical/superseded (see research/README.md and live JSON registries) (written after the day's last commit `f8a3ea7`; supersedes nothing — `research/README.md`
 stays the index of documents, this is the map of *where things live and how they move*)
 Date: 2026-09-09
 Author: claude-cowork, for the editor of record

@@ -195,8 +195,12 @@ def map_instruments(bm: dict, snap: dict, pts: list[dict]) -> str:
         f"<text x='34' y='50' {FONT} font-size='12' fill='{INK}'>Sensor.Community citizen sensor ({n['S04']}){_off('S04')} - one reading every few minutes, timestamp published</text>",
         f"<rect x='19' y='63' width='6' height='6' fill='none' stroke='{INK}' stroke-width='1.2'/>",
         f"<text x='34' y='71' {FONT} font-size='12' fill='{INK}'>Parking Servis lot ({n['S10']}){_off('S10')} - displayed free spaces, NO measurement time published</text>",
+        f"<rect x='14' y='81' width='16' height='10' fill='none' stroke='{INK12}' stroke-width='1.5' stroke-dasharray='8 4'/>",
+        f"<text x='34' y='90' {FONT} font-size='12' fill='{INK}'>SEPA collection bounding box</text>",
+        f"<path d='M14,106 Q22,96 30,106' fill='none' stroke='{INK12}' stroke-width='1.5' stroke-dasharray='4 4'/>",
+        f"<text x='34' y='108' {FONT} font-size='12' fill='{INK}'>Sensor.Community collection area (25 km circle)</text>",
     ]
-    body.append(f"<g transform='translate(0 {H - 74 - 44 - 8})'><rect x='8' y='8' width='640' height='74' fill='{PAPER}' fill-opacity='.94' stroke='{INK12}'/>" + "".join(legend) + "</g>")
+    body.append(f"<g transform='translate(0 {H - 114 - 44 - 8})'><rect x='8' y='8' width='640' height='114' fill='{PAPER}' fill-opacity='.94' stroke='{INK12}'/>" + "".join(legend) + "</g>")
     body.append(caption([f"Instruments the observatory listens to, at the coordinates their operators publish  ·  snapshot {snap['as_of'][:16]}Z  ·  WGS84",
                          "Ground: Natural Earth 1:10m (public domain) - generalised, orientation not measurement  ·  no municipality boundaries: every route to them was refused and recorded"]))
     return svg("\n".join(body), "Map 1 - Instruments")

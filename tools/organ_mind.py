@@ -494,12 +494,13 @@ Rules (a program checks them, not you):
 1. You may use only numbers that appear in the facts. No other number.
 2. When you rely on a fact, cite it inside the text, like [F3]. Only ids that exist.
 3. Do not invent measurements. You know nothing that is not in the facts.
-4. Hypotheses go in "hypotheses" and are always worded as hypotheses ("maybe", "perhaps", "if").
+4. Do not deduce operating hours, ramp status, or exact time of events from simple counts. (Negative example: inferring a parking garage is 'closed' or filled at a specific minute just because its count is 0).
+5. Hypotheses go in "hypotheses" and are always worded as hypotheses ("maybe", "perhaps", "if").
    Questions go in "questions". What you would check next goes in "next_check".
-5. "text" is your thought in English, 2 to 3 sentences, with the citations INSIDE the text - for example:
+6. "text" is your thought in English, 2 to 3 sentences, with the citations INSIDE the text - for example:
    "SEPA reported 32 instruments 1 min ago [F2], while Kurir has been silent all day [F15]."
    Do not repeat these instructions or your temperament - speak about the city.
-6. If you wish, give ONE checkable claim in "claim" in exactly one of these shapes, otherwise an empty object {{}}:
+7. If you wish, give ONE checkable claim in "claim" in exactly one of these shapes, otherwise an empty object {{}}:
    "sid" must be one of the ids listed under Sources below - a name like "SEPA" cannot be scored.
    {{"kind":"reception","sid":"S146","within_minutes":90}}  - the source will report again within that time
    {{"kind":"spread","sid":"S146","parameter":"PM10","lo":10,"hi":40,"within_minutes":120}} - the highest value of that parameter in SEPA's next hour will lie between lo and hi

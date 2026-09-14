@@ -69,4 +69,9 @@ $('new').onclick=()=>{$('new').hidden=true;refresh(true);};
 addEventListener('message',e=>{if(e.source!==parent)return;const d=e.data;if(!d)return;const old=LANG;if(d.beopsLang)LANG=d.beopsLang==='sr'?'sr':'en';if(d.beopsTheme!==undefined)document.documentElement.dataset.theme=d.beopsTheme;if(old!==LANG)language();});
 parent.postMessage({beops:'feed-ready',heightPolicy:'bounded-scroll'},location.origin);
 refresh(true);setInterval(()=>{if(!document.hidden)refresh(false);},60000);
-</script></body></html>
+</script>
+<footer style="margin-top: 40px; padding: 20px 0; border-top: 1px solid #889681; font-size: 13px; font-family: system-ui, sans-serif;">
+  <p style="margin: 0 0 8px 0;"><a href="index.html" style="text-decoration:none; border-bottom:1px solid #D93A16;">&larr; Nazad na BEOPS / Back to BEOPS</a></p>
+  <p style="margin: 0;">Ovo je prateca stranica opservatorije / This is an auxiliary page. Kontakt / Contact: <a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a></p>
+</footer>
+</body></html>

@@ -1,4 +1,4 @@
-Status: current
+Status: historical/superseded (see research/README.md and live JSON registries)
 Date: 2026-09-06
 Author: Codex research lane, reviewed by coordinator
 

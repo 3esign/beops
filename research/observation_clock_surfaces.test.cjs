@@ -13,7 +13,7 @@ const elements=new Map();
 const element=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',textContent:'',firstElementChild:{textContent:''}});return elements.get(id);};
 const context={beopsClocks:clocks,LANG:'sr',SNAP:{sources:[source]},S:sr=>sr,t:k=>k,esc:escaped,
   document:{documentElement:{lang:'sr'},getElementById:element,querySelectorAll:()=>[]},
-  css:String,spark:()=>'',PAR:'PM10',AIR_PARAMETERS:new Set(['PM10']),sepa:()=>source,drawMap(){},
+  css:String,spark:()=>'',PAR:'PM10',AIR_PARAMETERS:new Set(['PM10']),sepa:()=>source,drawMap(){},FILTER_ZONE:'',
   P:Date.parse,fmtT:String,fmt:String,pname:String,n1:String};
 vm.createContext(context);
 const expected=clocks.describe(p,'sr');

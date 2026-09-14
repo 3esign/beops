@@ -3,6 +3,11 @@ body{background:#f4f1e9;color:#242923;font:16px/1.6 system-ui,sans-serif;margin:
 const node=(tag,text)=>{const e=document.createElement(tag);e.textContent=text;return e;};
 fetch('context-catalog.json').then(r=>{if(!r.ok)throw Error();return r.json();}).then(c=>{const box=document.getElementById('catalog');box.replaceChildren();for(const d of c.datasets){const a=node('article','');a.append(node('h2',d.title),node('small',d.sid+' · '+(d.edition||d.state)),node('p',d.limitation||''));
 if(d.attribution)a.append(node('p',d.attribution));
-if(d.latest?.length){const wrap=node('div','');wrap.className='scroll';const t=node('table','');const head=node('tr','');for(const h of ['Teritorija / Territory','Period','Vrednost / Value','Jedinica / Unit'])head.append(node('th',h));t.append(head);for(const r of d.latest){const tr=node('tr','');for(const v of [r.place+' ['+r.territory_id+']',r.period,r.value??'—',r.unit])tr.append(node('td',v));t.append(tr);}wrap.append(t);a.append(wrap);}
+if(d.latest?.length){const wrap=node('div','');wrap.className='scroll';const t=node('table','');const head=node('tr','');for(const h of ['Teritorija / Territory','Tip / Geo','Dimenzije / Dims','Period','Vrednost / Value','Jedinica / Unit'])head.append(node('th',h));t.append(head);for(const r of d.latest){const tr=node('tr','');for(const v of [r.place, r.geography, Object.entries(r.dimensions||{}).map(x=>x.join('=')).join(', '), r.period, r.value??'�', r.unit])tr.append(node('td',v));t.append(tr);}wrap.append(t);a.append(wrap);}
 if(d.table){const l=node('a','Sve odabrane godine i kategorije / All selected years and categories (JSON)');l.href=d.table;a.append(l);}if(d.url){const p=node('p',''),l=node('a','Izvor / Source');l.href=d.url;l.rel='noopener noreferrer';p.append(l);a.append(p);}box.append(a);}}).catch(()=>document.getElementById('catalog').textContent='Katalog trenutno nije dostupan. / Catalogue unavailable.');
-</script></body></html>
+</script>
+<footer style="margin-top: 40px; padding: 20px 0; border-top: 1px solid #889681; font-size: 13px; font-family: system-ui, sans-serif;">
+  <p style="margin: 0 0 8px 0;"><a href="index.html" style="text-decoration:none; border-bottom:1px solid #D93A16;">&larr; Nazad na BEOPS / Back to BEOPS</a></p>
+  <p style="margin: 0;">Ovo je prateca stranica opservatorije / This is an auxiliary page. Kontakt / Contact: <a href="mailto:poturaksemir@gmail.com">poturaksemir@gmail.com</a></p>
+</footer>
+</body></html>
