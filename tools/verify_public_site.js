@@ -19,7 +19,8 @@ const PUBLIC_ROOT = process.env.BEOPS_PUBLIC_ROOT
   : path.resolve(ROOT, '..', 'Beops-public');
 const WAIT_SECONDS = Number(process.env.BEOPS_SITE_WAIT_SECONDS || '120');
 const POLL_MS = Number(process.env.BEOPS_SITE_POLL_MS || '10000');
-const RUN_DEADLINE = Date.now() + Math.max(10, WAIT_SECONDS + 30) * 1000;
+const RUN_DEADLINE = Math.min(Date.now() + Math.max(10, WAIT_SECONDS + 30) * 1000,
+  process.env.BEOPS_CYCLE_DEADLINE ? Date.parse(process.env.BEOPS_CYCLE_DEADLINE) : Infinity);
 const CHECK_RAW = process.env.BEOPS_CHECK_RAW === '1';
 const MAX_AGE_MINUTES = Number(process.env.BEOPS_SITE_MAX_AGE_MINUTES || '60');
 
@@ -30,6 +31,7 @@ const CORE_ROUTES = [
   'sada.html',
   'traka.html',
   'svedoci.html',
+  'obrasci.html', 'city-overview.json', 'city-analysis.json', 'beops-view.js',
   'live-snapshot.json', 'history.json', 'watch.json', 'latency.json', 'agreement.json',
   'basemap-belgrade.json',
   'export-manifest.json'
@@ -52,6 +54,15 @@ const FORBIDDEN_MARKERS = [
 
 function normalizeText(s) {
   return String(s || '').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
+}
+
+function validateGeneration(rel, value, expectedId, expectedAsOf) {
+  const generation=rel==='city-overview.json'?value.edition?.input_generation:value.input_generation;
+  if(!/^[a-f0-9]{64}$/.test(expectedId||'')||generation?.id!==expectedId||generation?.schema!=='beops-input-generation/v1'||generation.observation_prefix!=='complete-lf-lines/v1')throw Error('input generation differs from export manifest');
+  const captured=Date.parse(generation.captured_at),asOf=Date.parse(value.as_of);
+  if(!Number.isFinite(captured)||!Number.isFinite(asOf)||Math.floor(captured/1000)!==Math.floor(asOf/1000))throw Error('projection clock differs from declared capture');
+  if(expectedAsOf!==undefined&&Date.parse(expectedAsOf)!==Math.floor(captured/1000)*1000)throw Error('projection clock differs from export manifest');
+  return generation.id;
 }
 
 function asciiFold(s) {
@@ -211,6 +222,7 @@ async function main() {
   const manifestFile = localRouteFile('export-manifest.json');
   if (!manifestFile) throw new Error('Missing local release manifest');
   const manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8').replace(/^\uFEFF/,''));
+  if(!live.text.includes('<meta name="beops-input-generation" content="'+manifest.inputs_manifest_sha256+'">'))errors.push('public HTML generation differs from export manifest');
   const required=new Set(CORE_ROUTES);
   for(const item of manifest.files||[]){if(item.path.startsWith('docs/'))required.add(item.path.slice(5));}
   const expectedRoutes = [...required].map(rel => {
@@ -239,6 +251,11 @@ async function main() {
     if (!item.ok) {
       errors.push(`${rel} returned HTTP ${item.status}`);
     }
+    if(item.ok&&['live-snapshot.json','history.json','city-overview.json','city-analysis.json'].includes(rel)){
+      try{route.input_generation=validateGeneration(rel,JSON.parse(normalizeText(item.text)),manifest.inputs_manifest_sha256,manifest.generated_as_of);}
+      catch(error){errors.push(`${rel} generation is invalid: ${error.message}`);}
+    }
+    if(item.ok&&rel.endsWith('.html')&&!rel.includes('/')&&!item.text.includes('<meta name="beops-input-generation" content="'+manifest.inputs_manifest_sha256+'">'))errors.push(`${rel} HTML generation differs from export manifest`);
     if (rel === 'live-snapshot.json' && item.ok) {
       try {
         const snapshot = JSON.parse(normalizeText(item.text));
@@ -307,7 +324,7 @@ async function main() {
   if (errors.length) process.exit(1);
 }
 
-module.exports = {fetchMatchingRoute, mapBounded};
+module.exports = {fetchMatchingRoute, mapBounded, validateGeneration};
 if (require.main === module) main().catch(err => {
   console.error(err && err.stack ? err.stack : String(err));
   process.exit(1);

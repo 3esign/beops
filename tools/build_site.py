@@ -33,6 +33,22 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 RES = ROOT / "research"
 DOCS = ROOT / "docs"
 
+def pin_entry(content, generation_id):
+    """Bind an HTML entry before its scripts execute; refuse an unpinnable page."""
+    if not re.fullmatch(r'[a-f0-9]{64}', generation_id):
+        raise ValueError('invalid HTML input generation')
+    content = re.sub(r'<meta\b[^>]*\bname=[\"\x27]beops-input-generation[\"\x27][^>]*>', '', content, flags=re.I)
+    meta = '<meta name="beops-input-generation" content="'+generation_id+'">'
+    clocks = '' if re.search(r'<script\b[^>]*\bsrc=[\"\x27]observation-clocks\.js[\"\x27]', content, re.I) else '<script src="observation-clocks.js"></script>'
+    script = '' if re.search(r'<script\b[^>]*\bsrc=[\"\x27]beops-view\.js[\"\x27]', content, re.I) else '<script src="beops-view.js"></script>'
+    # Several existing HTML5 entries intentionally omit the optional head tags.
+    # A leading meta/script after html belongs to the browser's implicit head.
+    opening = r'(<head\b[^>]*>)' if re.search(r'<head\b', content, re.I) else r'(<html\b[^>]*>)'
+    content, count = re.subn(opening, lambda m: m[0]+meta+clocks+script, content, count=1, flags=re.I)
+    if count != 1:
+        raise ValueError('HTML entry has no head or html for generation')
+    return content
+
 def read_json(p: pathlib.Path, default=None):
     try:
         return json.loads(p.read_text(encoding="utf-8"))
@@ -133,11 +149,12 @@ def live() -> dict:
 
 TEMPLATE = r"""<!doctype html>
 <html lang="sr">
-<head><script>
+<head><script src="beops-view.js"></script><script>
 window.beopsJSON=(function(){
   var cache={};
   return function(name){
     if(!/^[a-z][a-z0-9-]*\.json$/.test(name)) return Promise.reject(new Error('Invalid data resource'));
+    if(['live-snapshot.json','history.json','watch.json','city-analysis.json'].includes(name))return window.beopsView.read(name);
     var entry=cache[name], now=Date.now();
     if(!entry||now-entry.at>=60000){
       entry={at:now,promise:fetch(name,{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('Data unavailable');return r.json();})};
@@ -445,7 +462,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
   </div>
   <div class="wrap">
     <div class="stage">
-      <iframe id="stage" src="monolog.html?v={stamp}" title="BEOPS · Monolog + Puls" loading="eager"></iframe>
+      <iframe id="stage" src="monolog.html?v={stamp}" title="BEOPS · Monolog + Puls" loading="lazy"></iframe>
     </div>
     <div class="ai-stage" style="width:100%;height:420px;max-height:65vh;border:1px solid var(--ink12);margin-top:18px;overflow:hidden">
       <iframe id="aifeed" src="ai-feed.html?v={stamp}" title="BEOPS · Zapažanja / AI observations" style="width:100%;height:100%;border:0;display:block" loading="lazy"></iframe>
@@ -456,7 +473,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
 <div class="airbar" id="vazduhbar">
   <div class="wrap">
     <h2 class="barhead"><span class="sr-only i18n">Vazduh — državna mreža, poslednji sat</span><span class="en-only i18n">Air — the state network, the last hour</span><span class="zh-only">空气——国家监测网，最近一小时</span><span class="de-only">Luft — das staatliche Messnetz, die letzte Stunde</span></h2>
-    <div class="datastage airstage"><iframe id="airstage" src="podaci.html?only=vazduh&amp;v={stamp}" title="BEOPS · Vazduh" loading="eager"></iframe></div>
+    <div class="datastage airstage"><iframe id="airstage" src="podaci.html?only=vazduh&amp;v={stamp}" title="BEOPS · Vazduh" loading="lazy"></iframe></div>
   </div>
 </div>
 
@@ -541,7 +558,7 @@ footer b{color:var(--ink70);font-weight:600;display:block;margin-bottom:4px}
         <h3><span class="sr-only i18n">Dozvola pre kolektora</span><span class="en-only i18n">Permission before collector</span><span class="zh-only">先有许可，后有采集</span><span class="de-only">Erlaubnis vor Sammler</span></h3>
         <p><span class="sr-only i18n">Nijedan izvor se ne čita dok njegov <code>robots.txt</code>, zaglavlja i stranica licence ne budu sačuvani kao bajtovi sa hešom. Nepoznato nikada nije dozvola. Predstavljamo se pošteno kao <span class="mono">Beops-Research-Collect/1.0</span> i kad izvor kaže ne — odgovor je ne, i to se zapisuje da niko ne pokuša ponovo.</span><span class="en-only i18n">No source is read until its <code>robots.txt</code>, headers and licence page are stored as bytes with a hash. An unknown is never a permission. We identify honestly as <span class="mono">Beops-Research-Collect/1.0</span><span class="zh-only">在一个来源的 <code>robots.txt</code>、响应头与许可页面被作为带哈希的字节保存下来之前，我们不会读取它。未知从来不等于许可。我们如实以 <span class="mono">Beops-Research-Collect/1.0</span> 表明身份；当一个来源说不，答案就是不——并被记录下来，以免明年有人再试一次。</span><span class="de-only">Keine Quelle wird gelesen, bevor ihre <code>robots.txt</code>, die Header und die Lizenzseite als Bytes mit Prüfsumme gespeichert sind. Ein Unbekanntes ist niemals eine Erlaubnis. Wir weisen uns ehrlich als <span class="mono">Beops-Research-Collect/1.0</span> aus, und wenn eine Quelle Nein sagt, ist die Antwort Nein — festgehalten, damit es im nächsten Jahr niemand erneut versucht.</span>, and when a source says no the answer is no — recorded, so nobody tries again next year.</span></p>
         <h3><span class="sr-only i18n">Tri vremena</span><span class="en-only i18n">Three times</span><span class="zh-only">三种时间</span><span class="de-only">Drei Zeiten</span></h3>
-        <p><span class="sr-only i18n">Izmereno, objavljeno, primljeno — nikad se ne stapaju. Neki izvori ne objavljuju vreme merenja uopšte: tada je vrednost tačna, a njena starost nepoznata, i tako se i crta.</span><span class="en-only i18n">Measured, published, received — never collapsed into one. Some sources publish no measurement time at all: then the value is exact and its age is unknown, and it is drawn that way.</span><span class="zh-only">测量时刻、发布时刻、接收时刻——绝不合并为一。有些来源根本不发布测量时刻：那么数值是准确的，而它的年龄是未知的，并且就按这样绘制。</span><span class="de-only">Gemessen, veröffentlicht, empfangen — niemals zu einem verschmolzen. Manche Quellen veröffentlichen überhaupt keinen Messzeitpunkt: dann ist der Wert exakt und sein Alter unbekannt, und genau so wird er gezeichnet.</span></p>
+        <p><span class="sr-only i18n">Izvorni sat, procena korekcije, objava i prijem imaju odvojene oznake. Kada izvor ne objavljuje vreme merenja, znamo koji je broj prikazao i kada smo ga primili; tačnost i starost merenja nisu potvrđene.</span><span class="en-only i18n">Source clock, estimated correction, publication and reception have separate labels. When a source publishes no measurement time, we record the number it displayed and when we received it; measurement accuracy and age are unconfirmed.</span><span class="zh-only">来源时刻、估计校正、发布和接收分别标注。来源未提供测量时刻时，我们只记录其显示的数值和接收时刻；测量准确性与新旧程度未获确认。</span><span class="de-only">Quellzeit, geschätzte Korrektur, Veröffentlichung und Empfang sind getrennt gekennzeichnet. Ohne Messzeit erfassen wir den angezeigten Wert und unseren Empfang; Genauigkeit und Alter der Messung sind unbestätigt.</span></p>
       </div>
       <div>
         <div class="rule"><b><span class="sr-only i18n">Nema izmišljenog merenja</span><span class="en-only i18n">No invented measurement</span><span class="zh-only">不虚构测量</span><span class="de-only">Keine erfundene Messung</span></b><span><span class="sr-only i18n">Broj koji nijedan izvor nije rekao ne postoji. Bez interpolacije, bez popunjavanja.</span><span class="en-only i18n">A number no source reported does not exist. No interpolation, no back-filling.</span><span class="zh-only">没有任何来源报告过的数字并不存在。不插值，不回填。</span><span class="de-only">Eine Zahl, die keine Quelle gemeldet hat, existiert nicht. Keine Interpolation, kein Auffüllen.</span></span></div>
@@ -963,6 +980,9 @@ def main() -> int:
     html = html.replace("{stamp}", data["built"].replace(" ", "T").replace(":", "").replace("-", ""))   # the stage frame: a browser that cached yesterday's monolog.html must not show it today
     (DOCS / "index.html").write_text(html, encoding="utf-8")
     for src, dst in [("research/05-design/studies/accessibility.css", "accessibility.css"),
+                     ("research/05-design/studies/observation-clocks.js", "observation-clocks.js"),
+                     ("research/05-design/studies/beops-view.js", "beops-view.js"),
+                     ("research/05-design/studies/obrasci.html", "obrasci.html"),
                      ("research/05-design/studies/accessibility.js", "accessibility.js"),
                      ("research/05-design/studies/headlines.js", "headlines.js"),
                      ("research/05-design/studies/monolog-puls.html", "monolog.html"),
@@ -986,6 +1006,18 @@ def main() -> int:
         p = ROOT / src
         if p.exists():
             shutil.copy(p, DOCS / dst)
+    from build_city_view import build as build_city_view
+    if (DOCS / 'live-snapshot.json').exists():
+        build_city_view(DOCS)
+        view = json.loads((DOCS/'city-overview.json').read_text(encoding='utf-8'))
+        generation = view['edition']['input_generation']
+        if generation:
+            # Every standalone entry identifies the same cut; the browser refuses
+            # a stale HTML shell paired with another generation's JSON.
+            for page in DOCS.glob('*.html'):
+                content = page.read_text(encoding='utf-8')
+                content = pin_entry(content, generation['id'])
+                page.write_text(content, encoding='utf-8')
     context_tables = ROOT / 'public/context-tables'
     if context_tables.exists():
         shutil.copytree(context_tables, DOCS / 'context-tables', dirs_exist_ok=True)
@@ -1014,7 +1046,7 @@ def main() -> int:
             p.unlink()
             print("withdrew docs/" + p.name + " - not eligible for publication")
     (DOCS / ".nojekyll").write_text("", encoding="utf-8")
-    print(f"wrote {DOCS/'index.html'} ({len(html)} bytes; {len(data['registry']['rows'])} sources, "
+    print(f"wrote {DOCS/'index.html'} ({(DOCS/'index.html').stat().st_size} bytes; {len(data['registry']['rows'])} sources, "
           f"{len(data['corrections'])} corrections, {len(data['provenance']['refused'])} refusals)")
     return 0
 

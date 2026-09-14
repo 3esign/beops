@@ -57,6 +57,27 @@ class RegisterTasks(unittest.TestCase):
         self.assertIn(gate, self.publish_tick)
         self.assertLess(self.publish_tick.index(gate), self.publish_tick.index("beops_env.bat"))
 
+    def test_publish_settings_use_normal_cpu_io_and_memory_priority(self):
+        # Construct real Windows settings objects without registering any task.
+        script = """$ErrorActionPreference = 'Stop'
+. '%s'
+@(Get-BeopsTaskSpecs | ForEach-Object {
+  $settings = New-ScheduledTaskSettingsSet -Priority (Get-BeopsTaskPriority $_)
+  [pscustomobject]@{ name=$_.Name; priority=$settings.Priority }
+}) | ConvertTo-Json -Compress
+""" % str(SPECS).replace("'", "''")
+        run = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-Command", script],
+            capture_output=True, text=True, timeout=60,
+        )
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+        priorities = {row["name"]: row["priority"] for row in json.loads(run.stdout)}
+        self.assertEqual(priorities.pop("Beops_Publish"), 4)
+        self.assertEqual(len(priorities), 8)
+        self.assertEqual(set(priorities.values()), {7})
+        self.assertIn("-Priority (Get-BeopsTaskPriority $t)", self.s)
+        self.assertIn("$priority -ne $expectedPriority", self.audit)
+
     def test_only_a_recent_success_opens_the_publish_quiet_window(self):
         now = "2026-09-12T06:30:00Z"
         cases = (
@@ -93,6 +114,26 @@ class RegisterTasks(unittest.TestCase):
         self.assertIn("ConvertTo-Json", self.audit)
         self.assertNotIn("Register-ScheduledTask", self.audit)
         self.assertNotIn("Set-ScheduledTask", self.audit)
+
+    def test_every_wrapper_preserves_maintenance_and_starts_no_job(self):
+        import shutil
+        names = ('ai_feed', 'collect', 'mind', 'organ', 'watch', 'publish', 'guard', 'baseline', 'legal')
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td) / 'paused project'
+            (root / 'tools').mkdir(parents=True)
+            (root / 'runtime').mkdir()
+            (root / 'runtime/MAINTENANCE').write_text('controlled pause', encoding='utf-8')
+            for name in ('beops_env.bat', 'publish_due.ps1'):
+                shutil.copy2(ROOT / 'tools' / name, root / 'tools' / name)
+            for name in names:
+                with self.subTest(task=name):
+                    target = root / 'tools' / (name + '_tick.bat')
+                    shutil.copy2(ROOT / 'tools' / target.name, target)
+                    run = subprocess.run(['cmd.exe', '/d', '/c', str(target)],
+                        capture_output=True, text=True, timeout=15)
+                    self.assertEqual(run.returncode, 75, run.stdout + run.stderr)
+            self.assertEqual([p.name for p in (root / 'runtime').iterdir()], ['MAINTENANCE'])
+            self.assertFalse((root / 'data').exists())
 
 
 if __name__ == "__main__":

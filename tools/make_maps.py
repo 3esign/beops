@@ -99,7 +99,17 @@ def base_layers(bm: dict) -> str:
     for name, lat, lon in MUNI:
         x, y = proj(lat, lon)
         parts.append(f"<rect x='{x-1:.1f}' y='{y-1:.1f}' width='2' height='2' fill='{INK30}'/>")
-        parts.append(f"<text x='{x+7:.1f}' y='{y+4:.1f}' {FONT} font-size='11' font-weight='600' letter-spacing='1.5' fill='{INK30}'>{esc(name.upper())}</text>")
+        parts.append(f"<text x='{x+7:.1f}' y='{y+4:.1f}' {FONT} font-size='11' font-weight='600' letter-spacing='1.5' fill='{INK30}'>{name.upper()}</text>")
+    
+    # BEO-016: Draw data collection boundaries (SEPA bbox and SC 25km circle)
+    sc_cx, sc_cy = proj(44.82, 20.46)
+    sc_r = abs(proj(44.82 + 25 / 111.32, 20.46)[1] - sc_cy)
+    parts.append(f"<circle cx='{sc_cx:.1f}' cy='{sc_cy:.1f}' r='{sc_r:.1f}' fill='none' stroke='{INK12}' stroke-width='1.5' stroke-dasharray='4 4'/>")
+    
+    sepa_x0, sepa_y0 = proj(44.95, 20.20)
+    sepa_x1, sepa_y1 = proj(44.60, 20.65)
+    parts.append(f"<rect x='{sepa_x0:.1f}' y='{sepa_y0:.1f}' width='{sepa_x1-sepa_x0:.1f}' height='{sepa_y1-sepa_y0:.1f}' fill='none' stroke='{INK12}' stroke-width='1.5' stroke-dasharray='8 4'/>")
+    
     return "\n".join(parts)
 
 

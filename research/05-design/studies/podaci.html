@@ -119,6 +119,7 @@ tr.max td{box-shadow:inset 3px 0 0 var(--signal)}
 @media(max-width:600px){.clocknote,.clock-note{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;}}
 </style>
 <link rel="stylesheet" href="accessibility.css"><script defer src="accessibility.js"></script>
+<script src="beops-view.js"></script>
 <header>
   <div>
     <h1>BEOPS <span>· PODACI · Beograd</span></h1>
@@ -130,9 +131,11 @@ tr.max td{box-shadow:inset 3px 0 0 var(--signal)}
   </div>
 </header>
 <main>
+<p id="viewstatus" role="status">Učitavanje poslednjih očitavanja… / Loading latest observations…</p>
+<p><button type="button" id="loaddetails">Učitaj nizove i istoriju / Load series and history</button> · <a href="obrasci.html" target="_top">Opažanja kroz vreme / Observations over time</a></p>
 <section id="vazduh">
   <h2><span class="sr-only">Vazduh — SEPA, zvanična mreža (satne srednje vrednosti, preliminarne)</span><span class="en-only">Air — SEPA, the official network (hourly means, preliminary)</span></h2>
-  <p class="lead"><span class="sr-only">Svaka tačka je stanica; boja je poslednja satna vrednost izabranog parametra. Tabela: poslednja vrednost, sat merenja po oznaci izvora, kretanje u prozoru. Vrednosti su preliminarne — tako ih izvor označava.</span><span class="en-only">Each dot is a station; the colour is the latest hourly value of the chosen parameter. Table: latest value, the source's own measurement hour, movement over the window. Values are preliminary — that is the source's own label.</span></p>
+  <p class="lead"><span class="sr-only">Svaka tačka je stanica; puna tačka označava dostupnu poslednju satnu vrednost, a prazan krug nedostajuću vrednost. Brojevi i satovi su u tabeli. Boja ne ocenjuje kvalitet vazduha. Vrednosti su preliminarne — tako ih izvor označava.</span><span class="en-only">Each dot is a station; a filled dot marks an available latest hourly value and an empty ring a missing value. Values and source times appear in the table. Colour does not rate air quality. Values are preliminary — that is the source's label.</span></p>
   <div class="tabs" id="partabs"></div>
   <div class="grid sepa">
     <div><div class="cvwrap"><div class="cv geo"><canvas id="map" role="img" aria-label="Prikaz podataka; vrednosti su u tabelama / Data visualization; values appear in tables"></canvas></div></div><div class="legend" id="maplegend"></div></div>
@@ -141,7 +144,7 @@ tr.max td{box-shadow:inset 3px 0 0 var(--signal)}
 </section>
 <section id="kroz-vreme">
   <h2><span class="sr-only">Kroz vreme — kako se vrednosti slažu sat po sat</span><span class="en-only">Over time — how the values stack up, hour by hour</span></h2>
-  <p class="lead"><span class="sr-only">Jedan stubić je jedan sat. Visina je najviša vrednost koju je bilo koja stanica objavila za taj sat, tanja crta unutar njega je gradski prosek tog sata. Prazan sat je sat bez ijednog prijema — ostaje prazan, ne postaje nula i ne povlači se linija preko njega. Traka ispod pokazuje koliko je stanica javilo u tom satu.</span><span class="en-only">One bar is one hour. Its height is the highest value any station published for that hour; the thin line inside it is the city mean for that hour. An empty hour is an hour with no reception at all — it stays empty, does not become a zero, and no line is drawn across it. The strip beneath shows how many stations reported in that hour.</span></p>
+  <p class="lead"><span class="sr-only">Jedan stubić je jedan sat. Visina je najviša zabeležena vrednost; tanja crta je neponderisani prosek satnih proseka dostupnih nizova. To nije prosek celog grada. Prazan sat ostaje prazan. Traka ispod pokazuje koliko je nizova imalo vrednost u tom satu.</span><span class="en-only">One bar is one hour. Its height is the highest recorded value; the thin line is the unweighted mean of the available series' hourly means. It is not a city-wide mean. Empty hours stay empty. The strip counts series with a value that hour.</span></p>
   <div class="tabs" id="histwin"></div>
   <div id="histbox"></div>
   <p class="lead" id="histnote" style="margin-top:calc(var(--u)*3)"></p>
@@ -177,7 +180,7 @@ function beopsLoadJSON(name){
 function beopsVisible(){return !document.hidden&&(!window.frameElement||window.frameElement.getClientRects().length>0);}
 
 (function(){
-let SNAP=null, LANG='sr', BASEMAP=null, PAR='PM10';
+let SNAP=null, LANG='sr', BASEMAP=null, PAR='PM10', GENERATION=null, DETAILS=false, DETAILS_BUSY=false;
 const S=(a,b)=>LANG==='sr'?a:b;
 /* C-025. This page stamps everything in UTC and the reader's wall clock is not UTC. The age is
    printed for the RECEPTION - the instant the snapshot was taken, which the record knows exactly.
@@ -248,11 +251,13 @@ function projBase(lat,lon,w,h){
 function proj(lat,lon,w,h){ const q=projBase(lat,lon,w,h); return [q[0]*VIEW.k+VIEW.tx, q[1]*VIEW.k+VIEW.ty]; }
 function metresPerPx(w,h){ const kx=Math.cos(44.8*Math.PI/180); const s=Math.min(w/((BB.lo1-BB.lo0)*kx), h/(BB.la1-BB.la0)); return 111320/(s*VIEW.k); }
 function load(u){return beopsLoadJSON(u);}
-function latest(ds){ const pts=ds.points.filter(p=>typeof p.v==='number'); return pts.length?pts[pts.length-1]:null; }
+function latestPoint(ds){const pts=ds.points||[];return Object.hasOwn(ds,'last_by_measurement')?(ds.last_by_measurement||ds.last_received):(pts.length?pts[pts.length-1]:null);}
+function latest(ds){const p=latestPoint(ds);return p&&typeof p.v==='number'&&Number.isFinite(p.v)?p:null;}
 function spark(pts,w,h,color){ const v=pts.map(p=>p.v).filter(x=>typeof x==='number'); if(v.length<2) return ''; const mn=Math.min(...v), mx=Math.max(...v); const sc=x=>mx===mn?h/2:h-2-(x-mn)/(mx-mn)*(h-4); const step=w/(pts.length-1); let d='',i=0; for(const p of pts){ if(typeof p.v==='number'){ d+=(d?'L':'M')+(i*step).toFixed(1)+' '+sc(p.v).toFixed(1); } i++; } return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`; }
-function heat(v,lo,hi){ const t=Math.max(0,Math.min(1,(v-lo)/(hi-lo))); const ink=css('--ink'); const sig=css('--signal'); return t<0.5?css('--ink30'):sig; }
-// scale reference values: WHO 2021 24-h guideline as the "hot" threshold - a reference, not a verdict
-const REF={PM10:[0,45],'PM2.5':[0,15],NO2:[0,25],O3:[0,100],SO2:[0,40],CO:[0,4]};
+// R04: these are available parameter names, not health thresholds. A latest
+// hourly concentration has no qualified 24-hour/8-hour comparison here.
+const AIR_PARAMETERS=new Set(['PM10','PM2.5','NO2','O3','SO2','CO']);
+function airMarkerStyle(){return {color:css('--ink60'),radius:5};}
 function sepa(){ return (SNAP.sources||[]).find(s=>s.sid==='S146'); }
 function drawMap(){
   const cv=document.getElementById('map'); const g=cv.getContext('2d');
@@ -261,7 +266,7 @@ function drawMap(){
   // guard on BOTH dimensions: a box that grew taller with a shorter bitmap is C-016
   if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){ cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr); }
   g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
-  const src=sepa(); const [lo,hi]=REF[PAR]||[0,100];
+  const src=sepa();
   const rows=src?src.datastreams.filter(d=>d.parameter===PAR&&d.lat&&d.lon):[];
 
   // 1. how far this place is from any instrument we hear. NOT an interpolation of the value - the
@@ -298,9 +303,9 @@ function drawMap(){
   for(const d of rows){ const l=latest(d); const [x,y]=proj(d.lat,d.lon,w,h);
     if(!l){ g.strokeStyle=css('--ink30'); g.lineWidth=1; g.beginPath(); g.arc(x,y,5,0,Math.PI*2); g.stroke(); continue; }
     if(!top||l.v>top.l.v) top={d:d,l:l,x:x,y:y};
-    const t=Math.max(0,Math.min(1,(l.v-lo)/(hi-lo)));
-    g.fillStyle=t>=1?css('--signal'):css('--ink30'); g.globalAlpha=0.35+0.65*t;
-    g.beginPath(); g.arc(x,y,4+8*t,0,Math.PI*2); g.fill(); g.globalAlpha=1; }
+    const style=airMarkerStyle();
+    g.fillStyle=style.color; g.globalAlpha=1;
+    g.beginPath(); g.arc(x,y,style.radius,0,Math.PI*2); g.fill(); }
   // only the highest station is labelled. Twenty-six numbers on one drawing is not information.
   if(top){ g.fillStyle=css('--ink'); g.font='600 12px '+css('--sans');
     const lab=Math.round(top.l.v)+' '+(top.d.unit||'');
@@ -314,29 +319,29 @@ function drawMap(){
   g.moveTo(12+px,h-18); g.lineTo(12+px,h-10); g.stroke();
   g.font='10px '+css('--mono'); g.fillText((target/1000)+' km',12,h-22);
 
-  document.getElementById('maplegend').innerHTML=`<span><i style="background:var(--ink30)"></i>${S('ispod','below')} ${hi} ${rows[0]?esc(rows[0].unit):''}</span><span><i style="background:var(--signal)"></i>${S('iznad','above')} ${hi} (${S('WHO 2021 dnevna smernica — referenca, ne presuda','WHO 2021 daily guideline — a reference, not a verdict')})</span><span><i style="background:transparent;border:1px solid var(--ink30)"></i>${S('bez vrednosti u prozoru','no value in the window')}</span><span><i style="background:var(--ink30);opacity:.35"></i>${S('gušća tačkica = dalje od svake stanice koja je javila','denser dots = farther from any station that reported')}</span>`;
+  document.getElementById('maplegend').innerHTML=`<span><i style="background:var(--ink60)"></i>${S('stanica sa poslednjom satnom vrednošću','station with a latest hourly value')}</span><span><i style="background:transparent;border:1px solid var(--ink30)"></i>${S('bez vrednosti u prozoru','no value in the window')}</span><span>${S('Satna vrednost nije upoređena sa WHO smernicom za drugi period.','An hourly value is not compared with a WHO guideline for another averaging period.')}</span><span><i style="background:var(--ink30);opacity:.35"></i>${S('gušća tačkica = dalje od svake stanice koja je javila','denser dots = farther from any station that reported')}</span>`;
 }
 function renderSepa(){
   const src=sepa(); const box=document.getElementById('septable'); if(!src){ box.innerHTML=`<p class="silent">${S('SEPA ćuti u ovom prozoru.','SEPA is silent in this window.')}</p>`; return; }
-  const pars=[...new Set(src.datastreams.map(d=>d.parameter))].filter(p=>REF[p]).sort();
+  const pars=[...new Set(src.datastreams.map(d=>d.parameter))].filter(p=>AIR_PARAMETERS.has(p)).sort();
   document.getElementById('partabs').innerHTML=pars.map(p=>`<button data-p="${esc(p)}" aria-pressed="${p===PAR}">${esc(p)}</button>`).join('');
   document.querySelectorAll('#partabs button').forEach(b=>b.addEventListener('click',()=>{PAR=b.dataset.p; renderSepa(); drawMap();}));
-  const rows=src.datastreams.filter(d=>d.parameter===PAR).map(d=>({d,l:latest(d)})).sort((a,b)=>((b.l&&b.l.v)??-1)-((a.l&&a.l.v)??-1));
+  const rows=src.datastreams.filter(d=>d.parameter===PAR).map(d=>({d,l:latest(d),point:latestPoint(d)})).sort((a,b)=>((b.l&&b.l.v)??-1)-((a.l&&a.l.v)??-1));
   const mx=rows.find(r=>r.l); const unit=rows[0]?rows[0].d.unit:'';
   const miss=rows.filter(r=>!r.l).length;
-  box.innerHTML=`<div class="tiles"><div class="tile"><div class="k">${S('gradski maksimum','city maximum')} ${esc(PAR)}</div><div class="big">${mx?mx.l.v.toFixed(1):'—'}</div><div class="s">${mx?esc(mx.d.station)+' · '+S('sat merenja','measurement hour')+' '+fmtT(mx.l.t)+'Z':''}</div></div><div class="tile"><div class="k">${S('stanica sa vrednošću','stations with a value')}</div><div class="big">${rows.length-miss}<span style="font-size:14px;color:var(--ink60)"> / ${rows.length}</span></div><div class="s">${miss?S('nedostaje','missing')+': '+miss+' — '+S('zapis, ne nula','a record, not a zero'):''}</div></div></div>
+  box.innerHTML=`<div class="tiles"><div class="tile"><div class="k">${S('najviša vrednost','highest value')} ${esc(PAR)}</div><div class="big">${mx?mx.l.v.toFixed(1):'—'}</div><div class="s">${mx?esc(mx.d.station)+beopsClocks.html(mx.point,LANG,src.clock_rules):''}</div></div><div class="tile"><div class="k">${S('stanica sa vrednošću','stations with a value')}</div><div class="big">${rows.length-miss}<span style="font-size:14px;color:var(--ink60)"> / ${rows.length}</span></div><div class="s">${miss?S('nedostaje','missing')+': '+miss+' — '+S('zapis, ne nula','a record, not a zero'):''}</div></div></div>
   `;
   // Two tables, not one long one: thirty-two stations down a single column leave the other half of the
   // row empty for its whole height. The split is by position, so the city maximum stays at the top.
-  const head=`<thead><tr><th>${S('stanica','station')}</th><th class="num">${S('poslednje','latest')} ${esc(unit)}</th><th>${S('sat (izvor)','hour (source)')}</th><th>${S('prozor','window')}</th><th>${S('stanje','state')}</th></tr></thead>`;
-  const tr=(r,i)=>`<tr class="${i===0&&r.l?'max':''}"><td>${esc(r.d.station)}</td><td class="num">${r.l?r.l.v.toFixed(1):'—'}</td><td class="mono">${r.l?fmtT(r.l.t)+'Z':'—'}</td><td class="spark">${spark(r.d.points,90,22,css('--ink60'))}</td><td class="state">${r.l?esc(r.l.q||''):S('nedostaje','missing')}</td></tr>`;
+  const head=`<thead><tr><th>${S('stanica','station')}</th><th class="num">${S('poslednje','latest')} ${esc(unit)}</th><th>${S('satovi opažanja','observation clocks')}</th><th>${S('prozor','window')}</th><th>${S('stanje','state')}</th></tr></thead>`;
+  const tr=(r,i)=>`<tr class="${i===0&&r.l?'max':''}"><td>${esc(r.d.station)}</td><td class="num">${r.l?r.l.v.toFixed(1):'—'}</td><td>${r.point?beopsClocks.html(r.point,LANG,src.clock_rules):'—'}</td><td class="spark">${spark(r.d.points,90,22,css('--ink60'))}</td><td class="state">${r.l?esc(r.l.q||''):S('nedostaje','missing')}</td></tr>`;
   const half=Math.ceil(rows.length/2), aRows=rows.slice(0,half), bRows=rows.slice(half);
   box.innerHTML+=`<div class="twocol"><table>${head}<tbody>`+aRows.map((r,i)=>tr(r,i)).join('')+`</tbody></table>`+
     (bRows.length?`<table>${head}<tbody>`+bRows.map((r,i)=>tr(r,i+half)).join('')+`</tbody></table>`:'')+`</div>`;
 }
 function renderSC(){
   const src=(SNAP.sources||[]).find(s=>s.sid==='S04'); const tiles=document.getElementById('sctiles'); if(!src){ tiles.innerHTML=`<p class="silent">${S('Sensor.Community ćuti u ovom prozoru.','Sensor.Community is silent in this window.')}</p>`; return; }
-  const by={P1:[],P2:[]}; for(const d of src.datastreams){ const l=latest(d); if(l&&by[d.parameter]) by[d.parameter].push({station:d.station,v:l.v,t:l.t}); }
+  const by={P1:[],P2:[]}; for(const d of src.datastreams){ const l=latest(d); if(l&&by[d.parameter]) by[d.parameter].push({station:d.station,v:l.v,t:l.t,point:l}); }
   const med=a=>{ if(!a.length) return null; const s=[...a].sort((x,y)=>x-y); return s[Math.floor(s.length/2)]; };
   const ids=new Set(src.datastreams.map(d=>d.station));
   tiles.innerHTML=[['P2','PM2.5'],['P1','PM10']].map(([k,n])=>{const vs=by[k].map(x=>x.v); const m=med(vs); const top=by[k].sort((a,b)=>b.v-a.v)[0]; return `<div class="tile"><div class="k">${n} ${S('medijana poslednjih','median of latest')}</div><div class="big">${m==null?'—':m.toFixed(1)}</div><div class="s">${S('najviše','highest')}: ${top?top.v.toFixed(1)+' ('+S('senzor','sensor')+' '+esc(top.station)+')':'—'} · ${vs.length} ${S('senzora','sensors')}</div></div>`;}).join('')+`<div class="tile"><div class="k">${S('senzora u prozoru','sensors in the window')}</div><div class="big">${ids.size}</div><div class="s">${S('nevalidirano · građanski','unvalidated · citizen')}</div></div>`;
@@ -344,12 +349,12 @@ function renderSC(){
   const vs=by.P2.map(x=>x.v); const bins=[0,5,10,15,20,30,40,60,100,1e9]; const cnt=bins.slice(0,-1).map((b,i)=>vs.filter(v=>v>=b&&v<bins[i+1]).length); const cm=Math.max(1,...cnt);
   document.getElementById('schist').innerHTML=`<div class="k" style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink60)">${S('raspodela poslednjih PM2.5 vrednosti (µg/m³)','distribution of latest PM2.5 values (µg/m³)')}</div><div class="hist">${cnt.map((c,i)=>`<i title="${bins[i]}–${bins[i+1]===1e9?'…':bins[i+1]}: ${c}" style="height:${Math.round(c/cm*100)}%" class="${bins[i]>=15?'now':''}"></i>`).join('')}</div><div class="legend">${bins.slice(0,-1).map((b,i)=>`<span>${b}–${bins[i+1]===1e9?'…':bins[i+1]}: ${cnt[i]}</span>`).join('')}</div>`;
   const top=by.P2.slice(0,8);
-  document.getElementById('sctop').innerHTML=`<table><thead><tr><th>${S('senzor','sensor')}</th><th class="num">PM2.5</th><th>${S('vreme (senzor)','time (sensor)')}</th></tr></thead><tbody>${top.map(x=>`<tr><td class="mono">${esc(x.station)}</td><td class="num">${x.v.toFixed(1)}</td><td class="mono">${fmtT(x.t)}Z</td></tr>`).join('')}</tbody></table>`;
+  document.getElementById('sctop').innerHTML=`<table><thead><tr><th>${S('senzor','sensor')}</th><th class="num">PM2.5</th><th>${S('satovi opažanja','observation clocks')}</th></tr></thead><tbody>${top.map(x=>`<tr><td class="mono">${esc(x.station)}</td><td class="num">${x.v.toFixed(1)}</td><td>${beopsClocks.html(x.point,LANG,src.clock_rules)}</td></tr>`).join('')}</tbody></table>`;
 }
 function renderParking(){
   const src=(SNAP.sources||[]).find(s=>s.sid==='S10'); const box=document.getElementById('parkbars'); if(!src){ box.innerHTML=`<p class="silent">${S('Parking servis ćuti u ovom prozoru.','Parking servis is silent in this window.')}</p>`; return; }
-  const rows=src.datastreams.map(d=>({d,l:latest(d)})).filter(r=>r.l).sort((a,b)=>b.l.v-a.l.v); const mx=Math.max(1,...rows.map(r=>r.l.v));
-  box.innerHTML=rows.map(r=>`<div class="bar"><span class="n" title="${esc(r.d.station)}">${esc(r.d.station)}</span><span class="b"><i style="width:${Math.round(r.l.v/mx*100)}%" class="${r.l.v===0?'hot':''}"></i></span><span class="num mono">${r.l.v}</span></div>`).join('')+`<div class="legend"><span>${S('primljeno','received')} ${rows[0]?fmtT(rows[0].l.rx)+'Z':''} · ${S('vreme merenja nepoznato — stanje „bez vremena"','measurement time unknown — the untimed state')}</span></div>`;
+  const rows=src.datastreams.map(d=>({d,l:latest(d),point:latestPoint(d)})).sort((a,b)=>(b.l?.v??-1)-(a.l?.v??-1)); const mx=Math.max(1,...rows.filter(r=>r.l).map(r=>r.l.v));
+  box.innerHTML=rows.map(r=>`<div class="bar"><span class="n" title="${esc(r.d.station)}">${esc(r.d.station)}</span><span class="b"><i style="width:${r.l?Math.round(r.l.v/mx*100):0}%"></i></span><span class="num mono">${r.l?r.l.v:'—'}</span></div>${r.point?beopsClocks.html(r.point,LANG,src.clock_rules):''}`).join('')+`<div class="legend"><span>${S('Broj koji je izvor prikazao; vreme merenja i stvarno stanje garaže nisu potvrđeni.','The number displayed by the source; measurement time and actual garage conditions are unconfirmed.')}</span></div>`;
 }
 function safeNewsURL(raw){try{const u=new URL(raw);return ['http:','https:'].includes(u.protocol)&&!u.username&&!u.password?u.href:'#';}catch(e){return '#';}}
 function renderNews(){
@@ -393,6 +398,9 @@ function renderHist(){
   });
   const ss=histSeries();
   if(!ss.length){ box.innerHTML=''; note.textContent=S('za ovaj parametar još nema satne istorije','no hourly history for this parameter yet'); return; }
+  if(new Set(ss.map(s=>s.time_basis)).size!==1||new Set(ss.map(s=>s.unit)).size!==1){
+    box.innerHTML='';note.textContent=S('Nizovi imaju različite vremenske osnove ili jedinice. Pogledaj ih odvojeno u „Opažanja kroz vreme“.','Series use different clock bases or units. Inspect them separately in “Observations over time”.');return;
+  }
   // An hour before the record begins is not a silent hour - it is an hour we did not exist for.
   // The window is clamped to the history so no such hour is ever drawn as a gap.
   const span=Math.min(HWIN,have);
@@ -415,7 +423,7 @@ function renderHist(){
            '<i style="height:'+hh+'%"></i>'+(mm!==null?'<u style="bottom:'+mm+'%"></u>':'')+'</div>';
   }).join('')+'</div>'+
   '<div class="cov">'+per.map(p=>'<i style="opacity:'+(p.stations?(0.15+0.65*p.stations/maxSt).toFixed(2):'0.05')+'" title="'+p.h+'Z · '+p.stations+' '+S('stanica javilo','stations reported')+'"></i>').join('')+'</div>'+
-  '<div class="hax"><span>'+hours[0]+'Z</span><span>'+S('sat merenja po oznaci izvora (UTC)','measurement hour as the source labels it (UTC)')+'</span><span>'+hours[hours.length-1]+'Z</span></div>';
+  '<div class="hax"><span>'+hours[0]+'Z</span><span>'+(ss[0].time_basis==='corrected'?S('procenjena korekcija vremena izvora (UTC)','estimated correction of source time (UTC)'):S('sat po oznaci izvora (UTC)','hour as labelled by the source (UTC)'))+'</span><span>'+hours[hours.length-1]+'Z</span></div>';
   const withData=per.filter(p=>p.max!=null).length;
   const shown=span;
   const peak=per.filter(p=>p.max!=null).sort((a,b)=>b.max-a.max)[0];
@@ -427,7 +435,7 @@ function renderHist(){
 function renderAll(){ document.documentElement.lang=LANG; document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+LANG); document.getElementById('lang').setAttribute('aria-pressed',LANG==='en'); if(!SNAP) return; const ck=document.getElementById('clock');ck.textContent=S('prozor','window')+' '+SNAP.window_hours+' h · '+SNAP.as_of.slice(0,16).replace('T',' ')+' UTC';ck.setAttribute('data-ago',SNAP.as_of); paintAges(); renderSepa(); drawMap(); renderHist(); renderSC(); renderParking(); renderNews(); renderMind(); }
 document.getElementById('lang').addEventListener('click',()=>{LANG=LANG==='sr'?'en':'sr'; renderAll();});
 
-setInterval(()=>{if(!beopsVisible())return;Promise.all([load('live-snapshot.json'),load('history.json')]).then(([s,h])=>{if(s){SNAP=s;if(h)HIST=h;renderAll();}});},60000);
+setInterval(()=>{if(beopsVisible())refreshView();},60000);
 /* The map is a thing you look at, so it is a thing you can move. Same gestures as the pulse map:
    wheel to zoom about the cursor, drag to pan, hover for what a dot is, double-click or the control
    to come back. Switching the parameter no longer moves anything - the projection is bound to the
@@ -469,7 +477,7 @@ setInterval(()=>{if(!beopsVisible())return;Promise.all([load('live-snapshot.json
     const l=latest(best);
     tip.innerHTML='<b>'+esc(best.station||'')+'</b>'
       +'<span>'+esc(PAR)+': '+(l?(l.v.toFixed(1)+' '+esc(best.unit||'')):S('bez vrednosti u prozoru','no value in the window'))+'</span>'
-      +(l?('<span class="m">'+S('sat po oznaci izvora','hour as the source labels it')+' '+fmtT(l.tc||l.t)+'Z</span>'):'');
+      +(latestPoint(best)?('<span class="m">'+esc(beopsClocks.summary(latestPoint(best),LANG))+'</span>'):'');
     tip.hidden=false;
     const tw=tip.offsetWidth||170, th=tip.offsetHeight||44;
     tip.style.left=Math.max(6,Math.min(w-tw-6,a[0]+14))+'px';
@@ -496,7 +504,31 @@ try{ if(window.parent&&window.parent!==window) window.parent.postMessage({beopsA
 
 window.addEventListener('resize',()=>{ if(SNAP) drawMap(); });
 document.body.classList.add('lang-sr');
-Promise.all([load('basemap-belgrade.json'),load('live-snapshot.json'),load('history.json')]).then(([b,s,h])=>{ BASEMAP=b&&b.features?b:null; SNAP=s; HIST=h; try{ fitGround(); }catch(e){} if(!s){document.getElementById('clock').textContent='no snapshot';return;} renderAll(); });
+function viewNotice(message){document.getElementById('viewstatus').textContent=message;}
+function showCurrentView(){
+  renderAll();
+  document.getElementById('vesti').hidden=!DETAILS;document.getElementById('um').hidden=!DETAILS;
+  const age=(Date.now()-Date.parse(SNAP.as_of))/60000;
+  viewNotice((!Number.isFinite(age)||age>60||age< -5?S('Zapis je zastareo ili vreme nije potvrđeno. ','Record is stale or its time is unconfirmed. '):'')+
+    (DETAILS?S('Provereni nizovi ove generacije.','Verified series for this generation.'):S('Poslednje očitavanje svakog instrumenta. Nizovi, vesti i istorija učitavaju se na zahtev.','Latest observation per instrument. Series, news and history load on request.')));
+  if(!DETAILS)document.getElementById('histnote').textContent=S('Izaberi „Učitaj nizove i istoriju“ za vremenski raspon.','Select “Load series and history” for a time range.');
+}
+async function refreshView(){
+  try{const view=await beopsView.overview();
+    if(!GENERATION||view.generation!==GENERATION.generation){GENERATION=view;SNAP=view.snapshot;HIST=null;DETAILS=false;document.getElementById('loaddetails').hidden=false;}
+    showCurrentView();
+  }catch(e){viewNotice(S('Objavljeni pregled nije dostupan; stanje grada nije potvrđeno.','Published overview unavailable; city conditions are unconfirmed.'));}
+}
+document.getElementById('loaddetails').addEventListener('click',async()=>{
+  if(!GENERATION||DETAILS_BUSY)return;DETAILS_BUSY=true;const requested=GENERATION,button=document.getElementById('loaddetails');button.disabled=true;
+  viewNotice(S('Učitavanje nizova i provera da pripadaju istom zapisu…','Loading series and checking that they belong to the same record…'));
+  try{const [snapshot,history]=await Promise.all([beopsView.read('live-snapshot.json',requested),beopsView.read('history.json',requested)]);
+    if(GENERATION===requested){SNAP=snapshot;HIST=history;DETAILS=true;button.hidden=true;showCurrentView();}
+  }catch(e){viewNotice(S('Nizovi nisu potvrđeni za ovaj zapis. Poslednja očitavanja ostaju prikazana; pokušaj ponovo.','Series could not be verified for this record. Latest observations remain visible; try again.'));}
+  finally{DETAILS_BUSY=false;button.disabled=false;}
+});
+load('basemap-belgrade.json').then(b=>{BASEMAP=b&&b.features?b:null;try{fitGround();}catch(e){}if(SNAP)drawMap();});
+refreshView();
 })();
 </script>
 <script>

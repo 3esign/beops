@@ -101,6 +101,21 @@ class RecoveryFiles(unittest.TestCase):
             self.assertGreater(result['verified_files'],1);self.assertEqual((root/'source.txt').read_bytes(),(base/'restored/source.txt').read_bytes())
             with self.assertRaises(ValueError):backup_restore.restore(archive,base/'restored')
 
+    def test_backup_preserves_ai_provenance_and_refusals_but_excludes_runtime_cache(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base=pathlib.Path(tmp);root=base/'source';self.repo(root)
+            evidence=['entries/e.json','contexts/c.json','prompts/p.txt','responses/r.json','attempts.jsonl','reviews.jsonl']
+            for name in evidence+['status.json','feed.lock','tmp/partial.json']:
+                path=root/'runtime/ai-feed'/name;path.parent.mkdir(parents=True,exist_ok=True)
+                path.write_bytes(('proof: '+name).encode())
+            backup_restore.backup(root,base/'backup.zip')
+            backup_restore.restore(base/'backup.zip',base/'restored')
+            for name in evidence:
+                self.assertEqual((base/'restored/runtime/ai-feed'/name).read_bytes(),(root/'runtime/ai-feed'/name).read_bytes())
+            self.assertFalse((base/'restored/runtime/ai-feed/status.json').exists())
+            self.assertTrue(backup_restore.forbidden('runtime/ai-feed/contexts/.env'))
+            self.assertTrue(backup_restore.forbidden('runtime/ai-feed/contexts/secrets.json'))
+
     def test_corrupt_and_traversal_backups_create_no_output(self):
         with tempfile.TemporaryDirectory() as tmp:
             base=pathlib.Path(tmp)

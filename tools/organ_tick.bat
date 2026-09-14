@@ -5,7 +5,8 @@ rem A small local model on a CPU takes minutes, so the batch is deliberately sma
 rem allowed to be silent and its silence is a receipt.
 rem C-014: BEOPS_PYTHON may be a .cmd file. A batch that runs another batch WITHOUT `call`
 rem hands over control and never comes back, so every line below it is silently skipped.
-call "%~dp0beops_env.bat" || exit /b 9
+call "%~dp0beops_env.bat"
+if errorlevel 1 exit /b %ERRORLEVEL%
 cd /d "%BEOPS_ROOT%" || exit /b 9
 if not exist runtime mkdir runtime
 set BEOPS_ORGAN_LIMIT=10

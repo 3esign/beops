@@ -1,6 +1,7 @@
 @echo off
 rem BEOPS guard tick - scheduled task Beops_Guard, every 15 minutes.
-call "%~dp0beops_env.bat" || exit /b 9
+call "%~dp0beops_env.bat"
+if errorlevel 1 exit /b %ERRORLEVEL%
 cd /d "%BEOPS_ROOT%" || exit /b 9
 if not exist runtime mkdir runtime
 if not exist data\live mkdir data\live

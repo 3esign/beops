@@ -156,7 +156,7 @@ def build() -> dict:
 
     (OUT / "data_dictionary.md").write_text(f"""# Data dictionary — the permission landscape of a European capital
 
-Version {VERSION}, generated {made}.
+Version {VERSION}. Capture dates are recorded in captures.csv; execution time is in MANIFEST.json.
 
 ## sources.csv
 
@@ -199,7 +199,7 @@ capture, and a reviewer may request any of them by source id and hash.
     (OUT / "README.md").write_text(f"""# The permission landscape of a European capital
 
 **{len(srcs)} public data sources reviewed for a city observatory, with the reasons.**
-Version {VERSION} · generated {made} · licence **{LICENCE}**
+Version {VERSION} · licence **{LICENCE}**. Capture dates are recorded in captures.csv; execution time is in MANIFEST.json.
 
 A city-scale evidence instrument can be built for nothing. What cannot be bought is permission. This
 dataset is the measurement of that: every source considered for the Belgrade Evidence Observatory,
@@ -254,7 +254,7 @@ It contains no third-party content, no measurement values, and no personal data.
             "title": ("The permission landscape of a European capital: "
                       f"{len(srcs)} public data sources reviewed for a city observatory"),
             "version": VERSION,
-            "publication_date": made[:10],
+            "publication_date": next(date for version, date, _ in CHANGES if version == VERSION),
             "creators": [
                 {"name": "Golubović Matić, Darinka",
                  "affiliation": "Univerzitet Union — Nikola Tesla, Belgrade"},

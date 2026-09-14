@@ -1,4 +1,4 @@
-<!doctype html><html lang="sr"><meta charset="utf-8">
+<!doctype html><html lang="sr"><meta name="beops-input-generation" content="b7de66df2a999c34ad3f6141f065a4d8f8c9c38820ac76cb3bc40bb59077ddfd"><script src="observation-clocks.js"></script><script src="beops-view.js"></script><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BEOPS Traka</title>
 <meta name="description" content="TRAKA — the ribbon: what Belgrade told us in the last 24 hours, when it told us, and where it went quiet. Drawn from the live collector's rows, nothing added.">
@@ -156,7 +156,7 @@ button[aria-pressed="true"]:hover{background:var(--ink)}
 </header>
 <div class="legend">
   <span><i class="obs"></i><span class="sr-only">izmereno, vreme poznato — signal</span><span class="en-only">observed, time known — signal</span></span>
-  <span><i class="unt"></i><span class="sr-only">izmereno, vreme nepoznato — vrednost je tačna, starost je razmazana ulevo</span><span class="en-only">observed, time unknown — value exact, age smeared to the left</span></span>
+  <span><i class="unt"></i><span class="sr-only">broj koji je izvor prikazao; vreme merenja i tačnost nisu potvrđeni</span><span class="en-only">number displayed by the source; measurement time and accuracy are unconfirmed</span></span>
   <span><i class="nod"></i><span class="sr-only">nema podatka — oznaka o tome da ničega nema</span><span class="en-only">no data — a mark about nothing</span></span>
   <span><i class="q"></i><span class="sr-only">kvorum — ko je govorio u kom taktu: popunjeno · šrafirano (neki) · prazno (nijedan)</span><span class="en-only">quorum — who spoke in each slot: filled · hatched (some) · hollow (none)</span></span>
   <span class="mono" id="hint"><span class="sr-only">pređi po traci da čitaš</span><span class="en-only">move along the ribbon to read</span></span>
@@ -188,6 +188,7 @@ function load(){
   });
 }
 const P=s=>s?Date.parse(s):NaN;
+function pointAt(p){const value=beopsClocks.placement(p).at;return value===null?NaN:beopsClocks.stamp(value);}
 
 // A lane is one sense: many datastreams (stations/sensors/lots) share a y-scale and a quorum row.
 function buildLanes(snap){
@@ -255,10 +256,10 @@ function drawLane(cv,streams,cadence,sub){
   const ys=yScale(streams,h);
   const many=streams.length>1;
   for(const s of streams){
-    const pts=s.points.slice().sort((a,b)=>(P(a.t||a.rx))-(P(b.t||b.rx)));
+    const pts=s.points.slice().sort((a,b)=>pointAt(a)-pointAt(b));
     let prev=null;
     for(const p of pts){
-      const tm= p.tu ? P(p.rx) : P(p.t);
+      const tm=pointAt(p);
       if(!isFinite(tm)||tm<T0||tm>T1){prev=null;continue;}
       const xx=x(tm);
       if(p.v===null||p.v===undefined){ // absence: a positive mark, hollow at the centre
@@ -266,7 +267,7 @@ function drawLane(cv,streams,cadence,sub){
         prev=null; continue;
       }
       const yy=ys.y(p.v);
-      if(p.tu){ // fifth state: exact value, age unknown -> band fading to the left, no left edge
+      if(p.tu){ // source-displayed value, measurement time unknown; reception remains known
         const left=prev?x(prev.tm):PAD_L;
         const grd=g.createLinearGradient(left,0,xx,0); grd.addColorStop(0,'rgba(0,0,0,0)'); grd.addColorStop(1,faint);
         g.fillStyle=grd; g.fillRect(left,yy-2,xx-left,5);
@@ -297,7 +298,7 @@ function quorumCells(streams,cadence){
   const n=Math.floor((T1-T0)/(cadence*1000)); const cells=new Array(n).fill(0);
   const expected=streams.length;
   for(const s of streams){ const seen=new Set();
-    for(const p of s.points){ const tm=p.tu?P(p.rx):P(p.t); if(!isFinite(tm)) continue; const i=Math.floor((tm-T0)/(cadence*1000)); if(i>=0&&i<n&&!seen.has(i)){seen.add(i);cells[i]++;} }
+    for(const p of s.points){ const tm=P(p.rx); if(!isFinite(tm)) continue; const i=Math.floor((tm-T0)/(cadence*1000)); if(i>=0&&i<n&&!seen.has(i)){seen.add(i);cells[i]++;} }
   }
   return {cells,expected,n};
 }
@@ -329,8 +330,8 @@ function render(){
   const nrows=SNAP.sources.reduce((a,s)=>a+s.datastreams.reduce((b,d)=>b+d.points.length,0),0);
   const nds=SNAP.sources.reduce((a,s)=>a+s.datastreams.length,0);
   foot.innerHTML=LANG==='sr'
-    ? `<b>${nrows.toLocaleString('sr-RS')}</b> redova iz <b>${nds}</b> tokova, primljeno između ${fmtT(T0)} i ${fmtT(T1)} UTC. Snimak ${esc(SNAP.as_of)}. Takt bez prijema je tišina, ne nula. Svaka SEPA vrednost je satni prosek samog izvora označen kao <span class="mono">preliminary</span>; paintAges(); svaka vrednost parkinga je tačna a njena starost nepoznata, pa joj se podloga gubi ulevo do prethodnog prijema. Ništa ovde nije merenje grada; ovo je ono što su gradski instrumenti objavili, i kad smo to primili.`
-    : `<b>${nrows.toLocaleString('en')}</b> rows from <b>${nds}</b> datastreams, received between ${fmtT(T0)} and ${fmtT(T1)} UTC. Snapshot ${esc(SNAP.as_of)}. Cadence slots with no reception are silent, not zero. Each SEPA value is the source's own hourly mean marked <span class="mono">preliminary</span>; each parking value is exact and its age is unknown, so its ground fades left to the previous reception. Nothing here is a measurement of the city; it is what the city's instruments published, and when we received it.`;
+    ? `<b>${nrows.toLocaleString('sr-RS')}</b> redova iz <b>${nds}</b> tokova, primljeno između ${fmtT(T0)} i ${fmtT(T1)} UTC. Snimak ${esc(SNAP.as_of)}. Kvorum broji prijeme; kriva koristi izvorni ili označeni procenjeni sat, a za nepoznato vreme merenja samo prijem. SEPA vrednosti su izvorni satni proseci sa oznakom <span class="mono">preliminary</span>. Parking je broj koji je izvor prikazao: ne potvrđuje vreme popunjavanja, tačnost ni pristup garaži. Leva podloga ne određuje starost merenja. Primer pojedinačnog sata otvara se uz izabranu grupu.`
+    : `<b>${nrows.toLocaleString('en')}</b> rows from <b>${nds}</b> datastreams, received between ${fmtT(T0)} and ${fmtT(T1)} UTC. Snapshot ${esc(SNAP.as_of)}. Quorum counts receptions; curves use the source or explicitly estimated clock, and reception only when measurement time is unknown. SEPA values are source hourly means labelled <span class="mono">preliminary</span>. Parking is the number displayed by the source: it confirms neither filling time, accuracy nor garage access. The fading ground does not bound measurement age. An individual clock example can be opened beside the selected group.`;
   drawAll();
 }
 function mkLane(param,streams,cadence,sub,unit){
@@ -374,18 +375,19 @@ function reading(t){
     parts.push(`<div class="rrow"><span class="k" style="font-weight:600;color:var(--ink)">${esc(grp.src.sid)}</span><span class="v"></span></div>`);
     for(const pl of grp.params){
       // nearest reception at or before t within one cadence; count how many streams have one
-      let have=0, vals=[], untimed=0, missing=0, ages=[];
+      let have=0, vals=[], untimed=0, missing=0, ages=[],example=null;
       for(const s of pl.streams){ let best=null;
-        for(const p of s.points){ const tm=p.tu?P(p.rx):P(p.t); if(!isFinite(tm)) continue; if(tm<=t && t-tm<=grp.src.cadence_seconds*1000*1.5 && (!best||tm>best.tm)) best={tm,p}; }
-        if(best){ have++; if(best.p.v===null){missing++;} else {vals.push(best.p.v); if(best.p.tu){untimed++; ages.push(t-best.tm);}} }
+        for(const p of s.points){ const tm=pointAt(p); if(!isFinite(tm)) continue; if(tm<=t && t-tm<=grp.src.cadence_seconds*1000*1.5 && (!best||tm>best.tm)) best={tm,p}; }
+        if(best){ if(!example)example={point:best.p,station:s.station}; have++; if(best.p.v===null){missing++;} else {vals.push(best.p.v); if(best.p.tu){untimed++; ages.push(t-best.tm);}} }
       }
       const cls=have===0?'n':(untimed?'u':'s');
       let v='—';
       if(vals.length){ const lo=Math.min(...vals), hi=Math.max(...vals); v=vals.length===1?fmt(vals[0]):fmt(lo)+'–'+fmt(hi); }
       let sub=`${have} of ${pl.streams.length} spoke`+(missing?` · ${missing} reported no value`:'');
-      if(untimed) sub+=S(` · starost ≤ ${Math.round(Math.max(...ages)/60000)} min od prijema, vreme merenja nepoznato`,` · age ≤ ${Math.round(Math.max(...ages)/60000)} min since reception, measurement time unknown`);
-      if(have===0) sub=S('nema podatka — nijedan prijem u 1,5 takta pre ovog trenutka','no data — no reception within 1.5 cadences before this instant');
+      if(untimed) sub+=S(` · od prijema do izabranog trenutka: najviše ${Math.round(Math.max(...ages)/60000)} min; starost merenja nije poznata`,` · reception to selected time: at most ${Math.round(Math.max(...ages)/60000)} min; measurement age is unknown`);
+      if(have===0) sub=S('nema opažanja na navedenom satu u prozoru od 1,5 takta','no observation on the stated clock within 1.5 cadences');
       parts.push(`<div class="rrow"><span class="k">${esc(pname(pl.param)||pl.param)}${pl.unit?' <span class="mono">'+esc(pl.unit)+'</span>':''}</span><span class="v ${cls}">${v}</span><span class="sub">${sub}</span></div>`);
+      if(example)parts.push('<div class="clock-example">'+S('Primer iz grupe: ','Example from group: ')+esc(example.station||'')+beopsClocks.html(example.point,LANG,grp.src.clock_rules)+'</div>');
     }
   }
   rr.innerHTML=parts.join('');

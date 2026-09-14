@@ -12,8 +12,10 @@
 #
 #   powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish_github.ps1            # publish
 #   powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish_github.ps1 -DryRun    # show what would go
-param([switch]$DryRun, [switch]$Isolated, [switch]$PrepareOnly, [string]$SourceOid, [string]$StateRoot)
+param([switch]$DryRun, [switch]$Isolated, [switch]$PrepareOnly, [string]$SourceOid, [string]$StateRoot, [string]$CycleStartedAt, [string]$PriorPublicOid)
 $ErrorActionPreference = 'Stop'
+if (-not $CycleStartedAt) { $CycleStartedAt = [DateTimeOffset]::UtcNow.ToString('o') }
+$env:BEOPS_CYCLE_DEADLINE = ([DateTimeOffset]::Parse($CycleStartedAt).AddMinutes(25)).ToString('o')
 . (Join-Path $PSScriptRoot 'publish_safety.ps1')
 function Resolve-BeopsBundledPython {
   $bundled = Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
@@ -51,7 +53,7 @@ if (-not $Isolated -and (Test-Path -LiteralPath (Join-Path $src 'runtime\PUBLISH
 $projectParent = Split-Path $src -Parent
 $pub = if ($env:BEOPS_PUBLIC_ROOT) { $env:BEOPS_PUBLIC_ROOT } else { Join-Path $projectParent 'Beops-public' }
 $pub = Assert-BeopsPublicRootSafe -SourceRoot $src -PublicRoot $pub -ExpectedRemote $remote
-$py = Resolve-BeopsPython
+$py = Resolve-BeopsTestPython
 $env:GIT_HTTP_USER_AGENT = (Get-BeopsNativeOutput 'workspace Git transport identity' 'node' @((Join-Path $src 'tools\incognito_user_agent.js'))).Trim()
 if (-not $Isolated -and -not $DryRun) {
   # The export lock below protects the mirror, but taking it only after preparing a
@@ -65,12 +67,14 @@ if (-not $Isolated -and -not $DryRun) {
     exit 75
   }
   $publishExit = 1
+  $env:BEOPS_PHASE_TRACE = Join-Path $src ('runtime\publish-phases-' + $PID + '-' + [guid]::NewGuid().ToString('N') + '.jsonl')
   try {
     $oid = (Get-BeopsNativeOutput 'resolve release OID' 'git' @('-C', $src, 'rev-parse', '--verify', 'HEAD^{commit}')).Trim()
     # Follow the physical project volume even when invoked through a C: junction.
     # Session overrides remain explicit; regular releases must not fill C:.
     $releaseBase = if ($env:BEOPS_RELEASE_ROOT) { Get-BeopsFullPath $env:BEOPS_RELEASE_ROOT }
       else { Join-Path (Split-Path (Get-BeopsFullPath $src) -Parent) '_runtime\beops-releases' }
+    Clear-BeopsAbandonedReleases -SourceRoot $src -BaseRoot $releaseBase
     $runRoot = Join-Path $releaseBase ('beops-release-' + [guid]::NewGuid().ToString('N'))
     try {
       # Refuse an incomplete interpreter before spending a release cycle on I/O.
@@ -80,7 +84,16 @@ if (-not $Isolated -and -not $DryRun) {
         $env:BEOPS_PYTHON = Resolve-BeopsTestPython
         $null = Get-BeopsNativeOutput 'research gate prerequisites' 'node' @((Join-Path $src 'tools/test-research.js'), '--check')
       } finally { $env:BEOPS_PYTHON = $previousPreflightPython }
-      $prepared = Get-BeopsNativeOutput 'prepare isolated release' $py @('-X', 'utf8', '-B', (Join-Path $src 'tools\prepare_release.py'), '--source', $src, '--destination', $runRoot, '--oid', $oid)
+      # Source-only consistency is cheap and also sees new untracked documents.
+      # Keep this check in the complete frozen suite as well.
+      $null = Get-BeopsNativeOutput 'research document index' $py @('-X','utf8','-B',(Join-Path $src 'research\test_research_index.py'))
+      # Validate prior immutable editions BEFORE any archive capture or build.
+      # Read the fixed Git objects; a clean status is not proof of file bytes.
+      $prior = Get-BeopsNativeOutput 'verify committed public editions' $py @('-X', 'utf8', '-B', (Join-Path $src 'tools\published_editions.py'), 'check', $pub) | ConvertFrom-Json
+      $PriorPublicOid = [string]$prior.source_oid
+      $prepareArgs = @('-X', 'utf8', '-B', (Join-Path $src 'tools\prepare_release.py'), '--source', $src, '--destination', $runRoot, '--oid', $oid, '--owner-pid', [string]$PID)
+      if ($PrepareOnly) { $prepareArgs += '--retained' }
+      $prepared = Get-BeopsNativeOutput 'prepare isolated release' $py $prepareArgs
     } catch {
       $failurePath = Join-Path $src 'data\live\publish-receipt.json'
       $failureTmp = $failurePath + '.' + $PID + '.tmp'
@@ -96,7 +109,8 @@ if (-not $Isolated -and -not $DryRun) {
     $env:TEMP = Join-Path $runRoot 'runtime\tmp'
     $env:TMP = $env:TEMP
     New-Item -ItemType Directory -Path $env:TEMP -Force | Out-Null
-    $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $capture.workspace 'tools\publish_github.ps1'), '-Isolated', '-SourceOid', $oid, '-StateRoot', $src)
+    $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $capture.workspace 'tools\publish_github.ps1'), '-Isolated', '-SourceOid', $oid, '-StateRoot', $src, '-CycleStartedAt', $CycleStartedAt)
+    if ($PriorPublicOid) { $args += @('-PriorPublicOid', $PriorPublicOid) }
     if ($PrepareOnly) { $args += '-PrepareOnly' }
     try {
       & powershell @args
@@ -158,6 +172,7 @@ $generatedPublicPaths = @('public/history.json', 'public/headlines.json',
                           'research/observations/live')
 $receipt = [ordered]@{
   schema            = 'beops-publish-receipt/v1'
+  cycle_started_at  = $CycleStartedAt
   at                = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
   source_head       = $head
   source_tree       = $sourceTree
@@ -254,6 +269,11 @@ if (-not $lock.Acquired) {
 if ($lock.Recovered) { Write-Output ("note: {0}" -f $lock.Message) }
 try {
 Assert-BeopsTrackedSourceClean 'before build'
+if ($Isolated) {
+  $env:BEOPS_FROZEN_ROOT = Get-BeopsFullPath $src
+  $env:BEOPS_FROZEN_SOURCE_OID = $head
+  $env:BEOPS_FROZEN_MANIFEST_SHA256 = (Get-FileHash -LiteralPath (Join-Path $src 'runtime\release-inputs.json') -Algorithm SHA256).Hash.ToLowerInvariant()
+}
 Invoke-BeopsNative 'rebuild frozen baseline' $py @('-X', 'utf8', '-B', 'tools\baseline.py', 'build') -Quiet
 Invoke-BeopsNative 'rebuild frozen latency' $py @('-X', 'utf8', '-B', 'tools\latency.py', 'build') -Quiet
 Invoke-BeopsNative 'rebuild frozen agreement' $py @('-X', 'utf8', '-B', 'tools\agreement.py', 'build') -Quiet
@@ -294,6 +314,7 @@ $script:publishTestsOutRun = Join-Path $src ("runtime\publish-tests-{0}.txt" -f 
 $gatePy = Resolve-BeopsTestPython
 $prevEAP = $ErrorActionPreference
 $previousGatePython = $env:BEOPS_PYTHON
+$gateClock = [Diagnostics.Stopwatch]::StartNew()
 try {
   $ErrorActionPreference = 'Continue'
   $env:BEOPS_PYTHON = $gatePy
@@ -301,6 +322,7 @@ try {
   & node tools\test-research.js *> $script:publishTestsOutRun
   $testsRc = $LASTEXITCODE
 } finally {
+  Write-BeopsPhase -Name 'complete research gate' -Clock $gateClock -ExitCode $testsRc
   $ErrorActionPreference = $prevEAP
   $env:BEOPS_PYTHON = $previousGatePython
 }
@@ -389,17 +411,15 @@ function Copy-BeopsGeneratedPublic {
 # These are live/generated public artefacts. They are ignored in the private source repo so that the
 # working tree can stay readable, but the public site and public mirror still receive them explicitly.
 # Keep every already published immutable dataset edition at its original URL.
-$priorEditions = Join-Path $mirror 'public\dataset\permission-landscape\releases'
+# Read only verified committed objects, never unverified mirror working files.
 $releaseEditions = Join-Path $src 'public\dataset\permission-landscape\releases'
-if (Test-Path -LiteralPath $priorEditions) {
-  foreach ($edition in Get-ChildItem -LiteralPath $priorEditions -Directory) {
-    $targetEdition = Join-Path $releaseEditions $edition.Name
-    if (Test-Path -LiteralPath $targetEdition) {
-      # Same content id: retain the originally published edition bytes.
-      foreach ($file in Get-ChildItem -LiteralPath $edition.FullName -File) { Copy-Item -LiteralPath $file.FullName -Destination (Join-Path $targetEdition $file.Name) -Force }
-    } else { Copy-Item -LiteralPath $edition.FullName -Destination $targetEdition -Recurse }
-  }
+$editionArgs = @('-X', 'utf8', '-B', 'tools\published_editions.py', 'export', $mirror, '--destination', $releaseEditions)
+if ($PriorPublicOid) {
+  $currentPublicOid = (Get-BeopsNativeOutput 'check prior public HEAD' 'git' @('-C', $mirror, 'rev-parse', 'HEAD')).Trim()
+  if ($currentPublicOid -ne $PriorPublicOid) { throw 'public HEAD changed during release preparation; retry with a fresh capture' }
+  $editionArgs += @('--oid', $PriorPublicOid)
 }
+Invoke-BeopsNative 'copy verified committed public editions' $py $editionArgs
 foreach ($f in $generatedPublicPaths) {
   Copy-BeopsGeneratedPublic $f
 }
@@ -473,6 +493,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $pub '.git'))) {
   Invoke-BeopsNative 'git origin public export' 'git' @('-C', $pub, 'remote', 'add', 'origin', $remote)
   Register-BeopsPublicOwnership -PublicRoot $pub
 }
+Invoke-BeopsNative 'git config core.autocrlf false' 'git' @('-C', $pub, 'config', 'core.autocrlf', 'false')
 # Validate every existing physical target before the first mutation.
 $existing = @(Get-ChildItem -LiteralPath $pub -File -Recurse -Force | Where-Object { $_.FullName -notlike ((Join-Path $pub '.git') + '\*') })
 foreach ($item in $existing) { $null = Assert-BeopsDeletionTarget -PublicRoot $pub -Target $item.FullName }
@@ -482,6 +503,7 @@ if ($LASTEXITCODE -eq 0) {
 }
 $backup = Join-Path (Split-Path $pub -Parent) ('_to_delete\beops-obsolete-' + [guid]::NewGuid().ToString('N'))
 foreach ($item in $existing) {
+  Assert-BeopsCycleRemaining
   $rel = $item.FullName.Substring($pub.Length + 1)
   if (-not (Test-Path -LiteralPath (Join-Path $stage $rel))) {
     $to = Join-Path $backup $rel
@@ -490,6 +512,7 @@ foreach ($item in $existing) {
   }
 }
 foreach ($file in Get-ChildItem -LiteralPath $stage -File -Recurse -Force) {
+  Assert-BeopsCycleRemaining
   $rel = $file.FullName.Substring($stage.Length + 1)
   $to = Join-Path $pub $rel
   New-Item -ItemType Directory -Path (Split-Path $to -Parent) -Force | Out-Null
@@ -584,7 +607,7 @@ Write-Output "published: $msg"
   $receipt.why = "publish failed before final confirmation: " + $_.Exception.Message
   if ($script:copyRecovery -and -not $receipt.committed -and -not $receipt.pushed) {
     try {
-      Invoke-BeopsNative 'restore failed pre-commit public copy' $py @('-X', 'utf8', '-B', 'tools\mirror_transaction.py', 'restore', $pub, $script:copyRecovery) -Quiet
+      Invoke-BeopsRecovery 'restore failed pre-commit public copy' $py @('-X', 'utf8', '-B', 'tools\mirror_transaction.py', 'restore', $pub, $script:copyRecovery)
       $receipt.why += '; previous public working tree restored'
     } catch { $receipt.why += '; public copy rollback requires review: ' + $_.Exception.Message }
   }

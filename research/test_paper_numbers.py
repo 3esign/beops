@@ -37,6 +37,9 @@ def flat(v, prefix=""):
 
 
 class RowCounting(unittest.TestCase):
+    def test_clock_and_arrival_dependent_retention_is_a_dated_live_figure(self):
+        self.assertIn('retention', pn.LIVE)
+
     def test_binary_and_text_counts_preserve_blank_crlf_and_unterminated_rows(self):
         with tempfile.TemporaryDirectory() as folder:
             root=pathlib.Path(folder)
@@ -56,7 +59,9 @@ class Figures(unittest.TestCase):
     def setUpClass(cls):
         if not (ROOT / "research" / "SOURCE_REGISTRY.json").exists():
             raise unittest.SkipTest("no registry on this machine")
-        cls.out = {name: pn.safe(fn) for name, fn in pn.FIGURES}
+        cls.row_evidence = {}
+        cls.out = {name: pn.safe(lambda: pn.rows_on_disk(cls.row_evidence)) if name == 'rows'
+                   else pn.safe(fn) for name, fn in pn.FIGURES}
 
     def test_no_figure_quietly_became_the_word_unavailable(self):
         """safe() turning a broken read into a string is correct. A paper quoting that string, or
@@ -99,6 +104,24 @@ class Figures(unittest.TestCase):
         """Counted again, at a different instant. The collectors write while this runs, so the two
         counts are allowed to differ - but only by rows that arrived in between, and the figure may
         never be larger than what is on disk by more than the record could have grown."""
+        manifest_path = ROOT/'runtime/release-inputs.json'
+        if manifest_path.exists():
+            # Independent counts taken while capturing the release, tied to every
+            # byte read by the figure itself. A changed/missing file cannot reuse
+            # a count merely because its size or timestamp stayed the same.
+            manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+            expected = {r['path']: r for r in manifest['files']
+                        if r['path'].startswith('data/live/rows/') and r['path'].endswith('.jsonl')}
+            self.assertEqual(set(expected), set(self.row_evidence))
+            n = 0
+            for name, row in expected.items():
+                actual = self.row_evidence[name]
+                self.assertEqual(actual['sha256'], row['sha256'], name)
+                self.assertEqual(actual['bytes'], row['bytes'], name)
+                self.assertEqual(actual['rows'], row['nonblank_lines'], name)
+                n += row['nonblank_lines']
+            self.assertEqual(n, self.out['rows']['rows'])
+            return
         n = 0
         for f in (ROOT / "data" / "live" / "rows").rglob("*.jsonl"):
             n += record.count_lines(f)

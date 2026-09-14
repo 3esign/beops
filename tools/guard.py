@@ -43,10 +43,10 @@ LIVE = ROOT / "data" / "live"
 LEDGER = LIVE / "guard-ledger.jsonl"
 RESEARCH = ROOT / "research"
 
-TASKS = ["Beops_Collect", "Beops_Mind", "Beops_Organ", "Beops_Publish", "Beops_Watch",
+TASKS = ["Beops_AIFeed", "Beops_Collect", "Beops_Mind", "Beops_Organ", "Beops_Publish", "Beops_Watch",
          "Beops_Legal", "Beops_Guard", "Beops_Baseline"]
 # A task that legitimately runs rarely must not be called dead for not having run in an hour.
-MAX_SILENCE_H = {"Beops_Collect": 0.5, "Beops_Mind": 0.5, "Beops_Organ": 1.0,
+MAX_SILENCE_H = {"Beops_AIFeed": 0.5, "Beops_Collect": 0.5, "Beops_Mind": 0.5, "Beops_Organ": 1.0,
                  "Beops_Publish": 1.0, "Beops_Watch": 1.0, "Beops_Legal": float(MAX_AGE_HOURS),
                  "Beops_Guard": 0.5, "Beops_Baseline": 1.5}
 
@@ -603,6 +603,8 @@ def report(r: dict) -> str:
         L.append(f"  [{c['state']:<7}] {c['check']}: {c['why']}")
     for c in r.get("organs", []):
         L.append(f"  [{c['state']:<7}] organ {c['organ']}: {c['why']}")
+    for c in r.get("storage", {}).get("checks", []):
+        L.append(f"  [{c['state']:<7}] storage {c['name']}: {c['why']}")
     for x in r["repairs"]:
         L.append("  repaired: " + x)
     if r["verdict"] == STOP:
@@ -614,6 +616,15 @@ def report(r: dict) -> str:
 def main() -> int:
     dry = "--dry" in sys.argv
     r = run(dry)
+    from storage_health import inspect
+    from contracts import atomic_json
+    r['storage'] = inspect(ROOT)
+    if r['verdict'] in (OK, WARN) and r['storage']['state'].lower() == UNKNOWN:
+        r['verdict'] = UNKNOWN
+    elif r['verdict'] == OK and r['storage']['state'].lower() == WARN:
+        r['verdict'] = WARN
+    if not dry:
+        atomic_json(ROOT/'runtime/storage-health.json', r['storage'])
     print(report(r))
     if not dry:
         LEDGER.parent.mkdir(parents=True, exist_ok=True)

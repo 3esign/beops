@@ -14,6 +14,12 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 @unittest.skipUnless(os.name == 'nt', 'Windows publisher entry point')
 class PublishPreflight(unittest.TestCase):
     def test_broken_test_runtime_refuses_release_and_preserves_unrelated_files(self):
+        self.run_refusal(broken_runtime=True)
+
+    def test_unindexed_document_refuses_before_capture_and_preserves_other_files(self):
+        self.run_refusal(broken_runtime=False)
+
+    def run_refusal(self, broken_runtime):
         with tempfile.TemporaryDirectory() as folder:
             base = pathlib.Path(folder)
             source = base/'source'
@@ -26,12 +32,16 @@ class PublishPreflight(unittest.TestCase):
             sentinel.write_text('keep', encoding='utf-8')
             broken = base/'broken-python.cmd'
             broken.write_text('@exit /b 1\n', encoding='ascii')
+            (source/'research').mkdir()
+            shutil.copyfile(ROOT/'research/test_research_index.py',source/'research/test_research_index.py')
+            (source/'research/README.md').write_text('Fixture index\n',encoding='utf-8')
             subprocess.run(['git', 'init', '-q', str(source)], check=True, capture_output=True, timeout=10)
             subprocess.run(['git', '-C', str(source), 'add', 'tools'], check=True, capture_output=True, timeout=10)
             subprocess.run(['git', '-C', str(source), '-c', 'user.name=Semir Poturak',
                 '-c', 'user.email=scumutator@gmail.com', 'commit', '-qm', 'preflight fixture'],
                 check=True, capture_output=True, timeout=10)
-            env = dict(os.environ, BEOPS_PYTHON=sys.executable, BEOPS_TEST_PYTHON=str(broken),
+            (source/'research/unindexed-study.md').write_text('New unindexed document\n',encoding='utf-8')
+            env = dict(os.environ, BEOPS_PYTHON=sys.executable, BEOPS_TEST_PYTHON=str(broken) if broken_runtime else sys.executable,
                        BEOPS_PUBLIC_ROOT=str(base/'Beops-public'), BEOPS_RELEASE_ROOT=str(base/'releases'))
             run = subprocess.run(['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass',
                 '-File', str(source/'tools/publish_github.ps1')], cwd=source, env=env,
@@ -40,8 +50,12 @@ class PublishPreflight(unittest.TestCase):
             receipt = json.loads((source/'data/live/publish-receipt.json').read_text(encoding='utf-8-sig'))
             for name in ('built', 'tests_ok', 'pushed', 'site_verified', 'published'):
                 self.assertFalse(receipt[name], name)
-            self.assertIn('research gate prerequisites', receipt['why'])
-            self.assertIn('complete installed interpreter', receipt['why'])
+            if broken_runtime:
+                self.assertIn('research gate prerequisites', receipt['why'])
+                self.assertIn('complete installed interpreter', receipt['why'])
+            else:
+                self.assertIn('research document index',receipt['why'])
+                self.assertIn('unindexed-study.md',run.stdout+run.stderr)
             self.assertFalse((source/'PREPARATION_RAN').exists())
             self.assertFalse((source/'runtime/publish-preparation.lock').exists())
             self.assertFalse((base/'Beops-public').exists())

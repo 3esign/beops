@@ -12,11 +12,11 @@ import json
 import os
 import pathlib
 import shutil
-import tempfile
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 
 from contracts import atomic_json, json_object
+from artifact_staging import create_artifact_staging
 
 
 CRITERIA = (
@@ -243,7 +243,7 @@ def prepare(source, output, target=60, seed="beops-ai-quality-20260912") -> dict
     blind = blinded(packet)
     parent = output.parent
     parent.mkdir(parents=True, exist_ok=True)
-    temporary = pathlib.Path(tempfile.mkdtemp(prefix=".ai-quality-", dir=parent))
+    temporary = create_artifact_staging(parent, prefix=".ai-quality-")
     try:
         atomic_json(temporary / "packet-private.json", packet)
         atomic_json(temporary / "packet-blind.json", blind)

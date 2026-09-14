@@ -1,4 +1,4 @@
-<!doctype html><html lang="sr"><meta charset="utf-8">
+<!doctype html><html lang="sr"><meta name="beops-input-generation" content="b7de66df2a999c34ad3f6141f065a4d8f8c9c38820ac76cb3bc40bb59077ddfd"><script src="observation-clocks.js"></script><script src="beops-view.js"></script><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BEOPS Svedoci</title>
 <meta name="description" content="SVEDOCI — how old a value was when it reached us, and whether two independent sources describing the same hour said the same thing. Computed from rows already in the record; no source added, nobody asked for anything.">
@@ -101,13 +101,12 @@ h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink6
   <h2><span class="sr-only">Koliko je bilo staro kad je stiglo do nas</span><span class="en-only">How old it was when it reached us</span></h2>
   <p class="lede sr-only">Pokrivenost kaže <em>da li</em> grad objavljuje neki signal. Ovo kaže <em>kada</em>. Vodostaj star četiri sata je drugi instrument od onog starog četiri minuta, i nijedan izdavač ne kaže koji je njegov.</p>
   <p class="lede en-only">Coverage says <em>whether</em> a city publishes a signal. This says <em>when</em>. A river level four hours old is a different instrument from one four minutes old, and no publisher states which theirs is.</p>
-  <p class="notthis sr-only"><b>Ovo nije zakašnjenje izdavača.</b> Pitamo u stalnom taktu, pa vrednost objavljena sekund pošto smo pitali čeka ceo interval dok je ne vidimo. Svaka starost ispod sadrži zakašnjenje izdavača <em>plus</em> do jednog našeg intervala, i ovaj zapis to dvoje ne može da razdvoji. Šrafirana traka je naš sopstveni interval, nacrtan u razmeri: gde je šira od stubića, nijedan deo te starosti ne može da se pripiše izdavaču. Nije ni ocena kvaliteta — časovni prosek ne može da bude svežiji od pola sata i nije zbog toga lošiji.</p>
-  <p class="notthis en-only"><b>This is not the publisher's delay.</b> We ask on a fixed cadence, so a value published one second after we asked waits a whole interval before we see it. Every age below contains the publisher's delay <em>plus</em> up to one interval of ours, and this record cannot separate them. The hatched band is our own interval, drawn to scale: where it is wider than the bar, none of that age can be attributed to the publisher at all. It is also not a quality score — an hourly mean cannot be fresher than half an hour and is not worse for it.</p>
+  <p class="notthis sr-only"><b>Prikazana je starost pri prijemu, računata od kraja mernog intervala.</b> Njegov kraj nije vreme kada je rezultat postao dostupan. Pauze, neuspešni ciklusi i prenos mogu dodati više planiranih intervala. Takt je opis rasporeda; nije gornja granica našeg kašnjenja. Razmaci završenih uspešnih ciklusa prikazani su zasebno. Bez dokaza dostupnosti rezultata ne razdvajamo doprinos izdavača i našeg rada. Trajanje merenja se ne dodaje starosti od kraja intervala; ovo nije ocena kvaliteta.</p>
+  <p class="notthis en-only"><b>This is age at reception, measured from the measurement interval's end.</b> Its end is not when the result became available. Pauses, failed cycles and transport can add several planned intervals. Cadence describes the schedule; it is not an upper bound on our delay. Gaps between completed successful cycles are shown separately. Without availability evidence, publisher and collector contributions remain unknown. Measurement duration is not added to age measured from its end; this is not a quality score.</p>
   <div class="legend">
     <span><i class="k1"></i><span class="sr-only">srednja starost</span><span class="en-only">median age</span></span>
     <span><i class="k2"></i><span class="sr-only">90. percentil</span><span class="en-only">90th percentile</span></span>
-    <span><i class="k3"></i><span class="sr-only">naš interval pitanja — bilo koji deo starosti unutar njega može da bude naš</span><span class="en-only">our polling interval — any part of the age inside it may be ours</span></span>
-    <span><i class="k4"></i><span class="sr-only">vreme merenja se uopšte ne objavljuje</span><span class="en-only">no measurement time published at all</span></span>
+    <span><i class="k4"></i><span class="sr-only">raspodela starosti nije dostupna — nepoznat sat, nerešen sat ili premalo opažanja</span><span class="en-only">age distribution unavailable — unknown clock, unresolved clock or too few observations</span></span>
   </div>
   <div class="scale" id="lscale"><span></span><div class="t" id="lticks"></div><span></span></div>
   <div class="rows" id="lrows"><p class="empty"><span class="sr-only">čitam kašnjenje…</span><span class="en-only">reading latency…</span></p></div>
@@ -141,7 +140,11 @@ function bust(u){return u+(u.indexOf('?')<0?'?':'&')+'v='+Date.now();}
 function grab(u){return beopsLoadJSON(u);}
 
 /* ---------- how old it was ---------- */
+var LAST_LATENCY=null;
 function drawLatency(d){
+  LAST_LATENCY=d;
+  var lang=document.documentElement.lang||'sr';
+  var say=function(sr,en){return lang==='sr'?sr:en;};
   var host=document.getElementById('lrows');
   if(!d||!d.by_source){host.innerHTML='<p class="empty">no latency summary published yet.</p>';return null;}
   var names=d.names||{}, by=d.by_source, sids=Object.keys(by).sort();
@@ -149,7 +152,6 @@ function drawLatency(d){
   sids.forEach(function(s){
     var b=by[s], abc=b.age_by_clock||{};
     Object.keys(abc).forEach(function(c){ max=Math.max(max,abc[c].p90||0,abc[c].median||0); });
-    if(b.polling_interval_minutes) max=Math.max(max,b.polling_interval_minutes);
   });
   if(max<=0) max=10;
   max=Math.ceil(max/10)*10;
@@ -173,12 +175,11 @@ function drawLatency(d){
   withTime.forEach(function(s){
     var b=by[s], abc=b.age_by_clock, clocks=Object.keys(abc).sort();
     clocks.forEach(function(c,i){
-      var a=abc[c], poll=b.polling_interval_minutes||0;
+      var a=abc[c];
       out.push('<div class="row">'
-        +'<div class="lab"><b>'+esc(s)+(clocks.length>1?' <span class="num" style="font-weight:400;color:var(--ink60)">'+esc(c)+'</span>':'')+'</b>'
+        +'<div class="lab"><b>'+esc(s)+' <span class="num" style="font-weight:400;color:var(--ink60)">'+esc(beopsClocks.basisLabel(c,lang))+'</span></b>'
         +'<em>'+esc(names[s]||'')+'</em></div>'
         +'<div class="track">'
-          +(poll?'<div class="ours" style="width:'+pct(poll)+'%" title="our polling interval: '+poll+' min"></div>':'')
           +'<div class="p90" style="width:'+pct(a.p90)+'%"></div>'
           +'<div class="med'+(c==='corrected'?' alt':'')+'" style="width:'+pct(a.median)+'%"></div>'
         +'</div>'
@@ -187,14 +188,20 @@ function drawLatency(d){
       if(i===clocks.length-1&&clocks.length>1&&b.what_this_source_publishes)
         out.push('<p class="say">'+esc(b.what_this_source_publishes)+'</p>');
     });
+    var gaps=b.successful_reception_gaps||{};
+    out.push('<p class="say">'+say('Planirani takt: ','Planned cadence: ')+esc(b.polling_interval_minutes??'—')+' min. '
+      +say('Najveći zabeležen razmak završenih uspešnih ciklusa: ','Largest observed gap between completed successful cycles: ')+esc(gaps.max_minutes??'—')+' min. '
+      +say('Gornja granica našeg doprinosa kašnjenju nije poznata.','The upper bound on our contribution to delay is unknown.')+'</p>');
+    if(b.clock_example)out.push(beopsClocks.html(b.clock_example,lang));
   });
   withoutTime.forEach(function(s){
     var b=by[s];
     out.push('<div class="row absent">'
       +'<div class="lab"><b>'+esc(s)+'</b><em>'+esc(names[s]||'')+'</em></div>'
       +'<div class="track"><div class="absent"></div></div>'
-      +'<div class="val">—<small>'+(b.rows_without_a_measurement_time||0)+' rows</small></div>'
-      +'<p class="say">'+esc(b.what_this_source_publishes||'no measurement time is published: we know the value and when it reached us, never when it was true.')+'</p>'
+      +'<div class="val">—<small>'+(b.rows_read??'—')+' rows</small></div>'
+      +'<p class="say">'+esc(b.what_this_source_publishes||'Measurement time is unknown; source-displayed value and reception do not establish accuracy or measurement age.')+'</p>'
+      +(b.clock_example?beopsClocks.html(b.clock_example,lang):'')
       +'</div>');
   });
   host.innerHTML=out.join('')||'<p class="empty">nothing to show yet.</p>';
@@ -272,6 +279,7 @@ window.addEventListener('message',function(ev){
     // The frame carries both languages and shows one. Anything other than Serbian falls back to
     // English rather than vanishing, which is the same rule the page itself keeps.
     document.body.className='lang-'+(L==='sr'?'sr':'en');
+    if(LAST_LATENCY)drawLatency(LAST_LATENCY);
   }
   report();
 });

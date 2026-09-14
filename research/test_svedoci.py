@@ -24,8 +24,8 @@ class Study(unittest.TestCase):
         cls.s = STUDY.read_text(encoding="utf-8")
 
     def test_the_age_is_never_presented_as_the_publishers_own(self):
-        self.assertIn("not the publisher's delay", self.s)
-        self.assertIn("cannot separate them", self.s)
+        self.assertIn("publisher and collector contributions remain unknown", self.s)
+        self.assertIn("Without availability evidence", self.s)
         self.assertIn("not a quality score", self.s)
 
     def test_the_gap_is_never_presented_as_an_error_bar(self):
@@ -36,14 +36,16 @@ class Study(unittest.TestCase):
     def test_absence_is_drawn_rather_than_left_blank(self):
         """A source that publishes no measurement time gets a mark and a sentence, never an empty
         cell that reads as a fast source."""
-        self.assertIn("no measurement time published at all", self.s)
+        self.assertIn("unknown clock, unresolved clock or too few observations", self.s)
         self.assertIn("absent", self.s)
 
-    def test_our_own_polling_interval_is_drawn_to_scale(self):
-        """The hatch is our ignorance, drawn. Where it is wider than the bar, none of the age can be
-        attributed to the publisher, and the picture has to say so without a caption."""
-        self.assertIn("our polling interval", self.s)
-        self.assertIn("ours", self.s)
+    def test_planned_cadence_is_not_a_measured_upper_bound(self):
+        """R05 replaces the former unsupported one-interval decomposition.
+        The actual rendered gap and absent decomposition are tested in test_observation_clocks.
+        """
+        self.assertIn("not an upper bound", self.s)
+        self.assertIn("successful_reception_gaps", self.s)
+        self.assertNotIn('class="ours" style=', self.s)
 
     def test_the_message_handler_declares_d_before_reading_it(self):
         """C-027: three frames once threw a ReferenceError on every message because the handler's

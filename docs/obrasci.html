@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="sr-Latn"><head><meta name="beops-input-generation" content="b7de66df2a999c34ad3f6141f065a4d8f8c9c38820ac76cb3bc40bb59077ddfd"><script src="observation-clocks.js"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BEOPS · Opažanja kroz vreme</title>
+<link rel="stylesheet" href="accessibility.css"><script src="beops-view.js"></script>
+<style>
+:root{color-scheme:light dark;--paper:#fbfaf7;--ink:#111311;--muted:#5d625c;--line:#c6c7bd;--signal:#b53417}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 'Segoe UI',system-ui,sans-serif}main{max-width:1120px;margin:auto;padding:32px 28px 64px}header{border-bottom:1px solid var(--line);padding-bottom:28px}a{color:inherit;text-underline-offset:4px}h1{font:400 clamp(30px,5vw,54px)/1.15 Georgia,serif;max-width:20ch;margin:28px 0 14px}h2{font-size:19px;font-weight:500}p{max-width:85ch}.eyebrow,.meta,th{font:12px/1.5 Consolas,monospace}.eyebrow{letter-spacing:.12em;text-transform:uppercase}.meta{color:var(--muted);overflow-wrap:anywhere}.limit{border-left:3px solid var(--signal);padding:10px 16px;margin:22px 0;background:color-mix(in srgb,var(--signal) 5%,transparent)}label{display:block;margin:22px 0 8px}select,button{font:inherit;color:inherit;background:var(--paper);border:1px solid var(--line);min-height:44px;padding:8px 12px;max-width:100%}select{width:100%}button{cursor:pointer}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;margin:20px 0}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}th:first-child,td:first-child{padding-left:0;width:34%}td{font-variant-numeric:tabular-nums}a:focus-visible,button:focus-visible,select:focus-visible{outline:3px solid var(--signal);outline-offset:3px}[hidden]{display:none!important}@media(prefers-color-scheme:dark){:root{--paper:#111311;--ink:#f2f1ec;--muted:#acb2a6;--line:#485044;--signal:#fa8563}}@media(max-width:540px){main{padding:20px 16px 40px}td,th{padding:10px 6px;font-size:13px}.scroll{margin-right:-4px}header{padding-bottom:16px}}
+</style></head><body><main>
+<header><a href="index.html">← BEOPS</a><p class="eyebrow">Opažanja · vremenski rasponi · dokaz</p><h1>Šta se vidi kroz vreme</h1><p>Jedan instrument i jedan parametar. Vidi se koliko podataka postoji, šta se u njima menja i gde zapis ima rupe. Razlike su opis opažanja; ponavljanje obrasca i uzrok zahtevaju zasebnu proveru.</p><p id="status" class="meta" role="status">Učitavanje poslednje objavljene generacije…</p></header>
+<p class="limit">Obuhvat instrumenata nije obuhvat celog grada. Prijem nije merenje. Nedostajuća vrednost ostaje nepoznata.</p>
+<section id="analysis" hidden><label for="instrument">Instrument / mesto / parametar</label><select id="instrument"></select><h2 id="name"></h2><p class="meta" id="basis"></p>
+<div class="scroll" role="region" aria-label="Poređenje vremenskih prozora" tabindex="0"><table><thead><tr><th>Šta je zabeleženo</th><th>24 sata</th><th>7 dana</th><th>30 dana</th></tr></thead><tbody id="values"></tbody></table></div>
+<p class="limit" id="pattern">Ponavljanje obrasca nije testirano. Razlika početnog i završnog sata nije dokaz trenda.</p>
+<p id="method">Račun zavisi od tipa veličine. Porede se završeni UTC sati; tekući nepotpuni sat nije uključen. Nepoznati i nevalidni rezultati ostaju zasebno prebrojani.</p>
+<details><summary>Granice i poreklo računa</summary><p id="period" class="meta"></p><p id="proof" class="meta"></p><p><a href="city-analysis.json">Javni analitički zapis (JSON)</a> · <a href="history.json">Izvorni satni skup (JSON)</a> · <a href="podaci.html">Instrumenti i poslednja očitavanja</a></p></details></section>
+<button id="retry" type="button" hidden>Pokušaj ponovo</button>
+</main><script>
+'use strict';let view=null,analysis=null;
+const $=id=>document.getElementById(id),fmt=n=>typeof n==='number'&&Number.isFinite(n)?n.toLocaleString('sr-Latn',{maximumFractionDigits:2}):'—';
+function render(){
+ const item=analysis.series[Number($('instrument').value)];if(!item)return;
+ $('name').textContent=[item.station,item.parameter,item.unit].filter(Boolean).join(' · ');
+ const basis={measured:'vreme koje objavljuje izvor',corrected:'procenjena korekcija vremena izvora',received:'vreme prijema; vreme merenja nije poznato',arrival:'vreme prijema; vreme merenja nije poznato'};
+ $('basis').textContent=item.sid+' · Vremenska osnova: '+(basis[item.time_basis]||'nepotvrđena')+'. Jedinica: '+(item.unit||'nije navedena');
+ const circular=item.value_type==='circular_degrees',count=item.value_type==='count';
+ $('method').textContent=(circular?'Smer je dobijen iz zbira jediničnih vektora svih validnih smerova, bez ponderisanja brzinom vetra. Poništena rezultanta znači neodređen smer, a ne nulu. Minimum, maksimum i linearna razlika uglova nisu prikazani.':count?'Prikazani su primljeni brojevi i njihov raspon. Prosek brojača i razlika satnih proseka nisu definisani ovim ugovorom.':'Prosek je računat iz sačuvanih suma i broja validnih vrednosti, pre zaokruživanja prikaza. To je prosek opaženih vrednosti; ne potvrđuje pokrivenost celog sata ili grada.')+' Porede se završeni UTC sati. Nepoznati i nevalidni rezultati ostaju zasebno prebrojani.';
+ $('values').replaceChildren();
+ const rows=[['Sati sa vrednostima',w=>w.hours_with_values+' / '+w.window_hours],['Obuhvat prozora',w=>fmt(w.coverage*100)+'%'],['Zadržana opažanja posle revizija',w=>fmt(w.received_samples)],['Validne brojne vrednosti',w=>fmt(w.samples)],['Nepoznati rezultati',w=>fmt(w.missing_samples)],['Nevalidne brojne vrednosti',w=>fmt(w.invalid_samples)],['Najmanja vrednost',w=>fmt(w.min)],['Najveća vrednost',w=>fmt(w.max)],[circular?'Srednji smer':'Prosek opaženih vrednosti',w=>w.direction_state==='undefined_resultant'?'Neodređen smer':fmt(w.sample_mean)],['Razlika poslednjeg i prvog zabeleženog sata',w=>fmt(w.endpoint_difference)],['Prvi sat sa vrednošću',w=>w.first_hour?w.first_hour.replace('T',' ')+' UTC':'—'],['Poslednji sat sa vrednošću',w=>w.last_hour?w.last_hour.replace('T',' ')+' UTC':'—']];
+ for(const [name,format] of rows){const tr=document.createElement('tr'),label=document.createElement('th');label.scope='row';label.textContent=name;tr.append(label);for(const h of ['24','168','720']){const td=document.createElement('td');td.textContent=format(item.windows[h]);tr.append(td);}$('values').append(tr);}
+ $('period').textContent='Kraj sva tri prozora: '+item.windows['24'].until+'. Broj sati sa vrednostima meri dostupnost ovog instrumenta, ne neprekidnost njegovog rada.';
+ $('proof').textContent='Generacija: '+view.generation+' · SHA-256 analitičkog zapisa: '+view.resources['city-analysis.json'].sha256+' · SHA-256 satnog skupa: '+view.resources['history.json'].sha256;
+}
+async function load(){
+ $('retry').hidden=true;
+ try{view=await beopsView.overview();analysis=await beopsView.read('city-analysis.json',view);
+  if(analysis.as_of!==view.as_of)throw Error('generation_mismatch');
+  const age=(Date.now()-Date.parse(view.as_of))/60000;
+  $('status').textContent='Objavljeni presek: '+view.as_of+' · '+analysis.series.length+' nizova.'+(!Number.isFinite(age)||age>60||age< -5?' Zapis je zastareo ili mu vreme nije potvrđeno.':'');
+  $('instrument').replaceChildren();analysis.series.forEach((item,index)=>{const option=document.createElement('option');option.value=index;option.textContent=[item.sid,item.station,item.parameter,item.unit,item.time_basis].filter(Boolean).join(' · ');$('instrument').append(option);});
+  if(!analysis.series.length){$('status').textContent+=' Nema brojnih opažanja za poređenje.';$('analysis').hidden=true;return;}
+  $('analysis').hidden=false;render();
+ }catch(error){$('status').textContent='Analitički zapis nije potvrđen za ovu generaciju. Trenutno stanje i obrasci nisu potvrđeni.';$('analysis').hidden=true;$('retry').hidden=false;}
+}
+$('instrument').addEventListener('change',render);$('retry').addEventListener('click',load);load();
+</script></body></html>

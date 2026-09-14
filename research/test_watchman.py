@@ -101,6 +101,50 @@ class WatchmanTests(unittest.TestCase):
         r = W.run(NOW)
         self.assertEqual(self.states(r)["source S01"], W.LATE)
 
+    def test_newest_row_validates_only_the_new_append_after_a_cached_prefix(self):
+        d = self.t.dir / "data" / "live" / "rows" / "S01"
+        d.mkdir(parents=True, exist_ok=True)
+        path = d / "2026-09.jsonl"
+        with path.open("w", encoding="utf-8") as f:
+            for i in range(5000):
+                f.write(json.dumps({"receivedTime": iso(NOW - timedelta(minutes=5000 - i))}) + "\n")
+        index = {"schema": W.ROW_INDEX_SCHEMA, "files": {}}
+        W.newest_row("S01", index)  # one strict validation establishes the immutable prefix
+        with path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps({"receivedTime": iso(NOW), "payload": "x" * 70000}) + "\n\n")
+
+        real_loads = json.loads
+        with patch.object(W.json, "loads", wraps=real_loads) as loads:
+            newest, error = W.newest_row("S01", index)
+
+        self.assertEqual(newest, NOW)
+        self.assertIsNone(error)
+        self.assertEqual(loads.call_count, 1)
+
+    def test_cached_prefix_change_is_strictly_revalidated(self):
+        self.t.row("S01", NOW - timedelta(minutes=2), 3)
+        index = {"schema": W.ROW_INDEX_SCHEMA, "files": {}}
+        W.newest_row("S01", index)
+        path = self.t.dir / "data" / "live" / "rows" / "S01" / "2026-09.jsonl"
+        body = path.read_text(encoding="utf-8")
+        path.write_text(body.replace('"result": 1', '"result": 9', 1), encoding="utf-8")
+        with path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps({"receivedTime": iso(NOW)}) + "\n")
+
+        newest, error = W.newest_row("S01", index)
+        self.assertEqual(newest, NOW)
+        self.assertIsNone(error)
+
+    def test_newest_row_fails_closed_when_the_appended_tail_is_malformed(self):
+        self.t.row("S01", NOW - timedelta(minutes=1))
+        path = self.t.dir / "data" / "live" / "rows" / "S01" / "2026-09.jsonl"
+        with path.open("a", encoding="utf-8") as f:
+            f.write('{"receivedTime":')
+
+        newest, error = W.newest_row("S01")
+        self.assertIsNone(newest)
+        self.assertIn("unreadable rows", error)
+
     def test_what_cannot_be_read_is_unknown_and_never_ok(self):
         # no receipts at all for S02
         self.t.receipt("S01", NOW - timedelta(minutes=4))

@@ -265,7 +265,12 @@ function Save-BeopsReleaseDiagnostic {
     $transcriptName = $run + '-tests.txt'
     Copy-Item -LiteralPath $transcript.FullName -Destination (Join-Path $folder $transcriptName) -Force
   }
-  @{schema='beops-release-diagnostic/v1'; at=(Get-Date).ToUniversalTime().ToString('o'); source_oid=$SourceOid; workspace=$RunRoot; outcome=$Outcome; receipt_note=$receiptNote; receipt=$lastReceipt; test_transcript=$transcriptName} |
+  $phaseName = $null
+  if ($env:BEOPS_PHASE_TRACE -and (Test-Path -LiteralPath $env:BEOPS_PHASE_TRACE)) {
+    $phaseName = $run + '-phases.jsonl'
+    Copy-Item -LiteralPath $env:BEOPS_PHASE_TRACE -Destination (Join-Path $folder $phaseName) -Force
+  }
+  @{schema='beops-release-diagnostic/v1'; at=(Get-Date).ToUniversalTime().ToString('o'); source_oid=$SourceOid; workspace=$RunRoot; outcome=$Outcome; receipt_note=$receiptNote; receipt=$lastReceipt; test_transcript=$transcriptName; phase_transcript=$phaseName} |
     ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $folder ($run + '.json')) -Encoding UTF8
   # This directory contains our diagnostics, not source/evidence. Keep ten runs.
   $older = Get-ChildItem -LiteralPath $folder -File -Filter 'beops-release-*.json' | Sort-Object LastWriteTime -Descending | Select-Object -Skip 10
@@ -274,6 +279,8 @@ function Save-BeopsReleaseDiagnostic {
     if ($record.schema -eq 'beops-release-diagnostic/v1' -and $item.Name -match '^beops-release-[a-f0-9]{32}\.json$') {
       $oldTranscript = Join-Path $folder ($item.BaseName + '-tests.txt')
       if (Test-Path -LiteralPath $oldTranscript) { Remove-Item -LiteralPath $oldTranscript -Force }
+      $oldPhases = Join-Path $folder ($item.BaseName + '-phases.jsonl')
+      if (Test-Path -LiteralPath $oldPhases) { Remove-Item -LiteralPath $oldPhases -Force }
       Remove-Item -LiteralPath $item.FullName -Force
     }
   }
@@ -296,6 +303,101 @@ function Remove-BeopsGeneratedRelease {
   Remove-Item -LiteralPath $full -Recurse -Force -ErrorAction Stop
 }
 
+function Clear-BeopsAbandonedReleases {
+  param([string]$SourceRoot, [string]$BaseRoot)
+  if (-not (Test-Path -LiteralPath $BaseRoot)) { return }
+  foreach ($item in Get-ChildItem -LiteralPath $BaseRoot -Directory -Filter 'beops-release-*') {
+    if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
+    if ($item.Name -notmatch '^beops-release-[a-f0-9]{32}$') { continue }
+    $marker = Join-Path $item.FullName '.beops-generated-workspace.json'
+    if (-not (Test-Path -LiteralPath $marker)) { continue }
+    try {
+      $owner = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
+      if ($owner.schema -ne 'beops-generated-workspace/v2' -or $owner.retained -ne $false -or [int]$owner.owner_pid -le 0) { continue }
+      if ((Get-BeopsFullPath $owner.source) -ne (Get-BeopsFullPath $SourceRoot)) { continue }
+      if (([DateTimeOffset]::UtcNow - [DateTimeOffset]::Parse($owner.created_at)).TotalHours -lt 2) { continue }
+      if (Test-BeopsProcessAlive -ProcessId ([int]$owner.owner_pid)) { continue }
+      Save-BeopsReleaseDiagnostic -SourceRoot $SourceRoot -RunRoot $item.FullName -SourceOid $owner.source_oid -Outcome 'abandoned-cleanup'
+      Remove-BeopsGeneratedRelease -Path $item.FullName -SourceRoot $SourceRoot -BaseRoot $BaseRoot
+      Write-Output ('Removed owned abandoned release: ' + $item.Name)
+    } catch { Write-Warning ('Release preserved: ' + $item.Name + ': ' + $_.Exception.Message) }
+  }
+}
+
+function Write-BeopsPhase {
+  param([string]$Name, [System.Diagnostics.Stopwatch]$Clock, [object]$ExitCode)
+  if (-not $env:BEOPS_PHASE_TRACE) { return }
+  $row = @{schema='beops-phase/v1';at=[DateTime]::UtcNow.ToString('o');name=$Name;
+    seconds=[Math]::Round($Clock.Elapsed.TotalSeconds,3);exit_code=$ExitCode;pid=$PID}
+  $line = ($row | ConvertTo-Json -Compress) + [Environment]::NewLine
+  [IO.File]::AppendAllText($env:BEOPS_PHASE_TRACE, $line, (New-Object Text.UTF8Encoding($false)))
+}
+
+function Invoke-BeopsTimedProcess {
+  param([string]$FilePath, [string[]]$ArgumentList, [int]$TimeoutMilliseconds = 120000)
+  if ($env:BEOPS_CYCLE_DEADLINE) {
+    $remaining = ([DateTimeOffset]::Parse($env:BEOPS_CYCLE_DEADLINE)-[DateTimeOffset]::UtcNow).TotalMilliseconds
+    if ($remaining -le 0) { throw 'publication cycle budget exhausted before next phase' }
+    $TimeoutMilliseconds = [int][Math]::Min($remaining, [int]::MaxValue)
+  }
+  $command = (Get-Command $FilePath -ErrorAction Stop).Source
+  $quote = {
+    param([string]$value)
+    '"' + [regex]::Replace([regex]::Replace($value, '(\\*)"', '$1$1\"'), '(\\+)$', '$1$1') + '"'
+  }
+  $arguments = @($ArgumentList | ForEach-Object { & $quote $_ }) -join ' '
+  $info = New-Object Diagnostics.ProcessStartInfo
+  if ($command -match '\.(cmd|bat)$') {
+    foreach ($value in (@($command)+$ArgumentList)) {
+      if ($value -match '[%"\r\n]') { throw 'unsafe batch argument; use a direct interpreter executable' }
+    }
+    $info.FileName = $env:ComSpec
+    $info.Arguments = '/d /s /v:off /c "' + (& $quote $command) + ' ' + $arguments + '"'
+  } else {
+    $info.FileName = $command
+    $info.Arguments = $arguments
+  }
+  $info.WorkingDirectory = (Get-Location).Path
+  $info.UseShellExecute = $false
+  $info.CreateNoWindow = $true
+  $info.RedirectStandardOutput = $true
+  $info.RedirectStandardError = $true
+  $info.StandardOutputEncoding = New-Object Text.UTF8Encoding($false)
+  $info.StandardErrorEncoding = New-Object Text.UTF8Encoding($false)
+  $process = New-Object Diagnostics.Process
+  $process.StartInfo = $info
+  try {
+    if (-not $process.Start()) { throw 'native phase did not start' }
+    $stdout = $process.StandardOutput.ReadToEndAsync()
+    $stderr = $process.StandardError.ReadToEndAsync()
+    if (-not $process.WaitForExit($TimeoutMilliseconds)) {
+      # Only the process tree created above belongs to this phase.
+      & "$env:SystemRoot\System32\taskkill.exe" /PID $process.Id /T /F 2>&1 | Out-Null
+      $null = $process.WaitForExit(5000)
+      throw 'publication phase exceeded the remaining cycle budget'
+    }
+    return @{code=$process.ExitCode;stdout=$stdout.GetAwaiter().GetResult();stderr=$stderr.GetAwaiter().GetResult()}
+  } finally { $process.Dispose() }
+}
+
+function Assert-BeopsCycleRemaining {
+  if ($env:BEOPS_CYCLE_DEADLINE -and [DateTimeOffset]::UtcNow -ge [DateTimeOffset]::Parse($env:BEOPS_CYCLE_DEADLINE)) {
+    throw 'publication cycle budget exhausted before next copy operation'
+  }
+}
+
+function Invoke-BeopsRecovery {
+  param([string]$Name, [string]$FilePath, [string[]]$ArgumentList = @())
+  $processingDeadline = $env:BEOPS_CYCLE_DEADLINE
+  try {
+    # Recovery uses only the existing five-minute reserve after processing.
+    # Never renew the processing budget or continue publication in this scope.
+    $limit = if ($processingDeadline) { [DateTimeOffset]::Parse($processingDeadline).AddMinutes(5) } else { [DateTimeOffset]::UtcNow.AddMinutes(5) }
+    $env:BEOPS_CYCLE_DEADLINE = $limit.ToString('o')
+    Invoke-BeopsNative -Name $Name -FilePath $FilePath -ArgumentList $ArgumentList -Quiet
+  } finally { $env:BEOPS_CYCLE_DEADLINE = $processingDeadline }
+}
+
 function Invoke-BeopsNative {
   param(
     [Parameter(Mandatory=$true)][string]$Name,
@@ -303,6 +405,16 @@ function Invoke-BeopsNative {
     [string[]]$ArgumentList = @(),
     [switch]$Quiet
   )
+  $clock = [Diagnostics.Stopwatch]::StartNew()
+  $rc = $null
+  try {
+  if ($env:BEOPS_CYCLE_DEADLINE) {
+    $result = Invoke-BeopsTimedProcess -FilePath $FilePath -ArgumentList $ArgumentList
+    $rc = $result.code
+    if ($rc -ne 0) { throw "$Name failed with exit code ${rc}: $($result.stderr.Trim())" }
+    if (-not $Quiet -and $result.stdout) { Write-Output $result.stdout.TrimEnd() }
+    return
+  }
   if ($Quiet) {
     & $FilePath @ArgumentList | Out-Null
   } else {
@@ -312,6 +424,7 @@ function Invoke-BeopsNative {
   if ($rc -ne 0) {
     throw "$Name failed with exit code $rc"
   }
+  } finally { Write-BeopsPhase -Name $Name -Clock $clock -ExitCode $rc }
 }
 
 function Get-BeopsNativeOutput {
@@ -320,6 +433,16 @@ function Get-BeopsNativeOutput {
     [Parameter(Mandatory=$true)][string]$FilePath,
     [string[]]$ArgumentList = @()
   )
+  if ($env:BEOPS_CYCLE_DEADLINE) {
+    $clock = [Diagnostics.Stopwatch]::StartNew()
+    $rc = $null
+    try {
+      $result = Invoke-BeopsTimedProcess -FilePath $FilePath -ArgumentList $ArgumentList
+      $rc = $result.code
+      if ($rc -ne 0) { throw "$Name failed with exit code ${rc}: $($result.stdout.Trim())`n$($result.stderr.Trim())" }
+      return $result.stdout.Trim()
+    } finally { Write-BeopsPhase -Name $Name -Clock $clock -ExitCode $rc }
+  }
   # Windows PowerShell 5 turns native stderr into ErrorRecord objects. With
   # Stop it can interrupt at the first traceback line, before the exit code.
   # Keep streams separate: a successful command may warn and still emit JSON.
@@ -327,6 +450,8 @@ function Get-BeopsNativeOutput {
   $capture = Join-Path ([IO.Path]::GetTempPath()) ('beops-native-' + [guid]::NewGuid())
   $null = New-Item -ItemType Directory -Path $capture -ErrorAction Stop
   $priorPreference = $ErrorActionPreference
+  $clock = [Diagnostics.Stopwatch]::StartNew()
+  $rc = $null
   try {
     $stdout = Join-Path $capture 'stdout.txt'
     $stderr = Join-Path $capture 'stderr.txt'
@@ -341,6 +466,7 @@ function Get-BeopsNativeOutput {
     }
     return $text.Trim()
   } finally {
+    Write-BeopsPhase -Name $Name -Clock $clock -ExitCode $rc
     $ErrorActionPreference = $priorPreference
     # This GUID directory and its two files were created by this invocation.
     Remove-Item -LiteralPath $capture -Recurse -Force -ErrorAction SilentlyContinue

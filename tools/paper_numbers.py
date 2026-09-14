@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import hashlib
 import json
 import pathlib
 import re
@@ -84,14 +85,24 @@ def provenance():
     return out
 
 
-def rows_on_disk():
+def rows_on_disk(evidence=None):
     n, files = 0, 0
     for p in (ROOT / "data" / "live" / "rows").rglob("*.jsonl"):
         files += 1
         # A bounded sequential read avoids thousands of tiny HDD reads while
         # other collectors use the same disk. Every nonblank line is still read.
         with open(p, "rb", buffering=1024 * 1024) as f:
-            n += sum(1 for line in f if line.strip())
+            count, size = 0, 0
+            digest = hashlib.sha256() if evidence is not None else None
+            for line in f:
+                count += bool(line.strip())
+                if digest is not None:
+                    digest.update(line)
+                    size += len(line)
+            n += count
+            if evidence is not None:
+                evidence[p.relative_to(ROOT).as_posix()] = {
+                    'rows': count, 'bytes': size, 'sha256': digest.hexdigest()}
     return {"rows": n, "files": files}
 
 
@@ -170,7 +181,10 @@ FIGURES = [("registry", registry), ("collectors", collectors), ("provenance", pr
 # them. That is not drift - it is what a count of a living record is - but it means the number is only
 # true as of `taken_at`, and a paper that prints it without saying when has printed a number nobody
 # can check.
-LIVE = ("provenance", "rows", "history", "mind")
+# Retention also changes with arrivals and the clock (oldest headline, raw-file
+# expiry); it cannot be treated as a stable figure and recomputed for a static
+# rendering comparison on every publication.
+LIVE = ("provenance", "rows", "history", "mind", "retention")
 
 
 def taken_at() -> str:

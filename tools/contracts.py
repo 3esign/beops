@@ -166,6 +166,53 @@ def finite(value):
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
 
+# R04: a number alone does not authorize arithmetic. Units are retained, never
+# silently converted; an unregistered parameter/unit is explicitly unknown.
+PARAMETER_SEMANTICS = 'beops-parameter-semantics/v1'
+SCALAR_UNITS = {
+    **{name: {'Cel', 'C'} for name in ('temperature', 'dew_point', 'water_temperature')},
+    **{name: {'Pa', 'hPa'} for name in ('pressure', 'pressure_qnh', 'pressure_at_sealevel')},
+    'humidity': {'%'}, 'wind_speed': {'m/s', 'kt'}, 'discharge': {'m3/s'},
+    'water_level': {'cm'}, 'water_level_change': {'cm'},
+    **{name: {'ug.m-3'} for name in ('PM10','PM2.5','P0','P1','P2','NO','NO2','NOX',
+        'O3','SO2','NH3','Benzen','Ethyl benzene','TNx','Toluene','mp-Xylene','o-Xylene')},
+    'CO': {'mg.m-3'},
+}
+
+
+def parameter_semantics(row):
+    parameter, unit = row.get('parameter'), row.get('unit')
+    kind, seconds = 'unknown', None
+    if parameter in {'headline', 'notice', 'planned_outage'}:
+        kind = 'text'
+    elif parameter == 'wind_direction':
+        kind = 'circular_degrees' if unit == 'deg' else 'text' if unit == 'compass' else 'unknown'
+    elif parameter == 'free_spaces' and unit == '1':
+        kind = 'count'
+    elif unit in SCALAR_UNITS.get(parameter, set()):
+        kind = 'scalar'
+        start, end = interval(row.get('phenomenonTimeCorrected') or row.get('phenomenonTime'))
+        if start is not None and end is not None and end > start:
+            seconds = (end-start).total_seconds()
+            # Use the source's retained aggregation declaration. Neither a
+            # source ID nor an interval alone proves an averaging operation.
+            if row.get('aggregation') in {'hourly_mean','daily_mean'}:
+                kind = 'interval_average'
+    return kind, seconds
+
+
+def direction_summary(sum_cos, sum_sin, count):
+    if not count:
+        return {'mean': None, 'resultant_length': None, 'direction_state': 'no_valid_directions'}
+    length = min(1.0, math.hypot(sum_cos, sum_sin)/count)
+    if length < 1e-12:
+        return {'mean': None, 'resultant_length': length, 'direction_state': 'undefined_resultant'}
+    angle = math.degrees(math.atan2(sum_sin, sum_cos)) % 360.0
+    if min(abs(angle), abs(angle-360.0)) < 1e-10:
+        angle = 0.0
+    return {'mean': angle, 'resultant_length': length, 'direction_state': 'defined'}
+
+
 def utc(value):
     if not isinstance(value, str) or not value:
         return None
@@ -198,6 +245,59 @@ def row_clock(row):
     return end, ("corrected" if corrected is not None else "measured") if end else "invalid"
 
 
+def observation_point(row):
+    """Public disclosure of source labels, estimated labels and reception.
+
+    Original labels stay verbatim. Invalid/unknown measurement clocks do not
+    gain a measurement time from reception or an invalid estimate's source.
+    """
+    def labels(value):
+        if isinstance(value, dict):
+            return value.get('start') or value.get('begin'), value.get('end')
+        if isinstance(value, str) and '/' in value:
+            return tuple(value.split('/', 1))
+        return None, value
+    start, end = labels(row.get('phenomenonTime'))
+    _, basis = row_clock(row)
+    point = {'t':end, 'tu':basis in ('arrival', 'invalid'),
+             'rt':row.get('resultTime'), 'rx':row.get('receivedTime'),
+             'v':row.get('result'), 'q':row.get('resultQuality')}
+    if start is not None:
+        point['t0'] = start
+    if basis in ('arrival', 'invalid'):
+        point['t'] = None
+        if end is not None:
+            point['source_label'] = end
+        if basis == 'invalid':
+            point['clock_unresolved'] = True
+    elif basis == 'corrected':
+        corrected_start, corrected_end = labels(row['phenomenonTimeCorrected'])
+        point['tc'] = corrected_end
+        if corrected_start is not None:
+            point['tc0'] = corrected_start
+        if row.get('resultTimeCorrected') is not None:
+            point['rtc'] = row['resultTimeCorrected']
+    for original, public in [('sourceClockRule','clock_rule'),
+                             ('sourceClockValidUntil','clock_valid_until'),
+                             ('sourceClockNote','clock_note')]:
+        if row.get(original) is not None:
+            point[public] = row[original]
+    return point
+
+
+def select_observation_points(points):
+    """Explicit selectors over public points, retaining null and known clocks."""
+    def measured(point):
+        return None if point.get('tu') or point.get('clock_unresolved') else interval(point.get('tc') if 'tc' in point else point.get('t'))[1]
+    minimum = datetime.min.replace(tzinfo=timezone.utc)
+    received = [point for point in points if utc(point.get('rx')) is not None]
+    timed = [point for point in points if measured(point) is not None]
+    return {
+        'last_by_measurement': max(timed, key=lambda point:(measured(point),utc(point.get('rx')) or minimum)) if timed else None,
+        'last_received': max(received, key=lambda point:(utc(point.get('rx')),measured(point) or minimum)) if received else None,
+    }
+
+
 def belgrade_offset(dt):
     """Contemporary EU rule, explicitly versioned; never inferred from the arrival date."""
     def sunday(month):
@@ -219,3 +319,16 @@ def belgrade_local(local):
 def content_id(row):
     payload = {k: v for k, v in row.items() if k not in ("receivedTime", "raw_sha256", "permission_capture", "row_id")}
     return hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False, allow_nan=False).encode()).hexdigest()
+
+
+def observation_identity(row):
+    """One source-labelled observation, independent of its value/reception revision."""
+    if row.get('dedupe_key'):
+        return str(row['dedupe_key'])
+    start, end = interval(row.get('phenomenonTime'))
+    if not row.get('phenomenonTimeUnknown') and end is not None:
+        identity = [row.get('sid'),row.get('datastream'),row.get('parameter'),row.get('unit'),
+                    start.isoformat() if start else None,end.isoformat()]
+        return hashlib.sha256(json.dumps(identity,ensure_ascii=False).encode('utf-8')).hexdigest()
+    # An untimed reading is a reception; never invent a shared measurement time.
+    return str(row.get('row_id') or content_id(row))+'|received='+str(row.get('receivedTime') or '')

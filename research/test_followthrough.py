@@ -287,6 +287,38 @@ class ModelCapacity(unittest.TestCase):
 
 
 class ReleaseCapture(unittest.TestCase):
+    def test_transient_receipt_claim_can_disappear_without_invalidating_capture(self):
+        with tempfile.TemporaryDirectory() as td:
+            base=pathlib.Path(td);source=base/'source';dest=base/'dest';dest.mkdir()
+            claim=source/'data/live/receipts/S01/slot.claim'
+            claim.parent.mkdir(parents=True);claim.write_bytes(b'active request')
+            real=P.exclusive
+            @contextlib.contextmanager
+            def boundary(path, *args, **kwargs):
+                if pathlib.Path(path).name=='.write.lock': claim.unlink()
+                with real(path, *args, **kwargs): yield
+            with patch.object(P,'exclusive',boundary):
+                inputs,_,_=P.capture_inputs(source,dest)
+            self.assertFalse(any(x['path'].endswith('.claim') for x in inputs))
+            self.assertFalse((dest/'data/live/receipts/S01/slot.claim').exists())
+
+    def test_pause_created_after_inventory_is_in_the_frozen_capture(self):
+        with tempfile.TemporaryDirectory() as td:
+            base=pathlib.Path(td);source=base/'source';dest=base/'dest';dest.mkdir()
+            marker=source/'data/live/receipts/S01/PAUSED'
+            real=P.exclusive
+            @contextlib.contextmanager
+            def boundary(path, *args, **kwargs):
+                if pathlib.Path(path).name=='.write.lock':
+                    marker.parent.mkdir(parents=True,exist_ok=True)
+                    marker.write_bytes(b'paused after HTTP 403\n')
+                    (marker.parent/'new.json').write_bytes(b'{"state":"failed","paused_source":true}\n')
+                with real(path, *args, **kwargs): yield
+            with patch.object(P,'exclusive',boundary):
+                inputs,_,_=P.capture_inputs(source,dest)
+            self.assertIn('data/live/receipts/S01/PAUSED',{x['path'] for x in inputs})
+            self.assertEqual((dest/'data/live/receipts/S01/PAUSED').read_bytes(),marker.read_bytes())
+
     def test_model_receipts_and_digests_are_read_without_holding_live_writer(self):
         with tempfile.TemporaryDirectory() as td:
             source, dest = pathlib.Path(td)/'source', pathlib.Path(td)/'dest'

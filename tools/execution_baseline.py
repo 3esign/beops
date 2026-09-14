@@ -15,12 +15,12 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
 import time
 from collections import Counter
 from datetime import datetime, timezone
 
 from contracts import atomic_json, exclusive, json_object, json_rows, utc
+from artifact_staging import create_artifact_staging
 
 
 def sha256_bytes(value: bytes) -> str:
@@ -235,7 +235,7 @@ def capture(root: pathlib.Path, output: pathlib.Path | None = None) -> dict:
         "commands": {},
     }
     output.parent.mkdir(parents=True, exist_ok=True)
-    temporary = pathlib.Path(tempfile.mkdtemp(prefix=".execution-baseline-", dir=output.parent))
+    temporary = create_artifact_staging(output.parent, prefix=".execution-baseline-")
     try:
         for name, result in commands.items():
             transcript = redact((result.get("stdout") or "") + ("\n[stderr]\n" + result["stderr"] if result.get("stderr") else ""), root)

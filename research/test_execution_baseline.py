@@ -5,6 +5,8 @@ import pathlib
 import sys
 import tempfile
 import unittest
+import os
+from unittest.mock import patch
 from datetime import datetime, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -13,6 +15,22 @@ import execution_baseline as baseline
 
 
 class ExecutionBaseline(unittest.TestCase):
+    def test_capture_publishes_complete_packet_with_project_access(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td)
+            def command(*args):
+                return {'exit_code':0,'stdout':'{}','stderr':'','timed_out':False,'duration_seconds':0.0}
+            with patch.object(baseline, 'git', side_effect=lambda root, *args: 'fixture-oid' if args[0]=='rev-parse' else ''), patch.object(baseline, 'run_command', side_effect=command):
+                result = baseline.capture(root)
+            output = pathlib.Path(result['output'])
+            self.assertEqual(result['baseline_sha256'], hashlib.sha256((output/'baseline.json').read_bytes()).hexdigest())
+            self.assertEqual(len(list(output.iterdir())), 7)
+            with self.assertRaises(FileExistsError):
+                baseline.capture(root, output)
+            if os.name == 'nt':
+                from test_artifact_staging import acl
+                self.assertFalse(acl(output)['protected'], 'baseline must inherit project access')
+
     def test_axes_do_not_turn_collection_red_for_safe_policy_blocks_or_ai_lateness(self):
         commands = {name: {"exit_code": 0, "stdout": ""} for name in ("tests", "doctor", "tasks", "guard", "watch", "site")}
         commands["guard"]["stdout"] = "guard now verdict: ok"

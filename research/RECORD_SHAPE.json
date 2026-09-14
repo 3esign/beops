@@ -128,6 +128,7 @@
   "files": {
    "guard-ledger.jsonl": "one line per guard run: every check, its state and its reason, appended and never edited",
    "watch-ledger.jsonl": "one line per watchman reading, including the gaps between readings",
+   "watch-row-index.json": "Derived acceleration cache for watchman.py. Each entry names a strictly validated append-only row-file prefix by size, mtime and SHA-256; it is never observation evidence, and missing, malformed or changed entries are rebuilt from the authoritative JSONL rows.",
    "paper-numbers-runs.jsonl": "one line per run of the figure tool: the instant and a hash of the figures it produced, so a stamp in a paper can be matched to a run that happened (C-053)",
    "publish-receipt.json": "not a ledger - the single most recent publish attempt, whether the suite passed, and what was published. The guard reads it to answer whether the site is being kept stale (C-046).",
    "publish-last-success.json": "Last completed publication with matching live/local site hashes; preserved when a later attempt fails. Its age is not reset by an unsuccessful attempt.",

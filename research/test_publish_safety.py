@@ -29,6 +29,52 @@ def ps(script: str, *, cwd: pathlib.Path | None = None) -> subprocess.CompletedP
 
 
 class PublishSafety(unittest.TestCase):
+    def test_recovery_reserve_is_bounded_and_does_not_renew_processing(self):
+        with tempfile.TemporaryDirectory() as d:
+            marker=pathlib.Path(d)/'recovered'
+            script=pathlib.Path(d)/'write.py'
+            script.write_text(f'import pathlib\npathlib.Path({str(marker)!r}).write_text("restored")\n')
+            out=self.assert_ps_ok(f"""
+              $original=[DateTimeOffset]::UtcNow.AddSeconds(-1).ToString('o')
+              $env:BEOPS_CYCLE_DEADLINE=$original
+              Invoke-BeopsRecovery 'fixture restore' '{sys.executable}' @('{script}')
+              if ($env:BEOPS_CYCLE_DEADLINE -ne $original) {{ throw 'processing deadline changed' }}
+              $expired=[DateTimeOffset]::UtcNow.AddMinutes(-6).ToString('o')
+              $env:BEOPS_CYCLE_DEADLINE=$expired
+              $refused=$false
+              try {{ Invoke-BeopsRecovery 'expired restore' 'beops-must-not-start' }}
+              catch {{ if ($_.Exception.Message -notlike '*budget exhausted before*') {{ throw }}; $refused=$true }}
+              if (-not $refused -or $env:BEOPS_CYCLE_DEADLINE -ne $expired) {{ throw 'reserve or restoration failed' }}
+              'reserve bounded; original deadlines restored'
+            """)
+            self.assertEqual(marker.read_text(),'restored')
+            self.assertIn('reserve bounded',out)
+
+    def test_timed_native_process_preserves_quoted_arguments_and_exit(self):
+        import json
+        with tempfile.TemporaryDirectory() as d:
+            script=pathlib.Path(d)/'args.py'
+            script.write_text('import json,sys\nprint(json.dumps(sys.argv[1:]))\nprint("detail",file=sys.stderr)\nsys.exit(7)\n')
+            out=self.assert_ps_ok(f"$env:BEOPS_CYCLE_DEADLINE=''; $r=Invoke-BeopsTimedProcess -FilePath '{sys.executable}' -ArgumentList @('{script}','space and !bang','quote\"inside','end\\'); $r | ConvertTo-Json -Compress")
+            result=json.loads(out)
+            self.assertEqual(result['code'],7)
+            self.assertEqual(json.loads(result['stdout']),['space and !bang','quote"inside','end\\'])
+            self.assertEqual(result['stderr'].strip(),'detail')
+
+    def test_timed_native_process_stops_its_child_on_expiry(self):
+        with tempfile.TemporaryDirectory() as d:
+            script=pathlib.Path(d)/'slow.py'
+            script.write_text('import time\ntime.sleep(30)\n')
+            self.assert_ps_fails(f"$env:BEOPS_CYCLE_DEADLINE=''; Invoke-BeopsTimedProcess -FilePath '{sys.executable}' -ArgumentList @('{script}') -TimeoutMilliseconds 250", 'remaining cycle budget')
+
+    def test_expired_cycle_refuses_before_starting_the_command(self):
+        with tempfile.TemporaryDirectory() as d:
+            marker=pathlib.Path(d)/'must-not-exist'
+            script=pathlib.Path(d)/'write.py'
+            script.write_text(f'import pathlib\npathlib.Path({str(marker)!r}).write_text("bad")\n')
+            self.assert_ps_fails(f"$env:BEOPS_CYCLE_DEADLINE='2000-01-01T00:00:00Z'; Invoke-BeopsTimedProcess -FilePath '{sys.executable}' -ArgumentList @('{script}')", 'budget exhausted before')
+            self.assertFalse(marker.exists())
+
     def test_diagnostic_keeps_transcript_after_child_cleanup(self):
         import json
         with tempfile.TemporaryDirectory() as d:

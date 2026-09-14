@@ -2,14 +2,15 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const observationClocks = require('../research/05-design/studies/observation-clocks.js');
 const hash = value => crypto.createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
 function readJSON(file, cap = 64 * 1024 * 1024) {
   if (fs.statSync(file).size > cap) throw Error('input_too_large');
   return JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, ''));
 }
-const stamp = s => typeof s === 'string' && Number.isFinite(Date.parse(s)) ? Date.parse(s) : null;
-function sampleTime(p) { return p.tc || (!p.tu && p.t) || p.rx; }
-function frame(p) { return p.tc ? 'corrected_measurement' : !p.tu && p.t ? 'measurement' : 'reception_only'; }
+const stamp = observationClocks.stamp;
+function sampleTime(p) { const clock=observationClocks.placement(p);return clock.basis==='unresolved'?null:clock.at; }
+function frame(p) { return ({corrected:'corrected_measurement',measured:'measurement',received:'reception_only',unresolved:'unknown_clock'})[observationClocks.placement(p).basis]; }
 function clean(s, n = 240) { return String(s || '').replace(/[\x00-\x1f<>]/g, ' ').slice(0,n); }
 function allowedSources(root, now) {
   const {spawnSync}=require('node:child_process');
@@ -32,7 +33,7 @@ function allowedSources(root, now) {
 function buildContext(root, now = new Date(), config = {}, permittedOverride) {
   const snapshot = readJSON(path.join(root, 'public/live-snapshot.json'));
   const asof = stamp(snapshot.as_of), time = +now;
-  if (!asof || asof > time + 300000 || time - asof > (config.stale_snapshot_minutes || 30) * 60000) throw Error('snapshot_stale_or_invalid');
+  if (asof === null || asof > time + 300000 || time - asof > (config.stale_snapshot_minutes || 30) * 60000) throw Error('snapshot_stale_or_invalid');
   const registry = readJSON(path.join(root,'research/SOURCE_REGISTRY.json'));
   const sources = new Map(registry.sources.map(s=>[s.id,s]));
   const permitted=permittedOverride || allowedSources(root,now);
@@ -46,20 +47,24 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
       const unique = new Map();
       for (const p of stream.points || []) {
         const t = stamp(sampleTime(p)), rx = stamp(p.rx);
-        if (typeof p.v !== 'number' || !Number.isFinite(p.v) || !t || !rx || t > asof || rx > asof || t < asof - 86400000) continue;
+        if (t === null || rx === null || t > asof || rx > asof || t < asof - 86400000) continue;
         const key = frame(p) + '|' + t;
-        if (!unique.has(key) || rx > stamp(unique.get(key).rx)) unique.set(key,p);
+        if (!unique.has(key) || rx >= stamp(unique.get(key).rx)) unique.set(key,p);
       }
       const values = [...unique.values()].sort((a,b)=>stamp(sampleTime(a))-stamp(sampleTime(b)));
       const last = values.at(-1);
-      if (!last) continue;
+      if (!last || typeof last.v !== 'number' || !Number.isFinite(last.v)) continue;
       const ageMinutes = Math.round((asof - stamp(sampleTime(last)))/60000);
       if (ageMinutes > Math.max(120, (source.cadence_seconds || 3600)/60*3)) continue;
-      const previous = values.find(p=>frame(p)===frame(last) && stamp(sampleTime(p)) < stamp(sampleTime(last))-1800000 && stamp(sampleTime(p)) >= stamp(sampleTime(last))-21600000);
+      const previous = values.find(p=>typeof p.v==='number' && Number.isFinite(p.v) && frame(p)===frame(last) && stamp(sampleTime(p)) < stamp(sampleTime(last))-1800000 && stamp(sampleTime(p)) >= stamp(sampleTime(last))-21600000);
+      const namedClocks=observationClocks.disclose(last,source.clock_rules);
       const fact = {kind:'observation',sid:source.sid,source:clean(source.name),url:reg.url,
         place:clean(stream.station),stream:clean(stream.datastream),metric:clean(stream.parameter),
         value:last.v,unit:clean(stream.unit),time:sampleTime(last),received_at:last.rx,
-        reported_time:last.t || null,result_time:last.rt || null,clock:frame(last),quality:clean(last.q),age_minutes:ageMinutes};
+        reported_time:last.t || null,result_time:last.rt || null,clock:frame(last),quality:clean(last.q),
+        age_minutes:namedClocks.measurement_time===null?null:ageMinutes,
+        reception_age_minutes:Math.round((asof-stamp(last.rx))/60000),
+        clocks:namedClocks,clock_explanation:observationClocks.describe(last,'sr',source.clock_rules)};
       if (Number.isFinite(stream.lat) && Number.isFinite(stream.lon)) fact.location = [stream.lon,stream.lat];
       if (previous) fact.comparison = {kind:'same_stream_change',from_value:previous.v,from_time:sampleTime(previous),
         delta:Math.round((last.v-previous.v)*1e6)/1e6,limitation:'Two observations on the same clock, not a causal explanation or a long-term trend.'};

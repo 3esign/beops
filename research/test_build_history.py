@@ -60,7 +60,9 @@ class HistoryCase(unittest.TestCase):
         self.assertEqual(d["hours_of_history"], 4)
 
     def test_a_null_result_is_missing_and_never_enters_the_mean(self):
-        d = self.fold({"S01": [row(result=20.0), row(result=None), row(result=30.0)]})
+        d = self.fold({"S01": [row(result=20.0),
+                               row(result=None,phenomenonTime='2026-09-09T10:10:00Z'),
+                               row(result=30.0,phenomenonTime='2026-09-09T10:20:00Z')]})
         b = d["series"][0]["buckets"]["2026-09-09T10"]
         self.assertEqual((b["n"], b["missing"]), (3, 1))
         self.assertEqual((b["min"], b["max"], b["mean"]), (20.0, 30.0, 25.0))   # not 16.67

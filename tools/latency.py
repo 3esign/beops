@@ -14,14 +14,12 @@ the moment it reached us:
 
     age = receivedTime - (end of the measurement window)
 
-WHAT IT IS NOT, and this is load-bearing. It is NOT the publisher's own latency. We ask on a fixed
-cadence, so a value published one second after we asked waits a whole interval before we see it. The
-age therefore contains the publisher's delay PLUS up to one polling interval of ours, and this record
-cannot separate them. Every output carries the cadence next to the age so the reader can subtract our
-share themselves; nothing here subtracts it for them, because the split is not measured.
-
-It is also not a quality score. A source that publishes hourly means cannot be fresher than half an
-hour on average and is not worse for it.
+WHAT IT IS NOT. This is not the publisher's own delay. The measurement interval's end is not the
+moment its result became available. Pauses, failed cycles, transport and processing can add more
+than the planned polling interval. The configured cadence is not an upper bound. Actual gaps
+between completed successful cycles are disclosed separately and do not establish availability.
+The unmeasured split stays unknown. An interval's duration is not added to age measured from its end.
+This is not a quality score.
 
 THE CLOCK. Where a source labels its times wrongly and the collector wrote a corrected estimate
 beside them (C-040), the age is computed from the CORRECTION and the output says so. Reading the
@@ -34,57 +32,69 @@ count and a sentence. That absence is the finding, not a gap in the table.
     python tools/latency.py show       # print it for a person
 """
 from __future__ import annotations
-from contracts import observation_rows
+from contracts import observation_rows, json_object, row_clock, utc, observation_point
 
 import json
 import pathlib
 import statistics
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ROWS = ROOT / "data" / "live" / "rows"
+RECEIPTS = None  # default follows ROWS; isolated callers never read another tree's receipts
 OUT = ROOT / "data" / "live" / "derived" / "latency"
 COLLECTORS = ROOT / "research" / "COLLECTORS.json"
-SCHEMA = "beops-latency/v1"
+SCHEMA = "beops-latency/v2"
 
 MIN_N = 20            # fewer ages than this is an anecdote, not a distribution
 MAX_DAYS = 30         # how far back to read
 NOT_A_MEASURE = {"headline", "planned_outage", "notice"}
 
-WHAT_THIS_IS = ("the age of a value at the moment it reached this record: the time between the end of "
-                "the measurement window the source stated and our reception of it. It contains the "
-                "publisher's own delay AND up to one of our polling intervals, and this record cannot "
-                "separate the two. It is not a measurement of the publisher alone, and it is not a "
-                "quality score.")
+WHAT_THIS_IS = ("the age of a value at reception, measured from the end of the stated measurement "
+                "interval. Its end is not the time the result became available. This record cannot separate "
+                "publisher, transport and our waiting time without availability evidence. A planned polling "
+                "interval is not an upper bound: failed or missed cycles can add several intervals. "
+                "It is not a measurement of the publisher alone, and it is not a quality score.")
 
 
 def _p(s):
-    if not s:
-        return None
-    try:
-        return datetime.fromisoformat(str(s).replace("Z", "+00:00"))
-    except ValueError:
-        return None
+    return utc(s)
 
 
 def _end_of(row: dict) -> tuple[datetime | None, str]:
     """(end of the measurement window, which clock it was read off). The correction wins where one
     exists - the label is what was served, the correction is what we believe it meant."""
-    if row.get('sourceClockUnresolved'):
-        return None, 'none'
-    pc = row.get("phenomenonTimeCorrected")
-    if isinstance(pc, dict) and pc.get("end") and not row.get("phenomenonTimeUnknown"):
-        d = _p(pc["end"])
-        if d:
-            return d, "corrected"
-    pt = row.get("phenomenonTime")
-    end = pt.get("end") if isinstance(pt, dict) else pt
-    if end and not row.get("phenomenonTimeUnknown"):
-        d = _p(end)
-        if d:
-            return d, "measured"
-    return None, "none"
+    end, basis = row_clock(row)
+    return (end, basis) if basis in ('measured', 'corrected') else (None, 'none')
+
+
+def successful_reception_gaps(sid, now, cadence_seconds):
+    """Observed completion gaps, not a bound on data availability or our delay."""
+    directory = (RECEIPTS if RECEIPTS is not None else ROWS.parent/'receipts')/sid
+    lower = now-timedelta(days=MAX_DAYS)
+    times = set()
+    missing_clocks = 0
+    for file in sorted(directory.glob('*.json')):
+        # Canonical names allow a cheap date bound; unknown names are still checked.
+        if len(file.stem) >= 8 and file.stem[:8].isdigit() and file.stem[:8] < lower.strftime('%Y%m%d'):
+            continue
+        receipt = json_object(file)
+        if receipt.get('state') != 'captured':
+            continue
+        end = utc(receipt.get('completed_at'))
+        if end is None:
+            missing_clocks += 1
+        elif lower <= end <= now:
+            times.add(end)
+    times = sorted(times)
+    gaps = [(b-a).total_seconds() for a,b in zip(times,times[1:])]
+    return {'time_basis':'successful_cycle_completed_at', 'successful_cycles':len(times),
+            'missing_completion_clocks':missing_clocks, 'intervals':len(gaps),
+            'max_minutes':round(max(gaps)/60,3) if gaps else None,
+            'gaps_over_cadence':sum(g > cadence_seconds for g in gaps) if cadence_seconds else None,
+            'last_success_at':times[-1].isoformat().replace('+00:00','Z') if times else None,
+            'availability_observed':False}
 
 
 def cadences() -> dict:
@@ -104,22 +114,29 @@ def build_source(sid: str, now: datetime | None = None, src: dict | None = None)
     by_clock: dict[str, list[float]] = {}
     clocks: set[str] = set()
     untimed = 0
+    unresolved = 0
     negative = 0
     total = 0
     note = None
+    example, example_at = None, None
     for f in sorted(d.glob("*.jsonl")):
         for r in observation_rows(f):
             if r.get("parameter") in NOT_A_MEASURE:
                 continue
             rx = _p(r.get("receivedTime"))
-            if not rx or (now - rx).days > MAX_DAYS:
+            if not rx or rx > now or rx < now-timedelta(days=MAX_DAYS):
                 continue
             total += 1
+            if example_at is None or rx >= example_at:
+                example, example_at = observation_point(r), rx
             if r.get("sourceClockNote"):
                 note = str(r["sourceClockNote"])
             end, clock = _end_of(r)
             if end is None:
-                untimed += 1
+                if r.get('phenomenonTimeUnknown') and not r.get('sourceClockUnresolved'):
+                    untimed += 1
+                else:
+                    unresolved += 1
                 continue
             clocks.add(clock)
             a = (rx - end).total_seconds() / 60.0
@@ -135,17 +152,27 @@ def build_source(sid: str, now: datetime | None = None, src: dict | None = None)
         "rows_read": total,
         "rows_with_a_measurement_time": len(ages),
         "rows_without_a_measurement_time": untimed,
+        "rows_with_unresolved_clock": unresolved,
         "our_polling_interval_minutes": round((src.get("cadence_seconds") or 0) / 60.0) or None,
+        "our_delay_upper_bound_minutes": None,
+        "delay_bound_state": "unknown_without_availability_evidence",
+        "successful_reception_gaps": successful_reception_gaps(sid, now, src.get('cadence_seconds')),
         "clocks": sorted(clocks),
         "source_clock_note": note,
+        "clock_example": example,
         "what_this_is": WHAT_THIS_IS,
         "age_minutes": None,
         "arrived_before_the_window_closed": negative,
     }
-    if untimed and not ages:
-        out["what_this_source_publishes"] = ("no measurement time at all: we know the value and when it "
-                                             "reached us, never when it was true. No age can be computed "
+    if untimed and not ages and not unresolved:
+        out["what_this_source_publishes"] = ("no measurement time at all: we record the number displayed by the source "
+                                             "and our reception; accuracy and measurement age are unconfirmed. No age can be computed "
                                              "and none is shown.")
+        return out
+    if unresolved and not ages:
+        out['what_this_source_publishes'] = (f"measurement clocks are unresolved on {unresolved} rows; "
+            f"{untimed} further rows publish no measurement time. No age distribution is computed; "
+            "an unresolved source label is not an absent measurement time or a fast reception.")
         return out
     if len(ages) < MIN_N:
         out["what_this_source_publishes"] = ("too few timed values to describe a distribution "
@@ -194,9 +221,10 @@ def build(sids: list[str] | None = None) -> dict:
     summary = {
         "schema": SCHEMA, "made_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "sources_read": len(res),
-        "sources_publishing_a_measurement_time": sum(1 for b in res.values() if b.get("age_minutes")),
+        "sources_publishing_a_measurement_time": sum(1 for b in res.values() if b['rows_with_a_measurement_time']),
         "sources_publishing_no_measurement_time": sum(1 for b in res.values()
-                                                      if not b.get("age_minutes") and b["rows_without_a_measurement_time"]),
+                                                      if not b['rows_with_a_measurement_time'] and not b['rows_with_unresolved_clock'] and b["rows_without_a_measurement_time"]),
+        "sources_with_unresolved_clocks": sum(1 for b in res.values() if b['rows_with_unresolved_clock']),
         "what_this_is": WHAT_THIS_IS,
         "sources_on_more_than_one_clock": sum(1 for b in res.values() if b.get("mixed_clocks")),
         "names": {s: names.get(s, "") for s in sorted(res)},
@@ -204,11 +232,16 @@ def build(sids: list[str] | None = None) -> dict:
                           "age_by_clock": b.get("age_by_clock") or {},
                           "mixed_clocks": b.get("mixed_clocks"),
                           "polling_interval_minutes": b.get("our_polling_interval_minutes"),
+                          "our_delay_upper_bound_minutes": b['our_delay_upper_bound_minutes'],
+                          "delay_bound_state": b['delay_bound_state'],
+                          "successful_reception_gaps": b['successful_reception_gaps'],
                           "clocks": b.get("clocks"),
                           "rows_read": b.get("rows_read"),
                           "rows_with_a_measurement_time": b.get("rows_with_a_measurement_time"),
                           "rows_without_a_measurement_time": b["rows_without_a_measurement_time"],
+                          "rows_with_unresolved_clock": b['rows_with_unresolved_clock'],
                           "source_clock_note": b.get("source_clock_note"),
+                          "clock_example": b.get("clock_example"),
                           "what_this_source_publishes": b.get("what_this_source_publishes")}
                       for s, b in sorted(res.items())},
     }

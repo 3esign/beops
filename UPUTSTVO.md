@@ -25,7 +25,7 @@ Operativno uputstvo, uskladjeno 11.09.2026. Pocetna tacka za sledeci rad; istori
 
 `npm test` izvrsava Python stdlib testove kroz mali Node pokretac, bez instalacije. `BEOPS_PYTHON` moze zadati drugi Python 3.9+, a publish gate za testove preferira bundled runtime sa potrebnim bibliotekama. Testovi nisu provera punog Svemira.
 
-Na ovom PC-u proveren Python je `C:/Users/treed/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe`. Kada `python` nije na PATH-u, pozvati taj izvrsni fajl; u PowerShell-u koristi se `&` ispred putanje u navodnicima. Putanja je lokalna pogodnost, ne obaveza drugih uredjaja.
+Lokalni `runtime/test-python.json` cuva provereni interpreter i postojecu Python podrsku; publisher koristi isti izbor za izgradnju i kompletnu kapiju. Na ovom PC-u 14.09.2026. proveren je Python 3.12.14 iz `C:/Users/treed/AppData/Roaming/uv/python/cpython-3.12-windows-x86_64-none/python.exe`, sa ReportLab podrskom u `D:/Svemir/!Projekti/_runtime/beops-test-support`. To su lokalne putanje, ne obaveza drugih uredjaja. Ne pretpostavljati da `python` na PATH-u ili stari bundled runtime postoji: publish prvo izvrsava proveru preduslova.
 
 `python -B research/observe_10k.py status` cita 13 planiranih termina i postojece receipte; ne pristupa internetu i ne pise stanje.
 
@@ -45,6 +45,8 @@ Kasnjenje do 20 minuta belezi stvarno vreme prijema, ne vreme izvornog merenja. 
 
 ## Gde je sta
 
+- Jedan aktivni Beops i skladistenje (private working record): Semirovo odobrenje za postojece D putanje, C junction kao ulaz, ogranicen privremeni build, rezerva prostora i oporavak bez dupliranja arhive.
+
 - [Struktura projekta](research/STRUCTURE_CONTRACT_2026-09-11.md): sta je izvor, dokaz, generisano javno stanje, privatni audit, ziva memorija i ostatak.
 - [Operativni red](research/OPERATIONAL_ORDER_2026-09-11.md): privatni Beops, javni mirror, C/D pravilo, scheduler i publish safety.
 - [Research indeks](research/README.md): svi istrazivacki dokumenti i vazeci paper lineage.
@@ -59,3 +61,5 @@ Kasnjenje do 20 minuta belezi stvarno vreme prijema, ne vreme izvornog merenja. 
 
 
 Recovery entry (2026-09-11): `research/_trail/REPAIR_2026-09-11.md` records implemented changes, validation and unresolved limits. `npm run doctor` checks local build requirements; `npm start` serves the verified public mirror when available, otherwise local generated docs, on a loopback port (printed on startup), and `npm run start:legacy` explicitly starts the old prototype. Headlines are retained and the complete collected archive is at `naslovi.html`; article bodies are not published. Public Git history persists. Scheduled task definitions are in `tools/beops_tasks.ps1`, with individual execution limits; disabled tasks and operator pauses are preserved.
+
+Publikacija koristi Windows task Priority=4 (normalan CPU, I/O i memorijski prioritet); ostali organi zadrzavaju prethodni background prioritet 7. Read-only task audit poredi stvarno stanje sa zajednickom definicijom. Rok obrade od 25 minuta ostavlja pet minuta do sledeceg redovnog termina; zavrsetak ciscenja i oslobodjena brava moraju se potvrditi zasebno. Faze imaju trajanje i ishod, a priprema i pocetak unutrasnjih faza, tako da timeout ostavlja poslednje poznato mesto rada. R02 se ne zatvara samom promenom prioriteta ili roka. Aktuelni dokaz i otvorene granice: R02 napredak (private working record).

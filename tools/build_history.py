@@ -19,9 +19,10 @@ The rules this file exists to keep, and which a chart makes very easy to break:
     such rows is kept, because "the instrument answered and had nothing to say" is a fact.
   * Text rows (a headline, an outage notice) have no numeric result. They get a count per hour
     and nothing else - counting notices is honest, averaging them is not.
-  * A mean here is the mean of the rows we received in that hour, not of the hour. For SEPA
-    that is one published hourly mean; for citizen sensors it is however many readings arrived.
-    `n` is on every bucket so the difference is visible rather than implied.
+  * A scalar mean uses the current logical observations assigned to an hour. Revisions of one
+    source-labelled observation replace it; receptions are not extra measurements. Source-declared
+    interval means are labelled separately. Circular directions retain unit-vector sums and counts,
+    including undefined resultants. Counts, text and unknown types get no automatic arithmetic mean.
 
 The output is small by construction (buckets, not rows), so it can grow to months without the
 site growing with it.
@@ -30,7 +31,8 @@ from __future__ import annotations
 from contracts import observation_rows
 
 import json
-from contracts import row_clock, finite, content_id
+import math
+from contracts import row_clock, finite, observation_identity, utc, parameter_semantics, direction_summary, PARAMETER_SEMANTICS
 import pathlib
 import sys
 from datetime import datetime, timedelta, timezone
@@ -41,7 +43,7 @@ OUT = ROOT / "public" / "history.json"
 CONFIG = ROOT / "research" / "COLLECTORS.json"
 
 MAX_DAYS = 92            # a quarter of hourly buckets is plenty for a page; older rows stay on disk
-SCHEMA = "beops-history/v2"
+SCHEMA = "beops-history/v3"
 
 
 def iso(dt: datetime) -> str:
@@ -59,10 +61,7 @@ def parse_time(s):
         return None
     if "/" in s:
         s = s.split("/", 1)[1]
-    try:
-        return datetime.fromisoformat(s.replace("Z", "+00:00")).astimezone(timezone.utc)
-    except ValueError:
-        return None
+    return utc(s)
 
 
 def hour_key(dt: datetime) -> str:
@@ -77,15 +76,22 @@ def load_config() -> dict:
     return {s["sid"]: s for s in cfg.get("sources", [])}
 
 
-def fold(now: datetime | None = None) -> dict:
-    """One pass over every stored row; nothing is held in memory but the buckets."""
+def fold(now: datetime | None = None, rows=None) -> dict:
+    """One pass; choose revisions in the bounded reception window before grouping.
+
+    A newer unusable clock invalidates that observation's older version. It is
+    retained as a compact tombstone until revision selection finishes, never as
+    a fallback measurement. Both reception and plotted time must fit the cut.
+    """
     now = now or datetime.now(timezone.utc)
+    rows = pathlib.Path(rows) if rows is not None else ROWS
     floor = now - timedelta(days=MAX_DAYS)
     cfg = load_config()
     series: dict[str, dict] = {}
+    revisions = {}
     unparsed: dict[str, int] = {}
 
-    for sid_dir in sorted(p for p in ROWS.iterdir() if p.is_dir()) if ROWS.exists() else []:
+    for sid_dir in sorted(p for p in rows.iterdir() if p.is_dir()) if rows.exists() else []:
         sid = sid_dir.name
         for f in sorted(sid_dir.glob("*.jsonl")):
           for r in observation_rows(f):
@@ -93,23 +99,23 @@ def fold(now: datetime | None = None) -> dict:
                 if not ds:
                     continue
 
-                untimed = bool(r.get("phenomenonTimeUnknown"))
-                if untimed:
-                    t, basis = parse_time(r.get("receivedTime")), "received"
-                else:
-                    t, basis = row_clock(r)
-                    if t is None:
-                        # The row claims a measurement time this program cannot read. Falling back to
-                        # the reception clock here would quietly relabel a measurement as a reception,
-                        # which is the one substitution this project does not make. Count it and drop it.
-                        unparsed[sid] = unparsed.get(sid, 0) + 1
-                        continue
-                if t is None or t < floor or t > now + timedelta(hours=1):
+                received = utc(r.get('receivedTime'))
+                if received is None:
+                    unparsed[sid] = unparsed.get(sid, 0) + 1
+                    continue
+                if received < floor or received > now:
                     continue
 
-                key = f"{sid}|{ds}|{basis}"
-                if key in series and series[key].get("unit") != r.get("unit"):
-                    key += "|unit=" + str(r.get("unit"))
+                t, basis = row_clock(r)
+                if basis == 'arrival':
+                    basis = 'received'
+                if t is None:
+                    # Keep the revision identity so the previous number cannot reappear.
+                    # The unusable clock is omitted only after latest revision selection.
+                    unparsed[sid] = unparsed.get(sid, 0) + 1
+
+                value_type, interval_seconds = parameter_semantics(r)
+                key = json.dumps([sid, ds, basis, r.get('unit'), value_type, interval_seconds])
                 s = series.get(key)
                 if s is None:
                     s = series[key] = {
@@ -117,30 +123,65 @@ def fold(now: datetime | None = None) -> dict:
                         "station": r.get("station_name") or r.get("station_id"),
                         "parameter": r.get("parameter"), "unit": r.get("unit"),
                         "time_basis": basis,
+                        "value_type": value_type, "interval_seconds": interval_seconds,
                         "cadence_seconds": (cfg.get(sid) or {}).get("cadence_seconds"),
-                        "buckets": {},
+                        "events": [],
                     }
-                b = s["buckets"].setdefault(hour_key(t), {"events": {}})
-                event_key = str(r.get("dedupe_key") or r.get("row_id") or content_id(r))
-                if not r.get("dedupe_key") and untimed:
-                    event_key += "|received=" + str(r.get("receivedTime") or "")
-                b["events"][event_key] = r.get("result")
+                event_key = (sid, ds, observation_identity(r))
+                event = (t.timestamp() if t is not None else None, received.timestamp(), r.get('result'))
+                prior = revisions.get(event_key)
+                # Clock basis, interval type and the plotting boundary cannot
+                # split two versions of one source observation into two facts.
+                if prior is None or event[1] >= prior[1][1]:
+                    revisions[event_key] = (s, event)
+
+    lower, upper = floor.timestamp(), now.timestamp()
+    for s, event in revisions.values():
+        if event[0] is not None and lower <= event[0] <= upper:
+            s['events'].append(event)
+    del revisions
 
     out_series = []
     for key, s in sorted(series.items()):
         buckets = {}
-        for hk, b in sorted(s["buckets"].items()):
-            events = b["events"]
-            vals = [float(value) for value in events.values() if finite(value)]
-            missing = len(events) - len(vals)
-            row = {"n": len(events)}
-            if missing:
-                row["missing"] = missing
-            if vals:
+        grouped = {}
+        for event in s.pop('events'):
+            grouped.setdefault(hour_key(datetime.fromtimestamp(event[0], timezone.utc)), []).append(event)
+        kind = s['value_type']
+        def public_point(event):
+            if event is None: return None
+            def stamp(value):
+                return datetime.fromtimestamp(value, timezone.utc).isoformat().replace('+00:00','Z') if value is not None else None
+            return {'v': event[2] if finite(event[2]) else None,
+                    't': stamp(event[0]) if s['time_basis'] != 'received' else None,
+                    'rx': stamp(event[1]), 'time_basis': s['time_basis']}
+        for hk, events in sorted(grouped.items()):
+            numeric = [float(event[2]) for event in events if finite(event[2])]
+            vals = [value for value in numeric if (0 <= value <= 360 if kind == 'circular_degrees'
+                    else value >= 0 and value.is_integer() if kind == 'count' else True)]
+            row = {'n':len(events), 'missing':len(events)-len(numeric), 'invalid':len(numeric)-len(vals)}
+            if kind in ('scalar','interval_average','count') and vals:
                 row["min"] = round(min(vals), 4)
                 row["max"] = round(max(vals), 4)
-                row["mean"] = round(sum(vals) / len(vals), 4)
-                row["last"] = round(vals[-1], 4)
+                if kind != 'count':
+                    row['value_sum'] = math.fsum(vals)
+                    row['mean'] = round(row['value_sum'] / len(vals), 4)
+            if kind == 'circular_degrees':
+                row.update(direction_count=len(vals),
+                           direction_sum_cos=math.fsum(math.cos(math.radians(v)) for v in vals),
+                           direction_sum_sin=math.fsum(math.sin(math.radians(v)) for v in vals))
+                row.update(direction_summary(row['direction_sum_cos'],row['direction_sum_sin'],len(vals)))
+            if kind != 'text':
+                # Null is retained. A later older observation cannot become the
+                # latest measurement merely because its reception happened later.
+                rx_key=lambda event: event[1] if event[1] is not None else float('-inf')
+                last_measured=max(events,key=lambda event:(event[0],rx_key(event))) if s['time_basis'] != 'received' else None
+                received_events=[event for event in events if event[1] is not None]
+                last_received=max(received_events,key=lambda event:(event[1],event[0])) if received_events else None
+                row['last_by_measurement']=public_point(last_measured)
+                row['last_received']=public_point(last_received)
+                selected=row['last_by_measurement'] if s['time_basis'] != 'received' else row['last_received']
+                row['last']=selected['v'] if selected else None
             buckets[hk] = row
         if not buckets:
             continue
@@ -148,11 +189,11 @@ def fold(now: datetime | None = None) -> dict:
         first = datetime.strptime(hours[0], "%Y-%m-%dT%H").replace(tzinfo=timezone.utc)
         last = datetime.strptime(hours[-1], "%Y-%m-%dT%H").replace(tzinfo=timezone.utc)
         expected = int((last - first).total_seconds() // 3600) + 1
-        numeric = any("mean" in b for b in buckets.values())
+        numeric = kind in ('scalar','interval_average','count','circular_degrees')
         out_series.append({
             **{k: s[k] for k in ("sid", "datastream", "station", "parameter", "unit",
-                                 "time_basis", "cadence_seconds")},
-            "kind": "numeric" if numeric else "count",
+                                 "time_basis", "cadence_seconds", "value_type", "interval_seconds")},
+            "kind": "numeric" if numeric else "count" if kind == 'text' else 'unclassified',
             "first_hour": hours[0], "last_hour": hours[-1],
             "hours_present": len(buckets), "hours_expected": expected,
             "buckets": buckets,
@@ -163,6 +204,7 @@ def fold(now: datetime | None = None) -> dict:
     latest = max((s["last_hour"] for s in covered), default=None)
     return {
         "schema": SCHEMA,
+        "parameter_semantics": PARAMETER_SEMANTICS,
         "built": iso(now),
         "history_starts": earliest,
         "history_ends": latest,
@@ -172,15 +214,24 @@ def fold(now: datetime | None = None) -> dict:
         "note": ("Hourly buckets folded from the stored rows. An absent hour is absent, never a zero and "
                  "never a line drawn across the gap; hours_present against hours_expected says how much of "
                  "the span exists. A series whose source publishes no measurement time is bucketed by "
-                 "reception and says so in time_basis. n is the number of rows received in that hour, not "
-                 "a claim about how many measurements the instrument made."),
+                 "reception and says so in time_basis. n counts retained logical observations assigned to "
+                 "the bucket after revisions, not physical receptions or instrument uptime. Scalar means "
+                 "use retained sample sums; directions use unit-vector component sums and valid counts."),
         "unreadable_measurement_times": unparsed,   # rows dropped rather than moved to another clock
         "series": out_series,
     }
 
 
 def main() -> int:
-    data = fold()
+    from release_observation import input_generation, generation_time
+    from live_view import observation_view
+    generation = input_generation(ROWS.parent)
+    with observation_view(ROWS.parent) as inputs:
+        data = fold(generation_time(generation) if generation else None, inputs/'rows')
+    if generation:
+        data['input_generation'] = generation
+        data['as_of'] = iso(generation_time(generation))
+        data['built'] = iso(datetime.now(timezone.utc))
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"wrote {OUT} ({OUT.stat().st_size} bytes; {len(data['series'])} series, "

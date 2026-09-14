@@ -25,10 +25,12 @@ try {
     exit 0
   }
   $publishedAt = [DateTimeOffset]::Parse(
-    [string]$receipt.at,
+    [string]$(if ($receipt.cycle_started_at) { $receipt.cycle_started_at } else { $receipt.at }),
     [System.Globalization.CultureInfo]::InvariantCulture,
     [System.Globalization.DateTimeStyles]::AssumeUniversal
   ).ToUniversalTime()
+  $finishedAt = [DateTimeOffset]::Parse([string]$receipt.at).ToUniversalTime()
+  if ($publishedAt -gt $finishedAt) { $publishedAt = $finishedAt }
 } catch {
   Write-Output 'publish due: successful receipt is unreadable'
   exit 0

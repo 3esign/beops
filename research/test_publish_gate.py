@@ -29,7 +29,11 @@ class Gate(unittest.TestCase):
                       "the publisher no longer runs the tests: every scheduled publish would go out unchecked")
         runner = (ROOT / 'tools' / 'test-research.js').read_text(encoding='utf-8')
         self.assertIn("'unittest', 'discover'", runner)
-        self.assertIn('timeout: 120000', runner)
+        from test_research_runner import ResearchRunner
+        dispatch = ResearchRunner().simulate('ok')
+        self.assertEqual(dispatch['exitCode'], 0)
+        self.assertTrue(dispatch['calls'])
+        self.assertTrue(all(call['timeout'] == 120000 for call in dispatch['calls']))
 
     def test_direct_publisher_prefers_the_bundled_test_python(self):
         """The documented direct PowerShell command must not fall back to a random PATH python."""

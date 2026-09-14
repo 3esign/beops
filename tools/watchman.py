@@ -31,8 +31,9 @@ a human reading a terminal. Nothing in this project should ever trust it as evid
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
-from contracts import json_rows, exclusive, atomic_json
+from contracts import RecordFormatError, json_rows, exclusive, atomic_json
 import pathlib
 import subprocess
 import permission_policy
@@ -43,6 +44,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 LIVE = ROOT / "data" / "live"
 LEDGER = LIVE / "watch-ledger.jsonl"
 PUBLIC = ROOT / "public" / "watch.json"
+ROW_INDEX_SCHEMA = "beops-watch-row-index/v1"
 CADENCE_MIN = 10                      # the watchman's own schedule, for judging its own gaps
 
 OK, LATE, STALLED, UNKNOWN = "ok", "late", "stalled", "unknown"
@@ -96,28 +98,155 @@ def newest_receipt(sid: str):
     return (t, None) if t else (None, "receipt carries no time")
 
 
-def newest_row(sid: str):
+def row_index_path() -> pathlib.Path:
+    return LIVE / "watch-row-index.json"
+
+
+def load_row_index() -> dict:
+    try:
+        value = json.loads(row_index_path().read_text(encoding="utf-8-sig"))
+        if value.get("schema") == ROW_INDEX_SCHEMA and isinstance(value.get("files"), dict):
+            return value
+    except (OSError, UnicodeError, ValueError, AttributeError):
+        pass
+    # The index is only an acceleration. Missing or corrupt cache means one authoritative full
+    # validation, never an UNKNOWN result and never trust in the broken cache.
+    return {"schema": ROW_INDEX_SCHEMA, "files": {}}
+
+
+def digest_prefix(path: pathlib.Path, length: int):
+    digest = hashlib.sha256()
+    remaining = length
+    with open(path, "rb") as fh:
+        while remaining:
+            chunk = fh.read(min(1024 * 1024, remaining))
+            if not chunk:
+                raise OSError("row file became shorter while it was checked")
+            digest.update(chunk)
+            remaining -= len(chunk)
+    return digest
+
+
+def full_row_entry(path: pathlib.Path) -> dict:
+    """Strictly validate the whole file when no trustworthy append-only prefix is known."""
+    for _ in range(2):
+        before = path.stat()
+        newest = None
+        stats = {}
+        for row in json_rows(path, stats):
+            t = parse(row.get("receivedTime"))
+            if t and (newest is None or t > newest):
+                newest = t
+        digest = digest_prefix(path, before.st_size).hexdigest()
+        after = path.stat()
+        if before.st_size == after.st_size and before.st_mtime_ns == after.st_mtime_ns:
+            return {
+                "size": before.st_size,
+                "mtime_ns": before.st_mtime_ns,
+                "sha256": digest,
+                "rows": stats.get("valid", 0),
+                "physical_lines": stats.get("valid", 0) + stats.get("blank", 0),
+                "newest": newest.isoformat() if newest else None,
+                "ends_newline": before.st_size == 0 or _last_byte(path) == b"\n",
+            }
+    raise OSError("row file kept changing while it was checked")
+
+
+def _last_byte(path: pathlib.Path) -> bytes:
+    with open(path, "rb") as fh:
+        if fh.seek(0, 2) == 0:
+            return b""
+        fh.seek(-1, 2)
+        return fh.read(1)
+
+
+def extend_row_entry(path: pathlib.Path, cached: dict, current) -> dict:
+    """Validate only bytes appended after a previously validated immutable prefix."""
+    old_size = int(cached["size"])
+    if current.st_size <= old_size or not cached.get("ends_newline"):
+        return full_row_entry(path)
+    digest = digest_prefix(path, old_size)
+    if digest.hexdigest() != cached.get("sha256"):
+        # The supposed immutable prefix changed. A full strict read exposes middle corruption.
+        return full_row_entry(path)
+    with open(path, "rb") as fh:
+        fh.seek(old_size)
+        appended = fh.read(current.st_size - old_size)
+    if len(appended) != current.st_size - old_size:
+        raise OSError("row file changed while its append was checked")
+    digest.update(appended)
+    newest = parse(cached.get("newest"))
+    valid = int(cached.get("rows", 0))
+    physical = int(cached.get("physical_lines", 0))
+    offset = old_size
+    for number, raw in enumerate(appended.splitlines(keepends=True), physical + 1):
+        if not raw.strip():
+            offset += len(raw)
+            continue
+        try:
+            row = json.loads(raw.decode("utf-8"),
+                             parse_constant=lambda s: (_ for _ in ()).throw(ValueError(s)))
+            if not isinstance(row, dict):
+                raise ValueError("row is not an object")
+        except (UnicodeError, ValueError, TypeError) as exc:
+            kind = "truncated_tail" if not raw.endswith(b"\n") else "corrupt"
+            raise RecordFormatError(path, number, offset, kind) from exc
+        valid += 1
+        t = parse(row.get("receivedTime"))
+        if t and (newest is None or t > newest):
+            newest = t
+        offset += len(raw)
+    return {
+        "size": current.st_size,
+        "mtime_ns": current.st_mtime_ns,
+        "sha256": digest.hexdigest(),
+        "rows": valid,
+        "physical_lines": physical + len(appended.splitlines()),
+        "newest": newest.isoformat() if newest else None,
+        "ends_newline": current.st_size == 0 or appended.endswith(b"\n"),
+    }
+
+
+def newest_row(sid: str, row_index: dict | None = None):
     d = LIVE / "rows" / sid
     if not d.is_dir():
         return None, "no rows directory"
+    row_index = row_index if row_index is not None else load_row_index()
+    entries = row_index.setdefault("files", {})
     newest = None
     for f in sorted(d.glob("*.jsonl")):
         try:
-            for row in json_rows(f):
-                t = parse(row.get('receivedTime'))
-                if t and (newest is None or t > newest):
-                    newest = t
+            # Collector row files are append-only and receivedTime is assigned when the row is
+            # appended. Re-reading every historical JSON object here made a ten-minute watch tick
+            # parse the whole corpus once per source. A cache hit is accepted only for the exact
+            # size and mtime of a prefix that was previously parsed strictly. Growth first verifies
+            # that prefix by SHA-256, then strictly parses only the appended records.
+            key = f.relative_to(LIVE).as_posix()
+            cached = entries.get(key)
+            current = f.stat()
+            if (isinstance(cached, dict) and cached.get("size") == current.st_size
+                    and cached.get("mtime_ns") == current.st_mtime_ns):
+                entry = cached
+            elif isinstance(cached, dict) and current.st_size > int(cached.get("size", -1)):
+                entry = extend_row_entry(f, cached, current)
+            else:
+                entry = full_row_entry(f)
+            entries[key] = entry
+            t = parse(entry.get("newest"))
+            if t and (newest is None or t > newest):
+                newest = t
         except Exception as e:                                    # noqa: BLE001
             return None, f"unreadable rows: {e}"
     return (newest, None) if newest else (None, "no dated row")
 
 
-def sources(now: datetime) -> list[dict]:
+def sources(now: datetime, persist_index: bool = False) -> list[dict]:
     try:
         cfg = json.loads((ROOT / "research" / "COLLECTORS.json").read_text(encoding="utf-8"))
     except Exception as e:                                        # noqa: BLE001
         return [check("sources", UNKNOWN, f"the collector list could not be read ({type(e).__name__})")]
     out = []
+    row_index = load_row_index()
     try:
         entries = permission_policy.latest(ROOT/'research/08-provenance/LEDGER.jsonl')
     except (OSError, ValueError) as exc:
@@ -133,7 +262,7 @@ def sources(now: datetime) -> list[dict]:
                              cadence_min=cad, network_requests=0))
             continue
         rt, rerr = newest_receipt(sid)
-        rowt, rowerr = newest_row(sid)
+        rowt, rowerr = newest_row(sid, row_index)
         if rt is None:
             out.append(check(f"source {sid}", UNKNOWN, f"we cannot tell whether we asked: {rerr}",
                              sid=sid, cadence_min=cad))
@@ -154,6 +283,8 @@ def sources(now: datetime) -> list[dict]:
             state, said = OK, f"asked {asked:.0f} min ago, newest value {heard:.0f} min old"
         out.append(check(f"source {sid}", state, said, sid=sid, cadence_min=cad,
                          asked_min_ago=asked, heard_min_ago=heard))
+    if persist_index:
+        atomic_json(row_index_path(), row_index)
     return out
 
 
@@ -330,7 +461,7 @@ def rows_did_not_shrink(cur: dict, prev: dict | None) -> dict | None:
 
 
 # ---------------------------------------------------------------- the run
-def run(now: datetime | None = None) -> dict:
+def run(now: datetime | None = None, persist_index: bool = False) -> dict:
     now = now or now_utc()
     cont, prev = continuity(now)
     checks = [cont, published(now), history(now), mind(now), ai_feed(now)]
@@ -339,7 +470,7 @@ def run(now: datetime | None = None) -> dict:
     kept = rows_did_not_shrink(rt, prev)
     if kept:
         checks.append(kept)
-    checks += sources(now)
+    checks += sources(now, persist_index=persist_index)
     states = {c["state"] for c in checks}
     if STALLED in states:
         verdict = STALLED
@@ -387,7 +518,7 @@ def main() -> int:
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--export", action="store_true", help="write a view of frozen inputs without appending a monitoring run")
     a = ap.parse_args()
-    r = run()
+    r = run(persist_index=not a.dry and not a.export)
     print(json.dumps(r, ensure_ascii=False, indent=1) if a.json else report(r))
     if not a.dry:
         LEDGER.parent.mkdir(parents=True, exist_ok=True)

@@ -11,10 +11,19 @@ from contracts import exclusive
 
 def forbidden(path):
     parts = pathlib.PurePosixPath(path.replace('\\', '/')).parts
+    if not parts:
+        return True
     if parts[-1].endswith(('.lock','.tmp')) or parts[-1] == 'BACKUP_MANIFEST.json':
         return True
-    return any(p.lower() in {'.git', 'node_modules', '__pycache__', '_to_delete', 'runtime'}
-               or p.lower().startswith(('.env', 'secrets.', 'kaggle.')) for p in parts)
+    if any(p.lower() in {'.git', 'node_modules', '__pycache__', '_to_delete'}
+           or p.lower().startswith(('.env', 'secrets.', 'kaggle.')) for p in parts):
+        return True
+    if 'runtime' in (p.lower() for p in parts):
+        # These immutable records are evidence, not a disposable runtime cache.
+        return not (parts[:2] == ('runtime', 'ai-feed') and (
+            (len(parts) >= 4 and parts[2] in {'entries', 'contexts', 'prompts', 'responses', 'reviews'})
+            or (len(parts) == 3 and parts[2] in {'attempts.jsonl', 'reviews.jsonl'})))
+    return False
 
 
 def safe_name(name):
@@ -31,7 +40,7 @@ def backup(root, archive):
     oid = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
     files = []
     with exclusive(root/'research/08-provenance/LEDGER.lock'), exclusive(root/'data/live/.write.lock'):
-        # Runtime logs and caches are deliberately not needed for reconstructing observations.
+        # Durable AI evidence is included explicitly; operational logs/caches stay out.
         for path in sorted(root.rglob('*')):
             rel = path.relative_to(root).as_posix()
             if forbidden(rel) or not path.is_file():
@@ -40,7 +49,7 @@ def backup(root, archive):
                 raise ValueError('linked input outside backup boundary: '+rel)
             files.append((path,rel))
         manifest = {'schema':'beops-backup/v1', 'source_commit':oid,
-                    'scope':'working source, evidence, observations, live rows, receipts and derived state; no secrets, Git history or runtime logs', 'files':[]}
+                    'scope':'working source, evidence, observations, live rows, receipts, derived state and immutable AI entries/contexts/prompts/responses/reviews; no secrets, Git history or runtime logs', 'files':[]}
         archive.parent.mkdir(parents=True, exist_ok=True)
         with zipfile.ZipFile(archive,'x',compression=zipfile.ZIP_DEFLATED,compresslevel=1,allowZip64=True) as z:
             for path,rel in files:

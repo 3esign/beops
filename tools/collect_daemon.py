@@ -47,6 +47,7 @@ from contracts import json_rows, json_object, serialized, atomic_json, observati
 import gzip
 import hashlib
 from contracts import finite, belgrade_local, belgrade_offset, content_id, exclusive
+from contracts import select_observation_points, observation_identity, observation_point, utc as contract_utc
 import permission_policy
 import source_policy
 import transport
@@ -132,25 +133,26 @@ def parse_sepa_hvd(body: bytes, received: datetime, src: dict) -> list[dict]:
     note = src.get("source_clock_note")
     if note and note.get("offset_seconds"):
         off = int(note["offset_seconds"])
+        until = contract_utc(note.get('valid_until'))
         for r in rows:
             r["sourceClockNote"] = note["text"]
-            if note.get('valid_until') and iso(received) >= note['valid_until']:
+            r['sourceClockRule'] = note.get('rule_id')
+            r['sourceClockValidUntil'] = note.get('valid_until')
+            if until is None or received.astimezone(timezone.utc) >= until:
                 r['sourceClockUnresolved'] = True
-                r['sourceClockRule'] = note.get('rule_id')
                 continue
             pt = r["phenomenonTime"]
             r["phenomenonTimeCorrected"] = {"start": _shift(pt.get("start"), -off), "end": _shift(pt.get("end"), -off),
                                             "state": "estimated", "why": note["text"]}
+            if r['phenomenonTimeCorrected']['end'] is None:
+                r['sourceClockUnresolved'] = True
             r["resultTimeCorrected"] = _shift(r["resultTime"], -off)
     return rows
 
 
 def _shift(s: str | None, seconds: int) -> str | None:
-    if not s:
-        return None
-    try:
-        dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
-    except ValueError:
+    dt = contract_utc(s)
+    if dt is None:
         return None
     return iso(dt + timedelta(seconds=seconds))
 
@@ -271,6 +273,7 @@ def parse_rss(body: bytes, received: datetime, src: dict) -> list[dict]:
             "schema": SCHEMA_ROW, "sid": src["sid"], "kind": "text",
             "datastream": f"{src['sid']}|headline", "station_id": src["sid"], "parameter": "headline",
             "result": title or None, "unit": None, "link": link or None,
+            "geography": src.get("geography", "Nepoznato"),
             "phenomenonTime": None, "phenomenonTimeUnknown": True,
             "phenomenonTimeReason": "a headline carries its publication time, not the time of what it reports",
             "resultTime": rt, "receivedTime": iso(received),
@@ -667,13 +670,18 @@ def is_due(src: dict, now: datetime) -> tuple[bool, str]:
 
     Ticks fire every 5 min, so a 600 s cadence is served every second tick;
     tolerance keeps a 599.2 s gap from becoming a 900 s one."""
-    rec = receipts(src["sid"])
-    if not rec:
+    # Receipt filenames are the UTC attempted-at stamp. Listing names is cheap;
+    # reopening the entire growing archive on every five-minute tick is not.
+    directory = LIVE / 'receipts' / src['sid']
+    newest = max(directory.glob('????????T??????Z.json'), default=None)
+    if newest is None:
         return True, "no receipt yet"
-    last = max(r.get("attempted_at", "") for r in rec)
     try:
+        last = json_object(newest).get('attempted_at', '')
         last_dt = datetime.fromisoformat(last.replace("Z", "+00:00"))
-    except ValueError:
+        if stamp(last_dt) != newest.stem:
+            raise ValueError('receipt stamp mismatch')
+    except (ValueError, OSError):
         return True, "unreadable last receipt time"
     gap = (now - last_dt).total_seconds()
     if gap >= src["cadence_seconds"] - 45:
@@ -800,10 +808,12 @@ def status(now: datetime | None = None, hours: int = 24) -> dict:
         if last_ok:
             age = int((now - datetime.fromisoformat(last_ok.replace("Z", "+00:00"))).total_seconds())
         cells = _quorum_cells(src, rec, now, hours)
+        last_attempt = max(rec, key=lambda r:r.get('attempted_at', ''), default={})
         out.append({"sid": src["sid"], "name": src["name"], "cadence_seconds": src["cadence_seconds"],
                     "expected_slots": expected, "captured": captured, "failed": failed,
                     "missing": max(0, expected - captured - failed), "last_captured_at": last_ok,
                     "age_seconds": age, "paused": paused(src["sid"]), "quorum": cells,
+                    "last_attempt_at": last_attempt.get('attempted_at'), "last_attempt_state": last_attempt.get('state'),
                     "rows_last": next((r.get("rows") for r in reversed(rec) if r.get("state") == "captured"), None),
                     "phenomenon_time_published": src.get("phenomenon_time_published")})
     return {"schema": "beops-live-status/v1", "as_of": iso(now), "window_hours": hours, "sources": out,
@@ -857,11 +867,14 @@ def export(now: datetime | None = None, hours: int = 24) -> pathlib.Path:
     # Mutable rows share one cut. Immutable receipt/status reads and rendering
     # happen afterwards, so thousands of receipts cannot block live writers.
     from live_view import observation_view
-    with observation_view(LIVE) as inputs:
-        return _export_captured(now, hours, inputs)
+    from release_observation import input_generation, generation_time
+    generation = input_generation(LIVE)
+    if generation and now is None:
+        now = generation_time(generation)
+    return _export_captured(now, hours, LIVE, generation)
 
 
-def _export_captured(now, hours, inputs) -> pathlib.Path:
+def _export_captured(now, hours, inputs, generation=None) -> pathlib.Path:
     """Snapshot of the last `hours` of current events per datastream (public/live-snapshot.json).
 
     Every value is copied from a stored row after its explicit correction overlay: no aggregation,
@@ -873,6 +886,8 @@ def _export_captured(now, hours, inputs) -> pathlib.Path:
     cfg = load_config()
     since = iso(now - timedelta(hours=hours))
     out = {"schema": "beops-live-snapshot/v1", "as_of": iso(now), "window_hours": hours, "sources": [], "status": status(now, hours)}
+    if generation:
+        out['input_generation'] = generation
     for src in cfg["sources"]:
         streams: dict = {}
         events: list = []
@@ -898,27 +913,21 @@ def _export_captured(now, hours, inputs) -> pathlib.Path:
                         ds["lat"], ds["lon"] = r.get("lat"), r.get("lon")
                     if r.get("station_name") and ds.get("station") == r.get("station_id"):
                         ds["station"] = r.get("station_name")
-                    pt = r.get("phenomenonTime")
-                    pc = r.get("phenomenonTimeCorrected")
-                    point = {"t": (pt.get("end") if isinstance(pt, dict) else pt), "tu": bool(r.get("phenomenonTimeUnknown")),
-                             "rt": r.get("resultTime"), "rx": r.get("receivedTime"), "v": r.get("result"), "q": r.get("resultQuality")}
-                    if r.get("sourceClockUnresolved"):
-                        point["source_label"] = point["t"]
-                        point["t"], point["tu"] = None, True
-                        point["clock_note"] = "source clock correction requires renewed evidence"
-                    if isinstance(pc, dict) and pc.get("end"):
-                        point["tc"] = pc["end"]      # corrected placement (estimated); the received label stays in "t"
-                    event_key = str(r.get("dedupe_key") or r.get("row_id") or content_id(r))
-                    if not r.get("dedupe_key") and r.get("phenomenonTimeUnknown") is True:
-                        event_key += "|received=" + str(r.get("receivedTime") or "")
+                    point = observation_point(r)
+                    event_key = observation_identity(r)
                     prior = ds["_events"].get(event_key)
                     if prior is not None:
                         point["revisions"] = int(prior.get("revisions", 0)) + 1
+                        minimum = datetime.min.replace(tzinfo=timezone.utc)
+                        if (contract_utc(point.get('rx')) or minimum) < (contract_utc(prior.get('rx')) or minimum):
+                            prior['revisions'] = point['revisions']
+                            continue
                     ds["_events"][event_key] = point
         for stream in streams.values():
             stream["points"] = sorted(stream.pop("_events").values(),
                                       key=lambda point: (str(point.get("rx") or ""),
                                                          str(point.get("t") or "")))
+            stream.update(select_observation_points(stream['points']))
         out["sources"].append({"sid": src["sid"], "name": src["name"], "cadence_seconds": src["cadence_seconds"],
                                "phenomenon_time_published": src.get("phenomenon_time_published"),
                                "datastreams": sorted(streams.values(), key=lambda x: (str(x["station"]), str(x["parameter"]))),
@@ -1048,7 +1057,16 @@ def main() -> int:
     ap.add_argument("--only", default="", help="tick one source id")
     a = ap.parse_args()
     if a.command == "tick":
-        print(json.dumps(tick(only=a.only), ensure_ascii=False, indent=1))
+        result = tick(only=a.only)
+        # Isolated publication no longer rebuilds this local view. AI context and
+        # local checks consume it, so collection owns its regular refresh.
+        try:
+            result['snapshot'] = str(export())
+        except Exception as exc:
+            result['snapshot_error'] = {'type': type(exc).__name__, 'message': str(exc)[:240]}
+            print(json.dumps(result, ensure_ascii=False, indent=1))
+            return 1
+        print(json.dumps(result, ensure_ascii=False, indent=1))
     elif a.command == "status":
         print(json.dumps(status(), ensure_ascii=False, indent=1))
     elif a.command == "report":

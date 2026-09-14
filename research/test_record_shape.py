@@ -20,6 +20,7 @@ import os
 import pathlib
 import sys
 import unittest
+from unittest.mock import patch
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
@@ -132,12 +133,23 @@ class Shape(unittest.TestCase):
                           "the retention policy no longer names the tree it erases")
 
     def test_this_test_does_not_grow_with_the_record(self):
-        """C-055, applied to this file. The publish gate runs the suite every ten minutes; a check
-        whose cost rises with the size of the record it guards eventually stops the thing it protects.
-        Walking directories rather than files keeps this bounded by the shape, not the volume."""
-        self.assertLess(self.walk_seconds, 5.0,
-                        f"measuring the record's shape took {self.walk_seconds:.1f}s; it is walking "
-                        "files instead of directories again")
+        """Check the work performed, independently of disk queue and memory paging.
+
+        Real inventory/depth checks above still inspect the complete record. A
+        five-second wall clock could fail even though no payload was opened; the
+        publisher records this group's elapsed time and keeps its 120 s deadline.
+        """
+        visited = []
+        base = pathlib.Path('fixture')
+        def walk(_):
+            visited.append('root')
+            yield str(base), ['child'], ['payload'] * 10000
+            visited.append('child')
+            yield str(base/'child'), ['unneeded'], ['first-too-deep']
+            self.fail('walk continued after the depth violation was established')
+        with patch.object(os, 'walk', walk), patch('builtins.open', side_effect=AssertionError('payload read')):
+            self.assertEqual(deepest_file(base, 1), 2)
+        self.assertEqual(visited, ['root','child'])
 
     def test_the_readers_named_as_scanning_one_level_still_exist(self):
         """A register that names files is a register that can go stale."""

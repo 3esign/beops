@@ -294,9 +294,10 @@ class PublishGate(unittest.TestCase):
 
 class ScheduledTasks(unittest.TestCase):
     def test_guard_tracks_all_registered_beops_clocks(self):
-        expected = ["Beops_Collect", "Beops_Mind", "Beops_Organ", "Beops_Publish", "Beops_Watch",
-                    "Beops_Legal", "Beops_Guard", "Beops_Baseline"]
-        self.assertEqual(g.TASKS, expected)
+        import re
+        expected = re.findall(r"Name='(Beops_[A-Za-z]+)'", (ROOT/'tools/beops_tasks.ps1').read_text(encoding='utf-8'))
+        self.assertTrue(expected, 'canonical task registry must not be empty')
+        self.assertEqual(set(g.TASKS), set(expected))
         for name in expected:
             self.assertIn(name, g.MAX_SILENCE_H, f"{name} has no silence threshold")
 

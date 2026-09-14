@@ -1,8 +1,8 @@
 # research/ — index
 
 Status: current
-Date: 2026-09-12
-Author: claude-cowork, Codex
+Date: 2026-09-14
+Author: claude-cowork, Codex, Svemir
 
 Every document in this folder, what it is, and which one wins when two disagree. **A document that
 is not listed here does not exist to the next mind** — add your row in the same commit that adds the
@@ -12,9 +12,19 @@ file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ## Start here
 
-- **Execution plan: evidence to a verified decision (private working record)** — current critical path from the live observatory to blind AI evaluation, bounded decision D-002, a 30-day eligible baseline, one non-air domain and one canonical public map. It sequences existing work; its milestones are not completed results.
+- **Presek za nastavak, 14.09.2026. u 16:03 UTC (private working record)** — Windows repair and full local R02/R03/R04 evidence; R05 candidate9 still running, public activation paused, exact next steps and remaining limits.
+- **R02 measured implementation and current verification (private working record)** — fixed source, hash-verified frozen inputs, independent row counts, phase timings, one Python runtime and processing deadline. Windows publication priority is applied and all nine task settings match. Complete candidate/publication evidence remains explicit; R03 follows the verified R02 deliverable.
+- **Reviewed R02/R03/R04 publication operation (private working record)** — complete local candidate evidence and the concrete public operation awaiting confirmation after automatic review rejection; not a claim of public deployment.
+- **R04 parameter semantics and verification (private working record)** — circular components, observation identity/revisions, separate measurement/reception clocks and neutral non-comparable air-quality display; current checks and remaining proof.
+- **R05 clock and latency preparation (private working record)** — observed clock inconsistencies, parking claim and unsupported one-interval bound; bounded implementation order and required evidence.
+
+- **Detailed remediation and organization plan, 2026-09-14 (private working record)** — current sequence: 20 work packages in eight phases, three releases/milestones, explicit dependencies, acceptance tests, recovery rules and organization of existing files. Execution register (private working record) assigns all 66 audit findings once; planning validation (private working record). Sequential execution has started: progress and evidence (private working record). R00 and R01 are verified. Windows access repair and prevention (private working record) restores all 30 original files without changing their bytes; both packet builders now inherit project access. R02 remains open.
+
+- **Whole-system audit, 2026-09-14 (private working record)** — 66 findings across purpose, theory, legal documentation, data, AI, operations and interface; 74 targeted tests, isolated numerical probes, scheduler and live-site evidence. Distinguishes confirmed defects, open validation and design judgments. Findings are not fixes or legal clearance. Machine-readable register (private working record) and evidence manifest (private working record).
+
+- **Earlier execution plan: evidence to a verified decision (private working record)** — historical sequence, superseded for remediation by the 2026-09-14 plan above. Preserves the earlier AI evaluation, D-002 and baseline protocols; its milestones are not completed results.
 - **[D-002 preregistration](D002_POLICY.json)**, **ten frozen replay candidates (private working record)** and the **first prospective case (private working record)** — deterministic, unreviewed selection of what to verify next; the prospective outcome remains open until later evidence arrives. None claims an urban intervention, cause, trend, anomaly or normality. The discarded first ranking is retained as a **rejected-run summary (private working record)**.
-- **Blind AI-quality packet: 60/60 (private working record)** — frozen, hash-linked and ready for two independent human reviews; the offline review surface (private working record) hides provider identity and the prior validator decision. This completes sample preparation, not the quality verdict.
+- **Blind AI-quality packet: 60/60 (private working record)** — original access restored and all packet bytes verified on 14.09. The offline review surface (private working record) remains unchanged: 60 items and zero human annotations. ACL repair proof (private working record) and earlier exact-byte recovery (private working record). Independent human review and the quality verdict remain open.
 - **Experimental observations: implementation and operations (private working record)** — implemented feed, admitted context, durable record, provider qualifications and honest deployment evidence; browser and CLI qualification (private working record).
 
 - **Context and experimental AI feed plan (private working record)** — working implementation plan: validated datasets first, qualified historical comparisons, bounded Svemir model routing, inspectable full-width feed and automatic public release after gates (user option 2). Grounded in a reproducible selected inventory (private working record), scan script (private working record) and 42-file hash/coverage report (private working record). A plan, not deployed feature code.
@@ -389,6 +399,8 @@ The historical manuscript is intentionally unchanged. No manuscript, conference 
 
 
 ## Recovery implementation, 2026-09-11
+
+- _trail/STORAGE_AND_RECOVERY_2026-09-14.md (private working record): current physical storage map, capacity reserve, temporary release recovery and publication acceptance evidence.
 
 - 01-programme/DEVELOPMENT_PRIORITIES_2026-09-12.md (private working record): current feed/publish quality repairs, explicit limits and staged development acceptance criteria.
 

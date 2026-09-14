@@ -11,6 +11,7 @@ import os
 import pathlib
 import tempfile
 import unittest
+from unittest import mock
 from recovery_fixtures import permission
 from datetime import datetime, timedelta, timezone
 
@@ -281,6 +282,26 @@ class DedupeAndExportTests(LiveDirCase):
         points = out["sources"][0]["datastreams"][0]["points"]
         self.assertEqual([(point["v"], point.get("revisions")) for point in points], [(20.0, 1)])
 
+    def test_actual_sepa_revisions_without_custom_key_keep_latest_null(self):
+        cfgp=cd.LIVE.parent/'COLLECTORS.json'
+        cfgp.write_text(json.dumps({'sources':[SRC_SEPA]}),encoding='utf-8')
+        rows=cd.LIVE/'rows'/'S146';rows.mkdir(parents=True)
+        records=[]
+        for minutes,value in ((30,10),(10,None),(20,50)):
+            payload=json.loads(SEPA_BODY)
+            payload['data']=[dict(payload['data'][0],value=value)]
+            parsed=cd.parse_sepa_hvd(json.dumps(payload).encode(),NOW-timedelta(minutes=minutes),SRC_SEPA)
+            self.assertNotIn('dedupe_key',parsed[0])
+            records.extend(parsed)
+        (rows/'2026-09.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in records),encoding='utf-8')
+        with mock.patch.object(cd,'CONFIG',cfgp):
+            out=json.loads(cd.export(NOW).read_text(encoding='utf-8'))
+        stream=out['sources'][0]['datastreams'][0]
+        self.assertEqual(len(stream['points']),1)
+        self.assertIsNone(stream['points'][0]['v'])
+        self.assertIsNone(stream['last_by_measurement']['v'])
+        self.assertIsNone(stream['last_received']['v'])
+
     def test_export_re_checks_ekavica_on_thoughts_voiced_under_the_old_guard(self):
         _cfg, _root = cd.CONFIG, cd.ROOT
         cfgp = cd.LIVE.parent / "COLLECTORS.json"
@@ -510,7 +531,8 @@ SRC_RSS = {"sid": "S68", "name": "T", "url": "https://x/rss", "parser": "rss", "
 
 class ClockAndCoordTests(unittest.TestCase):
     def test_sepa_clock_note_keeps_label_and_adds_marked_estimate(self):
-        src = dict(SRC_SEPA, source_clock_note={"offset_seconds": 7200, "text": "labels local as Z"})
+        src = dict(SRC_SEPA, source_clock_note={"offset_seconds": 7200, "text": "labels local as Z",
+                                              "rule_id":"test-summer/v1", "valid_until":"2026-10-25T01:00:00Z"})
         rows = cd.parse_sepa_hvd(SEPA_BODY, NOW, src)
         self.assertEqual(rows[0]["phenomenonTime"]["end"], "2026-09-09T09:00:00Z")          # as received, untouched
         self.assertEqual(rows[0]["phenomenonTimeCorrected"]["end"], "2026-09-09T07:00:00Z")

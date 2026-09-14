@@ -30,6 +30,8 @@ $rows = foreach ($spec in Get-BeopsTaskSpecs) {
   $execute = ''
   $workingDirectory = ''
   $triggerCount = 0
+  $priority = $null
+  $expectedPriority = Get-BeopsTaskPriority $spec
   if (-not $task) {
     $issues += 'missing task'
   } else {
@@ -59,6 +61,8 @@ $rows = foreach ($spec in Get-BeopsTaskSpecs) {
     }
     if ([string]$task.Settings.ExecutionTimeLimit -ne [System.Xml.XmlConvert]::ToString([TimeSpan]::FromMinutes($spec.Limit))) { $issues += 'execution limit drift' }
     if ([string]$task.Settings.MultipleInstances -ne 'IgnoreNew') { $issues += 'overlap policy drift' }
+    $priority = [int]$task.Settings.Priority
+    if ($priority -ne $expectedPriority) { $issues += 'priority drift' }
     $interval = [System.Xml.XmlConvert]::ToString([TimeSpan]::FromMinutes($spec.Minutes))
     if (-not @($task.Triggers | Where-Object { $_.Repetition.Interval -eq $interval }).Count) { $issues += 'repeat interval drift' }
     $expectedLogon = if ($spec.LogonType) { $spec.LogonType } else { 'S4U' }
@@ -83,6 +87,8 @@ $rows = foreach ($spec in Get-BeopsTaskSpecs) {
     Expected = $expectedExecute
     WorkingDirectory = $workingDirectory
     TriggerCount = $triggerCount
+    Priority = $priority
+    ExpectedPriority = $expectedPriority
   }
 }
 

@@ -28,7 +28,7 @@ foreach ($t in $tasks) {
   $logon = New-ScheduledTaskTrigger -AtLogOn -User $user
   $logonType = if ($t.LogonType) { $t.LogonType } else { 'S4U' }
   $principal = New-ScheduledTaskPrincipal -UserId $user -LogonType $logonType -RunLevel Limited
-  $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes $t.Limit) -MultipleInstances IgnoreNew
+  $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes $t.Limit) -MultipleInstances IgnoreNew -Priority (Get-BeopsTaskPriority $t)
   Register-ScheduledTask -TaskName $t.Name -Action $action -Trigger @($repeat, $logon) -Principal $principal -Settings $settings -Description $t.Desc -Force | Out-Null
   if ($wasDisabled) { Disable-ScheduledTask -TaskName $t.Name | Out-Null }
   Write-Output ("registered {0} every {1} min, first start +{2} min" -f $t.Name, $t.Minutes, $t.OffsetMinutes)

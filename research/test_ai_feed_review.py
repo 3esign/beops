@@ -1,6 +1,7 @@
 """AI quality review must remain blind, immutable and separate from provider availability."""
 import hashlib
 import json
+import os
 import pathlib
 import sys
 import tempfile
@@ -65,6 +66,9 @@ class FeedReview(unittest.TestCase):
         output = self.root / "review"
         result = review.prepare(self.root, output, target=3, seed="fixture")
         self.assertEqual(result["items"], 2)
+        if os.name == 'nt':
+            from test_artifact_staging import acl
+            self.assertFalse(acl(output)['protected'], 'review must inherit project access')
         self.assertEqual(result["shortage"], 1)
         self.assertEqual(result["population"]["terminal_attempts"], 3)
         self.assertEqual(result["population"]["accepted_responses"], 1)

@@ -275,8 +275,8 @@ def digest(snap: dict, hours: int = 6, now: datetime | None = None, context: dic
                             prev = [p["v"] for d, p in pts if d.get("parameter") == par and p.get("t") == prev_t and isinstance(p.get("v"), (int, float))]
                             if prev:
                                 pm = max(prev)
-                                add(f"Veza: gradski maksimum {par} pomerio se sa {pm:.0f} na {hi[0]:.0f} {unit} između sata {prev_t[11:16]} i sata {last_t[11:16]} (oznake izvora).",
-                                    f"Connection: the city maximum of {par} moved from {pm:.0f} to {hi[0]:.0f} {unit} between the hours {prev_t[11:16]} and {last_t[11:16]} (source labels).",
+                                add(f"Veza: najviša izmerena vrednost za {par} pomerila se sa {pm:.0f} na {hi[0]:.0f} {unit} između sata {prev_t[11:16]} i sata {last_t[11:16]} (oznake izvora).",
+                                    f"Connection: the highest measured value of {par} moved from {pm:.0f} to {hi[0]:.0f} {unit} between the hours {prev_t[11:16]} and {last_t[11:16]} (source labels).",
                                     kind="connection", sid=sid, parameter=par, delta=round(hi[0] - pm))
             if sid == "S10":
                 # L0 connection: the lot whose displayed count moved most in the window (untimed - said so)

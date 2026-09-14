@@ -7,8 +7,19 @@ const runtimePath = path.resolve(__dirname, '..', 'runtime', 'test-python.json')
 const runtime = fs.existsSync(runtimePath) ? JSON.parse(fs.readFileSync(runtimePath, 'utf8').replace(/^\uFEFF/, '')) : {};
 const explicitPython = process.env.BEOPS_PYTHON;
 const testEnv = {...process.env};
+function phase(name, started, status, error) {
+  if (!process.env.BEOPS_PHASE_TRACE) return;
+  fs.appendFileSync(process.env.BEOPS_PHASE_TRACE, JSON.stringify({
+    schema: 'beops-phase/v1', at: new Date().toISOString(), name,
+    seconds: (Date.now()-started)/1000, exit_code: status,
+    error: error?.code || null, pid: process.pid
+  })+'\n');
+}
 const support = process.env.BEOPS_TEST_PYTHONPATH || (!explicitPython && runtime.pythonpath);
-if (support) testEnv.PYTHONPATH = [support, testEnv.PYTHONPATH].filter(Boolean).join(path.delimiter);
+// Every isolated test file gets the same explicit project import roots; imports
+// must not depend on a previous test mutating sys.path in a shared interpreter.
+testEnv.PYTHONPATH = [support, path.resolve(__dirname), path.resolve(__dirname, '..', 'research'),
+  testEnv.PYTHONPATH].filter(Boolean).join(path.delimiter);
 const bundled = path.join(process.env.USERPROFILE || '', '.cache', 'codex-runtimes',
   'codex-primary-runtime', 'dependencies', 'python', 'python.exe');
 const candidates = process.env.BEOPS_PYTHON
@@ -17,10 +28,21 @@ const candidates = process.env.BEOPS_PYTHON
   : [...(fs.existsSync(bundled) ? [[bundled, []]] : []), ['python', []], ['python3', []]];
 let selected;
 for (const [exe, prefix] of candidates) {
+  const started = Date.now();
+  const prerequisiteRemaining = process.env.BEOPS_CYCLE_DEADLINE
+    ? Date.parse(process.env.BEOPS_CYCLE_DEADLINE)-Date.now() : Infinity;
+  if (!(prerequisiteRemaining > 0)) {
+    console.error('Publication cycle budget exhausted before prerequisites');
+    process.exit(1);
+  }
   const check = spawnSync(exe, [...prefix, '-B', '-c',
     'import sys; assert sys.version_info >= (3, 12); from reportlab.pdfbase.ttfonts import TTFont'],
-    { windowsHide: true, timeout: 15000, stdio: 'ignore', env: testEnv });
-  if (check.error?.code === 'ETIMEDOUT') console.error('Research prerequisite import exceeded 15 s.');
+    { windowsHide: true, timeout: Math.min(60000, prerequisiteRemaining), stdio: 'ignore', env: testEnv });
+  phase('research prerequisites', started, check.status, check.error);
+  if (check.error?.code === 'ETIMEDOUT') {
+    console.error('Research prerequisite import exceeded 60 s; interpreter readiness is unconfirmed.');
+    process.exit(1);
+  }
   if (check.status === 0) { selected = [exe, prefix]; break; }
 }
 if (!selected) {
@@ -32,18 +54,26 @@ if (process.argv?.includes('--check')) {
   console.error('Research gate prerequisites passed.');
   process.exit(0);
 }
-// Disjoint discovery patterns cover every test_*.py, including future names
-// outside a-z. Each process retains the 120 s ceiling; the whole growing suite
-// no longer loses its completed work when the shared disk is busy.
-const patterns = ['test_[a-f]*.py', 'test_[g-l]*.py', 'test_[m-o]*.py', 'test_p*.py', 'test_[q-r]*.py',
-  'test_[s-z]*.py', 'test_[!a-z]*.py', 'test_.py'];
+// Discover the complete inventory, then bound each file independently. Growing
+// alphabetic buckets must not silently inherit one shared 120 s deadline.
+const researchDir = path.resolve(__dirname, '..', 'research');
+const patterns = fs.readdirSync(researchDir).filter(name => /^test_.*\.py$/.test(name)).sort()
+  .map(name => name.replace(/[\[*?]/g, ch => ({'[': '[[]', '*': '[*]', '?': '[?]'}[ch])));
 let groupsWithTests = 0;
 for (const pattern of patterns) {
+  const started = Date.now();
+  const remaining = process.env.BEOPS_CYCLE_DEADLINE
+    ? Date.parse(process.env.BEOPS_CYCLE_DEADLINE)-Date.now() : Infinity;
+  if (!(remaining > 0)) {
+    console.error('Publication cycle budget exhausted before '+pattern);
+    process.exit(1);
+  }
   console.error(`Research gate: ${pattern}`);
   const result = spawnSync(selected[0], [...selected[1], '-X', 'utf8', '-B', '-m', 'unittest', 'discover',
     '-s', 'research', '-p', pattern, '-v'], {
-    cwd: path.resolve(__dirname, '..'), stdio: 'inherit', windowsHide: true, timeout: 120000, env: testEnv,
+    cwd: path.resolve(__dirname, '..'), stdio: 'inherit', windowsHide: true, timeout: Math.min(120000, remaining), env: testEnv,
   });
+  phase('test: '+pattern, started, result.status, result.error);
   if (result.error) console.error(result.error.message);
   // Python uses exit 5 when a disjoint discovery bucket contains no tests.
   // That is expected for the catch-all buckets until such a filename exists;
