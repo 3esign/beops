@@ -118,7 +118,7 @@ async function tick(root=ROOT, options={}){
   const deadline=Date.now()+Math.min(120,config.job_timeout_seconds)*1000;
   const dir=path.join(root,'runtime/ai-feed');
   if(!config.enabled||fs.existsSync(path.join(root,'runtime/MAINTENANCE'))||fs.existsSync(path.join(dir,'PAUSED')))return {state:'paused'};
-  if(!Array.isArray(config.providers)||config.providers.some(p=>!p.id||!Number.isFinite(p.interval_minutes)||p.interval_minutes<5||p.interval_minutes>55))throw Error('invalid_provider_cadence');
+  if(!Array.isArray(config.providers)||config.providers.some(p=>!p.id||!Number.isFinite(p.interval_minutes)||p.interval_minutes<5||p.interval_minutes>1440))throw Error('invalid_provider_cadence');
   const release=acquire(dir);if(!release)return {state:'busy'};
   try{
     // A dead worker leaves a start receipt. Preserve that interrupted attempt; never silently retry it.

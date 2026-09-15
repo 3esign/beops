@@ -80,12 +80,13 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
     // Rotate over stations rather than repeatedly selecting the highest reading.
     candidates.sort((a,b)=>a.stream.localeCompare(b.stream));
     if (source.sid === 'S52') {
-      const sava = candidates.filter(c => c.place.includes('Sava'));
-      const dunav = candidates.filter(c => c.place.includes('Dunav') || c.place.includes('Zemun'));
+      const interesting = candidates.filter(c => !(c.metric === 'water_level_change' && c.value === 0));
+      const sava = interesting.filter(c => c.place.includes('Sava'));
+      const dunav = interesting.filter(c => c.place.includes('Dunav') || c.place.includes('Zemun'));
       const start = Math.floor(time/1800000);
       if (sava.length) facts.push(sava[start % sava.length]);
       if (dunav.length) facts.push(dunav[start % dunav.length]);
-      if (!sava.length && !dunav.length && candidates.length) facts.push(candidates[start % candidates.length]);
+      if (!sava.length && !dunav.length && interesting.length) facts.push(interesting[start % interesting.length]);
     } else {
       const count = source.sid === 'S146' ? Math.min(2, candidates.length) : Math.min(1, candidates.length);
       const start = candidates.length ? Math.floor(time/1800000)%candidates.length : 0;
@@ -106,7 +107,8 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
           territory_id:'79014',place:'Grad Beograd',geography:'administrative',
           period:'2022',value:pop.people_total,unit:'stanovnika',
           metric:'Modelovana procena ukupnog broja stanovnika',
-          limitation:'H3 modelovana procena gustine naseljenosti, a ne trenutni živi popis.'
+          limitation:'H3 modelovana procena gustine naseljenosti, a ne trenutni živi popis.',
+          narrative_hint:'Na teritoriji od oko 360 km2 živi skoro 1.72 miliona ljudi, od kojih svaki deli i oseća ovaj urbani i klimatski prostor.'
         });
       }
     } catch {}
@@ -148,11 +150,45 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
     }
   }
   if (!selected.length) throw Error('no_usable_facts');
+
+  const hourUTC = new Date(time).getUTCHours();
+  if (hourUTC >= 22 || hourUTC <= 5) {
+    selected.push({
+      kind: 'temporal_context', sid: 'TIME', source: 'System', metric: 'time_of_day',
+      period: 'noć/rano jutro', value: hourUTC, unit: 'h UTC',
+      note: 'Noćni i ranojutarnji časovi. Zatišje u saobraćaju, većina vozila miruje na parkinzima i garažama (nula slobodnih mesta je redovna pojava noću).'
+    });
+  }
+
+  let seed = Math.floor(time / 1800000);
+  for (let i = selected.length - 1; i > 0; i--) {
+    const x = Math.sin(seed++) * 10000;
+    const r = x - Math.floor(x);
+    const j = Math.floor(r * (i + 1));
+    [selected[i], selected[j]] = [selected[j], selected[i]];
+  }
+
   selected.forEach((f,i)=>{f.id='F'+(i+1);});
+
+  const recentTitles = [];
+  try {
+    const ed = path.join(root, 'runtime/ai-feed/entries');
+    if (fs.existsSync(ed)) {
+      const files = fs.readdirSync(ed).filter(f=>f.endsWith('.json'))
+        .map(f => ({ name: f, time: fs.statSync(path.join(ed, f)).mtimeMs }))
+        .sort((a,b) => b.time - a.time).slice(0, 5);
+      for (const f of files) {
+        const e = JSON.parse(fs.readFileSync(path.join(ed, f.name), 'utf8'));
+        if (e?.content?.title) recentTitles.push(e.content.title);
+      }
+    }
+  } catch(e) {}
+
   const packet={schema:'beops-ai-context/v1',as_of:snapshot.as_of,created_at:now.toISOString(),language:'sr-Latn',
     scope:'Belgrade; historical and demographic context retains its own geography and period.',facts:selected,coverage,
     selection:'Multi-domain live streams (air, meteorology, rivers, parking) with station rotation, plus demographic and statistical context. No articles or conversation memory.',
     baseline:'Same-stream comparisons only in v1. No long-term normality or health threshold is supplied.',
+    recent_titles:recentTitles,
     catalog_hash:catalog ? hash(catalog) : null};
   while (Buffer.byteLength(JSON.stringify(packet))>(config.max_context_bytes||24000) && packet.facts.length>1) packet.facts.pop();
   if (Buffer.byteLength(JSON.stringify(packet))>(config.max_context_bytes||24000)) throw Error('context_budget_exceeded');
