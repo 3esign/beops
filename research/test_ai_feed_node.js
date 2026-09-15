@@ -124,6 +124,16 @@ async function main(){
  fs.writeFileSync(proofPath,JSON.stringify({...packet,as_of:'tampered'}));
  assert.throws(()=>F.exportFeed(tmp,now),/context_hash_mismatch/);
  const release=F.acquire(path.join(tmp,'runtime/ai-feed'));assert.equal(F.acquire(path.join(tmp,'runtime/ai-feed')),null);release();
- console.log('offline feed contracts passed: citations, numbers, clocks, source refusal, persistence, crash recovery, idempotency, rejection, projection, locking');
+ // Multi-domain context contracts: S52 hydro window and S120 population
+ write('public/context-population.json',{name:'test-pop',people_total:1719722,attribution:'Test Kontur',source:{sid:'S120',release:'2022-06-30'}});
+ write('public/live-snapshot.json',{as_of:now.toISOString(),sources:[
+   {sid:'S1',name:'Test Air',cadence_seconds:3600,datastreams:[{station:'Zemun',datastream:'1|temperature',parameter:'temperature',unit:'C',points:[point(20,'2026-09-12T11:00:00Z')]}]},
+   {sid:'S52',name:'Test Rivers',cadence_seconds:3600,datastreams:[{station:'Beograd (Sava)',datastream:'Sava|water_level',parameter:'water_level',unit:'cm',points:[point(120,'2026-09-11T10:00:00Z')]}]}
+ ]});
+ write('research/SOURCE_REGISTRY.json',{sources:[{id:'S1',status:'collected',url:'https://example.org'},{id:'S52',status:'collected',url:'https://example.org'}]});
+ const multiCtx=C.buildContext(tmp,now,{},new Set(['S1','S52']));
+ assert.ok(multiCtx.facts.some(f=>f.sid==='S52'&&f.value===120),'S52 observation beyond 24h but within 72h window must be admitted');
+ assert.ok(multiCtx.facts.some(f=>f.sid==='S120'&&f.value===1719722),'S120 population context must be admitted');
+ console.log('offline feed contracts passed: citations, numbers, clocks, source refusal, persistence, crash recovery, idempotency, rejection, projection, locking, multi-domain context');
 }
 main().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>fs.rmSync(tmp,{recursive:true,force:true}));

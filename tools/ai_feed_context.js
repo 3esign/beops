@@ -45,12 +45,14 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
     const reg = sources.get(source.sid);
     if (!reg || !permitted.has(source.sid) || ['opted_out','restricted','needs_decision','account_required','no_coverage'].includes(reg.status)) continue;
     const candidates = [];
+    const cadenceSeconds = source.sid === 'S52' ? 86400 : (source.cadence_seconds || 3600);
+    const maxAgeMs = (source.sid === 'S52' ? 86400 * 3 : 86400) * 1000;
     for (const stream of source.datastreams || []) {
       // Last received revision wins for the same observation; future receptions cannot leak in.
       const unique = new Map();
       for (const p of stream.points || []) {
         const t = stamp(sampleTime(p)), rx = stamp(p.rx);
-        if (t === null || rx === null || t > asof || rx > asof || t < asof - 86400000) continue;
+        if (t === null || rx === null || t > asof || rx > asof || t < asof - maxAgeMs) continue;
         const key = frame(p) + '|' + t;
         if (!unique.has(key) || rx >= stamp(unique.get(key).rx)) unique.set(key,p);
       }
@@ -58,9 +60,9 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
       const last = values.at(-1);
       if (!last || typeof last.v !== 'number' || !Number.isFinite(last.v)) continue;
       const ageMinutes = Math.round((asof - stamp(sampleTime(last)))/60000);
-      const cadenceSeconds = source.sid === 'S52' ? 86400 : (source.cadence_seconds || 3600);
       if (ageMinutes > Math.max(120, cadenceSeconds/60*3)) continue;
-      const previous = values.find(p=>typeof p.v==='number' && Number.isFinite(p.v) && frame(p)===frame(last) && stamp(sampleTime(p)) < stamp(sampleTime(last))-1800000 && stamp(sampleTime(p)) >= stamp(sampleTime(last))-21600000);
+      const prevWindowMin = source.sid === 'S52' ? 86400000 * 3 : 21600000;
+      const previous = values.find(p=>typeof p.v==='number' && Number.isFinite(p.v) && frame(p)===frame(last) && stamp(sampleTime(p)) < stamp(sampleTime(last))-1800000 && stamp(sampleTime(p)) >= stamp(sampleTime(last))-prevWindowMin);
       const namedClocks=observationClocks.disclose(last,source.clock_rules);
       const fact = {kind:'observation',sid:source.sid,source:clean(source.name),url:reg.url,
         place:clean(stream.station),stream:clean(stream.datastream),metric:clean(stream.parameter),
@@ -77,11 +79,38 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
     coverage.push({sid:source.sid,usable_streams:candidates.length,observed_streams:(source.datastreams||[]).length});
     // Rotate over stations rather than repeatedly selecting the highest reading.
     candidates.sort((a,b)=>a.stream.localeCompare(b.stream));
-    const count = ['S01', 'S52'].includes(source.sid) ? Math.min(2, candidates.length) : Math.min(1, candidates.length);
-    const start = candidates.length ? Math.floor(time/1800000)%candidates.length : 0;
-    for (let i=0;i<count;i++) facts.push(candidates[(start+i)%candidates.length]);
+    if (source.sid === 'S52') {
+      const sava = candidates.filter(c => c.place.includes('Sava'));
+      const dunav = candidates.filter(c => c.place.includes('Dunav') || c.place.includes('Zemun'));
+      const start = Math.floor(time/1800000);
+      if (sava.length) facts.push(sava[start % sava.length]);
+      if (dunav.length) facts.push(dunav[start % dunav.length]);
+      if (!sava.length && !dunav.length && candidates.length) facts.push(candidates[start % candidates.length]);
+    } else {
+      const count = source.sid === 'S146' ? Math.min(2, candidates.length) : Math.min(1, candidates.length);
+      const start = candidates.length ? Math.floor(time/1800000)%candidates.length : 0;
+      for (let i=0;i<count;i++) facts.push(candidates[(start+i)%candidates.length]);
+    }
   }
   const selected = facts.slice(0,config.max_live_facts || 8);
+  const popFile = path.join(root,'public/context-population.json');
+  if (fs.existsSync(popFile)) {
+    try {
+      const pop = readJSON(popFile, 4 * 1024 * 1024);
+      if (pop && typeof pop.people_total === 'number' && Number.isFinite(pop.people_total)) {
+        selected.push({
+          kind:'demographic_context',dataset_id:pop.name||'kontur-population',sid:pop.source?.sid||'S120',
+          source:'Kontur Population',edition:clean(pop.source?.release||'2022-06-30'),
+          attribution:clean(pop.attribution||'Kontur Population, Serbia resource release 2022-06-30, CC BY 4.0; filtered by BEOPS.'),
+          url:clean(pop.source?.url||'https://data.humdata.org/'),
+          territory_id:'79014',place:'Grad Beograd',geography:'administrative',
+          period:'2022',value:pop.people_total,unit:'stanovnika',
+          metric:'Modelovana procena ukupnog broja stanovnika',
+          limitation:'H3 modelovana procena gustine naseljenosti, a ne trenutni živi popis.'
+        });
+      }
+    } catch {}
+  }
   const catalogFile = path.join(root,'public/context-catalog.json');
   let catalog = null;
   if (fs.existsSync(catalogFile)) {
@@ -96,21 +125,33 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
       const table=path.resolve(root,'public',dataset.table);
       if(!table.startsWith(path.resolve(root,'public/context-tables')+path.sep) || crypto.createHash('sha256').update(fs.readFileSync(table)).digest('hex')!==dataset.table_sha256)throw Error('context_table_hash_mismatch');
     }
-    for (const dataset of catalog.datasets || []) {
-      if(catalog.rights?.redistribution !== true || catalog.rights?.external_ai !== true || !Number.isFinite(Date.parse(catalog.rights.review_due)) || Date.parse(catalog.rights.review_due)<time)continue;
-      if (dataset.ai_eligible !== true) continue;
-      const row = (dataset.latest || []).find(r=>['79014','RS110'].includes(r.territory_id)) || (dataset.latest || [])[0];
-      if (row) selected.push({kind:'historical_context',dataset_id:dataset.id,sid:dataset.sid,source:dataset.title,
-        edition:dataset.edition,attribution:dataset.attribution,url:dataset.url,...row,
-        limitation:'A dated statistic at the stated geography, not a live reading or a causal explanation.'});
-      if (selected.length>=20) break;
+    const eligibleDatasets = (catalog.datasets || []).filter(dataset => {
+      if(catalog.rights?.redistribution !== true || catalog.rights?.external_ai !== true || !Number.isFinite(Date.parse(catalog.rights.review_due)) || Date.parse(catalog.rights.review_due)<time) return false;
+      return dataset.ai_eligible === true && Array.isArray(dataset.latest) && dataset.latest.length > 0;
+    });
+    if (eligibleDatasets.length) {
+      const tourism = eligibleDatasets.find(d => d.id === 'rzs-220205IND02');
+      if (tourism && tourism.latest?.length) {
+        const tRow = tourism.latest[Math.floor(time / 3600000) % tourism.latest.length];
+        selected.push({kind:'historical_context',dataset_id:tourism.id,sid:tourism.sid,source:tourism.title,
+          edition:tourism.edition,attribution:tourism.attribution,url:tourism.url,...tRow,
+          limitation:'A dated statistic at the stated geography, not a live reading or a causal explanation.'});
+      }
+      const econ = eligibleDatasets.filter(d => d.id !== 'rzs-220205IND02');
+      if (econ.length) {
+        const eDataset = econ[Math.floor(time / 3600000) % econ.length];
+        const eRow = (eDataset.latest || []).find(r=>['79014','RS110'].includes(r.territory_id)) || (eDataset.latest || [])[0];
+        if (eRow) selected.push({kind:'historical_context',dataset_id:eDataset.id,sid:eDataset.sid,source:eDataset.title,
+          edition:eDataset.edition,attribution:eDataset.attribution,url:eDataset.url,...eRow,
+          limitation:'A dated statistic at the stated geography, not a live reading or a causal explanation.'});
+      }
     }
   }
   if (!selected.length) throw Error('no_usable_facts');
   selected.forEach((f,i)=>{f.id='F'+(i+1);});
   const packet={schema:'beops-ai-context/v1',as_of:snapshot.as_of,created_at:now.toISOString(),language:'sr-Latn',
-    scope:'Belgrade; historical context retains its own geography and period.',facts:selected,coverage,
-    selection:'At most one fresh stream per source, station rotation, then admitted historical context. No articles or conversation memory.',
+    scope:'Belgrade; historical and demographic context retains its own geography and period.',facts:selected,coverage,
+    selection:'Multi-domain live streams (air, meteorology, rivers, parking) with station rotation, plus demographic and statistical context. No articles or conversation memory.',
     baseline:'Same-stream comparisons only in v1. No long-term normality or health threshold is supplied.',
     catalog_hash:catalog ? hash(catalog) : null};
   while (Buffer.byteLength(JSON.stringify(packet))>(config.max_context_bytes||24000) && packet.facts.length>1) packet.facts.pop();
