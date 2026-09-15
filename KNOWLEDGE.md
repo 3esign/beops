@@ -418,3 +418,10 @@ Errors: A temporary git diff check with core.autocrlf=false reinterpreted histor
 - Greske (2026-09-14T08:40Z): Izolovanje test fajlova otkrilo je da test_build_history zavisi od toga da prethodni test ubaci tools u sys.path. Lek: runner eksplicitno daje projektne tools/research putanje svakom Python procesu; testovi vise ne nasledjuju slucajno stanje drugog testa.
 
 - Greske (2026-09-14T08:50Z): retention je bio oznacen kao staticna brojka iako zavisi od novih naslova i starosti raw fajlova; test dva prikaza je zato ponovo prolazio celu retention arhivu. Lek: retention je LIVE brojka sa vremenom provere; regresija cuva tu klasifikaciju, svi postojeći racuni i nezavisno ponovno brojanje redova ostaju u kapiji.
+
+## Identitet prema izvorima — 2026-09-15 (C-070)
+
+- Greske: Sajt i README su tvrdili da se BEOPS predstavlja kao Beops-Research-Collect/1.0, a `tools/net_fetch.js` je zaglavlja uzimao iz Svemirovog `lib/incognito.js` (izmisljena browser persona po sajtu i danu). Konstanta `UA` u `collect_daemon.py` je bila mrtav kod. Uzrok: zajednicki Svemirov sloj za anonimnost je prikljucen i na istrazivacki transport, a recenica na sajtu nije proveravana prema bajtovima dokaza. Lek: jedan fiksni identitet u `net_fetch.js`, `request_user_agent` u svakom prijemu, `test_honest_identity.py`.
+- Iskustva: Tvrdnju o identitetu proveravaj u `MANIFEST.json` najnovijeg snimka dozvole (`user_agent`), ne u konstanti u kodu. Konstanta koju niko ne koristi je najopasniji oblik dokumentacije.
+- Iskustva: Bez Svemirovog provajdera javni repozitorijum moze da pokrene testove kolektora na masini bez Svemira (test_collect_daemon + test_permission_gate prolaze u cistom Linux okruzenju).
+- Odluke: Semir 2026-09-15: "da popravi to za Beops". Svemirov provajder ostaje samo za saobracaj objave ka sopstvenom GitHub repozitorijumu i sajtu.

@@ -29,7 +29,7 @@ Rules this file enforces (from CONTRIBUTING.md and 08-provenance/README.md):
     by hard link (same pattern as research/observe_10k.py). A crash between
     the two leaves a visible claim and a gap, never a retry of the same slot.
   * 403 or 429 pauses the source until a person clears the pause file.
-  * Transport uses verified TLS and the shared incognito header provider.
+  * Transport uses verified TLS and one honest identity, Beops-Research-Collect/1.0 (C-069).
     Redirects require their own permission route; response bodies are bounded.
   * Byte caps per source. The SEPA observations endpoint returns the whole
     30-day bundle (140 MB) when asked without ``from``; the collector always
@@ -721,6 +721,7 @@ def collect_one(src: dict, now: datetime, latest_gate: dict, fetcher=fetch) -> d
             "http_status": None, "rows": 0, "rows_missing": 0, "network_requests": 1}
     res = fetcher(url, int(src["timeout_seconds"]), int(src["max_bytes"]))
     item["transport"] = res["transport"]
+    item["request_user_agent"] = res.get("request_user_agent")
     item["http_status"] = res["status"]
     item["headers_of_interest"] = {k: v for k, v in res["headers"].items()
                                   if k in ("date", "last-modified", "etag", "cache-control", "age", "content-type", "content-length")}

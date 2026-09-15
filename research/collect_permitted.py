@@ -45,7 +45,7 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 
-UA = "policy: wildcard; request headers supplied by incognito"
+UA = "Beops-Research-Collect/1.0 (honest identity supplied by tools/net_fetch.js)"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LEDGER = os.path.join(ROOT, "research", "08-provenance", "LEDGER.jsonl")
 EVIDENCE = os.path.join(ROOT, "research", "evidence")

@@ -3085,3 +3085,59 @@ of stable claim identities rather than two totals that could agree by coincidenc
 All 46 currently settled claims now have a keyed entity notification, and the repair's next dry run
 reports zero pending notices. Thirty-seven older unkeyed notebook lines remain as historical events;
 consumers must use stable `claim_id` when materialising current settlement feedback.
+
+## C-070 — the site said the observatory names itself, and every request wore a browser's name
+
+**Written at the commit that carries this entry.** Found on 2026-09-15 during an independent review,
+by reading the identity stored inside the newest permission capture rather than the sentence on the
+page. Decided the same day by Semir Poturak: fix it for BEOPS.
+
+### What happened
+
+The public page says, in all four languages: *"We identify honestly as Beops-Research-Collect/1.0."*
+The README said the same in English. The code did not do it. From some point after the first
+receipts of 2026-09-08 (which went through `curl.exe`), every request to a source went through
+`tools/net_fetch.js`, and that script took its headers from the shared Svemir header provider
+(`lib/incognito.js`). That provider exists so that a request cannot be tied to its sender: it sends
+a plausible desktop-browser persona and changes it per site and per day. The constant
+`UA = "Beops-Research-Collect/1.0 ..."` in `collect_daemon.py` was still there, and nothing used it.
+
+The newest S146 permission capture (2026-09-14T04:52Z) records
+`user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) ... Chrome/139.0.0.0 Safari/537.36`.
+Collection receipts recorded `transport: node/verified TLS; incognito` and did not record the
+identity at all.
+
+### Why it matters more than a wrong sentence
+
+The observatory's legal and ethical case rests on three claims: permission before collection, named
+refusals honoured, and honest identification. The third one is what makes the second one possible.
+A publisher can only refuse a visitor it can name. While the requests looked like a browser, a
+publisher could not recognise BEOPS, could not write a rule for it, and could not ask it to stop.
+The stored robots evaluation described a visitor that does not exist. Nothing here was used to get
+past a refusal. The fourteen named refusals were never polled. But the record could not show that
+to a publisher, and that was the point of the record.
+
+### Correction
+
+- `tools/net_fetch.js` sends one fixed identity to every source:
+  `Beops-Research-Collect/1.0 (+https://3esign.github.io/beops/; poturaksemir@gmail.com)`, with a
+  `From` header. It no longer loads any Svemir module. The legacy prototype (`src/store.js`) sends
+  the same name.
+- Every collection receipt now carries `request_user_agent`, the identity that was actually sent.
+- `research/test_honest_identity.py` fails the gate if a source transport borrows a persona again,
+  or if the daemon's label and the identity it sends drift apart.
+- All permission captures made under the persona are re-taken under the real name by the existing
+  weekly re-check (`legal_capture.py --recheck-collectors`), run at once rather than waiting for its
+  schedule. A source whose answer changes under the real name is recorded as changed.
+- The Svemir header provider is still used for the project's own publication traffic to GitHub
+  (`GIT_HTTP_USER_AGENT`, the public-site verifier). That traffic goes to our own repository and our
+  own site, not to a source.
+
+### Honest verdict
+
+The sentence on the page is now true of every request to a source. It was not true for about a week
+of collection, and the record from that week keeps its receipts as they were. Captures taken under the
+persona stay in the evidence as history. They are replaced as the current permission, not erased.
+One side effect helps: without the external provider, the public repository can run its collector
+tests on a machine that has no Svemir. What would falsify this correction: a receipt after this
+commit whose `request_user_agent` is not the name above.

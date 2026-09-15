@@ -13,7 +13,7 @@ what was decided about it, why, and whether the bytes that justified the decisio
 | named refusals honoured | 14 |
 | unresolved and therefore not collected | 3 |
 | actually polled | 28 |
-| permission captures on file | 403 |
+| permission captures on file | 440 |
 
 Status breakdown: probe_ok 119, primary_page 27, lead 26, opted_out 14, no_coverage 10, collected 8, needs_decision 3, dead 2, account_required 2, token_required 1, restricted 1, blocked 1, probe_tls_failed 1
 
