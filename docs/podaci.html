@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="sr"><meta name="beops-input-generation" content="f7317003e38cbd0b7f50a756f05a3d30e137fd0b6311b71a28c26b0c00d529d7"><script src="observation-clocks.js"></script>
+<html lang="sr"><meta name="beops-input-generation" content="bb960a170b99649c8ab1b984237533e0eb702bed1063e3a69ca67a3727e49694"><script src="observation-clocks.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BEOPS Podaci</title>
@@ -546,47 +546,116 @@ function drawMap(){
   if(BASEMAP){ g.lineJoin='round'; g.lineWidth=1; g.strokeStyle=css('--ink30'); g.fillStyle=css('--ink06');
     for(const f of BASEMAP.features.filter(f=>f.layer!=='river')){ const geom=f.geometry; if(!geom||(geom.type!=='Polygon'&&geom.type!=='MultiPolygon')) continue; const polys=geom.type==='Polygon'?[geom.coordinates]:geom.coordinates;
       for(const poly of polys){ g.beginPath(); for(const ring of poly){ ring.forEach((c,i)=>{const [x,y]=proj(c[1],c[0],w,h); i?g.lineTo(x,y):g.moveTo(x,y);}); g.closePath(); } g.fill('evenodd'); g.stroke(); } }
-    g.strokeStyle=css('--water'); g.lineCap='round';
+    g.lineCap='round';
     for(const f of BASEMAP.features.filter(f=>f.layer==='river')){
-      g.lineWidth=Math.max(3,6*Math.min(VIEW.k,2.2));
-      g.beginPath(); f.geometry.coordinates.forEach((c,i)=>{const [x,y]=proj(c[1],c[0],w,h); i?g.lineTo(x,y):g.moveTo(x,y);}); g.stroke(); } }
+      if(typeof g.lineWidth !== 'undefined') g.lineWidth=Math.max(3.5,6*Math.min(VIEW.k,2.2));
+      g.beginPath(); f.geometry.coordinates.forEach((c,i)=>{const [x,y]=proj(c[1],c[0],w,h); i?g.lineTo(x,y):g.moveTo(x,y);}); g.stroke(); 
+    } }
 
   // 3. Hexagonal Mesh (when in hex mode)
   if(curMode === 'hex' && typeof getHexCells === 'function' && typeof drawHexagon === 'function'){
     const hexCells = getHexCells(rows);
     const hexStat = typeof HEX_STAT !== 'undefined' ? HEX_STAT : 'mean';
+    const validCells = hexCells.filter(c => c.count > 0 && c.mean != null);
+    const cellMax = validCells.length ? Math.max(...validCells.map(c => c.mean)) : 1;
     for(const hc of hexCells){
       if(hc.count > 0){
-        drawHexagon(g, hc, w, h, { fill: css('--ink06'), stroke: css('--ink60'), lineWidth: 1.5 });
+        const intensity = cellMax > 0 && hc.mean != null ? Math.min(0.45, Math.max(0.08, (hc.mean / cellMax) * 0.45)) : 0.08;
+        const fillCol = 'rgba(30, 41, 59, ' + intensity.toFixed(3) + ')';
+        drawHexagon(g, hc, w, h, { fill: fillCol, stroke: css('--ink60'), lineWidth: 1.5 });
         const [cx, cy] = proj(hc.la, hc.lo, w, h);
-        g.font = '600 10px ' + css('--mono');
+        g.font = '700 11px ' + css('--mono');
         g.fillStyle = css('--ink');
-        const txt = hexStat === 'mean' && hc.mean != null ? hc.mean.toFixed(1) : (hc.count + ' st');
+        const valTxt = hc.mean != null ? hc.mean.toFixed(1) : '—';
+        const txt = hexStat === 'mean' ? valTxt : (hc.count + ' st');
         const tw = g.measureText(txt).width;
-        g.fillText(txt, cx - tw/2, cy + 3);
+        g.fillText(txt, cx - tw/2, cy + (hexStat === 'mean' ? -1 : 3));
+        if(hexStat === 'mean'){
+          g.font = '500 8.5px ' + css('--mono');
+          g.fillStyle = css('--ink60');
+          const subTxt = hc.count + ' st';
+          const subW = g.measureText(subTxt).width;
+          g.fillText(subTxt, cx - subW/2, cy + 10);
+        }
       } else {
         drawHexagon(g, hc, w, h, { stroke: css('--ink12'), lineWidth: 0.8, dash: [2, 4] });
       }
     }
   }
 
-  // 4. Stations
+  // 4. Stations: Contract-adhering neutral markers with rich mode-specific data
   let top=null;
+  const activeStations = rows.filter(r => r.l);
   for(const r of rows){
     const [x,y]=proj(r.d.lat,r.d.lon,w,h);
     if(!r.l){
-      g.strokeStyle=css('--ink30'); g.lineWidth=1; g.beginPath(); g.arc(x,y,5,0,Math.PI*2); g.stroke();
+      g.strokeStyle=css('--ink30'); g.lineWidth=1; g.beginPath(); g.arc(x,y,4.5,0,Math.PI*2); g.stroke();
       continue;
     }
-    if(!top||r.l.v>top.l.v) top={d:r.d,l:r.l,x,y};
+    if(!top || r.l.v > top.l.v) top = { d: r.d, l: r.l, r, x, y };
+
+    // Contract: neutral marker at radius 5 with color --ink60
     const style=airMarkerStyle();
     g.fillStyle=style.color; g.globalAlpha=1;
     g.beginPath(); g.arc(x,y,style.radius,0,Math.PI*2); g.fill();
+
+    // Mode-specific data visualization:
+    if(curMode === 'cumulative' && r.mean != null){
+      // Cumulative: Outer peak ring proportional to 24h max
+      const peakRadius = Math.min(18, Math.max(7, 5 + ((r.max || r.mean) / 80) * 10));
+      g.strokeStyle = 'rgba(30, 41, 59, 0.4)'; g.lineWidth = 1.4;
+      g.beginPath(); g.arc(x, y, peakRadius, 0, Math.PI * 2); g.stroke();
+
+      // Cumulative label
+      g.fillStyle = css('--ink'); g.font = '600 10.5px ' + css('--mono');
+      const valText = CUMUL_STAT === 'mean' ? ('Ø' + r.mean.toFixed(1)) : ('Pik ' + Math.round(r.max));
+      const subText = CUMUL_STAT === 'mean' ? ('max ' + Math.round(r.max)) : ('Ø' + r.mean.toFixed(1));
+      const stName = (r.d.station || '').split('(')[0].trim();
+      g.fillText(valText, x + peakRadius + 3, y - 1);
+      g.font = '500 8.5px ' + css('--sans'); g.fillStyle = css('--ink60');
+      g.fillText(subText + ' (' + r.count + 'h)', x + peakRadius + 3, y + 9);
+    } else if(curMode === 'live' || curMode === 'hours') {
+      // Live / Hours: Clean numeric badge beside station
+      const valNum = Math.round(r.l.v);
+      const valText = valNum + '';
+      if(valNum > 0 && r !== top?.r){
+        g.fillStyle = css('--ink'); g.font = '600 10px ' + css('--mono');
+        g.fillText(valText, x + 8, y + 3);
+      }
+    }
   }
+
+  // Top highlight
   if(top){
-    g.fillStyle=css('--ink'); g.font='600 12px '+css('--sans');
-    const lab=Math.round(top.l.v)+' '+(top.d.unit||'');
-    g.fillText(lab,Math.min(w-g.measureText(lab).width-4,top.x+12),top.y+4);
+    g.fillStyle=css('--ink'); g.font='700 12px '+css('--sans');
+    const lab=Math.round(top.l.v)+' '+(top.d.unit||'') + (curMode === 'cumulative' ? (CUMUL_STAT === 'mean' ? ' (24h prosek)' : ' (24h pik)') : ' (vrh)');
+    const labW = g.measureText(lab).width;
+    g.fillText(lab,Math.min(w-labW-8, top.x+12), top.y-8);
+  }
+
+  // 4.5 Mode Summary Banner
+  if(activeStations.length){
+    const vals = activeStations.map(r => r.l.v).filter(Number.isFinite);
+    const meanV = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length) : 0;
+    const maxV = vals.length ? Math.max(...vals) : 0;
+    const unit = rawRows[0]?.d?.unit || 'µg/m³';
+    let bannerText = '';
+    if(curMode === 'cumulative'){
+      bannerText = `24h KUMULATIVNO (${CUMUL_STAT === 'mean' ? S('Prosek','Mean') : S('Maksimum','Peak')}) · ${activeStations.length}/${rows.length} ${S('stanica','stations')} · ${S('prosek grada','city mean')}: ${meanV.toFixed(1)} ${unit} · ${S('vrh','peak')}: ${maxV.toFixed(0)} ${unit}`;
+    } else if(curMode === 'live') {
+      bannerText = `TRENUTNO · ${activeStations.length}/${rows.length} ${S('stanica sa očitavanjem','reporting stations')} · ${S('srednja','mean')}: ${meanV.toFixed(1)} ${unit} · ${S('najviša','highest')}: ${maxV.toFixed(0)} ${unit}`;
+    } else if(curMode === 'hours') {
+      bannerText = `SAT ${HOURS[HOUR_INDEX] || '—'} UTC · ${activeStations.length}/${rows.length} ${S('stanica','stations')} · ${S('srednja','mean')}: ${meanV.toFixed(1)} ${unit}`;
+    } else if(curMode === 'hex') {
+      bannerText = `HEKSAGONALNA MREŽA · ${S('agregacija po ćelijama bez lažne interpolacije','cell aggregation without false interpolation')}`;
+    }
+    if(bannerText){
+      g.font = '600 10.5px ' + css('--mono');
+      const bW = g.measureText(bannerText).width;
+      const bX = Math.max(10, (w - bW) / 2), bY = 16;
+      g.fillStyle = css('--ink');
+      g.fillText(bannerText, bX, bY);
+    }
   }
 
   // 5. Meteo and River layer (if enabled)
@@ -598,7 +667,7 @@ function drawMap(){
         g.fillStyle = '#2B78E4';
         g.beginPath();
         g.moveTo(x, y - 6); g.lineTo(x + 6, y); g.lineTo(x, y + 6); g.lineTo(x - 6, y);
-        g.closePath();
+        if(typeof g.closePath === 'function') g.closePath();
         g.fill();
         g.strokeStyle = css('--field'); g.lineWidth = 1.5; g.stroke();
         const temp = st.metrics.temperature?.v;
