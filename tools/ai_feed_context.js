@@ -104,11 +104,10 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
           source:'Kontur Population',edition:clean(pop.source?.release||'2022-06-30'),
           attribution:clean(pop.attribution||'Kontur Population, Serbia resource release 2022-06-30, CC BY 4.0; filtered by BEOPS.'),
           url:clean(pop.source?.url||'https://data.humdata.org/'),
-          territory_id:'79014',place:'Grad Beograd',geography:'administrative',
+          territory_id:null,place:'prozor posmatranja oko centra Beograda (ne administrativna granica)',geography:'observation_window',
           period:'2022',value:pop.people_total,unit:'stanovnika',
-          metric:'Modelovana procena ukupnog broja stanovnika',
-          limitation:'H3 modelovana procena gustine naseljenosti, a ne trenutni živi popis.',
-          narrative_hint:'Na teritoriji od oko 360 km2 živi skoro 1.72 miliona ljudi, od kojih svaki deli i oseća ovaj urbani i klimatski prostor.'
+          metric:'Modelovan zbir stanovnika u H3 ćelijama unutar prozora posmatranja',
+          limitation:'H3 modelovana procena gustine naseljenosti unutar prozora posmatranja; nije broj stanovnika Grada Beograda niti trenutni popis.'
         });
       }
     } catch {}

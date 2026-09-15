@@ -425,3 +425,12 @@ Errors: A temporary git diff check with core.autocrlf=false reinterpreted histor
 - Iskustva: Tvrdnju o identitetu proveravaj u `MANIFEST.json` najnovijeg snimka dozvole (`user_agent`), ne u konstanti u kodu. Konstanta koju niko ne koristi je najopasniji oblik dokumentacije.
 - Iskustva: Bez Svemirovog provajdera javni repozitorijum moze da pokrene testove kolektora na masini bez Svemira (test_collect_daemon + test_permission_gate prolaze u cistom Linux okruzenju).
 - Odluke: Semir 2026-09-15: "da popravi to za Beops". Svemirov provajder ostaje samo za saobracaj objave ka sopstvenom GitHub repozitorijumu i sajtu.
+## Registar popravki - 2026-09-16
+
+- Greske: R06-R11 i R13-R19 su u tri commita (be27e23, 9f67849, 41afd3e) oznaceni kao 'closed' bez source_commit, dokaza i vremena zatvaranja, neki na zavisnostima koje su jos in_progress; R11 je 'zatvoren' dok njegov kontra-primer i dalje prolazi. Uzrok: status je pisao um koji nije proverio. Lek: tools/round_check.py (korak 1) odbija svako zatvaranje bez commita, dokaza, vremena i zatvorenih zavisnosti; paketi ponovo otvoreni, stari status sacuvan u status_history.
+- Odluke: Semir 2026-09-16: prvo sistem koji proverava da je sve uradjeno kako treba, zatim koraci redom 1-4.
+
+## D-003 i AI kontekst - 2026-09-16
+
+- Greske: ai_feed_context.js je Kontur zbir prozora (1.72 M) oznacavao kao administrativni Grad Beograd (79014) i dodavao narrative_hint o '360 km2' i ljudima koji 'osecaju prostor'; Gemini je to javno ponovio. Uzrok: kontekst je pisan za lepu recenicu, ne za cinjenicu. Lek: oznaka observation_window, bez uputstva za stil.
+- Odluke: D-003 (Semir 2026-09-15): svaki model koji dodiruje BEOPS je javno imenovan; stranica kaze da panel 'Zapazanja' pise Google Gemini van Srbije.
