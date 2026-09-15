@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="sr"><meta name="beops-input-generation" content="95bf52895c8a790cd425d7c8ba4c9abfbdd425ba864eefe68cb86617f102710d"><script src="observation-clocks.js"></script>
+<html lang="sr"><meta name="beops-input-generation" content="ca021ea6d217bebc1700925e4e2b7413b54e64c0a61799a471b6ae495281c268"><script src="observation-clocks.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BEOPS Podaci</title>
@@ -116,6 +116,21 @@ tr.max td{box-shadow:inset 3px 0 0 var(--signal)}
 .foot{padding:calc(var(--u)*6) 0;color:var(--ink60);font-size:13px;max-width:80ch}
 .silent{color:var(--ink60);font-style:italic}
 
+.map-controls{margin:0 0 calc(var(--u)*3);display:flex;flex-direction:column;gap:calc(var(--u)*2)}
+.tabs-row{display:flex;gap:calc(var(--u)*2);flex-wrap:wrap;align-items:center;justify-content:space-between}
+.tabs-group{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.subtoolbar{display:flex;gap:calc(var(--u)*3);flex-wrap:wrap;align-items:center;padding:calc(var(--u)*2) calc(var(--u)*3);background:var(--ink06);border:1px solid var(--ink12);border-radius:4px}
+.scrub-controls{display:flex;align-items:center;gap:8px;flex:1 1 320px}
+.scrub-controls input[type="range"]{flex:1;accent-color:var(--signal);cursor:pointer}
+.scrub-info{font-size:12px;color:var(--ink60);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.scrub-badge{padding:2px 6px;border-radius:3px;background:var(--ink12);color:var(--ink);font-weight:600}
+.legend-grid{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;font-family:var(--mono);color:var(--ink60);margin-top:6px;line-height:1.4}
+.legend-grid span{display:inline-flex;align-items:center;gap:4px}
+.legend-grid i{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle}
+.legend-grid i.hex-ico{width:11px;height:11px;border-radius:2px;transform:rotate(45deg);background:var(--ink12);border:1px solid var(--ink60)}
+.legend-grid i.meteo-ico{width:9px;height:9px;border-radius:1px;background:#2B78E4}
+.legend-grid i.river-ico{width:9px;height:9px;border-radius:50%;background:#0EA5E9}
+
 @media(max-width:600px){.clocknote,.clock-note{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;}}
 </style>
 <link rel="stylesheet" href="accessibility.css"><script defer src="accessibility.js"></script>
@@ -135,8 +150,52 @@ tr.max td{box-shadow:inset 3px 0 0 var(--signal)}
 <p><button type="button" id="loaddetails">Učitaj nizove i istoriju / Load series and history</button> · <a href="obrasci.html" target="_top">Opažanja kroz vreme / Observations over time</a></p>
 <section id="vazduh">
   <h2><span class="sr-only">Vazduh — SEPA, zvanična mreža (satne srednje vrednosti, preliminarne)</span><span class="en-only">Air — SEPA, the official network (hourly means, preliminary)</span></h2>
-  <p class="lead"><span class="sr-only">Svaka tačka je stanica; puna tačka označava dostupnu poslednju satnu vrednost, a prazan krug nedostajuću vrednost. Brojevi i satovi su u tabeli. Boja ne ocenjuje kvalitet vazduha. Vrednosti su preliminarne — tako ih izvor označava.</span><span class="en-only">Each dot is a station; a filled dot marks an available latest hourly value and an empty ring a missing value. Values and source times appear in the table. Colour does not rate air quality. Values are preliminary — that is the source's label.</span></p>
-  <div class="tabs" id="partabs"></div>
+  <p class="lead" id="vazduh-lead"><span class="sr-only">Svaka tačka je stanica; puna tačka označava dostupnu vrednost, a prazan krug nedostajuću vrednost. Vrednosti su preliminarne — tako ih izvor označava. Boja ne ocenjuje kvalitet vazduha.</span><span class="en-only">Each dot is a station; a filled dot marks an available value and an empty ring a missing value. Values are preliminary — that is the source's label. Colour does not rate air quality.</span></p>
+  
+  <div class="map-controls">
+    <div class="tabs-row">
+      <div class="tabs-group" id="modetabs">
+        <button type="button" data-mode="live" aria-pressed="true"><span class="sr-only">Trenutno</span><span class="en-only">Live</span></button>
+        <button type="button" data-mode="hours" aria-pressed="false"><span class="sr-only">Kroz sate</span><span class="en-only">Time Scrubber</span></button>
+        <button type="button" data-mode="cumulative" aria-pressed="false"><span class="sr-only">24h Kumulativno</span><span class="en-only">24h Summary</span></button>
+        <button type="button" data-mode="hex" aria-pressed="false"><span class="sr-only">Heksagonalna mreža</span><span class="en-only">Hex Mesh</span></button>
+      </div>
+      <div class="tabs-group" id="partabs"></div>
+      <div class="tabs-group" id="layertabs">
+        <button type="button" id="toggle-meteo" aria-pressed="false" title="Prikaz meteo stanica RHMZ/METAR i hidroloških stanica Save i Dunava"><span class="sr-only">+ Meteo &amp; Reke</span><span class="en-only">+ Weather &amp; Rivers</span></button>
+      </div>
+    </div>
+    
+    <div class="subtoolbar" id="scrubtoolbar" style="display:none">
+      <div class="scrub-controls">
+        <button type="button" id="scrub-play" aria-label="Pokreni / Zaustavi animaciju" title="Reprodukcija / Play">⏵</button>
+        <button type="button" id="scrub-prev" aria-label="Prethodni sat" title="Prethodni sat">◀</button>
+        <input type="range" id="scrub-slider" min="0" max="24" step="1" value="24" aria-label="Vremenski klizač kroz sate">
+        <button type="button" id="scrub-next" aria-label="Sledeći sat" title="Sledeći sat">▶</button>
+      </div>
+      <div class="scrub-info">
+        <span class="mono scrub-badge" id="scrub-time">—</span>
+        <span id="scrub-count" class="mono"></span>
+      </div>
+    </div>
+
+    <div class="subtoolbar" id="cumultoolbar" style="display:none">
+      <div class="tabs-group">
+        <button type="button" id="cumul-mean" aria-pressed="true"><span class="sr-only">24h Prosek</span><span class="en-only">24h Mean</span></button>
+        <button type="button" id="cumul-max" aria-pressed="false"><span class="sr-only">24h Maksimum</span><span class="en-only">24h Peak Max</span></button>
+      </div>
+      <div class="scrub-info"><span class="sr-only">Aritmetički prosek i pik dostupnih sati po stanici</span><span class="en-only">Arithmetic mean and peak of available hours per station</span></div>
+    </div>
+
+    <div class="subtoolbar" id="hextoolbar" style="display:none">
+      <div class="tabs-group">
+        <button type="button" id="hex-metric" aria-pressed="true"><span class="sr-only">Prosek u ćeliji</span><span class="en-only">Cell Mean</span></button>
+        <button type="button" id="hex-count" aria-pressed="false"><span class="sr-only">Broj stanica</span><span class="en-only">Station Count</span></button>
+      </div>
+      <div class="scrub-info"><span class="sr-only">Prazne ćelije označavaju merne praznine (nema lažne interpolacije)</span><span class="en-only">Empty cells indicate unmonitored zones (no fake interpolation)</span></div>
+    </div>
+  </div>
+
   <div class="grid sepa">
     <div><div class="cvwrap"><div class="cv geo"><canvas id="map" role="img" aria-label="Prikaz podataka; vrednosti su u tabelama / Data visualization; values appear in tables"></canvas></div></div><div class="legend" id="maplegend"></div></div>
     <div id="septable"></div>
@@ -181,6 +240,8 @@ function beopsVisible(){return !document.hidden&&(!window.frameElement||window.f
 
 (function(){
 let SNAP=null, LANG='sr', BASEMAP=null, FILTER_ZONE='', PAR='PM10', GENERATION=null, DETAILS=false, DETAILS_BUSY=false;
+let VIEW_MODE='live', SHOW_METEO=false, CUMUL_STAT='mean', HEX_STAT='mean';
+let HOURS=[], HOUR_INDEX=-1, IS_PLAYING=false, PLAY_TIMER=null;
 const S=(a,b)=>LANG==='sr'?a:b;
 
   window.addEventListener('message', e => {
@@ -267,23 +328,208 @@ function spark(pts,w,h,color){ const v=pts.map(p=>p.v).filter(x=>typeof x==='num
 const AIR_PARAMETERS=new Set(['PM10','PM2.5','NO2','O3','SO2','CO']);
 function airMarkerStyle(){return {color:css('--ink60'),radius:5};}
 function sepa(){ return (SNAP.sources||[]).find(s=>s.sid==='S146'); }
+function updateHoursList(){
+  const src = sepa();
+  if(!src) return;
+  const hoursSet = new Set();
+  for(const ds of src.datastreams || []){
+    for(const p of ds.points || []){
+      const h = (p.tc || p.t || '').slice(0, 13);
+      if(h) hoursSet.add(h);
+    }
+  }
+  HOURS = [...hoursSet].sort();
+  if(HOUR_INDEX < 0 || HOUR_INDEX >= HOURS.length) HOUR_INDEX = Math.max(0, HOURS.length - 1);
+}
+
+function stationReading(ds){
+  if(VIEW_MODE === 'live' || VIEW_MODE === 'hex'){
+    const l = latest(ds);
+    return { l, point: latestPoint(ds), q: l ? (l.q || '') : S('nedostaje', 'missing') };
+  }
+  if(VIEW_MODE === 'hours'){
+    const targetHour = HOURS[HOUR_INDEX];
+    const pts = ds.points || [];
+    const p = pts.find(x => (x.tc || x.t || '').slice(0, 13) === targetHour);
+    const valid = p && typeof p.v === 'number' && Number.isFinite(p.v);
+    return {
+      l: valid ? p : null,
+      point: p || null,
+      q: valid ? (p.q || 'ok') : S('nedostaje u ovom satu', 'missing this hour')
+    };
+  }
+  if(VIEW_MODE === 'cumulative'){
+    const pts = (ds.points || []).filter(p => typeof p.v === 'number' && Number.isFinite(p.v));
+    if(!pts.length) return { l: null, point: null, q: S('nedostaje', 'missing'), mean: null, max: null, count: 0 };
+    const sum = pts.reduce((acc, p) => acc + p.v, 0);
+    const mean = sum / pts.length;
+    const max = Math.max(...pts.map(p => p.v));
+    const val = CUMUL_STAT === 'mean' ? mean : max;
+    const rep = pts[pts.length - 1];
+    return {
+      l: { v: val, q: pts.length + '/' + (HOURS.length || 24) + ' h' },
+      point: rep,
+      mean,
+      max,
+      count: pts.length,
+      q: pts.length + '/' + (HOURS.length || 24) + ' ' + S('sati', 'hrs')
+    };
+  }
+  return { l: latest(ds), point: latestPoint(ds), q: '' };
+}
+
+function generateHexGrid(){
+  const dlat = 0.048, dlon = 0.068;
+  const hexes = [];
+  const rLat = dlat * 0.58, rLon = dlon * 0.58;
+  let row = 0;
+  for(let la = BB.la0 + 0.02; la <= BB.la1 + 0.02; la += dlat * 0.866){
+    const off = (row % 2) * (dlon / 2);
+    for(let lo = BB.lo0 + 0.01; lo <= BB.lo1 + 0.02; lo += dlon){
+      hexes.push({
+        id: 'HEX_' + row + '_' + hexes.length,
+        la, lo: lo + off,
+        rLat, rLon,
+        stations: []
+      });
+    }
+    row++;
+  }
+  return hexes;
+}
+
+function getHexCells(rows){
+  const hexes = generateHexGrid();
+  for(const r of rows){
+    if(!r.d.lat || !r.d.lon) continue;
+    let best = null, bd = 1e9;
+    for(const h of hexes){
+      const d = Math.hypot((r.d.lat - h.la) * 1.4, r.d.lon - h.lo);
+      if(d < bd){ bd = d; best = h; }
+    }
+    if(best) best.stations.push(r);
+  }
+  for(const h of hexes){
+    const valid = h.stations.filter(s => s.l);
+    h.count = valid.length;
+    h.totalStations = h.stations.length;
+    if(valid.length > 0){
+      h.mean = valid.reduce((acc, s) => acc + s.l.v, 0) / valid.length;
+      h.max = Math.max(...valid.map(s => s.l.v));
+    } else {
+      h.mean = null;
+      h.max = null;
+    }
+  }
+  return hexes;
+}
+
+function drawHexagon(g, h, w, hCanvas, style){
+  g.beginPath();
+  for(let i = 0; i < 6; i++){
+    const angle = i * Math.PI / 3;
+    const vLat = h.la + h.rLat * Math.sin(angle);
+    const vLon = h.lo + h.rLon * Math.cos(angle);
+    const [x, y] = proj(vLat, vLon, w, hCanvas);
+    if(i === 0) g.moveTo(x, y); else g.lineTo(x, y);
+  }
+  g.closePath();
+  if(style.fill){ g.fillStyle = style.fill; g.fill(); }
+  if(style.stroke){
+    g.strokeStyle = style.stroke;
+    g.lineWidth = style.lineWidth || 1;
+    if(style.dash) g.setLineDash(style.dash); else g.setLineDash([]);
+    g.stroke();
+    g.setLineDash([]);
+  }
+}
+
+function getMeteoStations(){
+  if(!SNAP||!SNAP.sources) return [];
+  const list = [];
+  const s01 = SNAP.sources.find(s=>s.sid==='S01');
+  if(s01){
+    const byStation = {};
+    for(const ds of s01.datastreams||[]){
+      if(!ds.lat||!ds.lon) continue;
+      const st = ds.station;
+      byStation[st] = byStation[st] || { name: st, type: 'meteo', sid: 'S01', lat: ds.lat, lon: ds.lon, metrics: {} };
+      const l = latest(ds);
+      if(l && typeof l.v==='number') byStation[st].metrics[ds.parameter] = { v: l.v, unit: ds.unit };
+    }
+    list.push(...Object.values(byStation));
+  }
+  const s03 = SNAP.sources.find(s=>s.sid==='S03');
+  if(s03){
+    const metrics = {};
+    let lat = null, lon = null;
+    for(const ds of s03.datastreams||[]){
+      if(ds.lat&&ds.lon){ lat = ds.lat; lon = ds.lon; }
+      const l = latest(ds);
+      if(l && typeof l.v==='number') metrics[ds.parameter] = { v: l.v, unit: ds.unit };
+    }
+    if(lat&&lon) list.push({ name: 'LYBE Surčin (METAR)', type: 'meteo', sid: 'S03', lat, lon, metrics });
+  }
+  const s52 = SNAP.sources.find(s=>s.sid==='S52');
+  if(s52){
+    const byStation = {};
+    for(const ds of s52.datastreams||[]){
+      if(!ds.lat||!ds.lon) continue;
+      const st = ds.station;
+      byStation[st] = byStation[st] || { name: st, type: 'river', sid: 'S52', lat: ds.lat, lon: ds.lon, metrics: {} };
+      const l = latest(ds);
+      if(l && typeof l.v==='number') byStation[st].metrics[ds.parameter] = { v: l.v, unit: ds.unit };
+    }
+    list.push(...Object.values(byStation));
+  }
+  return list;
+}
+
+function updateLegend(){
+  const leg = document.getElementById('maplegend');
+  if(!leg) return;
+  let items = [
+    `<span><i style="background:var(--ink60)"></i>${S('stanica sa očitavanjem','station with a reading')}</span>`,
+    `<span><i style="background:transparent;border:1px solid var(--ink30)"></i>${S('bez očitavanja u periodu','no reading in period')}</span>`
+  ];
+  if(VIEW_MODE === 'hours'){
+    const h = HOURS[HOUR_INDEX] || '';
+    items.push(`<span>${S('Prikazani sat: ','Showing hour: ')}<b>${h}Z</b></span>`);
+  } else if(VIEW_MODE === 'cumulative'){
+    items.push(`<span>${CUMUL_STAT==='mean'?S('24h srednja vrednost po stanici','24h mean value per station'):S('24h vršna vrednost po stanici','24h peak maximum per station')}</span>`);
+  } else if(VIEW_MODE === 'hex'){
+    items.push(`<span><i class="hex-ico"></i>${S('ćelija sa stanicama','cell with stations')}</span>`);
+    items.push(`<span><i class="hex-ico" style="background:transparent;border-style:dashed"></i>${S('merna praznina (bela mrlja)','unmonitored cell (gap)')}</span>`);
+  }
+  if(SHOW_METEO){
+    items.push(`<span><i class="meteo-ico"></i>${S('RHMZ/METAR meteo stanica','RHMZ/METAR weather')}</span>`);
+    items.push(`<span><i class="river-ico"></i>${S('vodomerna stanica Save/Dunava','river gauge')}</span>`);
+  }
+  items.push(`<span><i style="background:var(--ink30);opacity:.35"></i>${S('gušća tačkica = dalje od svake stanice','denser dots = farther from any station')}</span>`);
+  items.push(`<span>${S('Satna vrednost nije upoređena sa WHO smernicom za drugi period.','Hourly value not compared with WHO guidelines.')}</span>`);
+  leg.className = 'legend-grid';
+  leg.innerHTML = items.join('');
+}
+
 function drawMap(){
   const cv=document.getElementById('map'); const g=cv.getContext('2d');
   const dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=cv.clientHeight;
   if(!w||!h) return;
-  // guard on BOTH dimensions: a box that grew taller with a shorter bitmap is C-016
   if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){ cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr); }
   g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
   const src=sepa();
-  const rows=src?src.datastreams.filter(d=>d.parameter===PAR&&d.lat&&d.lon):[];
+  const rawRows=src?src.datastreams.filter(d=>d.parameter===PAR&&d.lat&&d.lon):[];
+  const getReading = d => typeof stationReading === 'function' ? stationReading(d) : { l: latest(d), point: latestPoint(d) };
+  const rows=rawRows.map(d=>({d, ...getReading(d)}));
 
-  // 1. how far this place is from any instrument we hear. NOT an interpolation of the value - the
-  //    project refuses to draw a number nobody measured. This draws the distance to the nearest
-  //    station, which is a fact about the network, and it is the argument the whole record makes.
-  const heard=rows.filter(d=>latest(d));
+  const curMode = typeof VIEW_MODE !== 'undefined' ? VIEW_MODE : 'live';
+  const showMeteo = typeof SHOW_METEO !== 'undefined' ? SHOW_METEO : false;
+
+  // 1. how far this place is from any instrument we hear
+  const heard=rows.filter(r=>r.l);
   if(heard.length){
     const step=Math.max(14,Math.min(26,Math.round(w/26)));
-    const pts=heard.map(d=>projBase(d.lat,d.lon,w,h));
+    const pts=heard.map(r=>projBase(r.d.lat,r.d.lon,w,h));
     g.fillStyle=css('--ink');
     for(let y=step/2;y<h;y+=step){ for(let x=(Math.round(y/step)%2?step/2:0)+step/2;x<w;x+=step){
       const bx=(x-VIEW.tx)/VIEW.k, by=(y-VIEW.ty)/VIEW.k;
@@ -305,21 +551,83 @@ function drawMap(){
       g.lineWidth=Math.max(3,6*Math.min(VIEW.k,2.2));
       g.beginPath(); f.geometry.coordinates.forEach((c,i)=>{const [x,y]=proj(c[1],c[0],w,h); i?g.lineTo(x,y):g.moveTo(x,y);}); g.stroke(); } }
 
-  if(!src) return;
-  // 3. the stations. A hollow ring is a station with no value in the window - a record, not a zero.
+  // 3. Hexagonal Mesh (when in hex mode)
+  if(curMode === 'hex' && typeof getHexCells === 'function' && typeof drawHexagon === 'function'){
+    const hexCells = getHexCells(rows);
+    const hexStat = typeof HEX_STAT !== 'undefined' ? HEX_STAT : 'mean';
+    for(const hc of hexCells){
+      if(hc.count > 0){
+        drawHexagon(g, hc, w, h, { fill: css('--ink06'), stroke: css('--ink60'), lineWidth: 1.5 });
+        const [cx, cy] = proj(hc.la, hc.lo, w, h);
+        g.font = '600 10px ' + css('--mono');
+        g.fillStyle = css('--ink');
+        const txt = hexStat === 'mean' && hc.mean != null ? hc.mean.toFixed(1) : (hc.count + ' st');
+        const tw = g.measureText(txt).width;
+        g.fillText(txt, cx - tw/2, cy + 3);
+      } else {
+        drawHexagon(g, hc, w, h, { stroke: css('--ink12'), lineWidth: 0.8, dash: [2, 4] });
+      }
+    }
+  }
+
+  // 4. Stations
   let top=null;
-  for(const d of rows){ const l=latest(d); const [x,y]=proj(d.lat,d.lon,w,h);
-    if(!l){ g.strokeStyle=css('--ink30'); g.lineWidth=1; g.beginPath(); g.arc(x,y,5,0,Math.PI*2); g.stroke(); continue; }
-    if(!top||l.v>top.l.v) top={d:d,l:l,x:x,y:y};
+  for(const r of rows){
+    const [x,y]=proj(r.d.lat,r.d.lon,w,h);
+    if(!r.l){
+      g.strokeStyle=css('--ink30'); g.lineWidth=1; g.beginPath(); g.arc(x,y,5,0,Math.PI*2); g.stroke();
+      continue;
+    }
+    if(!top||r.l.v>top.l.v) top={d:r.d,l:r.l,x,y};
     const style=airMarkerStyle();
     g.fillStyle=style.color; g.globalAlpha=1;
-    g.beginPath(); g.arc(x,y,style.radius,0,Math.PI*2); g.fill(); }
-  // only the highest station is labelled. Twenty-six numbers on one drawing is not information.
-  if(top){ g.fillStyle=css('--ink'); g.font='600 12px '+css('--sans');
+    g.beginPath(); g.arc(x,y,style.radius,0,Math.PI*2); g.fill();
+  }
+  if(top){
+    g.fillStyle=css('--ink'); g.font='600 12px '+css('--sans');
     const lab=Math.round(top.l.v)+' '+(top.d.unit||'');
-    g.fillText(lab,Math.min(w-g.measureText(lab).width-4,top.x+12),top.y+4); }
+    g.fillText(lab,Math.min(w-g.measureText(lab).width-4,top.x+12),top.y+4);
+  }
 
-  // 4. a scale bar, so a distance on this drawing is a distance in the city
+  // 5. Meteo and River layer (if enabled)
+  if(showMeteo && typeof getMeteoStations === 'function'){
+    const meteoStations = getMeteoStations();
+    for(const st of meteoStations){
+      const [x, y] = proj(st.lat, st.lon, w, h);
+      if(st.type === 'meteo'){
+        g.fillStyle = '#2B78E4';
+        g.beginPath();
+        g.moveTo(x, y - 6); g.lineTo(x + 6, y); g.lineTo(x, y + 6); g.lineTo(x - 6, y);
+        g.closePath();
+        g.fill();
+        g.strokeStyle = css('--field'); g.lineWidth = 1.5; g.stroke();
+        const temp = st.metrics.temperature?.v;
+        const wind = st.metrics.wind_speed?.v;
+        const tag = (temp != null ? (temp.toFixed(1) + '°C') : '') + (wind != null ? (' ' + wind.toFixed(1) + 'm/s') : '');
+        if(tag){
+          g.font = '600 10px ' + css('--mono');
+          g.fillStyle = css('--ink');
+          g.fillText(st.name.split(' ')[0] + ': ' + tag, x + 8, y + 3);
+        }
+      } else if(st.type === 'river'){
+        g.fillStyle = '#0EA5E9';
+        g.beginPath();
+        g.arc(x, y, 5.5, 0, Math.PI * 2);
+        g.fill();
+        g.strokeStyle = css('--field'); g.lineWidth = 1.5; g.stroke();
+        const lvl = st.metrics.water_level?.v;
+        const wt = st.metrics.water_temperature?.v;
+        const tag = (lvl != null ? (lvl + ' cm') : '') + (wt != null ? (' ' + wt.toFixed(1) + '°C') : '');
+        if(tag){
+          g.font = '600 10px ' + css('--mono');
+          g.fillStyle = css('--ink');
+          g.fillText(st.name.split(' ')[0] + ': ' + tag, x + 8, y + 3);
+        }
+      }
+    }
+  }
+
+  // 6. Scale bar
   const mpp=metresPerPx(w,h); let target=[1000,2000,5000,10000,20000].find(m=>m/mpp>60&&m/mpp<w*0.4)||5000;
   const px=target/mpp;
   g.strokeStyle=css('--ink30'); g.fillStyle=css('--ink60'); g.lineWidth=1;
@@ -327,22 +635,200 @@ function drawMap(){
   g.moveTo(12+px,h-18); g.lineTo(12+px,h-10); g.stroke();
   g.font='10px '+css('--mono'); g.fillText((target/1000)+' km',12,h-22);
 
-  document.getElementById('maplegend').innerHTML=`<span><i style="background:var(--ink60)"></i>${S('stanica sa poslednjom satnom vrednošću','station with a latest hourly value')}</span><span><i style="background:transparent;border:1px solid var(--ink30)"></i>${S('bez vrednosti u prozoru','no value in the window')}</span><span>${S('Satna vrednost nije upoređena sa WHO smernicom za drugi period.','An hourly value is not compared with a WHO guideline for another averaging period.')}</span><span><i style="background:var(--ink30);opacity:.35"></i>${S('gušća tačkica = dalje od svake stanice koja je javila','denser dots = farther from any station that reported')}</span>`;
+  if(typeof updateLegend === 'function'){
+    updateLegend();
+  } else {
+    const leg = document.getElementById('maplegend');
+    if(leg){
+      leg.innerHTML = `<span><i style="background:var(--ink60)"></i>${S('stanica sa očitavanjem','station with a reading')}</span><span><i style="background:transparent;border:1px solid var(--ink30)"></i>${S('bez očitavanja u periodu','no reading in period')}</span><span>${S('Satna vrednost nije upoređena sa WHO smernicom za drugi period.','Hourly value not compared with WHO guidelines.')}</span><span><i style="background:var(--ink30);opacity:.35"></i>${S('gušća tačkica = dalje od svake stanice','denser dots = farther from any station')}</span>`;
+    }
+  }
 }
+
 function renderSepa(){
-  const src=sepa(); const box=document.getElementById('septable'); if(!src){ box.innerHTML=`<p class="silent">${S('SEPA ćuti u ovom prozoru.','SEPA is silent in this window.')}</p>`; return; }
+  const src=sepa(); const box=document.getElementById('septable');
+  if(!src){ if(box) box.innerHTML=`<p class="silent">${S('SEPA ćuti u ovom prozoru.','SEPA is silent in this window.')}</p>`; return; }
+  
+  if(typeof updateHoursList==='function') updateHoursList();
+
+  const curMode = typeof VIEW_MODE !== 'undefined' ? VIEW_MODE : 'live';
+  const isPlaying = typeof IS_PLAYING !== 'undefined' ? IS_PLAYING : false;
+  const hours = typeof HOURS !== 'undefined' ? HOURS : [];
+  const hourIdx = typeof HOUR_INDEX !== 'undefined' ? HOUR_INDEX : 0;
+  const cumulStat = typeof CUMUL_STAT !== 'undefined' ? CUMUL_STAT : 'mean';
+  const hexStat = typeof HEX_STAT !== 'undefined' ? HEX_STAT : 'mean';
+  const showMeteo = typeof SHOW_METEO !== 'undefined' ? SHOW_METEO : false;
+
+  // Mode buttons wiring
+  document.querySelectorAll('#modetabs button').forEach(b => {
+    if(typeof b.setAttribute === 'function') b.setAttribute('aria-pressed', String(b.dataset && b.dataset.mode === curMode));
+    b.onclick = () => {
+      VIEW_MODE = b.dataset.mode;
+      if(VIEW_MODE !== 'hours' && typeof IS_PLAYING !== 'undefined' && IS_PLAYING){
+        clearInterval(PLAY_TIMER); IS_PLAYING = false;
+      }
+      renderSepa(); drawMap();
+    };
+  });
+
+  // Parameter buttons
   const pars=[...new Set(src.datastreams.map(d=>d.parameter))].filter(p=>AIR_PARAMETERS.has(p)).sort();
-  document.getElementById('partabs').innerHTML=pars.map(p=>`<button data-p="${esc(p)}" aria-pressed="${p===PAR}">${esc(p)}</button>`).join('');
-  document.querySelectorAll('#partabs button').forEach(b=>b.addEventListener('click',()=>{PAR=b.dataset.p; renderSepa(); drawMap();}));
-  const rows=src.datastreams.filter(d=>d.parameter===PAR && (!FILTER_ZONE || (d.station||'').toLowerCase().includes(FILTER_ZONE.toLowerCase()) || (d.station==='nepoznato'&&true))).map(d=>({d,l:latest(d),point:latestPoint(d)})).sort((a,b)=>((b.l&&b.l.v)??-1)-((a.l&&a.l.v)??-1));
+  const partabs = document.getElementById('partabs');
+  if(partabs){
+    partabs.innerHTML=pars.map(p=>`<button data-p="${esc(p)}" aria-pressed="${p===PAR}">${esc(p)}</button>`).join('');
+    document.querySelectorAll('#partabs button').forEach(b=>b.addEventListener('click',()=>{PAR=b.dataset.p; renderSepa(); drawMap();}));
+  }
+
+  // Layer toggle
+  const meteoBtn = document.getElementById('toggle-meteo');
+  if(meteoBtn){
+    if(typeof meteoBtn.setAttribute === 'function') meteoBtn.setAttribute('aria-pressed', String(showMeteo));
+    meteoBtn.onclick = () => { SHOW_METEO = !SHOW_METEO; if(typeof meteoBtn.setAttribute === 'function') meteoBtn.setAttribute('aria-pressed', String(SHOW_METEO)); drawMap(); };
+  }
+
+  // Subtoolbars visibility
+  const scrubTb = document.getElementById('scrubtoolbar');
+  const cumulTb = document.getElementById('cumultoolbar');
+  const hexTb = document.getElementById('hextoolbar');
+  if(scrubTb && scrubTb.style) scrubTb.style.display = curMode === 'hours' ? 'flex' : 'none';
+  if(cumulTb && cumulTb.style) cumulTb.style.display = curMode === 'cumulative' ? 'flex' : 'none';
+  if(hexTb && hexTb.style) hexTb.style.display = curMode === 'hex' ? 'flex' : 'none';
+
+  // Subtoolbar controls wiring
+  if(curMode === 'hours'){
+    const slider = document.getElementById('scrub-slider');
+    const playBtn = document.getElementById('scrub-play');
+    const prevBtn = document.getElementById('scrub-prev');
+    const nextBtn = document.getElementById('scrub-next');
+    const timeBadge = document.getElementById('scrub-time');
+    
+    if(slider){
+      slider.max = String(Math.max(0, hours.length - 1));
+      slider.value = String(hourIdx);
+      slider.oninput = () => {
+        HOUR_INDEX = parseInt(slider.value, 10);
+        renderSepa(); drawMap();
+      };
+    }
+    if(playBtn){
+      playBtn.textContent = isPlaying ? '⏸' : '⏵';
+      playBtn.onclick = () => {
+        IS_PLAYING = !IS_PLAYING;
+        playBtn.textContent = IS_PLAYING ? '⏸' : '⏵';
+        if(IS_PLAYING){
+          PLAY_TIMER = setInterval(() => {
+            if(!HOURS.length) return;
+            HOUR_INDEX = (HOUR_INDEX + 1) % HOURS.length;
+            if(slider) slider.value = String(HOUR_INDEX);
+            renderSepa(); drawMap();
+          }, 800);
+        } else {
+          clearInterval(PLAY_TIMER);
+        }
+      };
+    }
+    if(prevBtn) prevBtn.onclick = () => {
+      if(typeof HOUR_INDEX !== 'undefined' && HOUR_INDEX > 0){ HOUR_INDEX--; if(slider) slider.value = String(HOUR_INDEX); renderSepa(); drawMap(); }
+    };
+    if(nextBtn) nextBtn.onclick = () => {
+      if(typeof HOUR_INDEX !== 'undefined' && HOUR_INDEX < hours.length - 1){ HOUR_INDEX++; if(slider) slider.value = String(HOUR_INDEX); renderSepa(); drawMap(); }
+    };
+    const currentHourStr = hours[hourIdx] || '';
+    if(timeBadge) timeBadge.textContent = currentHourStr ? (currentHourStr + ':00Z') : '—';
+  } else if(curMode === 'cumulative'){
+    const bMean = document.getElementById('cumul-mean');
+    const bMax = document.getElementById('cumul-max');
+    if(bMean){ if(typeof bMean.setAttribute === 'function') bMean.setAttribute('aria-pressed', String(cumulStat==='mean')); bMean.onclick=()=>{CUMUL_STAT='mean'; renderSepa(); drawMap();}; }
+    if(bMax){ if(typeof bMax.setAttribute === 'function') bMax.setAttribute('aria-pressed', String(cumulStat==='max')); bMax.onclick=()=>{CUMUL_STAT='max'; renderSepa(); drawMap();}; }
+  } else if(curMode === 'hex'){
+    const bMetric = document.getElementById('hex-metric');
+    const bCount = document.getElementById('hex-count');
+    if(bMetric){ if(typeof bMetric.setAttribute === 'function') bMetric.setAttribute('aria-pressed', String(hexStat==='mean')); bMetric.onclick=()=>{HEX_STAT='mean'; renderSepa(); drawMap();}; }
+    if(bCount){ if(typeof bCount.setAttribute === 'function') bCount.setAttribute('aria-pressed', String(hexStat==='count')); bCount.onclick=()=>{HEX_STAT='count'; renderSepa(); drawMap();}; }
+  }
+
+  // Rows and readings
+  const rawRows=src.datastreams.filter(d=>d.parameter===PAR && (!FILTER_ZONE || (d.station||'').toLowerCase().includes(FILTER_ZONE.toLowerCase()) || (d.station==='nepoznato'&&true)));
+  const getReading = d => typeof stationReading === 'function' ? stationReading(d) : { l: latest(d), point: latestPoint(d) };
+  const rows=rawRows.map(d=>({d, ...getReading(d)})).sort((a,b)=>((b.l&&b.l.v)??-1)-((a.l&&a.l.v)??-1));
   const mx=rows.find(r=>r.l); const unit=rows[0]?rows[0].d.unit:'';
   const miss=rows.filter(r=>!r.l).length;
-  box.innerHTML=`<div class="tiles"><div class="tile"><div class="k">${S('najviša vrednost','highest value')} ${esc(PAR)}</div><div class="big">${mx?mx.l.v.toFixed(1):'—'}</div><div class="s">${mx?esc(mx.d.station)+beopsClocks.html(mx.point,LANG,src.clock_rules):''}</div></div><div class="tile"><div class="k">${S('stanica sa vrednošću','stations with a value')}</div><div class="big">${rows.length-miss}<span style="font-size:14px;color:var(--ink60)"> / ${rows.length}</span></div><div class="s">${miss?S('nedostaje','missing')+': '+miss+' — '+S('zapis, ne nula','a record, not a zero'):''}</div></div></div>
-  `;
-  // Two tables, not one long one: thirty-two stations down a single column leave the other half of the
-  // row empty for its whole height. The split is by position, so the city maximum stays at the top.
-  const head=`<thead><tr><th>${S('stanica','station')}</th><th class="num">${S('poslednje','latest')} ${esc(unit)}</th><th>${S('satovi opažanja','observation clocks')}</th><th>${S('prozor','window')}</th><th>${S('stanje','state')}</th></tr></thead>`;
-  const tr=(r,i)=>`<tr class="${i===0&&r.l?'max':''}"><td>${esc(r.d.station)}</td><td class="num">${r.l?r.l.v.toFixed(1):'—'}</td><td>${r.point?beopsClocks.html(r.point,LANG,src.clock_rules):'—'}</td><td class="spark">${spark(r.d.points,90,22,css('--ink60'))}</td><td class="state">${r.l?esc(r.l.q||''):S('nedostaje','missing')}</td></tr>`;
+
+  if(curMode === 'hours'){
+    const countBadge = document.getElementById('scrub-count');
+    if(countBadge) countBadge.textContent = (rows.length - miss) + ' / ' + rows.length + ' ' + S('stanica javilo', 'stations reported');
+  }
+
+  // Tiles
+  if(!box) return;
+  if(curMode === 'cumulative'){
+    const validRows = rows.filter(r=>r.mean != null);
+    const cityMean = validRows.length ? (validRows.reduce((s, r)=>s + r.mean, 0) / validRows.length) : null;
+    const peakRow = rows.filter(r=>r.max != null).sort((a,b)=>b.max - a.max)[0];
+    box.innerHTML=`<div class="tiles">
+      <div class="tile">
+        <div class="k">${S('24h prosek grada','24h city mean')} ${esc(PAR)}</div>
+        <div class="big">${cityMean != null ? cityMean.toFixed(1) : '—'}<span style="font-size:14px;color:var(--ink60)"> ${esc(unit)}</span></div>
+        <div class="s">${validRows.length} ${S('stanica sa merenjima','stations reporting')}</div>
+      </div>
+      <div class="tile">
+        <div class="k">${S('24h najviši skok','24h peak maximum')}</div>
+        <div class="big">${peakRow ? peakRow.max.toFixed(1) : '—'}<span style="font-size:14px;color:var(--ink60)"> ${esc(unit)}</span></div>
+        <div class="s">${peakRow ? esc(peakRow.d.station) : '—'}</div>
+      </div>
+      <div class="tile">
+        <div class="k">${S('ukupna pokrivenost','total coverage')}</div>
+        <div class="big">${validRows.length}<span style="font-size:14px;color:var(--ink60)"> / ${rows.length}</span></div>
+        <div class="s">${miss ? (miss + ' ' + S('stanica bez podataka', 'stations silent')) : S('sve stanice aktivne', 'all stations active')}</div>
+      </div>
+    </div>`;
+  } else if(curMode === 'hex'){
+    const hexCells = typeof getHexCells === 'function' ? getHexCells(rows) : [];
+    const withSt = hexCells.filter(h=>h.count > 0);
+    const emptyCells = hexCells.length - withSt.length;
+    const topHex = withSt.sort((a,b)=>(b.mean||0)-(a.mean||0))[0];
+    box.innerHTML=`<div class="tiles">
+      <div class="tile">
+        <div class="k">${S('pokrivene ćelije','monitored cells')}</div>
+        <div class="big">${withSt.length}<span style="font-size:14px;color:var(--ink60)"> / ${hexCells.length}</span></div>
+        <div class="s">${hexCells.length ? Math.round(withSt.length/hexCells.length*100) : 0}% ${S('teritorije grada ima stanicu','of city area has a station')}</div>
+      </div>
+      <div class="tile">
+        <div class="k">${S('merne praznine (bele mrlje)','unmonitored zones (gaps)')}</div>
+        <div class="big">${emptyCells}<span style="font-size:14px;color:var(--ink60)"> / ${hexCells.length}</span></div>
+        <div class="s">${hexCells.length ? Math.round(emptyCells/hexCells.length*100) : 0}% ${S('teritorije bez zvaničnih stanica','of area without official stations')}</div>
+      </div>
+      <div class="tile">
+        <div class="k">${S('najviši prosek ćelije','highest cell mean')}</div>
+        <div class="big">${topHex && topHex.mean != null ? topHex.mean.toFixed(1) : '—'}<span style="font-size:14px;color:var(--ink60)"> ${esc(unit)}</span></div>
+        <div class="s">${topHex ? (topHex.count + ' ' + S('stanica u ćeliji','stations in cell')) : '—'}</div>
+      </div>
+    </div>`;
+  } else {
+    const hourLabel = curMode === 'hours' ? (' (' + (hours[hourIdx]||'') + 'Z)') : '';
+    box.innerHTML=`<div class="tiles">
+      <div class="tile">
+        <div class="k">${S('najviša vrednost','highest value')} ${esc(PAR)}${hourLabel}</div>
+        <div class="big">${mx?mx.l.v.toFixed(1):'—'}</div>
+        <div class="s">${mx?esc(mx.d.station)+(mx.point?beopsClocks.html(mx.point,LANG,src.clock_rules):''):''}</div>
+      </div>
+      <div class="tile">
+        <div class="k">${S('stanica sa vrednošću','stations with a value')}</div>
+        <div class="big">${rows.length-miss}<span style="font-size:14px;color:var(--ink60)"> / ${rows.length}</span></div>
+        <div class="s">${miss?S('nedostaje','missing')+': '+miss+' — '+S('zapis, ne nula','a record, not a zero'):''}</div>
+      </div>
+    </div>`;
+  }
+
+  // Table
+  let head, tr;
+  if(curMode === 'cumulative'){
+    head=`<thead><tr><th>${S('stanica','station')}</th><th class="num">${S('24h prosek','24h mean')}</th><th class="num">${S('24h max','24h max')}</th><th>${S('pokrivenost','coverage')}</th><th>${S('trend','trend')}</th></tr></thead>`;
+    tr=(r,i)=>`<tr class="${i===0&&r.l?'max':''}"><td>${esc(r.d.station)}</td><td class="num">${r.mean!=null?r.mean.toFixed(1):'—'}</td><td class="num">${r.max!=null?r.max.toFixed(1):'—'}</td><td class="state">${esc(r.q)}</td><td class="spark">${spark(r.d.points,90,22,css('--ink60'))}</td></tr>`;
+  } else {
+    head=`<thead><tr><th>${S('stanica','station')}</th><th class="num">${curMode==='hours'?S('u tom satu','that hour'):S('poslednje','latest')} ${esc(unit)}</th><th>${S('satovi opažanja','observation clocks')}</th><th>${S('prozor','window')}</th><th>${S('stanje','state')}</th></tr></thead>`;
+    tr=(r,i)=>`<tr class="${i===0&&r.l?'max':''}"><td>${esc(r.d.station)}</td><td class="num">${r.l?r.l.v.toFixed(1):'—'}</td><td>${r.point?beopsClocks.html(r.point,LANG,src.clock_rules):'—'}</td><td class="spark">${spark(r.d.points,90,22,css('--ink60'))}</td><td class="state">${r.l?esc(r.l.q||''):S('nedostaje','missing')}</td></tr>`;
+  }
   const half=Math.ceil(rows.length/2), aRows=rows.slice(0,half), bRows=rows.slice(half);
   box.innerHTML+=`<div class="twocol"><table>${head}<tbody>`+aRows.map((r,i)=>tr(r,i)).join('')+`</tbody></table>`+
     (bRows.length?`<table>${head}<tbody>`+bRows.map((r,i)=>tr(r,i+half)).join('')+`</tbody></table>`:'')+`</div>`;
@@ -475,21 +961,76 @@ setInterval(()=>{if(beopsVisible())refreshView();},60000);
   wrap.addEventListener('pointermove',function(e){
     if(drag){ VIEW.tx=drag.tx+(e.clientX-drag.x); VIEW.ty=drag.ty+(e.clientY-drag.y); clamp(); return; }
     if(!SNAP) return;
-    const src=sepa(); if(!src) return;
     const a=at(e), w=cv.clientWidth, h=cv.clientHeight;
-    const rows=src.datastreams.filter(d=>d.parameter===PAR&&d.lat&&d.lon);
+
+    // Check meteo/river stations first if visible
+    if(SHOW_METEO){
+      const meteoList = getMeteoStations();
+      let bestM = null, bdm = 16*16;
+      for(const m of meteoList){
+        const q = proj(m.lat, m.lon, w, h);
+        const dx = q[0]-a[0], dy = q[1]-a[1], dd = dx*dx + dy*dy;
+        if(dd < bdm){ bdm = dd; bestM = m; }
+      }
+      if(bestM){
+        const lines = Object.entries(bestM.metrics).map(([k, v]) => `<span>${esc(k)}: <b>${esc(v.v)}</b> ${esc(v.unit||'')}</span>`).join('');
+        tip.innerHTML = `<b>${esc(bestM.name)}</b><span class="m">${bestM.type === 'river' ? S('Hidrološka stanica', 'River gauge') : S('Meteorološka stanica', 'Weather station')}</span>${lines}`;
+        tip.hidden = false;
+        const tw=tip.offsetWidth||180, th=tip.offsetHeight||44;
+        tip.style.left=Math.max(6,Math.min(w-tw-6,a[0]+14))+'px';
+        tip.style.top=Math.max(6,Math.min(h-th-6,a[1]+16))+'px';
+        return;
+      }
+    }
+
+    // Check air stations
+    const src=sepa(); if(!src) return;
+    const rawRows=src.datastreams.filter(d=>d.parameter===PAR&&d.lat&&d.lon);
     let best=null, bd=20*20;
-    for(const d of rows){ const q=proj(d.lat,d.lon,w,h); const dx=q[0]-a[0], dy=q[1]-a[1], dd=dx*dx+dy*dy;
+    for(const d of rawRows){ const q=proj(d.lat,d.lon,w,h); const dx=q[0]-a[0], dy=q[1]-a[1], dd=dx*dx+dy*dy;
       if(dd<bd){ bd=dd; best=d; } }
-    if(!best){ tip.hidden=true; return; }
-    const l=latest(best);
-    tip.innerHTML='<b>'+esc(best.station||'')+'</b>'
-      +'<span>'+esc(PAR)+': '+(l?(l.v.toFixed(1)+' '+esc(best.unit||'')):S('bez vrednosti u prozoru','no value in the window'))+'</span>'
-      +(latestPoint(best)?('<span class="m">'+esc(beopsClocks.summary(latestPoint(best),LANG))+'</span>'):'');
-    tip.hidden=false;
-    const tw=tip.offsetWidth||170, th=tip.offsetHeight||44;
-    tip.style.left=Math.max(6,Math.min(w-tw-6,a[0]+14))+'px';
-    tip.style.top=Math.max(6,Math.min(h-th-6,a[1]+16))+'px';
+    if(best){
+      const sr = stationReading(best);
+      let valStr = '';
+      if(VIEW_MODE === 'cumulative' && sr.mean != null){
+        valStr = `<span>${S('24h prosek: ','24h mean: ')}<b>${sr.mean.toFixed(1)} ${esc(best.unit||'')}</b></span><span>${S('24h max: ','24h peak: ')}<b>${sr.max.toFixed(1)} ${esc(best.unit||'')}</b></span><span class="m">${S('Pokrivenost: ','Coverage: ')}${sr.count} ${S('sati','hrs')}</span>`;
+      } else {
+        valStr = `<span>${esc(PAR)}: <b>${sr.l ? (sr.l.v.toFixed(1) + ' ' + esc(best.unit||'')) : S('bez vrednosti', 'no value')}</b></span>` + (sr.point ? (`<span class="m">${esc(beopsClocks.summary(sr.point,LANG))}</span>`) : '');
+      }
+      tip.innerHTML='<b>'+esc(best.station||'')+'</b>' + valStr;
+      tip.hidden=false;
+      const tw=tip.offsetWidth||170, th=tip.offsetHeight||44;
+      tip.style.left=Math.max(6,Math.min(w-tw-6,a[0]+14))+'px';
+      tip.style.top=Math.max(6,Math.min(h-th-6,a[1]+16))+'px';
+      return;
+    }
+
+    // Check hex cell if in hex mode
+    if(VIEW_MODE === 'hex'){
+      const rows = rawRows.map(d=>({d, ...stationReading(d)}));
+      const hexCells = getHexCells(rows);
+      let bestHex = null, bdh = 26*26;
+      for(const hc of hexCells){
+        const q = proj(hc.la, hc.lo, w, h);
+        const dx = q[0]-a[0], dy = q[1]-a[1], dd = dx*dx + dy*dy;
+        if(dd < bdh){ bdh = dd; bestHex = hc; }
+      }
+      if(bestHex){
+        if(bestHex.count > 0){
+          const stNames = bestHex.stations.map(s=>esc(s.d.station)).join(', ');
+          tip.innerHTML = `<b>${S('Prostorna ćelija','Spatial cell')}</b><span>${S('Stanica: ','Stations: ')}<b>${bestHex.count}</b> (${stNames})</span><span>${S('Srednja vrednost: ','Cell mean: ')}<b>${bestHex.mean!=null?bestHex.mean.toFixed(1)+' '+esc(rawRows[0]?.unit||''):'—'}</b></span>`;
+        } else {
+          tip.innerHTML = `<b>${S('Merna praznina','Unmonitored cell')}</b><span>${S('Nema zvaničnih mernih stanica u ovoj zoni','No official stations in this zone')}</span>`;
+        }
+        tip.hidden = false;
+        const tw=tip.offsetWidth||180, th=tip.offsetHeight||44;
+        tip.style.left=Math.max(6,Math.min(w-tw-6,a[0]+14))+'px';
+        tip.style.top=Math.max(6,Math.min(h-th-6,a[1]+16))+'px';
+        return;
+      }
+    }
+
+    tip.hidden=true;
   });
   wrap.addEventListener('dblclick',function(){ VIEW={k:1,tx:0,ty:0}; clamp(); });
   btn.addEventListener('click',function(){ VIEW={k:1,tx:0,ty:0}; clamp(); });

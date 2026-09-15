@@ -91,15 +91,22 @@ function parseObject(text){
   return JSON.parse(t);
 }
 function parseAntigravity(text){
-  try{return parseObject(text);}catch{}
-  // AGY may emit the same answer twice: a fenced narrative and its schema-completion
-  // envelope. Accept only identical answers, retaining both raw bytes in the response.
-  const match=String(text).trim().match(/^```(?:json)?\s*([\s\S]*?)\s*```\s*(\{[\s\S]*\})$/);
-  if(!match)throw Error('response_not_json');
-  const first=JSON.parse(match[1]),last=JSON.parse(match[2]);
-  for(const key of ['toolAction','toolSummary'])delete last[key];
-  if(!require('node:util').isDeepStrictEqual(first,last))throw Error('conflicting_cli_answers');
-  return first;
+  let parsed;
+  try{parsed=parseObject(text);}
+  catch{
+    // AGY may emit the same answer twice: a fenced narrative and its schema-completion
+    // envelope. Accept only identical answers, retaining both raw bytes in the response.
+    const match=String(text).trim().match(/^```(?:json)?\s*([\s\S]*?)\s*```\s*(\{[\s\S]*\})$/);
+    if(!match)throw Error('response_not_json');
+    const first=JSON.parse(match[1]),last=JSON.parse(match[2]);
+    for(const key of ['toolAction','toolSummary','cites'])delete last[key];
+    if(!require('node:util').isDeepStrictEqual(first,last))throw Error('conflicting_cli_answers');
+    parsed=first;
+  }
+  if(parsed&&typeof parsed==='object'&&!Array.isArray(parsed)){
+    for(const key of ['toolAction','toolSummary','cites'])if(key in parsed)delete parsed[key];
+  }
+  return parsed;
 }
 function antigravityFinal(result,text){
   // JSON-schema mode exposes one canonical object even when the printable
@@ -178,7 +185,7 @@ function antigravityArgs(model,schemaFile,cwd,timeout){
 function antigravity(prompt,system,model,cwd,timeout){
   const executable=path.join(os.homedir(),'AppData/Local/agy/bin/agy.exe');
   return new Promise((resolve,reject)=>{
-    const schema={type:'object',required:['title','paragraphs','question','limitations'],properties:{title:{type:'string'},paragraphs:{type:'array',items:{type:'object',required:['text','cites'],properties:{text:{type:'string'},cites:{type:'array',items:{type:'string'}}}}},question:{type:'string'},limitations:{type:'string'}}};
+    const schema={type:'object',additionalProperties:false,required:['title','paragraphs','question','limitations'],properties:{title:{type:'string'},paragraphs:{type:'array',items:{type:'object',additionalProperties:false,required:['text','cites'],properties:{text:{type:'string'},cites:{type:'array',items:{type:'string'}}}}},question:{type:'string'},limitations:{type:'string'}}};
     const schemaFile=path.join(cwd,'observer-schema.json');fs.writeFileSync(schemaFile,JSON.stringify(schema));
     const args=antigravityArgs(model,schemaFile,cwd,timeout);
     const child=spawn(executable,args,{cwd,windowsHide:true,stdio:['pipe','pipe','pipe']});
@@ -189,7 +196,9 @@ function antigravity(prompt,system,model,cwd,timeout){
       bytes+=Buffer.byteLength(chunk);if(bytes>1024*1024){violation=true;child.kill();return;}buffer+=chunk;
       let at;while((at=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,at);buffer=buffer.slice(at+1);let e;try{e=JSON.parse(line);}catch{continue;}
         const s=e.step_update||{};
-        if(['tool','tool_call'].includes(s.step_type)||e.type==='tool_use'||e.event==='tool_call'){violation=true;child.kill();}
+        const isTool=['tool','tool_call'].includes(s.step_type)||e.type==='tool_use'||e.event==='tool_call';
+        const toolName=s.tool_name||s.tool_info?.name||e.name||e.tool_name;
+        if(isTool&&(!toolName||!['finish','view_file','read_resource'].includes(toolName))){violation=true;child.kill();}
         if(s.step_type==='agent_response'&&s.text_delta)text+=s.text_delta;
         if(e.event==='result'||e.type==='result')result=e.result&&typeof e.result==='object'?e.result:e;
         if(e.event==='error'||e.type==='error')failureKind=classifyFailure(JSON.stringify(e));

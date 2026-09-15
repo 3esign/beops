@@ -15,7 +15,10 @@ function clean(s, n = 240) { return String(s || '').replace(/[\x00-\x1f<>]/g, ' 
 function allowedSources(root, now) {
   const {spawnSync}=require('node:child_process');
   const bundled=path.join(process.env.USERPROFILE||'', '.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe');
-  const exe=process.env.BEOPS_TEST_PYTHON || (fs.existsSync(bundled)?bundled:'python');
+  const runtimePath=path.join(root,'runtime/test-python.json');
+  let runtimePython=null;
+  try{if(fs.existsSync(runtimePath))runtimePython=JSON.parse(fs.readFileSync(runtimePath,'utf8').replace(/^\uFEFF/,'')).python;}catch{}
+  const exe=process.env.BEOPS_TEST_PYTHON || (runtimePython&&fs.existsSync(runtimePython)?runtimePython:null) || (fs.existsSync(bundled)?bundled:'python');
   // The projection normally takes about five seconds on the live ledger, but collection, publishing
   // and the hourly baseline can legitimately contend for the same disk. Keep it inside the 120 s job
   // deadline while avoiding a false failure at the old 20 s cliff.
@@ -55,7 +58,8 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
       const last = values.at(-1);
       if (!last || typeof last.v !== 'number' || !Number.isFinite(last.v)) continue;
       const ageMinutes = Math.round((asof - stamp(sampleTime(last)))/60000);
-      if (ageMinutes > Math.max(120, (source.cadence_seconds || 3600)/60*3)) continue;
+      const cadenceSeconds = source.sid === 'S52' ? 86400 : (source.cadence_seconds || 3600);
+      if (ageMinutes > Math.max(120, cadenceSeconds/60*3)) continue;
       const previous = values.find(p=>typeof p.v==='number' && Number.isFinite(p.v) && frame(p)===frame(last) && stamp(sampleTime(p)) < stamp(sampleTime(last))-1800000 && stamp(sampleTime(p)) >= stamp(sampleTime(last))-21600000);
       const namedClocks=observationClocks.disclose(last,source.clock_rules);
       const fact = {kind:'observation',sid:source.sid,source:clean(source.name),url:reg.url,
@@ -73,8 +77,9 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
     coverage.push({sid:source.sid,usable_streams:candidates.length,observed_streams:(source.datastreams||[]).length});
     // Rotate over stations rather than repeatedly selecting the highest reading.
     candidates.sort((a,b)=>a.stream.localeCompare(b.stream));
+    const count = ['S01', 'S52'].includes(source.sid) ? Math.min(2, candidates.length) : Math.min(1, candidates.length);
     const start = candidates.length ? Math.floor(time/1800000)%candidates.length : 0;
-    for (let i=0;i<Math.min(1,candidates.length);i++) facts.push(candidates[(start+i)%candidates.length]);
+    for (let i=0;i<count;i++) facts.push(candidates[(start+i)%candidates.length]);
   }
   const selected = facts.slice(0,config.max_live_facts || 8);
   const catalogFile = path.join(root,'public/context-catalog.json');
