@@ -115,7 +115,7 @@ function exportFeed(root=ROOT, now=new Date()){
 }
 async function tick(root=ROOT, options={}){
   const now=options.now||new Date(), config=readJSON(path.join(root,'research/AI_FEED.json'));
-  const deadline=Date.now()+Math.min(120,config.job_timeout_seconds)*1000;
+  const deadline=Date.now()+Math.min(180,config.job_timeout_seconds||180)*1000;
   const dir=path.join(root,'runtime/ai-feed');
   if(!config.enabled||fs.existsSync(path.join(root,'runtime/MAINTENANCE'))||fs.existsSync(path.join(dir,'PAUSED')))return {state:'paused'};
   if(!Array.isArray(config.providers)||config.providers.some(p=>!p.id||!Number.isFinite(p.interval_minutes)||p.interval_minutes<5||p.interval_minutes>1440))throw Error('invalid_provider_cadence');
@@ -182,7 +182,7 @@ async function tick(root=ROOT, options={}){
     let finish={...start,at:now.toISOString(),state:'interrupted',failure_count:state.providers[provider.id]?.failure_count||0,next_at:new Date(+now+provider.interval_minutes*60000).toISOString()};
     immutable(path.join(receipts,prefix+'-intent.json'),finish);
     let response;
-    const cwd=path.join(dir,'work',id);fs.mkdirSync(cwd,{recursive:true});
+    const cwd=path.resolve(path.join(dir,'work',id));fs.mkdirSync(cwd,{recursive:true});
     try{
       const remaining=deadline-Date.now();if(remaining<1000)throw Error('job_deadline');
       response=await (options.generate||providers.generate)(provider,provider.model,packet,system,cwd,remaining);

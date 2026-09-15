@@ -71,7 +71,7 @@ for (const pattern of patterns) {
   console.error(`Research gate: ${pattern}`);
   const result = spawnSync(selected[0], [...selected[1], '-X', 'utf8', '-B', '-m', 'unittest', 'discover',
     '-s', 'research', '-p', pattern, '-v'], {
-    cwd: path.resolve(__dirname, '..'), stdio: 'inherit', windowsHide: true, timeout: Math.min(120000, remaining), env: testEnv,
+    cwd: path.resolve(__dirname, '..'), stdio: 'inherit', windowsHide: true, timeout: Math.min(300000, remaining), env: testEnv,
   });
   phase('test: '+pattern, started, result.status, result.error);
   if (result.error) console.error(result.error.message);

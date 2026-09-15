@@ -33,7 +33,7 @@ class Gate(unittest.TestCase):
         dispatch = ResearchRunner().simulate('ok')
         self.assertEqual(dispatch['exitCode'], 0)
         self.assertTrue(dispatch['calls'])
-        self.assertTrue(all(call['timeout'] == 120000 for call in dispatch['calls']))
+        self.assertTrue(all(call['timeout'] == 300000 for call in dispatch['calls']))
 
     def test_direct_publisher_prefers_the_bundled_test_python(self):
         """The documented direct PowerShell command must not fall back to a random PATH python."""

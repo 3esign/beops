@@ -60,7 +60,7 @@ process.stdout.write(JSON.stringify({exitCode, calls, probes}));
             self.assertEqual(sum(fnmatch.fnmatchcase(name, p) for p in patterns), 1, name)
         self.assertEqual(len(patterns),len(names))
         self.assertNotIn('test_p*.py', patterns)
-        self.assertTrue(all(c['timeout'] == 120000 for c in result['calls']))
+        self.assertTrue(all(c['timeout'] == 300000 for c in result['calls']))
 
     def test_failure_refuses_success_and_stops_later_groups(self):
         for mode in ('fail', 'timeout'):
