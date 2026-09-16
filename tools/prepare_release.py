@@ -45,6 +45,56 @@ def git(root, *args):
     return result.stdout.strip()
 
 
+# C-080: every publish rewrote ~585 MB of permission evidence to the same disk (about 287 s of a
+# 30-minute cadence), and the collector and the guard starved behind it. Evidence captures are
+# written once and never edited, so the release links them instead of copying them. Only
+# research/evidence is linked: those bytes are read, never written, by every build and test step.
+# A link shares bytes with the source, so the stat check before and after, and os.path.samefile,
+# still refuse a release whose input moved. Set BEOPS_RELEASE_LINK_EVIDENCE=0 to copy as before.
+LINKABLE_PREFIXES = ('research/evidence/',)
+HASH_CACHE_NAME = '.beops-evidence-sha-cache.json'
+HASH_CACHE_MAX_AGE_SECONDS = 24 * 3600
+
+
+def link_enabled():
+    return os.environ.get('BEOPS_RELEASE_LINK_EVIDENCE', '1') != '0'
+
+
+class EvidenceHashes:
+    """sha256 by (path, size, mtime_ns), re-read from disk at least once a day."""
+
+    def __init__(self, file):
+        self.file = pathlib.Path(file)
+        self.fresh = {}
+        try:
+            self.rows = json.loads(self.file.read_text(encoding='utf-8')).get('files', {})
+        except (OSError, ValueError, AttributeError):
+            self.rows = {}
+        self.read_bytes = 0
+
+    def sha(self, path, rel, stat):
+        key = rel.as_posix()
+        row = self.rows.get(key)
+        now = time.time()
+        if (isinstance(row, dict) and row.get('bytes') == stat[0] and row.get('mtime_ns') == stat[1]
+                and now - float(row.get('hashed_at', 0)) < HASH_CACHE_MAX_AGE_SECONDS):
+            self.fresh[key] = row
+            return row['sha256']
+        digest = hashlib.sha256()
+        with path.open('rb') as stream:
+            for block in iter(lambda: stream.read(1024 * 1024), b''):
+                digest.update(block)
+        self.read_bytes += stat[0]
+        self.fresh[key] = {'bytes': stat[0], 'mtime_ns': stat[1], 'sha256': digest.hexdigest(), 'hashed_at': now}
+        return digest.hexdigest()
+
+    def save(self):
+        try:
+            atomic_json(self.file, {'schema': 'beops-evidence-sha-cache/v1', 'files': self.fresh})
+        except OSError:
+            pass
+
+
 def capture_inputs(source, dest, metrics=None):
     """Bound RAM with one temporary spool, then write destination files unlocked."""
     with tempfile.TemporaryFile(dir=dest.parent) as spool:
@@ -227,9 +277,26 @@ def _capture_inputs(source, dest, spool, metrics=None):
     metrics['spooled_bytes'] = total
     metrics['extracted_bytes'] = sum(item['bytes'] for item in inputs)
     trace_phase('mutable extract', 'end', metrics['mutable_extract_seconds'], bytes=metrics['extracted_bytes'])
+    hashes = EvidenceHashes(dest.parent / HASH_CACHE_NAME) if link_enabled() else None
+    linked = []
+
     def copy_immutable(entry):
         path, rel, stat = entry
         verify(path, stat)
+        posix = rel.as_posix()
+        if hashes is not None and posix.startswith(LINKABLE_PREFIXES) and not is_observation_path(posix):
+            target = dest / rel
+            try:
+                os.link(path, target)
+            except OSError:
+                pass                      # another volume or no link support: copy as before
+            else:
+                digest = hashes.sha(path, rel, stat)
+                verify(path, stat)
+                if not os.path.samefile(path, target):
+                    raise RuntimeError('linked input is not the captured file: ' + posix)
+                linked.append(stat[0])
+                return {'path': posix, 'bytes': stat[0], 'sha256': digest}
         with path.open('rb') as stream:
             result = write(rel, stream)
         verify(path, stat)
@@ -245,6 +312,11 @@ def _capture_inputs(source, dest, spool, metrics=None):
     with ThreadPoolExecutor(max_workers=4) as pool:
         inputs.extend(pool.map(copy_immutable, immutable))
     metrics['immutable_copy_seconds'] = round(time.monotonic()-phase_started, 3)
+    metrics['linked_files'] = len(linked)
+    metrics['linked_bytes'] = sum(linked)
+    if hashes is not None:
+        metrics['evidence_bytes_hashed'] = hashes.read_bytes
+        hashes.save()
     trace_phase('immutable copy', 'end', metrics['immutable_copy_seconds'])
     metrics['captured_bytes'] = sum(item['bytes'] for item in inputs)
     metrics['captured_files'] = len(inputs)

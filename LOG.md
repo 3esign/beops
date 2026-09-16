@@ -280,3 +280,4 @@ Vreme · um · radnja · rezultat. Vodi `node tools/project_kit.js log`.
 - 2026-09-16T21:39:44.146Z · claude-cowork · C-077: two gauges' water levels are never compared (own zeros); validator refuses it; 21:27 entry flagged · ok
 - 2026-09-16T22:32:03.241Z · claude-cowork · C-078: guard retention timeouts during publish copies (54/60 UNKNOWN) - bounded reuse of last measured plan; C-075 cause corrected · ok
 - 2026-09-16T22:56:25.277Z · claude-cowork · C-079: guard plan reuse accepts none-held raw captures (as on the real machine); C-078 was tested only in a world with raw bytes · ok
+- 2026-09-16T23:35:23.398Z · claude-cowork · C-080: releases hard-link research/evidence (~585 MB) instead of copying it every 30 min; hashes cached <=24 h · ok

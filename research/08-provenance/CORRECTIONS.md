@@ -3426,3 +3426,40 @@ also a second finding. The record of processing and RETENTION.json say that raw 
 for 90 days. On this machine no raw news bytes are kept under `data/live/raw` at all; the rows keep
 only their SHA-256. That is stricter than the stated policy, not looser. The record should still say
 what actually happens, in a later amendment.
+
+## C-080 — every publish rewrote the permission evidence, and the disk it shares with the collector choked
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+A release workspace is prepared every 30 minutes, and each one captured about 1.0 GB in 17,600 files.
+In the two manifests read on 2026-09-17, copying the unchanging inputs alone took 286 s and 288 s.
+Roughly 585 MB of that was `research/evidence`, the stored permission captures, which are written once
+and never change. The source and the release workspaces are on the same disk. While the copy ran, the
+disk queue reached 12–20. The collector (C-076) and the guard (C-078) lost their slots. A guard dry run
+took 497 s, and a two-line git commit took 11 minutes.
+
+### Correction
+
+- `tools/prepare_release.py` now hard-links files under `research/evidence` into the release instead
+  of copying them. It still records each file's SHA-256.
+  - The stat check before and after linking still applies, and `os.path.samefile` must confirm that
+    the link is the captured file. A changed input still refuses the release.
+  - Hashes come from a cache keyed by size and modification time. Any entry older than 24 h is read
+    from disk again.
+- Everything else is copied as before. That includes rows, receipts, raw captures, AI feed files and
+  model digests.
+- If the disk cannot link, the file is copied. `BEOPS_RELEASE_LINK_EVIDENCE=0` turns linking off.
+- The manifest records the same rows either way. It also records `linked_files`, `linked_bytes` and
+  `evidence_bytes_hashed` among its timings.
+- `research/test_release_links.py` has 10 tests.
+
+### Honest verdict
+
+The link shares bytes with the source. A build or test step that wrote into `research/evidence`
+inside the release would therefore change the source evidence. No such writer was found: those steps
+only read the folder, and deleting a release removes only the links. Still, that is a claim about
+today's code, not a guarantee. This removes about 60 % of the bytes written per publish. The rest,
+about 300 MB of rows and derived files, is still copied every time. Whether coverage and the guard
+recover has to be measured over the next day.
