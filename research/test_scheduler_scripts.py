@@ -73,7 +73,8 @@ class RegisterTasks(unittest.TestCase):
         self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
         priorities = {row["name"]: row["priority"] for row in json.loads(run.stdout)}
         self.assertEqual(priorities.pop("Beops_Publish"), 4)
-        self.assertEqual(len(priorities), 8)
+        self.assertEqual(priorities.pop("Beops_Collect"), 4, "C-076: collection must not starve behind a publish")
+        self.assertEqual(len(priorities), 7)
         self.assertEqual(set(priorities.values()), {7})
         self.assertIn("-Priority (Get-BeopsTaskPriority $t)", self.s)
         self.assertIn("$priority -ne $expectedPriority", self.audit)

@@ -1056,6 +1056,10 @@ def check() -> dict:
             "curl": shutil.which("curl.exe") or shutil.which("curl"), "sources": out}
 
 
+# The local snapshot feeds the AI context (stale after 60 min) and the watch (stale after 30 min).
+EXPORT_EVERY_SECONDS = 600
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("command", choices=["tick", "status", "report", "check", "export"])
@@ -1069,8 +1073,16 @@ def main() -> int:
         # Isolated publication no longer rebuilds this local view. AI context and
         # local checks consume it, so collection owns its regular refresh.
         # The timing is written so a skipped scheduler slot can be traced to a slow phase (C-075).
+        target = ROOT / "public" / "live-snapshot.json"
         try:
-            result['snapshot'] = str(export())
+            age = time.time() - target.stat().st_mtime if target.exists() else None
+            if age is not None and 0 <= age < EXPORT_EVERY_SECONDS and not a.only:
+                # C-076: the export rereads the rows and waits for the publisher's lock; under a
+                # publish it took over 100 s and pushed the tick past the next scheduler slot,
+                # which Windows then skips. The local view only needs to be minutes old.
+                result['snapshot'] = f'kept ({int(age)} s old, refreshed every {EXPORT_EVERY_SECONDS} s)'
+            else:
+                result['snapshot'] = str(export())
         except Exception as exc:
             result['snapshot_error'] = {'type': type(exc).__name__, 'message': str(exc)[:240]}
             result['timing'] = {'collect_seconds': round(t1 - t0, 1), 'export_seconds': round(time.monotonic() - t1, 1),

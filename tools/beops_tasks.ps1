@@ -12,7 +12,7 @@ function Get-BeopsTaskSpecs {
     # the sensing or model cadence; it prevents every heavy organ from waking in
     # the same minute on the 8 GB observatory body.
     [pscustomobject]@{ Name='Beops_AIFeed';   Bat='tools\ai_feed_tick.bat';  Minutes=5;     OffsetMinutes=1;  Limit=4;  LogonType='Interactive'; Desc='BEOPS: durable experimental citizen-style AI observations, staggered model cadence within one hour' },
-    [pscustomobject]@{ Name='Beops_Collect';  Bat='tools\collect_tick.bat';  Minutes=5;     OffsetMinutes=2;  Limit=10; Desc='BEOPS: one bounded pass over permitted sources' },
+    [pscustomobject]@{ Name='Beops_Collect';  Bat='tools\collect_tick.bat';  Minutes=5;     OffsetMinutes=2;  Limit=10; Priority=4; Desc='BEOPS: one bounded pass over permitted sources' },
     [pscustomobject]@{ Name='Beops_Mind';     Bat='tools\mind_tick.bat';     Minutes=4;     OffsetMinutes=3;  Limit=12; Desc='BEOPS: one drop of the mind - one step of the endless conversation on local models' },
     [pscustomobject]@{ Name='Beops_Organ';    Bat='tools\organ_tick.bat';    Minutes=10;    OffsetMinutes=4;  Limit=9;  Desc='BEOPS: one bounded pass of the news-sorter organ on a local model' },
     [pscustomobject]@{ Name='Beops_Watch';    Bat='tools\watch_tick.bat';    Minutes=10;    OffsetMinutes=8;  Limit=5;  Desc='BEOPS: the watchman - reads artefacts, never task status as truth' },
@@ -26,6 +26,8 @@ function Get-BeopsTaskSpecs {
 function Get-BeopsTaskPriority($Spec) {
   # Task Scheduler's default 7 lowers CPU, I/O and memory priority together.
   # Publication has a deadline: 4 gives it normal priority on all three axes.
+  # Collection has one too (C-076): at background I/O priority it starved behind each
+  # publish's release copy and ran past its next five-minute slot, which Windows skips.
   # Other organs retain their existing background priority.
   if ($Spec.PSObject.Properties['Priority']) { return [int]$Spec.Priority }
   return 7

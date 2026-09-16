@@ -3303,3 +3303,62 @@ tick finished.
 This removes a false alarm and a false failure; it does not raise coverage. The skipped collector slots
 are still unexplained until the new timings accumulate. What would falsify this correction: a watch report
 that omits a source which is enabled, permitted and below 90 %.
+
+## C-076 — the collector starved behind every publish, and Windows skipped its slots
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+In 24 hours the five-minute collector started 127 times out of 288. The timing added in C-075 and the
+publish phase trace showed why. Each publish (every 30 minutes) holds the live write lock for about a
+minute and then copies about 1.1 GB into a release workspace for five minutes. The collector runs at
+the scheduler's background priority (7), which lowers its disk priority too. A tick at 21:13 UTC took
+five minutes to write one Sensor.Community capture and was stopped at its ten-minute limit (0x41306).
+The tick before it spent 102 s rebuilding the local snapshot while the publisher held the lock.
+Windows does not start a task while the previous run is still going, so the next slots were skipped
+(0x800710E0). The skipped slots fall in every publish window. That fits the 55–65 % coverage of the
+five- and fifteen-minute sources better than any fault at the publishers.
+
+### Correction
+
+- `tools/beops_tasks.ps1`: Beops_Collect gets priority 4, as Beops_Publish already has.
+  `research/_trail/c076/apply_collect_priority.ps1` applies only that setting to the live task and saves
+  the task XML before and after.
+- `tools/collect_daemon.py`: a tick rebuilds `public/live-snapshot.json` only when the file is older than
+  ten minutes. The watch accepts counts up to 30 minutes old and the AI panel accepts 60.
+- Tests: `research/test_collect_export_cadence.py`; `research/test_scheduler_scripts.py` now expects
+  priority 4 for Beops_Collect; the two refresh tests in `research/test_collector_cadence.py` now run
+  against an empty workspace instead of whatever snapshot the live tree happens to hold.
+
+### Honest verdict
+
+This is a diagnosis from two publish windows, and the effect is not measured yet. If 24-hour coverage of
+the fifteen-minute sources stays below about 80 % after a day, the cause is elsewhere. The next candidate
+is the size of each release copy (hard links or a hash cache). What would falsify this correction: skipped
+collector slots that do not coincide with publish windows.
+
+## C-077 — the panel compared two river gauges as if they read from the same zero
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+The first observation accepted under citizen-v3 (21:27 UTC) set the Danube at Zemun, 166 cm, beside the
+Sava at Beograd, 123 cm, as "the same quantity at two places". C-074 had listed water level among the
+quantities that may be compared across places. But each gauge reads against its own zero, so the two
+numbers are not on one scale: the comparison was ours, not the model's.
+
+### Correction
+
+- `research/AI_FEED_RELATIONS.json`: water level is excluded from same-quantity comparisons and from
+  the confluence rule. Changes in level, discharge and water temperature can still be compared.
+- Validator citizen-v3 also refuses a paragraph that cites the levels of two different gauges
+  (`incomparable_gauges`). The re-review flags the 21:27 entry. The entry stays public.
+- `tools/round_check.py` 5.3 counts entries written after the validator last changed.
+
+### Honest verdict
+
+The rules file is a list of physical facts written by hand, and this entry shows how one can be wrong
+while looking reasonable. Every rule in that file should be checked the same way, gauge by gauge and
+station by station.

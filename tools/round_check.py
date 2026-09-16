@@ -452,7 +452,7 @@ def step5() -> list[dict]:
                        text=True, encoding="utf-8", timeout=120, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
     out.append(result("5.2 the validator refuses the published counter-examples and keeps a careful text",
                       PASS if r.returncode == 0 else FAIL, (r.stdout or r.stderr).strip()[-200:]))
-    since = commit_time("research/AI_FEED.json")
+    since = commit_time("tools/ai_feed_context.js")   # the validator in force
     stamp = since.strftime("%Y-%m-%dT%H:%M:%SZ") if since else "9999"
     newer = node_json(
         "const fs=require('fs'),p=require('path'),C=require('./tools/ai_feed_context');"

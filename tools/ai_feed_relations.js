@@ -65,7 +65,7 @@ function relate(a, b) {
   if (ta === null || tb === null) return null;
   const gap = Math.abs(ta - tb) / 60000, dist = km(a, b);
   for (const rule of rules().rules) {
-    const pair = rule.same_quantity ? qa === qb && (!rule.quantities || rule.quantities.includes(qa))
+    const pair = rule.same_quantity ? qa === qb && (!rule.quantities || rule.quantities.includes(qa)) && !(rule.exclude || []).includes(qa)
       : (rule.a.includes(qa) && rule.b.includes(qb)) || (rule.a.includes(qb) && rule.b.includes(qa));
     if (!pair) continue;
     if (rule.different_place && String(a.place) === String(b.place)) continue;

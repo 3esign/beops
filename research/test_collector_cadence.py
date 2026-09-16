@@ -14,12 +14,13 @@ import collect_daemon as cd
 
 class Cadence(unittest.TestCase):
     def test_regular_tick_refreshes_local_snapshot_for_ai_without_publication(self):
-        with patch.object(sys,'argv',['collect_daemon.py','tick']), patch.object(cd,'tick',return_value={'results':[]}), patch.object(cd,'export',return_value=pathlib.Path('snapshot.json')) as refresh, patch.object(sys,'stdout',io.StringIO()):
+        # C-076: with no snapshot (or one older than ten minutes) the tick refreshes it.
+        with tempfile.TemporaryDirectory() as tmp, patch.object(cd,'ROOT',pathlib.Path(tmp)), patch.object(sys,'argv',['collect_daemon.py','tick']), patch.object(cd,'tick',return_value={'results':[]}), patch.object(cd,'export',return_value=pathlib.Path('snapshot.json')) as refresh, patch.object(sys,'stdout',io.StringIO()):
             self.assertEqual(cd.main(),0)
             refresh.assert_called_once_with()
 
     def test_snapshot_failure_is_visible_after_receipts_were_recorded(self):
-        with patch.object(sys,'argv',['collect_daemon.py','tick']), patch.object(cd,'tick',return_value={'results':[{'state':'captured'}]}), patch.object(cd,'export',side_effect=OSError('disk full')), patch.object(sys,'stdout',io.StringIO()) as output:
+        with tempfile.TemporaryDirectory() as tmp, patch.object(cd,'ROOT',pathlib.Path(tmp)), patch.object(sys,'argv',['collect_daemon.py','tick']), patch.object(cd,'tick',return_value={'results':[{'state':'captured'}]}), patch.object(cd,'export',side_effect=OSError('disk full')), patch.object(sys,'stdout',io.StringIO()) as output:
             self.assertEqual(cd.main(),1)
             result=json.loads(output.getvalue())
             self.assertEqual(result['results'][0]['state'],'captured')

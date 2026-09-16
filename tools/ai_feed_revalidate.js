@@ -15,6 +15,7 @@ const WORDS = {
   false_simultaneity: ['naziva istovremenim očitavanja udaljena više od sat vremena', 'calls readings more than an hour apart simultaneous'],
   invented_terrain: ['opisuje teren koji nije u podacima', 'describes terrain that is not in the data'],
   unsupported_norm: ['tvrdi šta je uobičajeno bez osnovne linije', 'claims what is usual without a baseline'],
+  incomparable_gauges: ['poredi vodostaje dve vodomerne stanice, a svaka meri od svoje nule', 'compares the water levels of two gauges, each read against its own zero'],
   premature_pattern: ['tvrdi obrazac ili trend pre dovoljno duge istorije', 'claims a pattern or trend before the history is long enough'],
 };
 

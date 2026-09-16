@@ -257,6 +257,8 @@ function reasoningReasons(value, packet){
     const cited=p.cites.map(c=>byId.get(c)).filter(Boolean);
     const live=cited.filter(f=>LIVE.has(f.domain)), context=cited.filter(f=>['statistics','population'].includes(f.domain));
     if(context.length&&live.length)reasons.push('context_mixed_with_live');
+    // C-077: each gauge reads against its own zero; two gauges' levels are not comparable numbers.
+    if(new Set(cited.filter(f=>relationRules.quantity(f)==='water_level').map(f=>String(f.place))).size>1)reasons.push('incomparable_gauges');
     if(new Set(live.map(f=>f.domain)).size>1&&!relationRules.connected(live,rels))reasons.push('unrelated_domains');
     if(SIMULTANEOUS.test(fold(p.text))){
       const times=[...cited,...previous].map(relationRules.when).filter(t=>t!==null);

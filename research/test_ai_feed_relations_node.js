@@ -53,6 +53,13 @@ assert.ok(!rels.some(r => r.facts.includes('F11')), 'parking has no relation to 
 const nrels = Rel.relations(night.facts);
 assert.ok(nrels.some(r => r.kind === 'comparison' && r.facts.includes('F2') && r.facts.includes('F11')), 'Sava and Dunav temperature at the same hour are a comparison');
 assert.ok(!nrels.some(r => (r.facts.includes('F1') || r.facts.includes('F4')) && (r.facts.includes('F2') || r.facts.includes('F11'))), 'parking and river temperature are never related');
+// C-077: two gauges' water levels have different zeros and are never compared; their changes are.
+const levels = [obs('L1', 'Sava|water_level', 123, '2026-09-16T06:00:00Z', 'Beograd (Sava)', SAVA), obs('L2', 'Dunav|water_level', 166, '2026-09-16T06:00:00Z', 'Zemun (Dunav)', DUNAV)];
+assert.deepEqual(Rel.relations(levels), [], 'gauge levels are not comparable numbers');
+const changes = [obs('C1', 'Sava|water_level_change', 4, '2026-09-16T06:00:00Z', 'Beograd (Sava)', SAVA), obs('C2', 'Dunav|water_level_change', 2, '2026-09-16T06:00:00Z', 'Zemun (Dunav)', DUNAV)];
+assert.ok(Rel.relations(changes).length === 1);
+const gauges = { title: 'Vodostaji', paragraphs: [{ text: 'Dunav kod Zemuna je na 166 cm, a Sava kod Beograda na 123 cm.', cites: ['L1', 'L2'] }], question: 'Kakav će biti sledeći podatak?', limitations: 'x' };
+assert.ok(C.reasoningReasons(gauges, { facts: levels }).includes('incomparable_gauges'));
 assert.equal(Rel.domain({ kind: 'historical_context' }), 'statistics');
 assert.equal(Rel.domain(obs('X', 'S146|PM2.5', 1, '2026-09-16T05:00:00Z')), 'air');
 
