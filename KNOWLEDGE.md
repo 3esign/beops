@@ -434,3 +434,16 @@ Errors: A temporary git diff check with core.autocrlf=false reinterpreted histor
 
 - Greske: ai_feed_context.js je Kontur zbir prozora (1.72 M) oznacavao kao administrativni Grad Beograd (79014) i dodavao narrative_hint o '360 km2' i ljudima koji 'osecaju prostor'; Gemini je to javno ponovio. Uzrok: kontekst je pisan za lepu recenicu, ne za cinjenicu. Lek: oznaka observation_window, bez uputstva za stil.
 - Odluke: D-003 (Semir 2026-09-15): svaki model koji dodiruje BEOPS je javno imenovan; stranica kaze da panel 'Zapazanja' pise Google Gemini van Srbije.
+
+## Um 0.5.2 - 2026-09-16 (C-071)
+
+- Greske: validator je proveravao da broj postoji u citiranoj cinjenici, ne koju ulogu ima; 'from X to Y' u digestu modeli citaju kao promenu u vremenu. Lek: uloge brojeva i digest 'lowest/highest'.
+- Greske: keep_alive 0s + skriveni min(timeout,120) + budzet koraka 180 s = srpski glas gubi trku sa drugim hladnim ucitavanjem (16/44 za 3 dana). Lek: 60 s toplo, rok je budzet koraka. Racun rokova se pise pored rokova.
+- Iskustva: replay nad sacuvanim digestima (data/live/derived/mind/digests) je najbrzi nacin da se novo pravilo izmeri na stvarnim recenicama pre primene.
+- Odluke: Semir 2026-09-16 - redosled 1-4 prihvacen; 60 s i tisi um prema preporuci.
+
+## Nadzor pokrivenosti - 2026-09-16 (C-072)
+
+- Greske: 'pitan u dve kadence' je trenutak; nedelju dana je davao ok dok su izvori hvatali 58-70 % termina. Lek: coverage 24h iz broja termina koji kolektor vec pise.
+- Iskustva: pod opterecenjem (objava + testovi + Legal) lokalna projekcija snimka kasni vise od 30 min, pa nadzor pokrivenost posteno kaze 'unknown'; jedan korak uma je trajao 24 min. Teski rucni poslovi se ne pustaju uporedo sa objavom.
+- Greske: round_check je poredio 'UNKNOWN' sa 'unknown' iz watch.json; kapija je zato ispravno odbila commit. Lek: poredjenje bez obzira na velika slova, nepoznato je PENDING do svezeg takta.

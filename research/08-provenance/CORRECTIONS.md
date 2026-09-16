@@ -3141,3 +3141,71 @@ persona stay in the evidence as history. They are replaced as the current permis
 One side effect helps: without the external provider, the public repository can run its collector
 tests on a machine that has no Svemir. What would falsify this correction: a receipt after this
 commit whose `request_user_agent` is not the name above.
+
+## C-071 — the mind's gate checked that a number existed, not what it meant, and its Serbian lost to arithmetic
+
+**Written at the commit that carries this entry.** Found on 2026-09-15 by an independent review of the
+public monologue, and measured on three days of the mind's own record (175 attempts, 44 accepted).
+
+### What happened
+
+The validator accepted a number if it appeared in a fact the sentence cited. It did not ask what the
+number was. The digest wrote a spread across stations as "PM10 in that hour: from 9 (A) to 53 (B)",
+and the thinking models read it as a change in time. "PM10 values rising from 9 to 53" went public
+again and again. The Skeptic wrote "PM10 values dropping from 85 to 63, air improving" at 19:23 UTC on
+2026-09-14. In that hour PM10 had risen from 76 to 85, and 63 was PM2.5. That sentence was accepted
+and voiced in Serbian. The same rule accepted "SEPA reported …", because `reports?\b` does not match
+"reported". The echo guard compared exact 4-grams, so one template with new minutes in it looked new
+fourteen times in a day. A Serbian rendering with a Cyrillic "о" inside a Latin word passed.
+
+Separately, 16 of the 44 accepted thoughts lost their Serbian to a `TimeoutError`. A drip step has
+180 s. Every model call released the model (`keep_alive: 0s`), so the Serbian voice, which is the
+same model a few seconds later, paid a second cold load (84–93 s). A hidden `min(timeout, 120)` also
+cut every call to 120 s, while the comment above it said 210.
+
+### Correction
+
+- A number keeps the role of the fact it came from. A number after a pollutant name must belong to
+  that pollutant. "From X to Y" with a word of change must be one cited connection that carries X
+  then Y. A word of change on a number that only a spread carries is refused.
+- The digest words a spread as places: "compared across 31 stations: lowest 8 (A), highest 85 (B)".
+- Putting words in a source's mouth is refused in every tense, for any named source.
+- For the echo guard, a number is one token, so a template with new minutes is the same sentence.
+- A word written in two scripts is refused.
+- The model stays loaded for 60 s, long enough for the voice call and no longer. The only time limit
+  is the step's own budget.
+- `research/test_mind_roles.py` holds the published sentences as regressions. `tools/round_check.py`
+  step 3 re-checks every accepted thought after this version against its own digest.
+
+### Honest verdict
+
+On the three recorded days the new gate would have refused 24 of the 44 accepted thoughts: 14 for
+meaning, 9 as repeated templates and 1 as a source's words. About three more differ only because the
+replay could not match every digest exactly. The mind will be quieter until the new digest wording
+shows whether it prevents the misreading at the source. That can only be measured on new drops. The
+60 s warmth reverses a choice made on 2026-09-12 (release after every answer), with Semir's approval
+on 2026-09-16. What would falsify this correction: an accepted thought after 0.5.2 that reads a
+spread as a change, or more than 10 % of voice renderings lost to a timeout.
+
+## C-072 — the watch said "ok" for a week in which a source was heard in 58 % of its slots
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+The watchman asked one question per source: were we asking within two cadences? That is a moment.
+Over 24 hours on 2026-09-15 the citizen sensors were heard in 83 of 144 slots, parking in 66 of 96 and
+most news feeds in about 65 of 96. The gaps fell on every source at once, which points at the machine
+or the task rather than at a publisher. The public `watch.json` still said `late: 0`.
+
+### Correction
+
+A `coverage 24h` check reads the slot counts that the collector already writes and names every
+collected source below 90 %. It does not read the receipts again. Low coverage turns the report LATE,
+because that is true. It does not turn the watch process into a failure, because it is a finding
+about the collection, not a fault of the monitor.
+
+### Honest verdict
+
+Until the collection itself becomes more complete, the public watch will show "late", and that is
+the point. The paper must use the measured share, not "continuous".

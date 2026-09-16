@@ -12,11 +12,13 @@ import organ_news as news  # noqa: E402
 
 
 class ModelLifecycle(unittest.TestCase):
-    def test_mind_releases_ollama_model_with_each_answer(self):
+    def test_mind_keeps_its_model_warm_only_for_the_voice_call(self):
+        # C-071: one minute covers the Serbian rendering of the same thought; nothing longer.
         answer = {"message": {"content": "{}"}}
         with patch.object(mind.local_models, "request", return_value=answer) as request:
             mind.ollama_chat("fixture:1b", "prompt")
-        self.assertEqual(request.call_args.args[2]["keep_alive"], "0s")
+        self.assertEqual(request.call_args.args[2]["keep_alive"], "60s")
+        self.assertEqual(request.call_args.kwargs.get("timeout"), 210)
 
     def test_news_uses_cpu_and_only_short_bounded_warmth(self):
         answer = {"message": {"content": "{}"}, "done": True}

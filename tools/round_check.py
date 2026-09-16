@@ -405,12 +405,16 @@ def step4(live: bool = False) -> list[dict]:
         out.append(result("4.2 the local watch report shows coverage", PENDING if "coverage 24h" in src else FAIL,
                           "watch.json has no coverage line yet"))
         return out
+    if str(c.get("state")).lower() == "unknown":
+        out.append(result("4.2 the local watch report agrees with the slot counts", PENDING,
+                          f"the watch could not judge coverage at {w.get('at')}: {c.get('said')} - re-run after a fresh collect tick"))
+        return out
     snap = json.loads((ROOT / "public" / "live-snapshot.json").read_text(encoding="utf-8"))["status"]
     low = sorted(s["sid"] for s in snap["sources"]
                  if s.get("expected_slots") and s.get("captured") and not s.get("paused")
                  and s["captured"] / s["expected_slots"] < 0.9)
     claimed = sorted(x["sid"] for x in c.get("below", []))
-    same = low == claimed or c["state"] == UNKNOWN
+    same = low == claimed
     out.append(result("4.2 the local watch report agrees with the slot counts", PASS if same else FAIL,
                       f"watch says below 90%: {claimed or 'none'}; recount: {low or 'none'}"
                       + (" (the two were read minutes apart; re-run if they differ by one source)" if not same else "")))

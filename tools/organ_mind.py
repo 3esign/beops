@@ -88,7 +88,7 @@ SNAPSHOT = ROOT / "public" / "live-snapshot.json"
 CONTEXT_POP = ROOT / "public" / "context-population.json"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "mind"
-ORGAN_VERSION = "0.5.1"
+ORGAN_VERSION = "0.5.2"
 OUT_DIR = LIVE / "derived" / "mind"
 ORCHESTRATIONS = ("council", "relay")   # for `run`; the scheduled mode is the drip (see STEPS)
 
@@ -244,8 +244,10 @@ def digest(snap: dict, hours: int = 6, now: datetime | None = None, context: dic
                     miss = sum(1 for d, p in pts if d.get("parameter") == par and p.get("t") == last_t and p.get("v") is None)
                     if vals:
                         lo, hi = min(vals, key=lambda v: v[0]), max(vals, key=lambda v: v[0])
-                        add(f"{par} u tom satu: od {lo[0]:.0f} ({lo[1]}) do {hi[0]:.0f} ({hi[1]}) {unit}, {len(vals)} stanica" + (f", {miss} bez vrednosti." if miss else "."),
-                            f"{par} in that hour: from {lo[0]:.0f} ({lo[1]}) to {hi[0]:.0f} ({hi[1]}) {unit}, {len(vals)} stations" + (f", {miss} without a value." if miss else "."),
+                        # Worded as a comparison of places, not "from ... to", which the thinking models read
+                        # as a change over time (C-071).
+                        add(f"{par} u tom satu, poređenje {len(vals)} stanica: najniže {lo[0]:.0f} ({lo[1]}), najviše {hi[0]:.0f} ({hi[1]}) {unit}" + (f", {miss} bez vrednosti." if miss else "."),
+                            f"{par} in that hour, compared across {len(vals)} stations: lowest {lo[0]:.0f} ({lo[1]}), highest {hi[0]:.0f} ({hi[1]}) {unit}" + (f", {miss} without a value." if miss else "."),
                             kind="spread", sid=sid, parameter=par, lo=round(lo[0]), hi=round(hi[0]), hour=last_t,
                             lo_station=lo[1], hi_station=hi[1], lo_ll=(lo[2].get("lat"), lo[2].get("lon")), hi_ll=(hi[2].get("lat"), hi[2].get("lon")))
                         spreads.append(facts[-1])
@@ -705,14 +707,17 @@ def ollama_chat(model: str, prompt: str, schema: dict | None = None, num_predict
     # to the next model in the register order (C-036) instead of eating the schedule.
     # This PC also carries Svemir. Release the model with the response instead of retaining
     # several gigabytes until a 30-minute idle timer expires; the next drip may cold-start.
-    payload = {"model": model, "stream": False, "format": schema or SCHEMA, "keep_alive": "0s",
+    # C-071: with "0s" the Serbian voice (same model, seconds later) paid a second cold load, and a step
+    # budget of 180 s cannot hold two 84-93 s loads plus two generations - 16 of 44 accepted thoughts in
+    # three days lost their Serbian to a TimeoutError. One minute of warmth covers the voice call only.
+    payload = {"model": model, "stream": False, "format": schema or SCHEMA, "keep_alive": "60s",
                "options": {"temperature": temperature, "num_ctx": 6144, "num_predict": num_predict},
                "messages": [{"role": "user", "content": prompt}]}
     if model.split(":")[0].startswith(THINKING_MODELS):
         payload["think"] = False   # the organ wants the answer, not a hidden monologue; the JSON must carry all of it
-    body = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(OLLAMA + "/api/chat", data=body, headers={"Content-Type": "application/json"})
-    doc = local_models.request(OLLAMA, "/api/chat", payload, timeout=min(timeout, 120))
+    # The step's own budget (local_models.budget) is the real limit; a second, silent cap of 120 s here
+    # contradicted the 210 s stated above and cut cold-loaded calls short.
+    doc = local_models.request(OLLAMA, "/api/chat", payload, timeout=timeout)
     return json.loads((doc.get("message") or {}).get("content") or "{}")
 
 
@@ -779,6 +784,51 @@ def _units(texts) -> set:
     return out
 
 
+# A number is bound to the fact it came from, and a fact has a kind and a parameter. Membership alone
+# let "PM10 rising from 9 to 53" pass when 9 and 53 were two stations in the same hour (a spread), and
+# "PM10 dropping from 85 to 63" pass when 63 was PM2.5 (measured on the public page, 2026-09-14/15).
+POLLUTANT = re.compile(r"(PM ?2[.,]5|PM ?10|NO2|NO\u2082|O3|SO2|\bCO\b)", re.I)
+TREND = re.compile(r"\b(ris(e|es|ing)|rose|climb\w*|increas\w*|grow\w*|jump\w*|spik\w*|surg\w*|drop\w*|fell|fall\w*|"
+                   r"decreas\w*|declin\w*|improv\w*|worsen\w*|went (up|down))\b", re.I)
+CLAUSE = re.compile(r"[;.](?:\s|$)|,\s(?:while|but|and|whereas|yet|despite)\s")
+FROM_TO = re.compile(r"\bfrom\s+(\d+(?:[.,]\d+)?)\D{0,25}?\s+to\s+(\d+(?:[.,]\d+)?)")
+AUTHORITY_THAT = re.compile(r"\b[A-Z][\w.-]*\s+(reports?|reported|says?|said|warns?|warned|announces?|announced|"
+                            r"confirms?|confirmed|states?|stated|claims?|claimed)\s+(that|of)\b")
+
+
+def _pollutant(p: str) -> str:
+    return p.upper().replace(" ", "").replace(",", ".").replace("\u2082", "2")
+
+
+def role_reasons(text: str, cited: list[dict]) -> list[str]:
+    out = []
+    def binding(n):
+        return [f for f in cited if n in _nums(f.get("en") or "")]
+    for clause in CLAUSE.split(text or ""):
+        if not clause or not _nums(clause):
+            continue
+        parts = POLLUTANT.split(clause)
+        for i in range(1, len(parts) - 1, 2):
+            par = _pollutant(parts[i])
+            for n in _nums(parts[i + 1]):
+                b = [f for f in binding(n) if f.get("parameter")]
+                if b and par not in {_pollutant(f["parameter"]) for f in b}:
+                    out.append(f"number {n} belongs to {'/'.join(sorted({f['parameter'] for f in b}))}, not {par}")
+        if not TREND.search(clause):
+            continue
+        for m in FROM_TO.finditer(clause):
+            x, y = (next(iter(_nums(g)), "") for g in m.groups())
+            pair = re.compile(r"from\s+%s\D{0,25}to\s+%s(?!\d)" % (re.escape(x), re.escape(y)))
+            if not any(f.get("kind") == "connection" and pair.search(f.get("en") or "") for f in cited):
+                out.append(f"a change from {x} to {y} that no cited connection carries")
+        for n in _nums(clause):
+            b = binding(n)
+            if b and {f.get("kind") for f in b} <= {"spread"}:
+                out.append("reads a spread across stations as a change over time")
+                break
+    return sorted(set(out))
+
+
 def semantic_reasons(text: str, cited: list[dict]) -> list[str]:
     """Refusals that must look at what the sentence claims, not only at which tokens it uses."""
     out = []
@@ -791,7 +841,7 @@ def semantic_reasons(text: str, cited: list[dict]) -> list[str]:
         out.append("states a cause the record does not carry")
     if ADVICE.search(text):
         out.append("gives guidance; the observatory reports, it does not advise")
-    if AUTHORITY.search(text):
+    if AUTHORITY.search(text) or AUTHORITY_THAT.search(text):
         out.append("puts words in a source's mouth - the record holds its values, not its statements")
     if TOTALITY.search(text):
         out.append("claims coverage the instruments do not have")
@@ -799,6 +849,7 @@ def semantic_reasons(text: str, cited: list[dict]) -> list[str]:
         out.append("a superlative over a period the window does not cover")
     if "link" in kinds and CONFIRMED.search(text) and not SIMILARITY_HEDGE.search(text):
         out.append("turns a similarity into a confirmed event")
+    out += role_reasons(text, cited)
     known = _units([(f.get("en") or "") + " " + (f.get("sr") or "") for f in cited])
     if known:
         alien = sorted(_units([text]) - known)
@@ -922,7 +973,11 @@ def ensure_citations(text: str, dg: dict) -> tuple[str, str]:
 
 def _shingles(text: str, n: int = 4) -> set:
     w = re.sub(r"\[F\d+\]", "", (text or "").lower())
-    w = re.findall(r"[a-zšđčćž0-9]+", w)
+    # A template with fresh numbers is still the same sentence: "arrived 4 min ago" restates
+    # "arrived 16 min ago". Digits are one token for this comparison only (measured 2026-09-15:
+    # the observer repeated one template 14 times in 24 h under the old comparison).
+    w = ["#" if t.isdigit() else t for t in re.findall(r"[a-zšđčćž]+|[0-9]+(?:[.,][0-9]+)?", w)]
+    w = ["#" if re.fullmatch(r"[0-9]+(?:[.,][0-9]+)?", t) else t for t in w]
     return {" ".join(w[i:i + n]) for i in range(max(0, len(w) - n + 1))}
 
 
@@ -1043,6 +1098,17 @@ def validate(answer: dict, dg: dict, previous: list[str] | None = None) -> tuple
     return (not reasons), reasons
 
 
+def mixed_script_words(text: str) -> list[str]:
+    """A word written half in Latin and half in Cyrillic is not a Serbian word ("dosegaо", 2026-09-15)."""
+    out = []
+    for w in re.findall(r"\w+", text or ""):
+        lat = any("a" <= c.lower() <= "z" or c in "šđčćžŠĐČĆŽ" for c in w)
+        cyr = any("\u0400" <= c <= "\u04ff" for c in w)
+        if lat and cyr:
+            out.append(w)
+    return out
+
+
 def validate_voice(sr: str, en: str, dg: dict, hyp_sr: list[str] | None = None, q_sr: list[str] | None = None,
                    n_hyp: int = 0, n_q: int = 0, hyp_en=None, q_en=None) -> tuple[bool, list[str]]:
     """The Serbian rendering may not add a number or a citation, must be Serbian, and must be EKAVICA -
@@ -1089,6 +1155,9 @@ def validate_voice(sr: str, en: str, dg: dict, hyp_sr: list[str] | None = None, 
     hits = ijekavian_hits(sr)
     if hits:
         reasons.append("ijekavian, not ekavica: " + ", ".join(hits[:4]))
+    mixed = mixed_script_words(sr)
+    if mixed:
+        reasons.append("Latin and Cyrillic letters inside one word: " + ", ".join(mixed[:3]))
     if sr.lower() == en.strip().lower():
         reasons.append("identical to the English")
     for frag in PROMPT_FRAGMENTS + ["Prevedi ovu misao", "Odgovori isključivo"]:

@@ -288,6 +288,38 @@ def sources(now: datetime, persist_index: bool = False) -> list[dict]:
     return out
 
 
+COVERAGE_MIN = 0.9
+
+
+def coverage(now: datetime) -> dict:
+    """C-072. "Asked within two cadences" is a moment; it said ok for a week in which the citizen sensors
+    were heard in 58 % of their slots. This reads the 24-hour slot counts the collector already writes
+    into the local snapshot and says which sources fell below 90 % - a fact about our collection."""
+    p = ROOT / "public" / "live-snapshot.json"
+    try:
+        snap = json.loads(p.read_text(encoding="utf-8"))
+        st = snap["status"]
+        at = parse(st.get("as_of"))
+    except Exception as e:                                        # noqa: BLE001
+        return check("coverage 24h", UNKNOWN, f"slot counts unreadable ({type(e).__name__})")
+    if at is None or mins(now, at) > 30:
+        return check("coverage 24h", UNKNOWN, "slot counts are older than 30 min")
+    low = []
+    for s in st.get("sources") or []:
+        exp = int(s.get("expected_slots") or 0)
+        if exp <= 0 or s.get("paused") or not s.get("captured"):
+            continue            # paused or never captured is reported by the per-source check
+        share = s["captured"] / exp
+        if share < COVERAGE_MIN:
+            low.append((share, s["sid"]))
+    if not low:
+        return check("coverage 24h", OK, f"every collected source was heard in at least {COVERAGE_MIN:.0%} of its slots")
+    low.sort()
+    said = ", ".join(f"{sid} {share:.0%}" for share, sid in low[:8])
+    return check("coverage 24h", LATE, f"{len(low)} sources below {COVERAGE_MIN:.0%} of their slots in 24 h: {said}",
+                 below=[{"sid": sid, "share": round(share, 3)} for share, sid in low])
+
+
 def last_success():
     p = LIVE/'publish-last-success.json'
     d = json.loads(p.read_text(encoding='utf-8-sig'))
@@ -464,7 +496,7 @@ def rows_did_not_shrink(cur: dict, prev: dict | None) -> dict | None:
 def run(now: datetime | None = None, persist_index: bool = False) -> dict:
     now = now or now_utc()
     cont, prev = continuity(now)
-    checks = [cont, published(now), history(now), mind(now), ai_feed(now)]
+    checks = [cont, published(now), history(now), mind(now), ai_feed(now), coverage(now)]
     rt = rows_total()
     checks.append(rt)
     kept = rows_did_not_shrink(rt, prev)
@@ -509,7 +541,14 @@ def exit_code(r: dict, exporting: bool = False) -> int:
     """A safe policy refusal is a finding, not a failed monitor process."""
     if exporting or r['verdict'] in (OK, BLOCKED, PAUSED):
         return 0
-    return RANK[r['verdict']]
+    # Low 24-hour coverage is a finding about the collection, not a failure of this process (C-072).
+    checks = r.get('checks')
+    if checks is None:
+        return RANK[r['verdict']]
+    failing = [c for c in checks if c['state'] not in (OK, BLOCKED, PAUSED) and c['check'] != 'coverage 24h']
+    if not failing:
+        return 0
+    return max(RANK[c['state']] for c in failing)
 
 
 def main() -> int:

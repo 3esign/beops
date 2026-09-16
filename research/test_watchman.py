@@ -222,6 +222,31 @@ class WatchmanTests(unittest.TestCase):
         self.assertEqual(len(lines), 2)
         self.assertIn("source S01", lines[-1]["not_current"])
 
+    def _snapshot(self, captured, expected=144, age_min=5):
+        (self.t.dir / "public" / "live-snapshot.json").write_text(json.dumps({"status": {
+            "as_of": iso(NOW - timedelta(minutes=age_min)),
+            "sources": [{"sid": "S04", "expected_slots": expected, "captured": captured, "paused": None}]}}), encoding="utf-8")
+
+    def test_a_week_of_missed_slots_is_late_even_when_the_last_ask_was_recent(self):
+        self._snapshot(83)
+        c = W.coverage(NOW)
+        self.assertEqual(c["state"], W.LATE)
+        self.assertIn("S04 58%", c["said"])
+
+    def test_low_coverage_alone_does_not_fail_the_watch_process(self):
+        r = {"verdict": W.LATE, "checks": [{"check": "coverage 24h", "state": W.LATE}, {"check": "rows", "state": W.OK}]}
+        self.assertEqual(W.exit_code(r), 0)
+        r["checks"].append({"check": "source S01", "state": W.LATE})
+        self.assertEqual(W.exit_code(r), 1)
+
+    def test_full_coverage_is_ok_and_stale_counts_are_unknown(self):
+        self._snapshot(140)
+        self.assertEqual(W.coverage(NOW)["state"], W.OK)
+        self._snapshot(140, age_min=45)
+        self.assertEqual(W.coverage(NOW)["state"], W.UNKNOWN)
+        (self.t.dir / "public" / "live-snapshot.json").unlink()
+        self.assertEqual(W.coverage(NOW)["state"], W.UNKNOWN)
+
     def test_the_report_never_claims_more_than_the_checks(self):
         self.t.receipt("S01", NOW - timedelta(minutes=4)); self.t.row("S01", NOW)
         r = W.run(NOW)
