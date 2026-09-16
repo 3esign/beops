@@ -447,3 +447,7 @@ Errors: A temporary git diff check with core.autocrlf=false reinterpreted histor
 - Greske: 'pitan u dve kadence' je trenutak; nedelju dana je davao ok dok su izvori hvatali 58-70 % termina. Lek: coverage 24h iz broja termina koji kolektor vec pise.
 - Iskustva: pod opterecenjem (objava + testovi + Legal) lokalna projekcija snimka kasni vise od 30 min, pa nadzor pokrivenost posteno kaze 'unknown'; jedan korak uma je trajao 24 min. Teski rucni poslovi se ne pustaju uporedo sa objavom.
 - Greske: round_check je poredio 'UNKNOWN' sa 'unknown' iz watch.json; kapija je zato ispravno odbila commit. Lek: poredjenje bez obzira na velika slova, nepoznato je PENDING do svezeg takta.
+
+### 2026-09-16 — A prompt that demands a connection manufactures one
+
+Prompt v2 required a cross-domain link and urban relief; the model obliged every time (25 of 25 entries fail citizen-v3). A link is now allowed only where research/AI_FEED_RELATIONS.json names a mechanism or comparison within a time and distance limit; everything else is described separately (C-074).

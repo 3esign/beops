@@ -273,3 +273,5 @@ Vreme · um · radnja · rezultat. Vodi `node tools/project_kit.js log`.
 - 2026-09-15T23:36:51Z Â· svemir/cowork-review Â· Korak 2 kruga 2026-09-16: D-003 (svi modeli javno imenovani) u DECISIONS i u 'Gde ovo stoji' na 4 jezika; Kontur zbir u AI kontekstu je prozor posmatranja, ne Grad Beograd, bez narrative_hint Â· ok
 - 2026-09-15T23:52:55Z Â· svemir/cowork-review Â· Korak 3 kruga 2026-09-16 (C-071): um 0.5.2 - brojevi zadrzavaju ulogu cinjenice, digest pise raspon kao poredjenje stanica, glas dobija 60 s toplog modela i vise nema skrivenog roka od 120 s, rec u dva pisma se odbija; test_mind_roles Â· ok
 - 2026-09-16T00:38:27Z Â· svemir/cowork-review Â· Korak 4 kruga 2026-09-16 (C-072): watchman proverava pokrivenost termina za 24 h (ispod 90 % je LATE), bez pada procesa zbog toga; prvi pokusaj je kapija round_check zadrzala (poredjenje stanja velikim/malim slovima u samoj proveri) - ispravljeno pre commita Â· ok
+
+- 2026-09-16T20:27:32.686Z · claude-cowork · C-074: AI panel links only through named relations (AI_FEED_RELATIONS.json), prompt v3, validator citizen-v3; 25 of 25 published entries flagged, none edited; round_check step 5 · ok

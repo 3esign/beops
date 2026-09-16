@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const observationClocks = require('../research/05-design/studies/observation-clocks.js');
+const relationRules = require('./ai_feed_relations');
 const hash = value => crypto.createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
 function readJSON(file, cap = 64 * 1024 * 1024) {
   if (fs.statSync(file).size > cap) throw Error('input_too_large');
@@ -155,7 +156,7 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
     selected.push({
       kind: 'temporal_context', sid: 'TIME', source: 'System', metric: 'time_of_day',
       period: 'noć/rano jutro', value: hourUTC, unit: 'h UTC',
-      note: 'Noćni i ranojutarnji časovi. Zatišje u saobraćaju, većina vozila miruje na parkinzima i garažama (nula slobodnih mesta je redovna pojava noću).'
+      note: 'Noćni i ranojutarnji časovi (UTC). Ovo je samo doba dana, ne podatak o saobraćaju ili parkiranju.'
     });
   }
 
@@ -167,7 +168,7 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
     [selected[i], selected[j]] = [selected[j], selected[i]];
   }
 
-  selected.forEach((f,i)=>{f.id='F'+(i+1);});
+  selected.forEach((f,i)=>{f.id='F'+(i+1);f.domain=relationRules.domain(f);});
 
   const recentTitles = [];
   try {
@@ -188,8 +189,10 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
     selection:'Multi-domain live streams (air, meteorology, rivers, parking) with station rotation, plus demographic and statistical context. No articles or conversation memory.',
     baseline:'Same-stream comparisons only in v1. No long-term normality or health threshold is supplied.',
     recent_titles:recentTitles,
+    relations:relationRules.relations(selected),
+    relation_rule:'Facts may be discussed together only through a listed relation; all other facts are described separately.',
     catalog_hash:catalog ? hash(catalog) : null};
-  while (Buffer.byteLength(JSON.stringify(packet))>(config.max_context_bytes||24000) && packet.facts.length>1) packet.facts.pop();
+  while (Buffer.byteLength(JSON.stringify(packet))>(config.max_context_bytes||24000) && packet.facts.length>1) { packet.facts.pop(); packet.relations=relationRules.relations(packet.facts); }
   if (Buffer.byteLength(JSON.stringify(packet))>(config.max_context_bytes||24000)) throw Error('context_budget_exceeded');
   return packet;
 }
@@ -223,6 +226,53 @@ function numericReasons(text, facts) {
   }
   return [...new Set(reasons)];
 }
+// citizen-v3: what may be connected, and what may be claimed without a baseline.
+const fold=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase();
+const TERRAIN=/\b(greben\w*|padin\w*|kotlin\w*|brezulj\w*|uzvis\w*|brd(o|a|u|ima)?|obod\w*|ravnic\w*|podno|tvrdav\w*|dolin\w*|visoravn\w*|uzbrdic\w*|nizbrdic\w*|reljef\w*)\b/g;
+const NORM=/\b(obicn\w*|uobicajen\w*|neobicn\w*|neuobicajen\w*|ocekuje se|ocekivan\w*|redovn\w*|tipicn\w*|normaln\w*|iznenadujuc\w*|zacudujuc\w*)\b/;
+const PATTERN=/\b(obraz(ac|ca|ci|ce|cu|cima)|ritam\w*|ritm\w*|trend\w*|svakodnevn\w*|svake (noci|veceri|jutro|jutra|dana)|dnevn\w* migracij\w*|ponavlja se)\b/;
+const NEGATED=/\b(ne|nije|nisu|niti|bez|ni)\s+(\S+\s+){0,4}?(obraz\w*|ritam\w*|ritm\w*|trend\w*|obicn\w*|uobicajen\w*|ocekivan\w*|normaln\w*|tipicn\w*)/g;
+const SIMULTANEOUS=/\b(istovremeno|u isto vreme|u istom (trenutku|periodu|casu|satu|terminu)|u isti mah|paralelno)\b/;
+const DOMAIN_WORDS={
+  air:/\b(cestic\w*|azot\w*|ozon\w*|ugljen\w*|sumpor\w*|zagad\w*|pm10|pm2|benzen\w*|kvalitet\w* vazduha)\b/,
+  weather:/\b(vet(ar|r)\w*|pritis\w*|vlazn\w*|kosav\w*|strujanj\w*|temperatur\w* vazduha|magl\w*)\b/,
+  river:/\b(rek[aeiu]\w*|recn\w*|sav[aeiu]|dunav\w*|vodostaj\w*|vod[eu]|vodenih|usc[aeu])\b/,
+  parking:/\b(parking\w*|parkiral\w*|garaz\w*|slobodn\w* mest\w*|vozil\w*|saobracaj\w*)\b/,
+  statistics:/\b(zaposlen\w*|nezaposlen\w*|turist\w*|stanovni\w*)\b/,
+};
+const LIVE=new Set(['air','weather','river','parking']);
+function reasoningReasons(value, packet){
+  const reasons=[], facts=(packet.facts||[]).map(f=>({...f,domain:f.domain||relationRules.domain(f)}));
+  const byId=new Map(facts.map(f=>[f.id,f])), rels=relationRules.relations(facts);
+  const places=fold(facts.map(f=>[f.place,f.source,f.stream].join(' ')).join(' '));
+  const paragraphs=Array.isArray(value.paragraphs)?value.paragraphs:[];
+  const claimText=fold([value.title,...paragraphs.map(p=>p&&p.text),value.question].join(' '));
+  for(const m of claimText.matchAll(TERRAIN)){ if(!places.includes(m[0])){reasons.push('invented_terrain');break;} }
+  const stripped=claimText.replace(NEGATED,' ');
+  if(NORM.test(stripped))reasons.push('unsupported_norm');
+  if(PATTERN.test(stripped))reasons.push('premature_pattern');
+  let previous=[];
+  for(const p of paragraphs){
+    if(!p||!Array.isArray(p.cites))continue;
+    const cited=p.cites.map(c=>byId.get(c)).filter(Boolean);
+    const live=cited.filter(f=>LIVE.has(f.domain)), context=cited.filter(f=>['statistics','population'].includes(f.domain));
+    if(context.length&&live.length)reasons.push('context_mixed_with_live');
+    if(new Set(live.map(f=>f.domain)).size>1&&!relationRules.connected(live,rels))reasons.push('unrelated_domains');
+    if(SIMULTANEOUS.test(fold(p.text))){
+      const times=[...cited,...previous].map(relationRules.when).filter(t=>t!==null);
+      if(times.length>1&&Math.max(...times)-Math.min(...times)>3600000)reasons.push('false_simultaneity');
+    }
+    previous=cited;
+  }
+  const linked=new Set(rels.map(r=>[byId.get(r.facts[0]).domain,byId.get(r.facts[1]).domain].sort().join('+')));
+  for(const text of [value.title,value.question]){
+    const hit=Object.entries(DOMAIN_WORDS).filter(([,re])=>re.test(fold(text))).map(([d])=>d);
+    if(hit.length<2)continue;
+    const ok=hit.every((a,i)=>hit.slice(i+1).every(b=>a===b||linked.has([a,b].sort().join('+'))));
+    if(!ok){reasons.push('unrelated_question');break;}
+  }
+  return [...new Set(reasons)];
+}
 function validateOutput(value, packet, cap=5000) {
   const reasons=[], keys=['title','paragraphs','question','limitations'];
   if (!value || typeof value!=='object' || Array.isArray(value)) return {ok:false,reasons:['not_an_object']};
@@ -245,6 +295,7 @@ function validateOutput(value, packet, cap=5000) {
   // Uncited title/question/limitation must not introduce a numeric claim.
   if(numbers([value.title,value.question,value.limitations].join(' ')).length) reasons.push('uncited_number');
   if(!/[?？]/.test(value.question||'')) reasons.push('missing_question');
-  return {ok:!reasons.length,reasons:[...new Set(reasons)],version:'citizen-v2',scope:'Structure, template, cited numeric membership and explicit UTC times; not proof of claim-to-fact mapping or interpretation accuracy.'};
+  reasons.push(...reasoningReasons(value,packet));
+  return {ok:!reasons.length,reasons:[...new Set(reasons)],version:'citizen-v3',scope:'Structure, template, cited numeric membership, explicit UTC times, allowed relations between cited facts, simultaneity, invented terrain, unsupported norms and premature patterns; not proof of claim-to-fact mapping or interpretation accuracy.'};
 }
-module.exports={buildContext,validateOutput,numericReasons,readJSON,hash,stamp,allowedSources};
+module.exports={buildContext,validateOutput,numericReasons,reasoningReasons,readJSON,hash,stamp,allowedSources};

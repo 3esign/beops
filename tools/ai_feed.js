@@ -168,7 +168,7 @@ async function tick(root=ROOT, options={}){
     if(attemptsToday>=config.max_attempts_per_day){status.state='daily_budget';recordStatus();return status;}
     let packet;try{packet=(options.buildContext||buildContext)(root,now,config);}catch(e){status.state=e.message;if(e.diagnostic)status.diagnostic=e.diagnostic;recordStatus();return status;}
     const promptVersion=config.prompt_version||1;
-    if(![1,2].includes(promptVersion))throw Error('invalid_prompt_version');
+    if(![1,2,3].includes(promptVersion))throw Error('invalid_prompt_version');
     const provider=eligible[0],system=fs.readFileSync(path.join(root,'research/03-models/AI_FEED_SYSTEM_PROMPT_v'+promptVersion+'.txt'),'utf8');
     const contextHash=hash(packet),promptHash=hash(system),id=crypto.randomBytes(16).toString('hex');
     immutable(path.join(dir,'contexts',contextHash+'.json'),packet);

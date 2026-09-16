@@ -270,7 +270,10 @@ def step2(live: bool = False) -> list[dict]:
         packet = json.loads(cp.read_text(encoding="utf-8"))
         s = json.dumps(packet, ensure_ascii=False)
         prose = json.dumps(e.get("content"), ensure_ascii=False)
-        if '"geography": "administrative"' in s and "Kontur" in s or "1719722 stanovnika" in prose and "Grad Beograd ima" in prose:
+        # Only the Kontur population fact is at issue; statistics keep their own administrative geography.
+        pop = [f for f in packet.get("facts", []) if f.get("kind") == "demographic_context"]
+        if any(f.get("geography") == "administrative" or f.get("place") == "Grad Beograd" for f in pop) \
+                or "Grad Beograd ima" in prose:
             wrong.append(e["id"])
     if wrong:
         out.append(result("2.5 new AI entries do not call the window the City", FAIL, "entries: " + ", ".join(wrong)))
@@ -421,9 +424,55 @@ def step4(live: bool = False) -> list[dict]:
     return out
 
 
+# ------------------------------------------------------------------ step 5: the AI panel's reasoning (C-074)
+def node_json(code: str) -> dict:
+    r = subprocess.run(["node", "-e", code], cwd=ROOT, capture_output=True, text=True, encoding="utf-8",
+                       timeout=120, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    if r.returncode != 0:
+        raise RuntimeError((r.stderr or r.stdout)[-300:])
+    return json.loads(r.stdout)
+
+
+@guarded
+def step5() -> list[dict]:
+    out = []
+    cfg = json.loads(text("research/AI_FEED.json"))
+    prompt = ROOT / "research" / "03-models" / f"AI_FEED_SYSTEM_PROMPT_v{cfg.get('prompt_version')}.txt"
+    body = prompt.read_text(encoding="utf-8") if prompt.exists() else ""
+    ok = cfg.get("prompt_version") == 3 and "relations" in body and "MORA biti iz domena" not in body
+    out.append(result("5.1 the live prompt asks for links only through named relations", PASS if ok else FAIL,
+                      f"prompt v{cfg.get('prompt_version')}" + ("" if ok else " still forces or lacks the relation rule")))
+    r = subprocess.run(["node", str(ROOT / "research" / "test_ai_feed_relations_node.js")], cwd=ROOT, capture_output=True,
+                       text=True, encoding="utf-8", timeout=120, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    out.append(result("5.2 the validator refuses the published counter-examples and keeps a careful text",
+                      PASS if r.returncode == 0 else FAIL, (r.stdout or r.stderr).strip()[-200:]))
+    since = commit_time("research/AI_FEED.json")
+    stamp = since.strftime("%Y-%m-%dT%H:%M:%SZ") if since else "9999"
+    newer = node_json(
+        "const fs=require('fs'),p=require('path'),C=require('./tools/ai_feed_context');"
+        "const d='runtime/ai-feed',e=p.join(d,'entries');const out=[];"
+        "for(const n of fs.existsSync(e)?fs.readdirSync(e).filter(x=>x.endsWith('.json')):[]){"
+        "const x=JSON.parse(fs.readFileSync(p.join(e,n),'utf8'));if(x.at<=%s)continue;"
+        "const k=JSON.parse(fs.readFileSync(p.join(d,'contexts',x.context_hash+'.json'),'utf8'));"
+        "out.push({id:x.id,reasons:C.reasoningReasons(x.content||{},k)});}"
+        "console.log(JSON.stringify(out));" % json.dumps(stamp))
+    bad = [x["id"] for x in newer if x["reasons"]]
+    if not newer:
+        out.append(result("5.3 observations written since the change pass the reasoning rules", PENDING,
+                          "no AI entry written since the change"))
+    else:
+        out.append(result("5.3 observations written since the change pass the reasoning rules", FAIL if bad else PASS,
+                          f"{len(newer)} checked" + (f"; refused: {', '.join(bad)}" if bad else "")))
+    rep = node_json("console.log(JSON.stringify(require('./tools/ai_feed_revalidate').revalidate(process.cwd())))")
+    missing = rep["would_refuse"] - rep["already_flagged"]
+    out.append(result("5.4 every older observation the rules would refuse carries a public flag", FAIL if missing else PASS,
+                      f"{rep['checked']} checked, {rep['would_refuse']} would be refused, {missing} without a flag"))
+    return out
+
+
 # ------------------------------------------------------------------ report
 STEPS = {"0": lambda a: step0(), "1": lambda a: step1(), "2": lambda a: step2(a.live),
-         "3": lambda a: step3(), "4": lambda a: step4(a.live)}
+         "3": lambda a: step3(), "4": lambda a: step4(a.live), "5": lambda a: step5()}
 
 
 def main() -> int:

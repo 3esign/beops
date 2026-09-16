@@ -1,0 +1,115 @@
+{
+  "schema": "beops-ai-relations/v1",
+  "decided": "2026-09-16",
+  "why": "The AI panel connected facts that have no known link (parking with river temperature, parking with wind). From prompt v3 on, two facts may be discussed together only if a rule below names the link and the two readings are close in time and space. Everything else is described separately. A rule states a general physical or measurement relation; it is not evidence that the relation acted in this hour.",
+  "pattern_gate": {
+    "min_history_days": 14,
+    "note": "No claim of a recurring pattern, rhythm or trend until the observatory's own record holds at least this many days of aligned readings; the record held about eight days when this rule was written."
+  },
+  "rules": [
+    {
+      "id": "same_quantity",
+      "kind": "comparison",
+      "same_quantity": true,
+      "different_place": true,
+      "max_gap_minutes": 90,
+      "max_distance_km": 40,
+      "distance_unknown_ok": true,
+      "note_sr": "Ista veličina na dva mesta u približno isto vreme: poređenje, ne uzrok."
+    },
+    {
+      "id": "same_quantity_river",
+      "kind": "comparison",
+      "same_quantity": true,
+      "quantities": ["water_level", "water_level_change", "water_temperature", "discharge"],
+      "different_place": true,
+      "max_gap_minutes": 180,
+      "max_distance_km": 40,
+      "distance_unknown_ok": true,
+      "note_sr": "Ista rečna veličina na Savi i Dunavu: poređenje, ne uzrok."
+    },
+    {
+      "id": "confluence_level",
+      "kind": "mechanism",
+      "a": ["water_level", "water_level_change", "discharge"],
+      "b": ["water_level", "water_level_change", "discharge"],
+      "different_place": true,
+      "max_gap_minutes": 180,
+      "max_distance_km": 40,
+      "distance_unknown_ok": true,
+      "note_sr": "Sava se kod Beograda uliva u Dunav; vodostaj Dunava može da utiče na vodostaj Save kod ušća (uspor)."
+    },
+    {
+      "id": "pm_fractions",
+      "kind": "mechanism",
+      "a": ["pm25", "pm1"],
+      "b": ["pm10"],
+      "max_gap_minutes": 60,
+      "max_distance_km": 1,
+      "note_sr": "Sitnije čestice su deo PM10 na istom mernom mestu."
+    },
+    {
+      "id": "wind_dispersion",
+      "kind": "mechanism",
+      "a": ["wind_speed"],
+      "b": ["pm10", "pm25", "pm1", "no2", "no", "nox", "co", "so2", "benzene"],
+      "max_gap_minutes": 90,
+      "max_distance_km": 30,
+      "note_sr": "Jači vetar u načelu razređuje zagađujuće materije pri tlu, a slab vetar ih slabije raznosi."
+    },
+    {
+      "id": "wind_transport",
+      "kind": "mechanism",
+      "a": ["wind_direction"],
+      "b": ["pm10", "pm25", "pm1", "no2", "no", "nox", "co", "so2", "benzene"],
+      "max_gap_minutes": 90,
+      "max_distance_km": 30,
+      "note_sr": "Smer vetra određuje odakle vazduh stiže do stanice."
+    },
+    {
+      "id": "ozone_photochemistry",
+      "kind": "mechanism",
+      "a": ["air_temperature"],
+      "b": ["o3"],
+      "max_gap_minutes": 120,
+      "max_distance_km": 30,
+      "note_sr": "Ozon pri tlu nastaje uz sunčevo zračenje i toplotu, pretežno danju."
+    },
+    {
+      "id": "nox_ozone",
+      "kind": "mechanism",
+      "a": ["no2", "no", "nox"],
+      "b": ["o3"],
+      "max_gap_minutes": 90,
+      "max_distance_km": 5,
+      "note_sr": "Azotni oksidi i ozon hemijski su povezani na istom mestu."
+    },
+    {
+      "id": "humidity_low_cost_pm",
+      "kind": "measurement",
+      "a": ["humidity"],
+      "b": ["pm10", "pm25", "pm1"],
+      "max_gap_minutes": 60,
+      "max_distance_km": 1,
+      "note_sr": "Visoka vlažnost može da poveća očitavanja jeftinih senzora čestica na istom mestu."
+    },
+    {
+      "id": "pressure_wind",
+      "kind": "mechanism",
+      "a": ["pressure"],
+      "b": ["wind_speed", "wind_direction"],
+      "max_gap_minutes": 180,
+      "max_distance_km": 30,
+      "note_sr": "Promena pritiska prati promenu vremena i vetra."
+    },
+    {
+      "id": "temperature_dew_point_humidity",
+      "kind": "mechanism",
+      "a": ["air_temperature", "dew_point"],
+      "b": ["humidity", "dew_point"],
+      "max_gap_minutes": 60,
+      "max_distance_km": 5,
+      "note_sr": "Temperatura, tačka rose i relativna vlažnost vezane su fizički."
+    }
+  ]
+}

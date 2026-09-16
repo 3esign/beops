@@ -3231,3 +3231,46 @@ entry. The categories are the validator's own reason codes; no person has labell
 The difference does not change the direction of C-071 (most refusals are numbers read in the wrong
 role), but a count typed by hand reached the public ledger. What would falsify this correction: a
 re-run of the same replay over the same mind record giving other totals.
+
+## C-074 — the AI panel was told to connect what has no link, and to describe terrain it was never given
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+The experimental AI panel (Gemini Flash through Antigravity, prompt v2) was instructed that at least one
+cited fact "MUST" come from a domain other than air quality or weather, and to connect two or three facts
+"with the urban relief (ridge, river basins, plain)". The context packet it received also stated, as a fact,
+that "zero free parking spaces is a regular occurrence at night". The validator (citizen-v2) checked
+numbers and UTC times only. The published result connected parking with river temperature and with wind,
+called readings a day apart "simultaneous", described slopes, ridges and a fortress that no fact mentioned,
+and said what is "usual" with no baseline. The author caught it from two entries on the public page
+(16 September, 05:06 and 08:28 local time).
+
+### Correction
+
+- `research/AI_FEED_RELATIONS.json` names the only links the panel may draw: a physical mechanism or a
+  same-quantity comparison, each with a maximum time gap and distance. Parking, rivers, air and weather
+  are not linked unless a rule says so; statistics and population never share a paragraph with live
+  readings.
+- `tools/ai_feed_context.js` gives every fact its domain and the packet a `relations` list; the parking
+  norm is removed.
+- Prompt v3 (`research/03-models/AI_FEED_SYSTEM_PROMPT_v3.txt`) replaces the forced link with that rule and
+  forbids invented terrain, unsupported norms and pattern claims while the record is short
+  (`pattern_gate`: 14 days).
+- Validator citizen-v3 refuses a paragraph that mixes domains without a listed relation, "simultaneous"
+  readings more than an hour apart, terrain words absent from the facts, norms, pattern claims, and a
+  title or question that implies a link the facts do not have.
+- `tools/ai_feed_revalidate.js` re-read all 25 accepted entries against these rules:
+  25 would now be refused (invented_terrain 23, unsupported_norm 13, unrelated_question 11, premature_pattern 7, unrelated_domains 7, context_mixed_with_live 3, false_simultaneity 3). Each carries a public quality flag in
+  `research/AI_FEED_REVIEWS.json`; no entry was edited or removed.
+- `tools/round_check.py` step 5 checks this repair; check 2.5 no longer mistakes the statistics'
+  administrative geography for the population window (it was a false FAIL).
+
+### Honest verdict
+
+Every monologue the panel published under prompt v2 is now flagged: the fault was in our instruction,
+not only in the model. The new rules are word lists and distance/time thresholds; they will refuse some
+careful sentences and miss some careless ones, and the acceptance rate of the panel will fall. What would
+falsify this correction: an entry accepted under citizen-v3 that links two facts with no listed relation,
+or that names terrain absent from its facts.
