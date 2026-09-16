@@ -291,10 +291,12 @@ def sources(now: datetime, persist_index: bool = False) -> list[dict]:
 COVERAGE_MIN = 0.9
 
 
-def coverage(now: datetime) -> dict:
+def coverage(now: datetime, skipped: set | frozenset = frozenset()) -> dict:
     """C-072. "Asked within two cadences" is a moment; it said ok for a week in which the citizen sensors
     were heard in 58 % of their slots. This reads the 24-hour slot counts the collector already writes
-    into the local snapshot and says which sources fell below 90 % - a fact about our collection."""
+    into the local snapshot and says which sources fell below 90 % - a fact about our collection.
+    A source the permission gate deliberately stopped (blocked or paused) is not a coverage gap: its
+    empty slots are the rule working, and it is named separately (C-075)."""
     p = ROOT / "public" / "live-snapshot.json"
     try:
         snap = json.loads(p.read_text(encoding="utf-8"))
@@ -307,17 +309,20 @@ def coverage(now: datetime) -> dict:
     low = []
     for s in st.get("sources") or []:
         exp = int(s.get("expected_slots") or 0)
-        if exp <= 0 or s.get("paused") or not s.get("captured"):
-            continue            # paused or never captured is reported by the per-source check
+        if exp <= 0 or s.get("paused") or not s.get("captured") or s.get("sid") in skipped:
+            continue            # paused, gated or never captured is reported by the per-source check
         share = s["captured"] / exp
         if share < COVERAGE_MIN:
             low.append((share, s["sid"]))
+    gated = sorted(skipped)
+    note = f" ({len(gated)} not counted, stopped by the permission gate: {', '.join(gated)})" if gated else ""
     if not low:
-        return check("coverage 24h", OK, f"every collected source was heard in at least {COVERAGE_MIN:.0%} of its slots")
+        return check("coverage 24h", OK, f"every collected source was heard in at least {COVERAGE_MIN:.0%} of its slots{note}",
+                     gated=gated)
     low.sort()
     said = ", ".join(f"{sid} {share:.0%}" for share, sid in low[:8])
-    return check("coverage 24h", LATE, f"{len(low)} sources below {COVERAGE_MIN:.0%} of their slots in 24 h: {said}",
-                 below=[{"sid": sid, "share": round(share, 3)} for share, sid in low])
+    return check("coverage 24h", LATE, f"{len(low)} sources below {COVERAGE_MIN:.0%} of their slots in 24 h: {said}{note}",
+                 below=[{"sid": sid, "share": round(share, 3)} for share, sid in low], gated=gated)
 
 
 def last_success():
@@ -496,13 +501,15 @@ def rows_did_not_shrink(cur: dict, prev: dict | None) -> dict | None:
 def run(now: datetime | None = None, persist_index: bool = False) -> dict:
     now = now or now_utc()
     cont, prev = continuity(now)
-    checks = [cont, published(now), history(now), mind(now), ai_feed(now), coverage(now)]
+    per_source = sources(now, persist_index=persist_index)
+    gated = {c.get("sid") for c in per_source if c.get("state") in (BLOCKED, PAUSED) and c.get("sid")}
+    checks = [cont, published(now), history(now), mind(now), ai_feed(now), coverage(now, gated)]
     rt = rows_total()
     checks.append(rt)
     kept = rows_did_not_shrink(rt, prev)
     if kept:
         checks.append(kept)
-    checks += sources(now, persist_index=persist_index)
+    checks += per_source
     states = {c["state"] for c in checks}
     if STALLED in states:
         verdict = STALLED
@@ -545,7 +552,10 @@ def exit_code(r: dict, exporting: bool = False) -> int:
     checks = r.get('checks')
     if checks is None:
         return RANK[r['verdict']]
-    failing = [c for c in checks if c['state'] not in (OK, BLOCKED, PAUSED) and c['check'] != 'coverage 24h']
+    # The experimental AI panel being late is reported, not a failure of the monitor (C-075): the
+    # stricter validator refuses more, and a refusal is the system working.
+    findings_only = ('coverage 24h', 'AI observations')
+    failing = [c for c in checks if c['state'] not in (OK, BLOCKED, PAUSED) and c['check'] not in findings_only]
     if not failing:
         return 0
     return max(RANK[c['state']] for c in failing)
@@ -557,8 +567,10 @@ def main() -> int:
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--export", action="store_true", help="write a view of frozen inputs without appending a monitoring run")
     a = ap.parse_args()
+    started = datetime.now(timezone.utc)
     r = run(persist_index=not a.dry and not a.export)
-    print(json.dumps(r, ensure_ascii=False, indent=1) if a.json else report(r))
+    r["elapsed_seconds"] = round((datetime.now(timezone.utc) - started).total_seconds(), 1)
+    print(json.dumps(r, ensure_ascii=False, indent=1) if a.json else report(r) + f"\n  took {r['elapsed_seconds']} s")
     if not a.dry:
         LEDGER.parent.mkdir(parents=True, exist_ok=True)
         if not a.export:

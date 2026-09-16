@@ -239,6 +239,21 @@ class WatchmanTests(unittest.TestCase):
         r["checks"].append({"check": "source S01", "state": W.LATE})
         self.assertEqual(W.exit_code(r), 1)
 
+    def test_a_late_ai_panel_alone_does_not_fail_the_watch_process(self):
+        r = {"verdict": W.LATE, "checks": [{"check": "AI observations", "state": W.LATE}, {"check": "rows", "state": W.OK}]}
+        self.assertEqual(W.exit_code(r), 0)
+
+    def test_a_source_stopped_by_the_permission_gate_is_not_a_coverage_gap(self):
+        (self.t.dir / "public" / "live-snapshot.json").write_text(json.dumps({"status": {
+            "as_of": iso(NOW - timedelta(minutes=5)),
+            "sources": [{"sid": "S04", "expected_slots": 144, "captured": 140, "paused": None},
+                        {"sid": "S68", "expected_slots": 96, "captured": 6, "paused": None}]}}), encoding="utf-8")
+        self.assertEqual(W.coverage(NOW)["state"], W.LATE)
+        c = W.coverage(NOW, {"S68"})
+        self.assertEqual(c["state"], W.OK)
+        self.assertIn("S68", c["said"])
+        self.assertEqual(c["gated"], ["S68"])
+
     def test_full_coverage_is_ok_and_stale_counts_are_unknown(self):
         self._snapshot(140)
         self.assertEqual(W.coverage(NOW)["state"], W.OK)

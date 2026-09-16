@@ -1062,15 +1062,23 @@ def main() -> int:
     ap.add_argument("--only", default="", help="tick one source id")
     a = ap.parse_args()
     if a.command == "tick":
+        import time
+        t0 = time.monotonic()
         result = tick(only=a.only)
+        t1 = time.monotonic()
         # Isolated publication no longer rebuilds this local view. AI context and
         # local checks consume it, so collection owns its regular refresh.
+        # The timing is written so a skipped scheduler slot can be traced to a slow phase (C-075).
         try:
             result['snapshot'] = str(export())
         except Exception as exc:
             result['snapshot_error'] = {'type': type(exc).__name__, 'message': str(exc)[:240]}
+            result['timing'] = {'collect_seconds': round(t1 - t0, 1), 'export_seconds': round(time.monotonic() - t1, 1),
+                                'finished_at': iso(utcnow())}
             print(json.dumps(result, ensure_ascii=False, indent=1))
             return 1
+        result['timing'] = {'collect_seconds': round(t1 - t0, 1), 'export_seconds': round(time.monotonic() - t1, 1),
+                            'finished_at': iso(utcnow())}
         print(json.dumps(result, ensure_ascii=False, indent=1))
     elif a.command == "status":
         print(json.dumps(status(), ensure_ascii=False, indent=1))

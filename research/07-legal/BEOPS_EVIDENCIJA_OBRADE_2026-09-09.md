@@ -64,7 +64,7 @@ Nema podataka o pojedincima izvan onoga što je medij sam objavio kao naslov.
    `data/live/retention-ledger.jsonl`, koji se nikada ne prepisuje.
 4. **Prigovor pre roka.** Pravilo R6: prigovor primljen na adresu iz odeljka 1 izvršava se u roku od
    **30 dana**, bez obzira na starost reda.
-5. **Ograničeni primaoci.** Podaci se ne prodaju i ne razmenjuju komercijalno. Infrastrukturni primaoci uključuju GitHub (za hosting javne arhive u inostranstvu) i, u pojedinim modulima izolovano, AI provajdere isključivo za numeričke/geografske klasifikacije (naslovi se *ne* šalju eksternim AI provajderima, već ih obrađuje lokalni model).
+5. **Ograničeni primaoci.** Podaci se ne prodaju i ne razmenjuju komercijalno. Infrastrukturni primaoci uključuju GitHub (za hosting javne arhive u inostranstvu) i, u pojedinim modulima izolovano, AI provajdere isključivo za numeričke/geografske klasifikacije (naslovi se *ne* šalju eksternim AI provajderima, već ih obrađuje lokalni model). *[Preciznije u Izmeni 1.]*
 6. **Nema praćenja posetilaca.** Sajt je statičan: bez kolačića, bez analitike, bez trekera, bez
    naloga.
 7. **Integritet.** Svaki red nosi sha256 sirovog zapisa iz kog je nastao; ispravke se dopisuju i
@@ -73,7 +73,7 @@ Nema podataka o pojedincima izvan onoga što je medij sam objavio kao naslov.
 
 ### 6 · Objavljivanje i iznošenje
 
-Javni snimak (`docs/`) objavljuje se na GitHub Pages i sadrži prozor od 24 sata. Hosting znači da se
+Javni snimak (`docs/`) objavljuje se na GitHub Pages i sadrži prozor od 24 sata. *[Zastarelo od 11.09.2026 — vidi Izmenu 1.]* Hosting znači da se
 objavljeni snimak čuva i isporučuje sa servera van Republike Srbije. **Ovo je najslabija tačka ovog
 dokumenta i navodi se otvoreno:** reč je o objavljivanju već objavljenih naslova u okviru naučnog
 rada, a ne o prenosu zbirke podataka trećem licu radi njegove obrade. Alternativa — hosting u zemlji
@@ -102,7 +102,7 @@ pritužbe Povereniku za informacije od javnog značaja i zaštitu podataka o li�
 ### 9 · Šta bi ovaj dokument oborilo
 
 Ako bi se pokazalo da naslovi u zapisu sadrže posebne kategorije podataka u meri koja nije očigledna
-iz samog naslova; ako bi rok od 90 dana bio ocenjen kao predug za svrhu; ili ako bi objavljivanje
+iz samog naslova; ako bi rok od 90 dana bio ocenjen kao predug za svrhu *[zastarelo — vidi Izmenu 1]*; ili ako bi objavljivanje
 snimka van zemlje bilo ocenjeno kao iznošenje koje traži poseban osnov — pravilo se menja, a izmena
 se dopisuje ovde i u `CORRECTIONS.md`. Dokument je napisan da bi mogao da bude oboren, ne da bi se
 branio.
@@ -157,7 +157,7 @@ itself published as a headline.
    recorded in `data/live/retention-ledger.jsonl`, which is never rewritten.
 4. **Objection before the window closes.** Rule R6: an objection received at the address in section 1
    is acted on within **30 days**, whatever the age of the row.
-5. **Limited recipients.** Data is not sold or commercially exchanged. Infrastructure recipients include GitHub (for hosting the public archive abroad) and, in isolated modules, external AI providers strictly for numerical/geographical classification (headlines are *not* sent to external AI providers, they are processed locally).
+5. **Limited recipients.** Data is not sold or commercially exchanged. Infrastructure recipients include GitHub (for hosting the public archive abroad) and, in isolated modules, external AI providers strictly for numerical/geographical classification (headlines are *not* sent to external AI providers, they are processed locally). *[Made precise in Amendment 1.]*
 6. **No visitor tracking.** The site is static: no cookies, no analytics, no trackers, no accounts.
 7. **Integrity.** Every row carries the sha256 of the raw capture it came from; corrections are
    appended and never erased (`research/08-provenance/CORRECTIONS.md`).
@@ -165,7 +165,7 @@ itself published as a headline.
 
 ### 6 · Publication and transfer abroad
 
-The public snapshot (`docs/`) is published on GitHub Pages and carries a 24-hour window. Hosting
+The public snapshot (`docs/`) is published on GitHub Pages and carries a 24-hour window. *[Outdated since 11 September 2026 — see Amendment 1.]* Hosting
 means the published snapshot is stored and served from servers outside Serbia. **This is the weakest
 point in this document and is stated plainly:** it is the publication of already-published headlines
 as part of a scientific paper, not the transfer of a dataset to a third party for that party's own
@@ -194,7 +194,7 @@ complain to the Commissioner for Information of Public Importance and Personal D
 ### 9 · What would overturn this document
 
 If headlines in the record were shown to carry special categories of data beyond what the headline
-itself makes obvious; if ninety days were judged too long for the purpose; or if publishing the
+itself makes obvious; if ninety days were judged too long for the purpose *[outdated — see Amendment 1]*; or if publishing the
 snapshot outside the country were judged a transfer needing its own basis — the rule changes, and the
 change is appended here and in `CORRECTIONS.md`. This document is written to be overturned, not
 defended.
@@ -209,3 +209,34 @@ defended.
 - Najslabija tačka nije rok čuvanja nego **hosting van zemlje**, i navedena je otvoreno u odeljku 6
   umesto da bude prećutana.
 - Ovaj dokument ne zamenjuje mišljenje advokata i ne tvrdi da ga zamenjuje.
+
+---
+
+## Izmena 1 · Amendment 1 — 2026-09-16
+
+**SR.** Tri rečenice gore zaostale su za odlukom od 11.09.2026 (`research/RETENTION.json` v2) i za
+panelom D-003; ostaju vidljive, a važi sledeće:
+
+1. **Objavljivanje (odeljak 6).** Javni sajt ne sadrži samo prozor od 24 sata: stranica `naslovi.html`
+   prikazuje punu arhivu sačuvanih naslova (naslov, link, izvor i vremena). Tela članaka se ne objavljuju.
+2. **Šta bi obaralo dokument (odeljak 9).** Umesto roka od 90 dana za naslove: ako bi **neograničeno
+   čuvanje naslova** bilo ocenjeno kao nesrazmerno svrsi, pravilo R1 se menja i izmena se dopisuje ovde.
+   Rok od 90 dana i dalje važi za sirove zapise izvora vesti (R2).
+3. **Primaoci (odeljak 5.5).** Eksperimentalni AI panel (Google Gemini preko Antigravity, D-003) dobija
+   samo brojčana očitavanja sa nazivima stanica i vremenima, javnu statistiku i procenu broja stanovnika
+   u prozoru posmatranja. Naslovi vesti i imena osoba mu se ne šalju. Od 16.09.2026 njegov tekst prolazi
+   validator citizen-v3 (C-074).
+
+**EN.** Three sentences above lag behind the decision of 11 September 2026 (`research/RETENTION.json` v2)
+and behind the D-003 panel; they stay visible, and the following applies:
+
+1. **Publication (section 6).** The public site does not carry only a 24-hour window: `naslovi.html`
+   shows the complete archive of retained headlines (headline, link, source and times). Article bodies
+   are not published.
+2. **What would overturn this document (section 9).** Instead of a 90-day period for headlines: if
+   **indefinite retention of headlines** were judged disproportionate to the purpose, rule R1 changes
+   and the change is appended here. The 90-day period still applies to raw news-feed captures (R2).
+3. **Recipients (section 5.5).** The experimental AI panel (Google Gemini through Antigravity, D-003)
+   receives only numeric readings with station names and times, public statistics, and the population
+   estimate for the observation window. News headlines and names of persons are not sent to it. Since
+   16 September 2026 its text passes validator citizen-v3 (C-074).

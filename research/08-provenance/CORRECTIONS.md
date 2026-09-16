@@ -3274,3 +3274,32 @@ not only in the model. The new rules are word lists and distance/time thresholds
 careful sentences and miss some careless ones, and the acceptance rate of the panel will fall. What would
 falsify this correction: an entry accepted under citizen-v3 that links two facts with no listed relation,
 or that names terrain absent from its facts.
+
+## C-075 — a source we chose to stop was counted as a gap, and the monitor failed over an experiment
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+Since C-070 the national news agency (S68) answers the observatory's named requests with HTTP 403, and the
+permission gate stops it on purpose. The 24-hour coverage check (C-072) still counted its slots, so every
+watch report opened with "S68 4 %", as if the collection had failed where the rule had worked. Separately,
+the watch process exited 1 whenever the experimental AI panel had no accepted monologue within the hour;
+the scheduler recorded that as a failed task, and the guard repeated it as a warning. The tick logs also
+could not say why the collector ran only 127 of 288 five-minute slots in 24 hours: nothing recorded when a
+tick finished.
+
+### Correction
+
+- `tools/watchman.py`: the coverage check leaves out sources the per-source check reports as blocked or
+  paused, and names them; a late AI panel is reported but no longer fails the process.
+- `tools/round_check.py` 4.2 recounts on the same basis; 4.3 checks that a gated source is not counted.
+- `tools/collect_daemon.py` writes `timing` (collect and export seconds, finish time) into every tick;
+  the watch prints how long it took.
+- The record of processing (`research/07-legal/BEOPS_EVIDENCIJA_OBRADE_2026-09-09.md`) still described a 24-hour public window and a 90-day headline period, and called the external AI use "classification". Its Amendment 1 (appended, old sentences marked, not erased) states the full headline archive, indefinite headline retention as the thing that could overturn the document, and exactly what the Gemini panel receives.
+
+### Honest verdict
+
+This removes a false alarm and a false failure; it does not raise coverage. The skipped collector slots
+are still unexplained until the new timings accumulate. What would falsify this correction: a watch report
+that omits a source which is enabled, permitted and below 90 %.
