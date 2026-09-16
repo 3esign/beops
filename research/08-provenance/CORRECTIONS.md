@@ -3209,3 +3209,25 @@ about the collection, not a fault of the monitor.
 
 Until the collection itself becomes more complete, the public watch will show "late", and that is
 the point. The paper must use the measured share, not "continuous".
+
+## C-073 — C-071 gave the replay categories from a hand count; the script counts differently
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+C-071 describes the replay of accepted thoughts against validator 0.5.2 as "14 meaning, 9 template,
+1 source's words, ~3 mismatches". Those were counted by hand from the replay output. When the replay
+was re-run by script for the paper (175 attempts, 2026-09-12 to 2026-09-15, 44 accepted then, 24
+refused now), its own reason codes gave: role 15, echo 7, source 1, other 1.
+
+### Correction
+
+The script counts stand: 15 / 7 / 1 / 1, totalling 24. C-071's text is left as it was, beside this
+entry. The categories are the validator's own reason codes; no person has labelled them.
+
+### Honest verdict
+
+The difference does not change the direction of C-071 (most refusals are numbers read in the wrong
+role), but a count typed by hand reached the public ledger. What would falsify this correction: a
+re-run of the same replay over the same mind record giving other totals.
