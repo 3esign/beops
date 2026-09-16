@@ -278,3 +278,4 @@ Vreme · um · radnja · rezultat. Vodi `node tools/project_kit.js log`.
 - 2026-09-16T21:00:06.549Z · claude-cowork · C-075: coverage leaves out gated sources (S68); late AI panel no longer fails the watch; collect ticks record timing; record of processing Amendment 1 · ok
 - 2026-09-16T21:32:49.932Z · claude-cowork · C-076: Beops_Collect at normal priority; snapshot rebuilt at most every 10 min; skipped collector slots traced to publish windows · ok
 - 2026-09-16T21:39:44.146Z · claude-cowork · C-077: two gauges' water levels are never compared (own zeros); validator refuses it; 21:27 entry flagged · ok
+- 2026-09-16T22:32:03.241Z · claude-cowork · C-078: guard retention timeouts during publish copies (54/60 UNKNOWN) - bounded reuse of last measured plan; C-075 cause corrected · ok

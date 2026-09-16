@@ -63,7 +63,8 @@ def due(root: pathlib.Path, policy: dict, now: dt.datetime) -> dict:
     cut1 = now - dt.timedelta(days=r1["keep_days"]) if r1["keep_days"] is not None else None
     cut2 = now - dt.timedelta(days=r2["keep_days"])
     plan = {"now": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "rows": [], "raw": [], "oldest_headline": None,
-            "first_erasure_due": None}
+            "first_erasure_due": None, "oldest_raw": None, "first_raw_erasure_due": None}
+    oldest_raw = None
     oldest = None
     for sid in r1["sids"]:
         d = root / "data" / "live" / "rows" / sid
@@ -94,12 +95,18 @@ def due(root: pathlib.Path, policy: dict, now: dt.datetime) -> dict:
             for f in sorted(raw.rglob("*")):
                 if f.is_file():
                     ts = dt.datetime.fromtimestamp(f.stat().st_mtime, dt.timezone.utc)
+                    if oldest_raw is None or ts < oldest_raw:
+                        oldest_raw = ts
                     if ts < cut2:
                         plan["raw"].append({"sid": sid, "file": str(f.relative_to(root)).replace("\\", "/"),
                                             "bytes": f.stat().st_size})
     if oldest:
         plan["oldest_headline"] = oldest.strftime("%Y-%m-%dT%H:%M:%SZ")
         plan["first_erasure_due"] = (oldest + dt.timedelta(days=r1["keep_days"])).strftime("%Y-%m-%d") if r1["keep_days"] is not None else None
+    if oldest_raw:
+        plan["oldest_raw"] = oldest_raw.strftime("%Y-%m-%dT%H:%M:%SZ")
+        # the first raw capture that can fall due is the oldest one we hold (C-078)
+        plan["first_raw_erasure_due"] = (oldest_raw + dt.timedelta(days=r2["keep_days"])).strftime("%Y-%m-%d")
     return plan
 
 
@@ -185,6 +192,8 @@ def main(argv=None) -> int:
     if plan["oldest_headline"]:
         print(f"  oldest headline held       : {plan['oldest_headline']}")
         print(f"  first erasure falls due    : {plan['first_erasure_due']}")
+    if plan["first_raw_erasure_due"]:
+        print(f"  first raw erasure falls due: {plan['first_raw_erasure_due']}")
     if not a.apply:
         print("  dry run - nothing written. Pass --apply to enforce.")
         return 0

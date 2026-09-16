@@ -195,31 +195,107 @@ def permission_invariants() -> list[dict]:
                 "state": STOP if unsettled else OK,
                 "why": ("unsettled: " + ", ".join(unsettled)) if unsettled else "all polled sources verified"})
 
-    # The retention clock is not a date in a file - it is a plan computed from what is actually
-    # held. apply_retention.py already computes it, so the guard asks it rather than keeping a second
-    # copy of the arithmetic that could drift from the first.
-    try:
-        r = subprocess.run([sys.executable, "-X", "utf8", "-B",
-                            str(ROOT / "tools" / "apply_retention.py")],
-                           capture_output=True, text=True, timeout=60,
-                           encoding="utf-8", errors="replace")
-        txt = (r.stdout or "") + (r.stderr or "")
-        m = re.search(r"headline rows (?:past 90 days|due by policy)\s*:\s*(\d+)", txt)
-        raw_due = re.search(r"raw news captures past 90 d\s*:\s*(\d+)", txt)
-        due_m = re.search(r"first erasure falls due\s*:\s*(\S+)", txt)
-        if r.returncode != 0 or m is None:
-            out.append({"check": "retention", "state": UNKNOWN,
-                        "why": "apply_retention did not report a plan"})
-        elif int(m.group(1)) > 0 or (raw_due and int(raw_due.group(1)) > 0):
-            out.append({"check": "retention", "state": STOP,
-                        "why": f"retention due: {m.group(1)} headline rows and {raw_due.group(1) if raw_due else 'unknown'} raw payloads; apply the current policy"})
-        else:
-            out.append({"check": "retention", "state": OK,
-                        "why": "no erasure due under the current retention policy" +
-                               (f"; first erasure falls due {due_m.group(1)}" if due_m else "")})
-    except Exception as e:                                   # noqa: BLE001
-        out.append({"check": "retention", "state": UNKNOWN, "why": type(e).__name__})
+    out.append(retention_check())
     return out
+
+
+
+RETENTION_TIMEOUT_S = 60
+RETENTION_CACHE_MAX_AGE_H = 24
+
+
+def _retention_cache() -> pathlib.Path:
+    return ROOT / "runtime" / "retention-plan.json"
+
+
+def _policy_sha() -> str | None:
+    import hashlib
+    try:
+        return hashlib.sha256((RESEARCH / "RETENTION.json").read_bytes()).hexdigest()
+    except OSError:
+        return None
+
+
+def _parse_day(s):
+    try:
+        return datetime.strptime(str(s), "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
+
+
+def retention_check(run=None) -> dict:
+    """The retention clock is not a date in a file - it is a plan computed from what is actually
+    held. apply_retention.py already computes it, so the guard asks it rather than keeping a second
+    copy of the arithmetic that could drift from the first.
+
+    C-078: 54 of 60 UNKNOWN verdicts in the 200 guard passes before 2026-09-17 were this subprocess
+    timing out, every one of them at :17 or :47 - while the publisher was copying a release to the
+    same disk. A plan that says nothing is due and names the first date anything can fall due stays
+    true until that date, because the record only ever gains younger rows; it stops being true only
+    if the policy changes. So a timed-out pass may lean on the last measured plan when that plan is
+    under a day old, was made under the same policy file, found nothing due, and its first due date
+    is still in the future. Anything else - no plan, an old plan, another policy, a due date reached -
+    stays UNKNOWN, because then the guard really cannot see."""
+    run = run or subprocess.run
+    cache = _retention_cache()
+    try:
+        r = run([sys.executable, "-X", "utf8", "-B", str(ROOT / "tools" / "apply_retention.py")],
+                capture_output=True, text=True, timeout=RETENTION_TIMEOUT_S,
+                encoding="utf-8", errors="replace")
+    except Exception as e:                                   # noqa: BLE001
+        return _retention_from_cache(cache, type(e).__name__)
+    txt = (r.stdout or "") + (r.stderr or "")
+    m = re.search(r"headline rows (?:past 90 days|due by policy)\s*:\s*(\d+)", txt)
+    raw_due = re.search(r"raw news captures past 90 d\s*:\s*(\d+)", txt)
+    due_m = re.search(r"first erasure falls due\s*:\s*(\S+)", txt)
+    raw_first = re.search(r"first raw erasure falls due\s*:\s*(\S+)", txt)
+    if r.returncode != 0 or m is None:
+        return {"check": "retention", "state": UNKNOWN, "why": "apply_retention did not report a plan"}
+    rows_n, raw_n = int(m.group(1)), int(raw_due.group(1)) if raw_due else None
+    firsts = [x.group(1) for x in (due_m, raw_first) if x and _parse_day(x.group(1))]
+    try:
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        cache.write_text(json.dumps({"at": iso(now()), "policy_sha256": _policy_sha(),
+                                     "rows_due": rows_n, "raw_due": raw_n,
+                                     "raw_plan_reported": raw_first is not None,
+                                     "first_due": min(firsts) if firsts else None}, indent=1),
+                         encoding="utf-8")
+    except OSError:
+        pass
+    if rows_n > 0 or (raw_n and raw_n > 0):
+        return {"check": "retention", "state": STOP,
+                "why": f"retention due: {rows_n} headline rows and {raw_n if raw_n is not None else 'unknown'} raw payloads; apply the current policy"}
+    return {"check": "retention", "state": OK,
+            "why": "no erasure due under the current retention policy" +
+                   (f"; first erasure falls due {due_m.group(1)}" if due_m else "")}
+
+
+def _retention_from_cache(cache: pathlib.Path, err: str) -> dict:
+    unknown = {"check": "retention", "state": UNKNOWN, "why": err}
+    try:
+        c = json.loads(cache.read_text(encoding="utf-8"))
+        at = datetime.fromisoformat(str(c["at"]).replace("Z", "+00:00"))
+    except Exception:                                        # noqa: BLE001
+        return unknown
+    t = now()
+    age_h = (t - at).total_seconds() / 3600
+    if age_h < 0 or age_h > RETENTION_CACHE_MAX_AGE_H:
+        unknown["why"] = f"{err}; last measured plan is {age_h:.0f} h old"
+        return unknown
+    if c.get("policy_sha256") != _policy_sha() or c.get("policy_sha256") is None:
+        unknown["why"] = f"{err}; the retention policy changed since the last measured plan"
+        return unknown
+    if c.get("rows_due") != 0 or c.get("raw_due") != 0 or not c.get("raw_plan_reported"):
+        unknown["why"] = f"{err}; the last measured plan did not clear every rule"
+        return unknown
+    first = _parse_day(c.get("first_due")) if c.get("first_due") else None
+    if first is None or first <= t:
+        unknown["why"] = f"{err}; the last measured plan names no future due date"
+        return unknown
+    return {"check": "retention", "state": OK,
+            "why": f"not re-measured this pass ({err}); the plan measured {age_h * 60:.0f} min ago under "
+                   f"the same policy found nothing due, and nothing can fall due before {c['first_due']}",
+            "from_cache": True}
 
 
 def _newest(d: pathlib.Path, pattern: str = "*") -> tuple[float | None, pathlib.Path | None]:

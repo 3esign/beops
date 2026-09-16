@@ -74,6 +74,21 @@ class RetentionTests(unittest.TestCase):
     def rows(self):
         return [json.loads(l) for l in self.f.read_text(encoding="utf-8").splitlines() if l.strip()]
 
+    def test_the_plan_names_when_the_oldest_raw_capture_falls_due(self):
+        """C-078: the guard may lean on a plan only up to this date."""
+        plan = R.due(self.dir, self.policy, NOW)
+        self.assertEqual(plan["oldest_raw"], "2026-09-01T10:00:00Z")
+        self.assertEqual(plan["first_raw_erasure_due"], "2026-11-30")
+
+    def test_the_raw_due_date_is_printed_where_the_guard_reads_it(self):
+        import io, contextlib, re
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            R.main(["--root", str(self.dir), "--now", "2026-10-01T00:00:00Z"])
+        m = re.search(r"first raw erasure falls due\s*:\s*(\S+)", buf.getvalue())
+        self.assertIsNotNone(m, buf.getvalue())
+        self.assertEqual(m.group(1), "2026-11-30")
+
     def test_a_dry_run_writes_nothing(self):
         before = self.f.read_bytes()
         plan = R.due(self.dir, self.policy, NOW)

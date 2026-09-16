@@ -430,5 +430,97 @@ class EveryCheckIsDriven(unittest.TestCase):
         self.assertEqual(stale, [], "this file drives a check the guard no longer emits: " + ", ".join(stale))
 
 
+class RetentionUnderLoad(unittest.TestCase):
+    """C-078: the retention subprocess timed out whenever the publisher was copying a release, and
+    the guard then said UNKNOWN - 54 of its 60 UNKNOWN passes. A plan measured recently, under the
+    same policy, that cleared every rule and names a future first due date, still holds."""
+
+    CLEAN = ("retention as of 2026-09-16T22:25:08Z (policy decided 2026-09-11)\n"
+             "  headline rows due by policy : 0 in 0 files\n"
+             "  raw news captures past 90 d: 0 files, 0 bytes\n"
+             "  first erasure falls due    : None\n"
+             "  first raw erasure falls due: 2099-12-07\n")
+
+    @staticmethod
+    def ok_run(text, code=0):
+        class R:
+            stdout, stderr, returncode = text, "", code
+        return lambda *a, **k: R()
+
+    @staticmethod
+    def timeout(*a, **k):
+        import subprocess
+        raise subprocess.TimeoutExpired("apply_retention", 60)
+
+    def seed(self, root):
+        (root / "research" / "RETENTION.json").write_text('{"rules": []}', encoding="utf-8")
+
+    def test_a_measured_clean_plan_is_ok_and_is_remembered(self):
+        with world() as root:
+            self.seed(root)
+            c = g.retention_check(self.ok_run(self.CLEAN))
+            cache = json.loads((root / "runtime" / "retention-plan.json").read_text(encoding="utf-8"))
+        self.assertEqual(c["state"], g.OK, c["why"])
+        self.assertEqual((cache["rows_due"], cache["raw_due"], cache["first_due"]), (0, 0, "2099-12-07"))
+
+    def test_a_timeout_after_a_clean_plan_leans_on_it_and_says_so(self):
+        with world() as root:
+            self.seed(root)
+            g.retention_check(self.ok_run(self.CLEAN))
+            c = g.retention_check(self.timeout)
+        self.assertEqual(c["state"], g.OK, c["why"])
+        self.assertTrue(c.get("from_cache"))
+        self.assertIn("not re-measured", c["why"])
+        self.assertIn("2099-12-07", c["why"])
+
+    def test_a_timeout_with_no_plan_is_unknown(self):
+        with world() as root:
+            self.seed(root)
+            c = g.retention_check(self.timeout)
+        self.assertEqual(c["state"], g.UNKNOWN)
+
+    def test_a_changed_policy_voids_the_plan(self):
+        with world() as root:
+            self.seed(root)
+            g.retention_check(self.ok_run(self.CLEAN))
+            (root / "research" / "RETENTION.json").write_text('{"rules": [1]}', encoding="utf-8")
+            c = g.retention_check(self.timeout)
+        self.assertEqual(c["state"], g.UNKNOWN)
+        self.assertIn("policy changed", c["why"])
+
+    def test_an_old_plan_is_not_trusted(self):
+        with world() as root:
+            self.seed(root)
+            g.retention_check(self.ok_run(self.CLEAN))
+            p = root / "runtime" / "retention-plan.json"
+            d = json.loads(p.read_text(encoding="utf-8"))
+            d["at"] = g.iso(g.now() - timedelta(hours=30))
+            p.write_text(json.dumps(d), encoding="utf-8")
+            c = g.retention_check(self.timeout)
+        self.assertEqual(c["state"], g.UNKNOWN)
+
+    def test_a_reached_due_date_is_not_trusted(self):
+        with world() as root:
+            self.seed(root)
+            g.retention_check(self.ok_run(self.CLEAN.replace("2099-12-07", "2000-01-01")))
+            c = g.retention_check(self.timeout)
+        self.assertEqual(c["state"], g.UNKNOWN)
+
+    def test_a_plan_without_a_raw_date_is_not_trusted(self):
+        with world() as root:
+            self.seed(root)
+            g.retention_check(self.ok_run(self.CLEAN.replace("  first raw erasure falls due: 2099-12-07\n", "")))
+            c = g.retention_check(self.timeout)
+        self.assertEqual(c["state"], g.UNKNOWN)
+
+    def test_a_due_plan_stops_and_is_never_used_to_excuse_a_timeout(self):
+        due = self.CLEAN.replace("headline rows due by policy : 0", "headline rows due by policy : 3")
+        with world() as root:
+            self.seed(root)
+            self.assertEqual(g.retention_check(self.ok_run(due))["state"], g.STOP)
+            c = g.retention_check(self.timeout)
+        self.assertEqual(c["state"], g.UNKNOWN)
+
+
 if __name__ == "__main__":
     unittest.main()

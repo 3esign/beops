@@ -3362,3 +3362,39 @@ numbers are not on one scale: the comparison was ours, not the model's.
 The rules file is a list of physical facts written by hand, and this entry shows how one can be wrong
 while looking reasonable. Every rule in that file should be checked the same way, gauge by gauge and
 station by station.
+
+## C-078 — the guard said UNKNOWN whenever the publisher was copying, and C-075 named the wrong cause
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+C-075 said that the guard's exit code 1 came from the watch reporting a late AI panel. That was not the
+main cause. Of the last 200 guard passes before 2026-09-17, 60 ended UNKNOWN (exit 1). In 54 of them
+the only reason was `retention: TimeoutExpired`. All 54 ran at :17 or :47, while the publisher was
+copying a release of about 1.1 GB to the same disk. Measured outside that window, `apply_retention.py`
+takes 0.8 s. The guard allows it 60 s. The retention rules themselves were never in doubt: nothing is
+due, headlines are kept indefinitely, and the oldest raw capture falls due in December 2026.
+
+### Correction
+
+- `tools/apply_retention.py` also prints the date on which the oldest raw capture falls due.
+- `tools/guard.py` saves every retention plan it measures to `runtime/retention-plan.json`. A plan can
+  only go stale in one of two ways: its due date arrives, or the policy file changes. The record only
+  gains younger rows, so nothing else can make it stale. If the retention step times out, the guard
+  reuses the saved plan only when all of these hold:
+  - the plan is less than 24 h old;
+  - it was made under a policy file with the same SHA-256;
+  - it found nothing due under any rule;
+  - it names a first due date that is still in the future.
+
+  The line then says the plan was not measured again on this pass. In every other case the guard
+  still says UNKNOWN.
+- Eight new tests cover these cases, and two cover the new due date.
+
+### Honest verdict
+
+This fixes a symptom of the real problem. Every 30 minutes the publisher saturates the disk for about
+five minutes. That hurt the collector (C-076) and it hurts the guard. The fix for the cause is a release
+step that does not copy 1.1 GB each time. It is still open. Six further UNKNOWN passes came from
+`schtasks` observations that timed out in the same windows; this change does not address them.
