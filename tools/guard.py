@@ -253,12 +253,16 @@ def retention_check(run=None) -> dict:
         return {"check": "retention", "state": UNKNOWN, "why": "apply_retention did not report a plan"}
     rows_n, raw_n = int(m.group(1)), int(raw_due.group(1)) if raw_due else None
     firsts = [x.group(1) for x in (due_m, raw_first) if x and _parse_day(x.group(1))]
+    # nothing held can fall due: headlines are kept indefinitely and no raw capture is stored. A new
+    # capture cannot fall due within the day a plan is trusted for.
+    none_held = bool(raw_first) and raw_first.group(1) == "none" and not firsts
     try:
         cache.parent.mkdir(parents=True, exist_ok=True)
         cache.write_text(json.dumps({"at": iso(now()), "policy_sha256": _policy_sha(),
                                      "rows_due": rows_n, "raw_due": raw_n,
                                      "raw_plan_reported": raw_first is not None,
-                                     "first_due": min(firsts) if firsts else None}, indent=1),
+                                     "first_due": min(firsts) if firsts else None,
+                                     "nothing_held_can_fall_due": none_held}, indent=1),
                          encoding="utf-8")
     except OSError:
         pass
@@ -267,7 +271,8 @@ def retention_check(run=None) -> dict:
                 "why": f"retention due: {rows_n} headline rows and {raw_n if raw_n is not None else 'unknown'} raw payloads; apply the current policy"}
     return {"check": "retention", "state": OK,
             "why": "no erasure due under the current retention policy" +
-                   (f"; first erasure falls due {due_m.group(1)}" if due_m else "")}
+                   (f"; first erasure falls due {min(firsts)}" if firsts else
+                    "; nothing held can fall due" if none_held else "")}
 
 
 def _retention_from_cache(cache: pathlib.Path, err: str) -> dict:
@@ -289,12 +294,16 @@ def _retention_from_cache(cache: pathlib.Path, err: str) -> dict:
         unknown["why"] = f"{err}; the last measured plan did not clear every rule"
         return unknown
     first = _parse_day(c.get("first_due")) if c.get("first_due") else None
-    if first is None or first <= t:
+    if first is None and c.get("nothing_held_can_fall_due") is True:
+        until = "nothing it held could fall due"
+    elif first is None or first <= t:
         unknown["why"] = f"{err}; the last measured plan names no future due date"
         return unknown
+    else:
+        until = f"nothing can fall due before {c['first_due']}"
     return {"check": "retention", "state": OK,
             "why": f"not re-measured this pass ({err}); the plan measured {age_h * 60:.0f} min ago under "
-                   f"the same policy found nothing due, and nothing can fall due before {c['first_due']}",
+                   f"the same policy found nothing due, and {until}",
             "from_cache": True}
 
 

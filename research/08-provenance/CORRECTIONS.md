@@ -3398,3 +3398,31 @@ This fixes a symptom of the real problem. Every 30 minutes the publisher saturat
 five minutes. That hurt the collector (C-076) and it hurts the guard. The fix for the cause is a release
 step that does not copy 1.1 GB each time. It is still open. Six further UNKNOWN passes came from
 `schtasks` observations that timed out in the same windows; this change does not address them.
+
+## C-079 — C-078 could not work on the real machine: no raw news capture is stored there
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+C-078 lets the guard reuse its last retention plan only if that plan names a future due date. On the
+machine that runs BEOPS, `data/live/raw` holds captures for eight measurement sources and none for any
+news source listed under R1/R2. Headlines are kept indefinitely (R1). So the plan names no date at all,
+and the reuse rule would never have applied. Every test passed because the test world stored a raw
+capture and the real one does not.
+
+### Correction
+
+- When no raw news capture is held, `apply_retention.py` prints `first raw erasure falls due: none
+  held`. The guard treats that as the cleanest plan there is: nothing held can fall due, and a capture
+  stored later cannot fall due for 90 days. The other conditions from C-078 still apply: the plan is
+  under 24 h old, the policy is unchanged, and nothing is due.
+- One test now uses the situation found on the real machine.
+
+### Honest verdict
+
+This is the same mistake as C-018: success was checked in a test world, not on the artefact. There is
+also a second finding. The record of processing and RETENTION.json say that raw news feeds are kept
+for 90 days. On this machine no raw news bytes are kept under `data/live/raw` at all; the rows keep
+only their SHA-256. That is stricter than the stated policy, not looser. The record should still say
+what actually happens, in a later amendment.

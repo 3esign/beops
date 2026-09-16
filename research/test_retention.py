@@ -89,6 +89,14 @@ class RetentionTests(unittest.TestCase):
         self.assertIsNotNone(m, buf.getvalue())
         self.assertEqual(m.group(1), "2026-11-30")
 
+    def test_no_raw_capture_held_is_printed_as_none_held(self):
+        import io, contextlib
+        shutil.rmtree(self.dir / "data" / "live" / "raw")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            R.main(["--root", str(self.dir), "--now", "2026-10-01T00:00:00Z"])
+        self.assertIn("first raw erasure falls due: none held", buf.getvalue())
+
     def test_a_dry_run_writes_nothing(self):
         before = self.f.read_bytes()
         plan = R.due(self.dir, self.policy, NOW)

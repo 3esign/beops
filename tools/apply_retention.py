@@ -192,8 +192,9 @@ def main(argv=None) -> int:
     if plan["oldest_headline"]:
         print(f"  oldest headline held       : {plan['oldest_headline']}")
         print(f"  first erasure falls due    : {plan['first_erasure_due']}")
-    if plan["first_raw_erasure_due"]:
-        print(f"  first raw erasure falls due: {plan['first_raw_erasure_due']}")
+    # C-079: the guard reads this line. "none held" is a finding, not a gap: no raw news capture is
+    # stored, and one stored from now on cannot fall due for R2's keep_days.
+    print(f"  first raw erasure falls due: {plan['first_raw_erasure_due'] or 'none held'}")
     if not a.apply:
         print("  dry run - nothing written. Pass --apply to enforce.")
         return 0

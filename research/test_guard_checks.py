@@ -513,6 +513,19 @@ class RetentionUnderLoad(unittest.TestCase):
             c = g.retention_check(self.timeout)
         self.assertEqual(c["state"], g.UNKNOWN)
 
+    def test_a_plan_that_holds_nothing_dueable_covers_a_timeout(self):
+        """C-079: on the real machine no raw news capture is stored and headlines are kept, so the
+        plan names no date at all - and that is the cleanest plan there is."""
+        none = self.CLEAN.replace("2099-12-07", "none held")
+        with world() as root:
+            self.seed(root)
+            first = g.retention_check(self.ok_run(none))
+            c = g.retention_check(self.timeout)
+        self.assertEqual(first["state"], g.OK)
+        self.assertIn("nothing held can fall due", first["why"])
+        self.assertEqual(c["state"], g.OK, c["why"])
+        self.assertIn("nothing it held could fall due", c["why"])
+
     def test_a_due_plan_stops_and_is_never_used_to_excuse_a_timeout(self):
         due = self.CLEAN.replace("headline rows due by policy : 0", "headline rows due by policy : 3")
         with world() as root:
