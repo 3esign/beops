@@ -655,6 +655,23 @@ DANUBEHIS_HTML = (
     "</tr>"
     "</tbody></table></body></html>"
 ).encode()
+BVK_FAULTS_HTML = (
+    "<html><body>"
+    "<p class='toggler' data-title='17.09.2026'>17.09.2026</p>"
+    "<div class='toggle_content'>"
+    "<blockquote><h1><strong>ДО 22:00</strong></h1></blockquote>"
+    "<ul>"
+    "<li><strong>Стари град: </strong>Косовска бб (угао Влајковићеве)</li>"
+    "<li><strong>Земун: Бранка </strong>Пешића бб (угао Угриновачке)</li>"
+    "</ul>"
+    "</div></div></div>"
+    "<div id='cisterne'><h3>Распоред аутоцистерни</h3></div>"
+    "<ul>"
+    "<li>Азил Ковилово (Палилула) – 1 возило</li>"
+    "<li>Насеље Ритопек – распоред врши месна заједница (Гроцка) – 2 возила</li>"
+    "</ul>"
+    "</body></html>"
+).encode()
 
 
 class OfficialNoticeTests(unittest.TestCase):
@@ -770,6 +787,218 @@ class DanubeHISTests(unittest.TestCase):
         rows = cd.parse_danubehis(DANUBEHIS_HTML, NOW, {"sid": "S223"})
         for r in rows:
             self.assertEqual(parameter_semantics(r)[0], "scalar")
+
+
+class BVKFaultsTests(unittest.TestCase):
+    """S11 BVK unplanned water outages and water tankers (kvarovi-na-mrezi).
+    Notices by municipality and street with estimated repair window, and water tanker deployment locations."""
+
+    def test_extracts_outages_and_tankers(self):
+        rows = cd.parse_bvk_faults(BVK_FAULTS_HTML, NOW, {"sid": "S11", "url": "https://www.bvk.rs/kvarovi-na-mrezi/"})
+        self.assertEqual(len(rows), 4)
+
+        faults = [r for r in rows if r.get("notice_type") == "water_fault"]
+        self.assertEqual(len(faults), 2)
+        by_muni = {r["municipality"]: r for r in faults}
+
+        self.assertIn("Стари град", by_muni)
+        sg = by_muni["Стари град"]
+        self.assertEqual(sg["repair_window"], "do 22:00")
+        self.assertEqual(sg["outage_day"], "2026-09-17")
+        self.assertEqual(sg["resultTime"], "2026-09-17")
+        self.assertEqual(sg["resultTimeResolution"], "day")
+        self.assertTrue(sg["phenomenonTimeUnknown"])
+        self.assertIn("Косовска бб", sg["result"])
+        self.assertEqual(sg["parameter"], "notice")
+        self.assertEqual(sg["kind"], "text")
+
+        self.assertIn("Земун", by_muni)
+        zm = by_muni["Земун"]
+        self.assertEqual(zm["streets"], "Бранка Пешића бб (угао Угриновачке)")
+
+        tankers = [r for r in rows if r.get("notice_type") == "water_tanker"]
+        self.assertEqual(len(tankers), 2)
+        t_by_muni = {r["municipality"]: r for r in tankers}
+
+        self.assertIn("Палилула", t_by_muni)
+        self.assertEqual(t_by_muni["Палилула"]["tanker_count"], 1)
+        self.assertIn("Гроцка", t_by_muni)
+        self.assertEqual(t_by_muni["Гроцка"]["tanker_count"], 2)
+
+    def test_bvk_faults_empty_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            cd.parse_bvk_faults(b"<html><body>empty</body></html>", NOW, {"sid": "S11"})
+
+    def test_bvk_faults_parser_is_registered(self):
+        self.assertIn("bvk_faults", cd.PARSERS)
+
+    def test_bvk_faults_parameter_semantics_is_text(self):
+        from contracts import parameter_semantics
+        rows = cd.parse_bvk_faults(BVK_FAULTS_HTML, NOW, {"sid": "S11"})
+        for r in rows:
+            self.assertEqual(parameter_semantics(r)[0], "text")
+
+
+def create_test_mup_xlsx() -> bytes:
+    import io, zipfile
+    bio = io.BytesIO()
+    with zipfile.ZipFile(bio, "w") as z:
+        z.writestr("[Content_Types].xml", """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+  <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+  <Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>
+</Types>""")
+        strings = [
+            "BEOGRAD", "ZEMUN", "02.01.2026,13:40", "Sa povredjenim", "SN SA PEŠACIMA", "Pešak na trotoaru",
+            "NIŠ", "MEDIJANA", "03.01.2026,10:00", "Sa mat.stetom", "SN SA JEDNIM VOZILOM", "Prevrtanje",
+            "BEOGRAD", "NOVI BEOGRAD", "15.07.2026,18:30", "Sa poginulim", "SN SA DVA VOZILA", "Sudar"
+        ]
+        sst_xml = ['<?xml version="1.0" encoding="UTF-8" standalone="yes"?><sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="%d" uniqueCount="%d">' % (len(strings), len(strings))]
+        for s in strings:
+            sst_xml.append("<si><t>%s</t></si>" % s)
+        sst_xml.append("</sst>")
+        z.writestr("xl/sharedStrings.xml", "".join(sst_xml))
+
+        sheet_xml = ["""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <sheetData>
+    <row r="1">
+      <c r="A1"><v>1001</v></c>
+      <c r="B1" t="s"><v>0</v></c>
+      <c r="C1" t="s"><v>1</v></c>
+      <c r="D1" t="s"><v>2</v></c>
+      <c r="E1"><v>20.4123</v></c>
+      <c r="F1"><v>44.8459</v></c>
+      <c r="G1" t="s"><v>3</v></c>
+      <c r="H1" t="s"><v>4</v></c>
+      <c r="I1" t="s"><v>5</v></c>
+    </row>
+    <row r="2">
+      <c r="A2"><v>1002</v></c>
+      <c r="B2" t="s"><v>6</v></c>
+      <c r="C2" t="s"><v>7</v></c>
+      <c r="D2" t="s"><v>8</v></c>
+      <c r="E2"><v>21.9000</v></c>
+      <c r="F2"><v>43.3200</v></c>
+      <c r="G2" t="s"><v>9</v></c>
+      <c r="H2" t="s"><v>10</v></c>
+      <c r="I2" t="s"><v>11</v></c>
+    </row>
+    <row r="3">
+      <c r="A3"><v>1003</v></c>
+      <c r="B3" t="s"><v>12</v></c>
+      <c r="C3" t="s"><v>13</v></c>
+      <c r="D3" t="s"><v>14</v></c>
+      <c r="E3"><v>20.4000</v></c>
+      <c r="F3"><v>44.8000</v></c>
+      <c r="G3" t="s"><v>15</v></c>
+      <c r="H3" t="s"><v>16</v></c>
+      <c r="I3" t="s"><v>17</v></c>
+    </row>
+  </sheetData>
+</worksheet>"""]
+        z.writestr("xl/worksheets/sheet1.xml", "".join(sheet_xml))
+    return bio.getvalue()
+
+
+MUP_API_JSON = json.dumps({
+    "title": "Подаци о саобраћајним незгодама по ПОЛИЦИЈСКИМ УПРАВАМА и ОПШТИНАМА",
+    "last_modified": "2026-08-25T11:07:54.559000+00:00",
+    "resources": [
+        {
+            "id": "res-2026-08",
+            "title": "Подаци о саобраћајним незгодама до 31.07.2026. године за територију свих ПОЛИЦИЈСКИХ УПРАВА И ОПШТИНА",
+            "format": "xlsx",
+            "filesize": 1243731,
+            "last_modified": "2026-08-25T11:07:54.559000+00:00",
+            "checksum": {"type": "sha1", "value": "a9969fc3de3399f141995a459995d75b568d5645"},
+            "url": "https://data.gov.rs/s/resources/podatsi-o-saobratshajnim-nezgodama-po-politsijskim-upravama-i-opshtinama/20260825-110704/nez-opendata-20268-20260825.xlsx"
+        },
+        {
+            "id": "res-2025",
+            "title": "Подаци о саобраћајним незгодама за 2025. годину",
+            "format": "xlsx",
+            "filesize": 2500000,
+            "last_modified": "2026-01-26T06:38:11.174000+00:00",
+            "checksum": {"type": "sha1", "value": "b8878fc3de3399f141995a459995d75b568d5645"},
+            "url": "https://data.gov.rs/s/resources/podatsi-o-saobratshajnim-nezgodama-po-politsijskim-upravama-i-opshtinama/20260126-063722/nez-opendata-2025-20260125.xlsx"
+        }
+    ]
+}).encode("utf-8")
+
+
+class MUPAccidentsTests(unittest.TestCase):
+    """S224 MUP open-data traffic accidents on data.gov.rs (SODL).
+    Tests both binary XLSX road traffic accident records and udata API dataset resource listing."""
+
+    def test_mup_accidents_xlsx_extracts_belgrade_only_and_converts_utc(self):
+        xlsx_bytes = create_test_mup_xlsx()
+        src = {"sid": "S224", "url": "https://data.gov.rs/api/1/datasets/podatsi-o-saobratshajnim-nezgodama-po-politsijskim-upravama-i-opshtinama/"}
+        rows = cd.parse_mup_accidents(xlsx_bytes, NOW, src)
+
+        # 3 rows in XLSX: row 1 is ZEMUN (Beograd), row 2 is NIŠ (excluded), row 3 is NOVI BEOGRAD (Beograd)
+        self.assertEqual(len(rows), 2)
+        by_id = {r["accident_id"]: r for r in rows}
+
+        self.assertIn("1001", by_id)
+        z = by_id["1001"]
+        self.assertEqual(z["station_id"], "ZEMUN")
+        self.assertEqual(z["municipality"], "ZEMUN")
+        self.assertEqual(z["station_name"], "ZEMUN (Beograd)")
+        self.assertEqual(z["severity"], "Sa povredjenim")
+        self.assertEqual(z["accident_type"], "SN SA PEŠACIMA")
+        self.assertEqual(z["accident_detail"], "Pešak na trotoaru")
+        self.assertEqual(z["lat"], 44.8459)
+        self.assertEqual(z["lon"], 20.4123)
+        # Winter timestamp 02.01.2026 13:40 CET (UTC+1) -> 12:40 UTC
+        self.assertEqual(z["phenomenonTime"], "2026-01-02T12:40:00Z")
+        self.assertFalse(z["phenomenonTimeUnknown"])
+        self.assertEqual(z["dedupe_key"], "S224|1001")
+        self.assertEqual(z["parameter"], "notice")
+        self.assertEqual(z["kind"], "text")
+
+        self.assertIn("1003", by_id)
+        nb = by_id["1003"]
+        self.assertEqual(nb["station_id"], "NOVI BEOGRAD")
+        self.assertEqual(nb["severity"], "Sa poginulim")
+        # Summer timestamp 15.07.2026 18:30 CEST (UTC+2) -> 16:30 UTC
+        self.assertEqual(nb["phenomenonTime"], "2026-07-15T16:30:00Z")
+        self.assertFalse(nb["phenomenonTimeUnknown"])
+        self.assertEqual(nb["dedupe_key"], "S224|1003")
+
+    def test_mup_accidents_api_json_extracts_resources(self):
+        src = {"sid": "S224", "url": "https://data.gov.rs/api/1/datasets/podatsi-o-saobratshajnim-nezgodama-po-politsijskim-upravama-i-opshtinama/"}
+        rows = cd.parse_mup_accidents(MUP_API_JSON, NOW, src)
+        self.assertEqual(len(rows), 2)
+        r0 = rows[0]
+        self.assertEqual(r0["notice_type"], "open_data_resource")
+        self.assertEqual(r0["resource_id"], "res-2026-08")
+        self.assertEqual(r0["format"], "xlsx")
+        self.assertEqual(r0["filesize"], 1243731)
+        self.assertEqual(r0["checksum_sha1"], "a9969fc3de3399f141995a459995d75b568d5645")
+        self.assertEqual(r0["resultTime"], "2026-08-25")
+        self.assertEqual(r0["resultTimeResolution"], "day")
+        self.assertEqual(r0["dedupe_key"], "S224|res-2026-08")
+
+    def test_mup_accidents_empty_or_invalid_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            cd.parse_mup_accidents(json.dumps({"resources": []}).encode("utf-8"), NOW, {"sid": "S224"})
+
+    def test_mup_accidents_parsers_are_registered(self):
+        self.assertIn("mup_accidents", cd.PARSERS)
+        self.assertIn("mup_xlsx", cd.PARSERS)
+
+    def test_mup_accidents_parameter_semantics_is_text(self):
+        from contracts import parameter_semantics
+        xlsx_bytes = create_test_mup_xlsx()
+        src = {"sid": "S224", "url": "https://data.gov.rs/api/1/datasets/podatsi-o-saobratshajnim-nezgodama-po-politsijskim-upravama-i-opshtinama/"}
+        for r in cd.parse_mup_accidents(xlsx_bytes, NOW, src):
+            self.assertEqual(parameter_semantics(r)[0], "text")
+        for r in cd.parse_mup_accidents(MUP_API_JSON, NOW, src):
+            self.assertEqual(parameter_semantics(r)[0], "text")
 
 
 class ConfigTests(unittest.TestCase):

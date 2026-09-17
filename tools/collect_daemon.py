@@ -790,11 +790,264 @@ def parse_gzzjz_listing(body: bytes, received: datetime, src: dict) -> list[dict
     return rows
 
 
+def parse_bvk_faults(body: bytes, received: datetime, src: dict) -> list[dict]:
+    """JKP Beogradski vodovod i kanalizacija - unplanned water outages and water tankers for Belgrade
+    (https://www.bvk.rs/kvarovi-na-mrezi/).
+    Sections:
+    1) Unplanned water outages by municipality and street with estimated repair window (e.g. 'ДО 22:00').
+    2) Water tanker deployments (Распоред аутоцистерни) by location, municipality and vehicle count.
+    Each item becomes one text row (a notice): dedupe-keyed by content, publication instant is not given
+    (resultTime = day). Official materials of a public body (Copyright Act Art. 6(2))."""
+    import html as _html
+    text = body.decode("utf-8", "replace")
+    rows = []
+
+    # Faults by day in toggles
+    for match in re.finditer(r"<p[^>]*class=[\"'][^\"']*toggler[^\"']*[\"'][^>]*>.*?(?:data-title=[\"'](\d{2}\.\d{2}\.\d{4})[\"']|(\d{2}\.\d{2}\.\d{4})).*?<div class=[\"'][^\"']*toggle_content[^\"']*[\"'][^>]*>(.*?)</div>\s*</div>\s*</div>", text, re.S | re.I):
+        d_str = match.group(1) or match.group(2)
+        content = match.group(3)
+        try:
+            day_dt = datetime.strptime(d_str, "%d.%m.%Y")
+            day = day_dt.strftime("%Y-%m-%d")
+        except ValueError:
+            day = d_str
+
+        win_m = re.search(r"<h\d[^>]*>.*?ДО\s*(\d{1,2}:\d{2}).*?</h\d>", content, re.S | re.I)
+        window = f"do {win_m.group(1)}" if win_m else None
+
+        for li in re.findall(r"<li[^>]*>(.*?)</li>", content, re.S | re.I):
+            clean_li = " ".join(_html.unescape(re.sub(r"<[^>]+>", " ", li)).split())
+            col_idx = clean_li.find(":")
+            if 0 < col_idx < 35:
+                muni = clean_li[:col_idx].strip()
+                streets = clean_li[col_idx + 1:].strip()
+                win_str = f" · {window}" if window else ""
+                title = f"Квар на водоводној мрежи {day or ''} · {muni}{win_str} · {streets}"[:250]
+                key = f"{day}|fault|{muni}|{window}|{streets}"
+                rows.append({
+                    "schema": SCHEMA_ROW, "sid": src["sid"], "kind": "text",
+                    "datastream": f"{src['sid']}|notice", "station_id": muni, "parameter": "notice",
+                    "result": title, "unit": None, "link": src.get("url"),
+                    "phenomenonTime": None, "phenomenonTimeUnknown": True,
+                    "phenomenonTimeReason": "an unplanned water outage is a notice with an estimated repair window; the publication instant is not given",
+                    "resultTime": day, "resultTimeResolution": "day" if day else None, "receivedTime": iso(received),
+                    "resultQuality": "unvalidated", "notice_type": "water_fault", "outage_day": day,
+                    "repair_window": window, "municipality": muni, "streets": streets,
+                    "dedupe_key": f"{src['sid']}|{hashlib.sha256(key.encode('utf-8')).hexdigest()[:24]}",
+                })
+
+    # Tankers
+    cist_match = re.search(r"id=[\"']cisterne[\"'].*?<ul[^>]*>(.*?)</ul>", text, re.S | re.I)
+    if cist_match:
+        for li in re.findall(r"<li[^>]*>(.*?)</li>", cist_match.group(1), re.S | re.I):
+            txt = " ".join(_html.unescape(re.sub(r"<[^>]+>", " ", li)).split())
+            if not txt:
+                continue
+            m = re.search(r"\(([^)]+)\)\s*[-–—]\s*(\d+)\s*возил", txt)
+            muni = m.group(1).strip() if m else None
+            count = int(m.group(2)) if m else 1
+            title = f"Аутоцистерна са водом · {txt}"[:250]
+            key = f"tanker|{txt}"
+            rows.append({
+                "schema": SCHEMA_ROW, "sid": src["sid"], "kind": "text",
+                "datastream": f"{src['sid']}|notice", "station_id": muni or src["sid"], "parameter": "notice",
+                "result": title, "unit": None, "link": src.get("url"),
+                "phenomenonTime": None, "phenomenonTimeUnknown": True,
+                "phenomenonTimeReason": "a water tanker deployment location notice; publication instant is not given",
+                "resultTime": None, "receivedTime": iso(received),
+                "resultQuality": "unvalidated", "notice_type": "water_tanker", "municipality": muni,
+                "tanker_count": count,
+                "dedupe_key": f"{src['sid']}|{hashlib.sha256(key.encode('utf-8')).hexdigest()[:24]}",
+            })
+
+    if not rows:
+        raise ValueError("no BVK fault or tanker items found on the page")
+    return rows
+
+
+BELGRADE_MUNICIPALITIES = {
+    "BARAJEVO", "ČUKARICA", "GROCKA", "LAZAREVAC", "MLADENOVAC", "NOVI BEOGRAD",
+    "OBRENOVAC", "PALILULA", "RAKOVICA", "SAVSKI VENAC", "SOPOT", "STARI GRAD",
+    "SURČIN", "VOŽDOVAC", "VRAČAR", "ZEMUN", "ZVEZDARA"
+}
+
+
+def _col_index(cell_ref: str) -> int:
+    idx = 0
+    for ch in cell_ref:
+        if "A" <= ch <= "Z":
+            idx = idx * 26 + (ord(ch) - ord("A") + 1)
+        else:
+            break
+    return idx - 1
+
+
+def _read_xlsx_rows(body: bytes) -> list[list[str | None]]:
+    """Parse rows from an openxml (.xlsx) binary payload without external dependencies."""
+    import io
+    import zipfile
+    import xml.etree.ElementTree as ET
+
+    with zipfile.ZipFile(io.BytesIO(body)) as z:
+        sst = []
+        if "xl/sharedStrings.xml" in z.namelist():
+            tree = ET.fromstring(z.read("xl/sharedStrings.xml"))
+            ns = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+            for si in tree.findall(f"{ns}si"):
+                sst.append("".join(si.itertext()))
+
+        sheet_xml = None
+        for name in z.namelist():
+            if name.startswith("xl/worksheets/sheet") and name.endswith(".xml"):
+                sheet_xml = z.read(name)
+                break
+
+        if not sheet_xml:
+            return []
+
+        tree = ET.fromstring(sheet_xml)
+        ns = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+        out = []
+        for r in tree.findall(f".//{ns}row"):
+            cells = r.findall(f"{ns}c")
+            if not cells:
+                continue
+            max_col = max(_col_index(c.get("r", "A1")) for c in cells)
+            row_vals = [None] * (max_col + 1)
+            for c in cells:
+                idx = _col_index(c.get("r", "A1"))
+                t = c.get("t")
+                v = c.find(f"{ns}v")
+                val = v.text if v is not None else None
+                if t == "s" and val is not None:
+                    try:
+                        val = sst[int(val)]
+                    except (IndexError, ValueError):
+                        pass
+                row_vals[idx] = val
+            out.append(row_vals)
+        return out
+
+
+def parse_mup_xlsx(body: bytes, received: datetime, src: dict) -> list[dict]:
+    """MUP monthly open data traffic accidents (.xlsx) (S224):
+    Parses geolocated road traffic accidents for Belgrade police administration (PU Beograd)
+    and its 17 municipalities.
+    Columns: ID, PU, Opština, Vreme (DD.MM.YYYY,HH:MM), Lon, Lat, Posledice, Vrsta nezgode, Opis.
+    Local Europe/Belgrade timestamp is converted to UTC via belgrade_local."""
+    raw_rows = _read_xlsx_rows(body)
+    rows = []
+    for r in raw_rows:
+        if len(r) < 4:
+            continue
+        pu = (r[1] or "").strip().upper()
+        muni = (r[2] or "").strip().upper()
+        if pu != "BEOGRAD" and muni not in BELGRADE_MUNICIPALITIES:
+            continue
+        acc_id = str(r[0]).strip() if r[0] is not None else ""
+        time_raw = (r[3] or "").strip()
+        pt, off = None, None
+        if time_raw:
+            try:
+                loc = datetime.strptime(time_raw, "%d.%m.%Y,%H:%M")
+                pt, off = belgrade_local(loc)
+            except ValueError:
+                pt, off = None, None
+
+        lon, lat = None, None
+        if len(r) > 4 and r[4]:
+            try:
+                lon = float(r[4])
+            except (ValueError, TypeError):
+                pass
+        if len(r) > 5 and r[5]:
+            try:
+                lat = float(r[5])
+            except (ValueError, TypeError):
+                pass
+
+        severity = (r[6] or "").strip() if len(r) > 6 and r[6] else None
+        acc_type = (r[7] or "").strip() if len(r) > 7 and r[7] else None
+        detail = (r[8] or "").strip() if len(r) > 8 and r[8] else None
+
+        title_parts = [p for p in ["Саобраћајна незгода", muni, severity, acc_type, detail] if p]
+        title = " · ".join(title_parts)[:250]
+
+        rows.append({
+            "schema": SCHEMA_ROW, "sid": src["sid"], "kind": "text",
+            "datastream": f"{src['sid']}|traffic_accident",
+            "station_id": muni or src["sid"], "station_name": f"{muni} (Beograd)",
+            "parameter": "notice", "result": title, "unit": None,
+            "link": src.get("url"),
+            "phenomenonTime": iso(pt) if pt else None,
+            "phenomenonTimeUnknown": pt is None,
+            "phenomenonTimeSource": f"Europe/Belgrade timestamp '{time_raw}' converted to UTC (UTC+{off})" if pt else None,
+            "phenomenonTimeReason": None if pt else "accident timestamp absent or unparseable",
+            "resultTime": None, "receivedTime": iso(received),
+            "resultQuality": "unvalidated",
+            "lat": lat, "lon": lon,
+            "spatial_binding": "coordinates in MUP open data release (SODL)" if lat is not None else None,
+            "accident_id": acc_id, "municipality": muni, "severity": severity,
+            "accident_type": acc_type, "accident_detail": detail,
+            "notice_type": "traffic_accident",
+            "dedupe_key": f"{src['sid']}|{acc_id or hashlib.sha256(title.encode('utf-8')).hexdigest()[:24]}",
+        })
+    if not rows:
+        raise ValueError("no Belgrade traffic accident rows found in XLSX")
+    return rows
+
+
+def parse_mup_api(body: bytes, received: datetime, src: dict) -> list[dict]:
+    """MUP open data dataset on data.gov.rs (S224): udata API response listing resources."""
+    text = body.decode("utf-8", "replace")
+    doc = json.loads(text)
+    resources = doc.get("resources", [])
+    if not resources:
+        raise ValueError("no resources found in data.gov.rs dataset response")
+    rows = []
+    for res in resources:
+        res_id = res.get("id")
+        res_title = res.get("title") or doc.get("title") or "MUP podaci o saobraćajnim nezgodama"
+        res_url = res.get("url")
+        fmt = res.get("format")
+        filesize = res.get("filesize")
+        last_mod = res.get("last_modified") or res.get("internal", {}).get("last_modified_internal")
+        checksum = (res.get("checksum") or {}).get("value")
+
+        day = last_mod[:10] if last_mod else None
+        title = f"МУП отворени подаци (data.gov.rs) · {res_title}"[:250]
+
+        rows.append({
+            "schema": SCHEMA_ROW, "sid": src["sid"], "kind": "text",
+            "datastream": f"{src['sid']}|notice", "station_id": src["sid"],
+            "parameter": "notice", "result": title, "unit": None,
+            "link": res_url or src.get("url"),
+            "phenomenonTime": None, "phenomenonTimeUnknown": True,
+            "phenomenonTimeReason": "an open-data dataset resource listed on data.gov.rs; phenomenon time is the coverage period",
+            "resultTime": day, "resultTimeResolution": "day" if day else None,
+            "receivedTime": iso(received), "resultQuality": "unvalidated",
+            "notice_type": "open_data_resource", "resource_id": res_id,
+            "format": fmt, "filesize": filesize, "checksum_sha1": checksum,
+            "dedupe_key": f"{src['sid']}|{res_id or hashlib.sha256((res_url or title).encode('utf-8')).hexdigest()[:24]}",
+        })
+    return rows
+
+
+def parse_mup_accidents(body: bytes, received: datetime, src: dict) -> list[dict]:
+    """MUP traffic accidents open data on data.gov.rs (S224):
+    Handles both binary OpenXML (.xlsx) monthly accident tables and
+    the data.gov.rs udata API JSON dataset resource listing."""
+    if body.startswith(b"PK\x03\x04"):
+        return parse_mup_xlsx(body, received, src)
+    return parse_mup_api(body, received, src)
+
+
 PARSERS = {"sepa_hvd": parse_sepa_hvd, "sensor_community": parse_sensor_community, "parking": parse_parking, "rss": parse_rss,
            "city_listing": parse_city_listing, "eds_outages": parse_eds_outages, "rhmz_auto": parse_rhmz_auto,
            "metar": parse_metar, "rhmz_gauges": parse_rhmz_gauges, "danubehis": parse_danubehis,
            "meteoalarm": parse_meteoalarm, "rhmz_uv": parse_rhmz_uv, "rhmz_waves": parse_rhmz_waves,
-           "gzzjz_listing": parse_gzzjz_listing}
+           "gzzjz_listing": parse_gzzjz_listing, "bvk_faults": parse_bvk_faults,
+           "mup_accidents": parse_mup_accidents, "mup_xlsx": parse_mup_xlsx}
 
 
 # ------------------------------------------------------------------ storage

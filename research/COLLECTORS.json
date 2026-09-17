@@ -390,21 +390,19 @@
   },
   {
    "sid": "S11",
-   "name": "BVK - JKP Beogradski vodovod i kanalizacija RSS",
-   "url": "https://www.bvk.rs/feed/",
-   "parser": "rss",
-   "geography": "Beograd",
-   "ext": "xml",
-   "store_raw": false,
-   "cadence_seconds": 900,
+   "name": "BVK - unplanned network faults and water tankers",
+   "url": "https://www.bvk.rs/kvarovi-na-mrezi/",
+   "parser": "bvk_faults",
+   "ext": "html",
+   "store_raw": true,
+   "cadence_seconds": 3600,
    "timeout_seconds": 45,
-   "max_bytes": 3000000,
-   "phenomenon_time_published": "NO - pubDate is publication (resultTime); the reported event's own time is unknown",
-   "legal": "official materials of a body exercising public function - Copyright Act Art. 6(2), outside copyright; still only headline, link and pubDate are kept, by the same collector rule",
+   "max_bytes": 2000000,
+   "phenomenon_time_published": "the notice names the day and estimated repair hour; publication instant is not given (resultTime = day)",
+   "legal": "official materials of a body exercising public function - Copyright Act Art. 6(2), outside copyright",
    "enabled": true,
-   "why": "the water utility's own notices: outages, works, deratisation per street",
-   "added": "news audit 2026-09-09 (07-legal/NEWS_AUDIT_2026-09-09.md); permission capture of the same day in the ledger",
-   "why_cadence": "15 min from 2026-09-09 afternoon: the editor asked for a fresher page; one request per quarter hour per publisher is still polite"
+   "why": "unplanned water outages by street and municipality with estimated repair hour and water tanker deployment locations (C-086, C-091); complements EDS power outages (S12/S54)",
+   "added": "2026-09-17 C-091"
   },
   {
    "sid": "S175",
@@ -809,6 +807,22 @@
    "enabled": true,
    "why": "transnational Danube river gauge network (ICPDR); independent water level validation for Sava, Dunav and Tamiš at Belgrade",
    "added": "2026-09-17 C-090"
+  },
+  {
+   "sid": "S224",
+   "name": "MUP traffic accidents by police administration and municipality - open data on data.gov.rs (SODL)",
+   "url": "https://data.gov.rs/api/1/datasets/podatsi-o-saobratshajnim-nezgodama-po-politsijskim-upravama-i-opshtinama/",
+   "parser": "mup_accidents",
+   "ext": "json",
+   "store_raw": true,
+   "cadence_seconds": 86400,
+   "timeout_seconds": 60,
+   "max_bytes": 2000000,
+   "phenomenon_time_published": "NO - monthly open-data dataset releases on data.gov.rs; files contain geolocated accident times, API listing contains publication and last-modified times",
+   "legal": "Serbian Open Data Licence (SODL) on data.gov.rs: commercial and non-commercial reuse permitted with source named (D-004); S204 mup.gov.rs remains refused",
+   "enabled": true,
+   "why": "geolocated road traffic accidents by police administration and municipality from MUP's open data release on data.gov.rs (SODL; D-004, C-086, C-092)",
+   "added": "2026-09-17 C-092"
   }
  ]
 }

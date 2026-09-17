@@ -3720,3 +3720,44 @@ The permission captured in C-086 and recaptured in C-087 now has an active colle
 
 Verified with live probe and offline unit tests. Only in-scope stations around Belgrade are extracted. Upstream and international stations remain in raw responses (under data/live/raw/S223/) but are excluded from observation rows.
 
+## C-091 — S11 BVK unplanned network faults and water tankers enabled
+
+**Written at the commit that carries this entry.**
+
+This is not a correction. It is recorded here because it changes what the record collects.
+
+The permission captured under S11 for the new route `https://www.bvk.rs/kvarovi-na-mrezi/` in C-086 now has an active collector and parser:
+- **S11**: JKP Beogradski vodovod i kanalizacija (BVK) unplanned water network faults and water tanker deployment locations.
+- Route switched from general PR RSS feed (`/feed/`) to live street-level network faults (`/kvarovi-na-mrezi/`), directly matching the operational model of EDS power outages (S12/S54).
+- Parses daily fault toggles by date (e.g. `17.09.2026`) and municipal outage listings with estimated repair windows (e.g. `ДО 22:00`).
+- Parses water tanker deployment locations and vehicle counts from `#cisterne`.
+- Each item is recorded as a text notice (`parameter: "notice"`, `kind: "text"`) with metadata attributes (`notice_type`, `repair_window`, `municipality`, `streets`, `tanker_count`).
+- Publication instant is not given by source; `phenomenonTime` is unknown with explanation, and `resultTime` is set to the fault day.
+- Offline unit tests in `research/test_collect_daemon.py` verify toggle parsing, repair window extraction, municipality/street splitting, water tanker counts, deduplication key stability, and parser registration.
+
+### Honest verdict
+
+Verified with live probe and offline unit tests. Notice rows use `parameter: "notice"` in conformance with the parameter semantics contract so baseline, agreement, and latency estimators skip them. Water outages and tankers are captured at the municipal and street level.
+
+## C-092 — S224 MUP open-data traffic accidents collector and parser enabled
+
+**Written at the commit that carries this entry.**
+
+This is not a correction. It is recorded here because it changes what the record collects.
+
+The permission captured under S224 on data.gov.rs in C-086 now has an active collector and parser under decision D-004:
+- **S224**: MUP traffic accidents by police administration and municipality - open data on data.gov.rs (SODL).
+- D-004 decision holds: MUP's deliberate open-data publication on data.gov.rs is treated as a separate source under the Serbian open-data licence (SODL); S204 (mup.gov.rs) remains refused and is never polled.
+- Permitted collector route: `https://data.gov.rs/api/1/datasets/podatsi-o-saobratshajnim-nezgodama-po-politsijskim-upravama-i-opshtinama/`.
+- Continuous collector polls the dataset udata API metadata and produces notices for published monthly/annual accident dataset releases (`format`, `filesize`, `checksum_sha1`, resource link).
+- Dual-mode parser `parse_mup_accidents` (and dedicated `parse_mup_xlsx`) processes binary OpenXML (.xlsx) monthly road traffic accident tables:
+  - Filters police administration `BEOGRAD` and the 17 Belgrade municipalities.
+  - Converts local Europe/Belgrade timestamp (`DD.MM.YYYY,HH:MM`) to UTC via `belgrade_local` (handling winter CET UTC+1 and summer CEST UTC+2).
+  - Preserves geolocation coordinates (`lat`, `lon`), severity (`Sa poginulim`, `Sa povredjenim`, `Sa mat.stetom`), accident type, detail description, and accident ID.
+  - Zero third-party dependencies: uses standard library `zipfile` and `xml.etree.ElementTree`.
+- Offline unit tests in `research/test_collect_daemon.py` verify both XLSX row extraction (filtering, UTC time conversion, coordinates, severity) and udata API resource parsing, deduplication key stability, and parameter semantics (`kind: "text"`).
+
+### Honest verdict
+
+Verified with live probe and offline unit tests. Both the data.gov.rs API endpoint (for continuous automated discovery) and monthly XLSX binary payloads (for granular Belgrade accident records) are handled. Notice rows use `parameter: "notice"` in conformance with the parameter semantics contract so baseline, agreement, and latency estimators skip them. MUP's closed door on mup.gov.rs (S204) remains strictly honoured.
+

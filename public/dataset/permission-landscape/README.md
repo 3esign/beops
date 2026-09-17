@@ -12,10 +12,10 @@ what was decided about it, why, and whether the bytes that justified the decisio
 | sources reviewed | 221 |
 | named refusals honoured | 14 |
 | unresolved and therefore not collected | 3 |
-| actually polled | 33 |
+| actually polled | 34 |
 | permission captures on file | 451 |
 
-Status breakdown: probe_ok 120, primary_page 27, lead 26, opted_out 14, collected 13, no_coverage 10, needs_decision 3, dead 2, account_required 2, token_required 1, restricted 1, blocked 1, probe_tls_failed 1
+Status breakdown: probe_ok 118, primary_page 27, lead 26, collected 15, opted_out 14, no_coverage 10, needs_decision 3, dead 2, account_required 2, token_required 1, restricted 1, blocked 1, probe_tls_failed 1
 
 ## Files
 

@@ -159,12 +159,12 @@
    "theme": "services",
    "name": "BVK planned works",
    "url": "https://www.bvk.rs/planirani-radovi/",
-   "status": "probe_ok",
+   "status": "collected",
    "kind": "planned_service_notice",
    "rhythm": "event-driven/daily",
    "access": "public HTML",
    "reuse": "check allowed metadata/derived-fact publication",
-   "next": "Extract street segments, start/end intervals, revisions and cancellation; do not infer actual outage or restoration. 2026-09-17 (C-086): new route captured - https://www.bvk.rs/kvarovi-na-mrezi/ lists UNPLANNED faults by street and municipality with repair time and water-tanker locations; parser to follow.",
+   "next": "Extract street segments, start/end intervals, revisions and cancellation; do not infer actual outage or restoration. 2026-09-17 (C-091): collector enabled, parse_bvk_faults active on https://www.bvk.rs/kvarovi-na-mrezi/ for unplanned water outages and water tanker deployments.",
    "news_audit_2026_09_09": "BVK publishes an RSS feed (https://www.bvk.rs/feed/, robots.txt clean, sitemap.rss declared): outages, works, deratisation, per settlement and street, ~10 items, newest 2026-09-05. A public utility's service notices are official materials of a body exercising public function (Art. 6(2)). Captured under this id 2026-09-09; enabled as a headline stream.",
    "measured_2026_09_09": "bvk.rs/feed/ captured with --allow-shared-host (S63/S175 share the host): allowed, 200; the feed answers X-Robots-Tag: noindex, follow - the E-011 decision applies (recorded, permitted)"
   },
@@ -3408,12 +3408,12 @@
    "theme": "mobility",
    "name": "MUP traffic accidents by police administration and municipality - open data on data.gov.rs (SODL)",
    "url": "https://data.gov.rs/api/1/datasets/podatsi-o-saobratshajnim-nezgodama-po-politsijskim-upravama-i-opshtinama/",
-   "status": "probe_ok",
+   "status": "collected",
    "kind": "road_safety_open_data",
    "rhythm": "monthly XLSX (update 2026-08-25 carried Jan-Jul 2026, 19,535 accidents); yearly files back to 2015",
    "access": "data.gov.rs udata API lists the resources; files served from data.gov.rs/s/resources/...",
    "reuse": "Serbian open-data licence (SODL) on data.gov.rs: reuse 'for commercial and non-commercial purposes', source named. D-004: MUP's own open-data release, used as a separate source; S204 (mup.gov.rs) stays refused and is never read.",
-   "next": "Parser: one row per accident (police administration BEOGRAD, municipality, time, coordinates, severity, type). Publish aggregates by municipality and month; the point layer stays local until a decision on precision. Attribution: MUP, via data.gov.rs (SODL)."
+   "next": "2026-09-17 (C-092): collector enabled, parse_mup_accidents implemented for data.gov.rs dataset metadata and monthly XLSX road traffic accidents (police administration BEOGRAD, 17 Belgrade municipalities, coordinates, severity, accident type and local time converted to UTC via belgrade_local). SODL open data licence tracked (D-004)."
   }
  ]
 }
