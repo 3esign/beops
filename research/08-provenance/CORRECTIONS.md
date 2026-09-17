@@ -3549,3 +3549,40 @@ the same.
 This explains future failures; it does not explain the three that already happened. Whether S201's
 failures come from its server or from this machine's network at those hours stays unknown until the
 next failure is recorded with its cause.
+
+## C-084 — the round check said PENDING for a page that had been live for a day
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+Check 2.3 asks whether the built site names Gemini in its "Where this runs" footer. It read
+`docs/index.html` in the working copy. Since the isolated-release change, the publisher builds `docs/`
+inside a release workspace, so the working copy's `docs/` is never rebuilt. The check therefore
+reported "not yet rebuilt by the publisher" on every run. Meanwhile the published page, whose hash the
+publisher compares with the live site, has named Gemini since the change went out. This was found in
+the full review of 2026-09-17.
+
+### Correction
+
+- 2.3 reads the working copy first, then the public mirror: `Beops-public` beside the repository, or
+  `BEOPS_PUBLIC_ROOT` if that is set. It reports which page carried the name.
+- If neither page carries the name, 2.3 does not pass. A missing mirror is also not a pass.
+- Four tests cover these cases.
+
+### Honest verdict
+
+A check that can only say PENDING tells you nothing. Other round checks that read the working copy's
+`docs/` have the same weakness and should be read with that in mind.
+
+### Found while making this change
+
+C-083 had changed `tools/net_fetch.js`. Check 0.4 counted "after the fix" from the newest commit that
+touched that file, so C-083 silently reset the identity check for every source. A receipt for a
+request that failed on the network also carried no `request_user_agent`, so a failure looked like a
+missing identity.
+
+- 0.4 now counts from the first commit that put the observatory's name into the transport.
+- `net_fetch.js` records the identity it sent even when the request fails, and records none for a
+  request it never sent.
+- Network failures recorded before this change are skipped rather than counted as wrong.

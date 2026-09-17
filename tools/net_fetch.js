@@ -13,10 +13,13 @@ function identityHeaders(url) {
     'Accept-Language': 'sr-RS,sr;q=0.9,en;q=0.8'
   };
 }
+// C-084: a request that failed on the network was still sent under this identity, and its receipt says so.
+let sentIdentity = null;
 async function main() {
   const url = new URL(input.url);
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) throw new Error('Unsupported URL');
   const headers = identityHeaders(url.href);
+  sentIdentity = headers['User-Agent'] || headers['user-agent'];
   if (input.headers_only) { process.stdout.write(JSON.stringify({user_agent: headers['User-Agent'] || headers['user-agent']})); return; }
   const timeout = Math.max(100, Math.min(120000, input.timeout_ms || 30000));
   const limit = Math.max(1, Math.min(262144000, input.max_bytes || 2097152));
@@ -57,4 +60,5 @@ function describe(error) {
   return parts.join(' <- ').slice(0, 240);
 }
 main().catch(error => { process.stdout.write(JSON.stringify({status:null, headers:{}, body:null,
-  error: describe(error), transport:'node/verified TLS; honest identity'})); process.exitCode=1; });
+  error: describe(error), request_user_agent: input.headers_only ? null : sentIdentity,
+  transport:'node/verified TLS; honest identity'})); process.exitCode=1; });

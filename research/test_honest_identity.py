@@ -47,6 +47,14 @@ class HonestIdentity(unittest.TestCase):
         err = json.loads(p.stdout)['error']
         self.assertTrue(err.startswith('fetch failed'), err)
         self.assertIn('ECONNREFUSED', err)
+        self.assertTrue(json.loads(p.stdout)['request_user_agent'].startswith(TOKEN),
+                        'a request that failed on the network was still sent under our name')
+
+    def test_a_request_that_was_never_sent_claims_no_identity(self):
+        p = subprocess.run(['node', str(ROOT / 'tools' / 'net_fetch.js')],
+                           input=json.dumps({'url': 'ftp://example.org/feed'}),
+                           capture_output=True, text=True, encoding='utf-8', timeout=30)
+        self.assertIsNone(json.loads(p.stdout).get('request_user_agent'))
 
 
 if __name__ == '__main__':

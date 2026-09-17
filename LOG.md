@@ -284,3 +284,4 @@ Vreme · um · radnja · rezultat. Vodi `node tools/project_kit.js log`.
 - 2026-09-17T06:30:51.820Z · claude-cowork · C-081: releases also link create-once record files (receipts, raw, model receipts/digests, AI feed); PAUSED stays copied · ok
 - 2026-09-17T07:24:04.853Z · claude-cowork · C-082: RSS parser escapes bare ampersands (B92 'R&D' silenced S198), repair recorded on rows and receipt · ok
 - 2026-09-17T07:33:49.852Z · claude-cowork · C-083: node transport records the cause of a failed fetch (S201 said only 'fetch failed') · ok
+- 2026-09-17T08:06:17.193Z · claude-cowork · C-084: round check 2.3 reads the published mirror; the working copy docs/ is never rebuilt · ok

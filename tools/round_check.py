@@ -64,6 +64,14 @@ def git(*args: str) -> str:
     return p.stdout.strip()
 
 
+def identity_since() -> datetime | None:
+    """C-084: when tools/net_fetch.js first carried the honest identity (C-070). Taking the newest
+    commit that touched the file instead restarted this check at every later change to the transport."""
+    out = git("log", "--reverse", "-S", TOKEN, "--format=%cI", "--", "tools/net_fetch.js")
+    first = out.splitlines()[0] if out else ""
+    return datetime.fromisoformat(first) if first else None
+
+
 def commit_time(path: str) -> datetime | None:
     """When the newest commit that touched `path` was made - the moment a fix became the source."""
     out = git("log", "-1", "--format=%cI", "--", path)
@@ -138,7 +146,9 @@ def step0() -> list[dict]:
                       f"not under the real name: {', '.join(wrong)}" if wrong else
                       (f"manifest missing for {', '.join(missing)}" if missing else
                        "every current capture of a polled source names Beops-Research-Collect/1.0")))
-    since = commit_time("tools/net_fetch.js")
+    since = identity_since()
+    if since is None:
+        raise RuntimeError("no commit introduced the identity into tools/net_fetch.js")
     bad, none = [], []
     for s in enabled_collectors():
         if (latest.get(s["sid"]) or {}).get("allowed_for_us") is not True:
@@ -149,6 +159,8 @@ def step0() -> list[dict]:
         for f in rec[-5:]:
             r = json.loads(f.read_text(encoding="utf-8"))
             if r.get("network_requests") and (parse(r.get("attempted_at")) or since) > since:
+                if not r.get("request_user_agent") and r.get("http_status") is None:
+                    continue    # a network failure recorded before C-084 did not name what it sent
                 after.append(r)
         if not after:
             none.append(s["sid"])
@@ -230,6 +242,17 @@ def d003_ok(decisions: str) -> list[str]:
     return [n for n in D003_NAMES if n not in m.group(1)]
 
 
+def public_mirror() -> pathlib.Path:
+    import os
+    env = os.environ.get("BEOPS_PUBLIC_ROOT")
+    return pathlib.Path(env) if env else ROOT.parent / "Beops-public"
+
+
+def built_pages():
+    return [("docs/index.html", ROOT / "docs" / "index.html"),
+            ("published mirror docs/index.html", public_mirror() / "docs" / "index.html")]
+
+
 def footer_block(site_builder: str) -> str:
     i = site_builder.find("Where this runs")
     return site_builder[i:i + 6000] if i >= 0 else ""
@@ -246,10 +269,18 @@ def step2(live: bool = False) -> list[dict]:
                 if re.search(r'class="%s[^"]*">[^<]*Gemini' % cls, blk))
     out.append(result("2.2 'Where this runs' names Gemini in all four languages", PASS if langs == 4 else FAIL,
                       f"{langs} of 4 language spans name Gemini"))
-    built = ROOT / "docs" / "index.html"
-    b = built.read_text(encoding="utf-8") if built.exists() else ""
-    if "Gemini" in footer_block(b):
-        out.append(result("2.3 the built page carries it", PASS, "docs/index.html footer names Gemini"))
+    # C-084: the publisher builds docs/ inside an isolated release, so the working copy's docs/ never
+    # changes and this check stayed PENDING while the live page already carried the name. The page
+    # that was published is the one in the public mirror, whose hash the publisher compared with the
+    # live site; the working copy is read first only because a local rebuild is also a build.
+    found = None
+    for label, built in built_pages():
+        b = built.read_text(encoding="utf-8") if built.exists() else ""
+        if "Gemini" in footer_block(b):
+            found = label
+            break
+    if found:
+        out.append(result("2.3 the built page carries it", PASS, f"{found} footer names Gemini"))
     else:
         out.append(result("2.3 the built page carries it", PENDING if langs == 4 else FAIL,
                           "not yet rebuilt by the publisher" if langs == 4 else "the source does not carry it either"))

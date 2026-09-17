@@ -53,5 +53,65 @@ class Honesty(unittest.TestCase):
         self.assertTrue(rc.MUST_ACCEPT)
 
 
+class BuiltPage(unittest.TestCase):
+    """C-084: the working copy's docs/ is never rebuilt by the publisher; the published mirror is."""
+
+    def run_step(self, local, mirror):
+        import tempfile, os
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as d:
+            d = pathlib.Path(d)
+            pages = []
+            for name, body in (("local", local), ("mirror", mirror)):
+                f = d / name / "docs" / "index.html"
+                f.parent.mkdir(parents=True)
+                if body is not None:
+                    f.write_text(body, encoding="utf-8")
+                pages.append((name, f))
+            with patch.object(rc, "built_pages", lambda: pages):
+                return {r["check"][:3]: r for r in rc.step2()}["2.3"]
+
+    FOOT = "<footer>Where this runs ... Google Gemini ...</footer>"
+    OLD = "<footer>Where this runs ... local models only</footer>"
+
+    def test_a_stale_working_copy_with_a_current_mirror_passes_and_says_which(self):
+        r = self.run_step(self.OLD, self.FOOT)
+        self.assertEqual(r["state"], rc.PASS)
+        self.assertIn("mirror", r["said"])
+
+    def test_neither_page_carrying_it_is_not_a_pass(self):
+        self.assertNotEqual(self.run_step(self.OLD, self.OLD)["state"], rc.PASS)
+
+    def test_a_missing_mirror_is_not_a_pass(self):
+        self.assertNotEqual(self.run_step(self.OLD, None)["state"], rc.PASS)
+
+    def test_the_mirror_is_the_publisher_default_or_its_override(self):
+        import os
+        from unittest.mock import patch
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("BEOPS_PUBLIC_ROOT", None)
+            self.assertEqual(rc.public_mirror(), rc.ROOT.parent / "Beops-public")
+        with patch.dict(os.environ, {"BEOPS_PUBLIC_ROOT": "X:/pub"}):
+            self.assertEqual(rc.public_mirror(), pathlib.Path("X:/pub"))
+
+
+class IdentityClock(unittest.TestCase):
+    def test_the_identity_check_counts_from_the_first_commit_carrying_the_name(self):
+        from unittest.mock import patch
+        calls = []
+
+        def fake_git(*args):
+            calls.append(args)
+            return "2026-09-15T10:00:00+02:00\n2026-09-17T09:30:00+02:00"
+        with patch.object(rc, "git", fake_git):
+            self.assertEqual(rc.identity_since().isoformat(), "2026-09-15T10:00:00+02:00")
+        self.assertIn("--reverse", calls[0])
+        self.assertIn(rc.TOKEN, calls[0])
+
+    def test_step0_does_not_use_the_newest_transport_commit(self):
+        src = (rc.ROOT / "tools" / "round_check.py").read_text(encoding="utf-8")
+        self.assertNotIn('since = commit_time("tools/net_fetch.js")', src)
+
+
 if __name__ == "__main__":
     unittest.main()
