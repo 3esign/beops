@@ -52,14 +52,19 @@ class ReleaseLinks(unittest.TestCase):
         self.assertTrue(os.path.samefile(self.ev, dest / rel))
         self.assertEqual(rows[rel]['sha256'], hashlib.sha256(EVIDENCE).hexdigest())
         self.assertEqual(rows[rel]['bytes'], len(EVIDENCE))
-        self.assertEqual((m['linked_files'], m['linked_bytes']), (1, len(EVIDENCE)))
+        self.assertEqual((m['linked_files'], m['linked_bytes']), (2, len(EVIDENCE) + len(RAW)))
 
-    def test_nothing_outside_research_evidence_is_linked(self):
+    def test_raw_captures_are_linked_since_c081(self):
         dest, rows, _ = self.capture()
         rel = 'data/live/raw/S01/20260901T000000Z.xml'
-        self.assertFalse(os.path.samefile(self.raw, dest / rel))
-        self.assertEqual((dest / rel).read_bytes(), RAW)
+        self.assertTrue(os.path.samefile(self.raw, dest / rel))
         self.assertEqual(rows[rel]['sha256'], hashlib.sha256(RAW).hexdigest())
+
+    def test_the_record_switch_keeps_raw_copied_and_evidence_linked(self):
+        with patch.dict(os.environ, {'BEOPS_RELEASE_LINK_RECORD': '0'}):
+            dest, _, _ = self.capture()
+        self.assertFalse(os.path.samefile(self.raw, dest / 'data/live/raw/S01/20260901T000000Z.xml'))
+        self.assertTrue(os.path.samefile(self.ev, dest / 'research/evidence/S01/20260901T000000Z/page.html'))
 
     def test_removing_the_release_leaves_the_evidence(self):
         import shutil
@@ -82,7 +87,7 @@ class ReleaseLinks(unittest.TestCase):
             row['hashed_at'] = time.time() - 25 * 3600
         cache.write_text(json.dumps(doc), encoding='utf-8')
         _, _, m = self.capture()
-        self.assertEqual(m['evidence_bytes_hashed'], len(EVIDENCE))
+        self.assertEqual(m['evidence_bytes_hashed'], len(EVIDENCE) + len(RAW))
 
     def test_a_rewritten_evidence_file_is_hashed_again_not_trusted(self):
         self.capture()
@@ -124,6 +129,59 @@ class ReleaseLinks(unittest.TestCase):
         with patch.dict(os.environ, {'BEOPS_RELEASE_LINK_EVIDENCE': '0'}):
             _, copied, _ = self.capture()
         self.assertEqual(linked, copied)
+
+
+class WhatMayBeLinked(unittest.TestCase):
+    """C-081: only paths whose every writer creates once or replaces whole."""
+
+    def test_the_rule(self):
+        yes = ['research/evidence/S1/x/page.html', 'data/live/receipts/S1/20260917T000000Z.json',
+               'data/live/raw/S1/20260917T000000Z.xml.gz', 'data/live/derived/mind/receipts/a.json',
+               'data/live/derived/news/receipts/b.json', 'data/live/derived/mind/digests/c.json',
+               'runtime/ai-feed/entries/0a.json', 'runtime/ai-feed/contexts/ab.json',
+               'runtime/ai-feed/prompts/ab.txt']
+        no = ['data/live/receipts/S1/PAUSED', 'data/live/receipts/S1/x.claim',
+              'data/live/rows/S1/2026-09.jsonl', 'data/live/derived/mind/claims.jsonl',
+              'data/live/derived/mind/context.json', 'data/live/derived/mind/receipts/.mind-x.tmp',
+              'runtime/ai-feed/status.json', 'runtime/ai-feed/events.jsonl',
+              'data/live/guard-ledger.jsonl']
+        for p in yes:
+            self.assertTrue(P.linkable(p), p)
+        for p in no:
+            self.assertFalse(P.linkable(p), p)
+
+    def test_a_paused_marker_is_copied_so_a_later_rewrite_cannot_reach_the_release(self):
+        with tempfile.TemporaryDirectory() as d:
+            base = pathlib.Path(d)
+            src, dest = base / 'source', base / 'rel' / ('beops-release-' + '1' * 32)
+            receipts = src / 'data/live/receipts/S01'
+            receipts.mkdir(parents=True)
+            (receipts / 'PAUSED').write_text('paused once\n', encoding='utf-8')
+            (receipts / '20260917T000000Z.json').write_text('{}\n', encoding='utf-8')
+            dest.mkdir(parents=True)
+            with patch.dict(os.environ, {'BEOPS_RELEASE_LINK_EVIDENCE': '1'}):
+                P.capture_inputs(src, dest, {})
+            self.assertFalse(os.path.samefile(receipts / 'PAUSED', dest / 'data/live/receipts/S01/PAUSED'))
+            self.assertTrue(os.path.samefile(receipts / '20260917T000000Z.json',
+                                             dest / 'data/live/receipts/S01/20260917T000000Z.json'))
+            (receipts / 'PAUSED').write_text('paused twice\n', encoding='utf-8')
+            self.assertEqual((dest / 'data/live/receipts/S01/PAUSED').read_text(encoding='utf-8'), 'paused once\n')
+
+    def test_a_whole_file_replacement_in_the_source_leaves_the_release_bytes(self):
+        with tempfile.TemporaryDirectory() as d:
+            base = pathlib.Path(d)
+            src, dest = base / 'source', base / 'rel' / ('beops-release-' + '2' * 32)
+            digests = src / 'data/live/derived/mind/digests'
+            digests.mkdir(parents=True)
+            f = digests / 'conv.json'
+            f.write_text('{"v": 1}\n', encoding='utf-8')
+            dest.mkdir(parents=True)
+            with patch.dict(os.environ, {'BEOPS_RELEASE_LINK_EVIDENCE': '1'}):
+                P.capture_inputs(src, dest, {})
+            sys.path.insert(0, str(ROOT / 'tools'))
+            from contracts import atomic_json
+            atomic_json(f, {'v': 2})
+            self.assertEqual((dest / 'data/live/derived/mind/digests/conv.json').read_text(encoding='utf-8'), '{"v": 1}\n')
 
 
 if __name__ == '__main__':

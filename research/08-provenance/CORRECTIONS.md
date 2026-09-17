@@ -3463,3 +3463,37 @@ only read the folder, and deleting a release removes only the links. Still, that
 today's code, not a guarantee. This removes about 60 % of the bytes written per publish. The rest,
 about 300 MB of rows and derived files, is still copied every time. Whether coverage and the guard
 recover has to be measured over the next day.
+
+## C-081 — C-080 linked the bytes but not the cost: the release still copied 20,000 small files
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+C-080 was measured on the first publish after it, 2026-09-17 00:11Z:
+
+- 2,395 evidence files (624 MB) were linked, and no evidence bytes had to be hashed again.
+- The unchanging inputs still took 426 s to capture, against 583 s before C-080.
+- About 20,000 small files were still copied one by one: collection receipts, raw captures, model
+  receipts and digests, and AI feed entries, contexts and prompts. On this disk, the file count costs
+  more time than the bytes.
+
+### Correction
+
+- `tools/prepare_release.py` now also links those paths. Every writer of them was read before the
+  change, and each one does one of two things:
+  - creates the file once (link-publish, `wx`, or create-if-absent), or
+  - replaces the whole file (`os.replace`), which gives the source a new file and leaves the release
+    pointing at the old bytes.
+- `data/live/receipts/<sid>/PAUSED` is the one file rewritten in place, so it is never linked.
+  Claims, temporary files, rows, ledgers and status files stay copied.
+- `BEOPS_RELEASE_LINK_RECORD=0` switches this back without touching the evidence links from C-080.
+- New tests cover which paths may be linked, show that PAUSED stays a copy that a later rewrite
+  cannot reach, and show that a whole-file replacement in the source leaves the release unchanged.
+
+### Honest verdict
+
+The safety argument is a reading of today's writers. A future writer that opens one of these files in
+place would change released bytes after capture. The stat check covers only the moment of capture,
+not the rest of the build. Nothing enforces that rule in code except these tests. Whether the capture
+time drops enough to free the disk must be read from the next manifests.

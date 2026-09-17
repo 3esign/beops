@@ -52,6 +52,31 @@ def git(root, *args):
 # A link shares bytes with the source, so the stat check before and after, and os.path.samefile,
 # still refuse a release whose input moved. Set BEOPS_RELEASE_LINK_EVIDENCE=0 to copy as before.
 LINKABLE_PREFIXES = ('research/evidence/',)
+# C-081: the other ~20,000 immutable inputs cost the release its time as metadata, not bytes. Every
+# writer of these paths creates a file once (link-publish, 'wx', create-if-absent) or replaces it
+# whole (os.replace gives the source a new file and leaves the release's link on the old bytes).
+# The one file rewritten in place, receipts/<sid>/PAUSED, is never linked.
+LINKABLE_PATTERNS = (
+    ('data/live/receipts/', '.json'),
+    ('data/live/raw/', ''),
+    ('runtime/ai-feed/entries/', '.json'),
+    ('runtime/ai-feed/contexts/', '.json'),
+    ('runtime/ai-feed/prompts/', '.txt'),
+)
+LINKABLE_DERIVED = ('receipts', 'digests')
+
+
+def linkable(posix):
+    if posix.startswith(LINKABLE_PREFIXES):
+        return True
+    if os.environ.get('BEOPS_RELEASE_LINK_RECORD', '1') == '0':
+        return False
+    for prefix, suffix in LINKABLE_PATTERNS:
+        if posix.startswith(prefix) and posix.endswith(suffix) and '/.' not in posix:
+            return True
+    parts = posix.split('/')
+    return (posix.startswith('data/live/derived/') and len(parts) >= 3
+            and parts[-2] in LINKABLE_DERIVED and posix.endswith('.json') and not parts[-1].startswith('.'))
 HASH_CACHE_NAME = '.beops-evidence-sha-cache.json'
 HASH_CACHE_MAX_AGE_SECONDS = 24 * 3600
 
@@ -284,7 +309,7 @@ def _capture_inputs(source, dest, spool, metrics=None):
         path, rel, stat = entry
         verify(path, stat)
         posix = rel.as_posix()
-        if hashes is not None and posix.startswith(LINKABLE_PREFIXES) and not is_observation_path(posix):
+        if hashes is not None and linkable(posix) and not is_observation_path(posix):
             target = dest / rel
             try:
                 os.link(path, target)
