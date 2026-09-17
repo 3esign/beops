@@ -724,6 +724,75 @@
    "related": {
     "text": "S12 is the same table for tomorrow (Dan_1); both use the eds_outages parser and are keyed by content, so a notice that moves between the two pages is recorded once per page and never twice within one"
    }
+  },
+  {
+   "sid": "S219",
+   "name": "Meteoalarm - official weather warnings, Belgrade region RS003 (issued by RHMZ)",
+   "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-serbia",
+   "parser": "meteoalarm",
+   "region": "RS003",
+   "language": "sr-Latn",
+   "link": "https://meteoalarm.org/en/live/region/RS",
+   "ext": "json",
+   "store_raw": false,
+   "cadence_seconds": 1800,
+   "timeout_seconds": 60,
+   "max_bytes": 5000000,
+   "phenomenon_time_published": "a warning states its validity window (onset/expires) and its send time; kept as stated, the event's own time is unknown",
+   "legal": "Meteoalarm feed licence CC BY 4.0 (terms equivalent, with redistribution requirements): only the derived notice is published, credited to EUMETNET MeteoAlarm and RHMZ; the CAP XML is not redistributed and the body is not stored",
+   "enabled": true,
+   "why": "the state's own warnings for Belgrade, set beside what the instruments measured (C-086, C-088)",
+   "added": "2026-09-17 C-088"
+  },
+  {
+   "sid": "S220",
+   "name": "RHMZ - UV index forecast, Beograd",
+   "url": "https://www.hidmet.gov.rs/latin/prognoza/uv1.php",
+   "parser": "rhmz_uv",
+   "city": "Beograd",
+   "ext": "html",
+   "store_raw": true,
+   "cadence_seconds": 21600,
+   "timeout_seconds": 45,
+   "max_bytes": 2000000,
+   "phenomenon_time_published": "NO issue time; a forecast for named days, kept as a notice with the day and the index",
+   "legal": "official material of a state body - Copyright Act Art. 6(2)",
+   "enabled": true,
+   "why": "UV exposure, a sense the record did not have (C-086, C-088)",
+   "added": "2026-09-17 C-088"
+  },
+  {
+   "sid": "S221",
+   "name": "RHMZ - heat-wave and cold-wave warnings, Beograd",
+   "url": "https://www.meteoalarm.rs/latin/talasi.php",
+   "parser": "rhmz_waves",
+   "region": "Beograd",
+   "ext": "html",
+   "store_raw": true,
+   "cadence_seconds": 10800,
+   "timeout_seconds": 45,
+   "max_bytes": 2000000,
+   "phenomenon_time_published": "the page names the day; no issue time",
+   "legal": "official material of a state body - Copyright Act Art. 6(2); meteoalarm.rs serves no robots.txt",
+   "enabled": true,
+   "why": "the heat-health alert for the city (C-086, C-088)",
+   "added": "2026-09-17 C-088"
+  },
+  {
+   "sid": "S222",
+   "name": "GZZJZ Beograd - epidemiological situation reports (listing)",
+   "url": "https://www.zdravlje.org.rs/index.php/izvestaji/epidemioloska-situacija-bgd",
+   "parser": "gzzjz_listing",
+   "ext": "html",
+   "store_raw": false,
+   "cadence_seconds": 21600,
+   "timeout_seconds": 45,
+   "max_bytes": 2000000,
+   "phenomenon_time_published": "NO - the listing gives titles and links only; a week written in a title is kept as written",
+   "legal": "GZZJZ terms: free download without fee and without restriction, with the source named; aggregate reports, no personal data; only title and link are kept",
+   "enabled": true,
+   "why": "the city's weekly respiratory surveillance reports appear here first (C-086, C-088); the report numbers are a later parser",
+   "added": "2026-09-17 C-088"
   }
  ]
 }

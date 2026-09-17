@@ -56,7 +56,7 @@ Latest scope: all Belgrade -> larger urban areas -> broad zones, stopping before
 - [OBS-001: separate 10K race observation](research/observations/10k-2026-09-05/PROTOKOL.md), on the New Belgrade/Zemun side.
 
 - [Living footprint of Belgrade](research/02-senses/ZIVI_OTISAK_BEOGRADA.md): start here; measured reconnaissance findings and research questions.
-- [Source registry](research/SOURCE_REGISTRY.json): 215 source records, including archives, catalogues, related routes and coverage gaps. This is not a count of devices or live feeds.
+- [Source registry](research/SOURCE_REGISTRY.json): 221 source records, including archives, catalogues, related routes and coverage gaps. This is not a count of devices or live feeds.
 - [Models and literature](research/03-models/MODELI_I_LITERATURA.md): initial ten-model review; the expanded audit above covers 24 HF identities and 23 downloaded cards, no weights or inference-quality claim.
 - [Other cities, senses and organs](research/02-senses/DRUGI_GRADOVI_CULA_I_ORGANI.md): comparative examples and transferable experiments.
 - Work program (private working record): 65 tasks in 13 themes, dependencies and completion evidence.

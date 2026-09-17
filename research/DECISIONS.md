@@ -88,3 +88,40 @@ openly licensed or permitted, and that the panel is labelled experimental.
 **What it does not change.** No source is added and none is removed. The local organs keep
 `allow_cloud: false`. The panel can be switched off with `public_enabled: false` in
 `research/AI_FEED.json` without touching anything else.
+
+## D-004 — a refusal closes the route that was refused; an open-data release by the same body is its own act
+
+**Decided 2026-09-17 by Semir Poturak** ("za MUP može to sa javnog sajta i objasni se"), on the source
+research of the same day (`research/02-senses/NEW_SOURCES_2026-09-17.md` §4).
+
+**The case.** MUP is named refusal **S204**. On mup.gov.rs, its robots.txt names ClaudeBot and other
+agents with `Disallow: /`, and the project has honoured that since 2026-09-09. Separately, MUP itself
+publishes *Podaci o saobraćajnim nezgodama po policijskim upravama i opštinama* (traffic accidents by
+police administration and municipality). It is a monthly open dataset on the national portal
+**data.gov.rs**, under the Serbian open-data licence (SODL), whose terms allow reuse "for commercial
+and non-commercial purposes" with the source named. data.gov.rs serves no robots.txt.
+
+**The decision.** The refusal is read as what it machine-readably says: a closed door on MUP's own
+website. The accident dataset is a separate, deliberate publication by the same body, made in order
+to be reused, on a portal built for reuse, under an explicit licence. It is entered as its own source
+(**S224**) and collected only from data.gov.rs, never from mup.gov.rs.
+
+The page and the dataset notes name it as **"MUP, published as open data on data.gov.rs (SODL)"**:
+- the publisher is named, because the licence requires it;
+- the route is named, because D-004 depends on it.
+
+**What stays exactly as it was.**
+- S204 remains `opted_out`. Nothing is read from mup.gov.rs, no press release is collected, and the
+  Sektor za vanredne situacije pages, which sit under mup.gov.rs, stay closed.
+- The guard's refusal checks are unchanged.
+- The third-party route rule (2026-09-10) still governs everything S204 withheld.
+
+**What it costs, stated against the decision.** A careful reader can say MUP refused *us*, not a
+host, and that this is the door the rule was written to keep shut. D-001 means no letter will be sent
+to ask. The record therefore rests on the licence MUP attached to its own release, and on nothing
+else. If MUP objects, S224 is disabled the same day and this entry records it.
+
+**Transparency.** Nothing about this is hidden:
+- the dataset is fetched with the observatory's honest identity;
+- the licence and the portal terms are captured as bytes before the first row is read;
+- this decision is public in the repository.

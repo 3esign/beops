@@ -27,9 +27,10 @@ import build_site                                                   # noqa: E402
 LEDGER = ROOT / "research" / "08-provenance" / "CORRECTIONS.md"
 
 # C-044 records that these three were written down in the code they fixed and never carried into the
-# ledger. They are a declared hole, not a parsing failure, and the declaration is checked below
+# ledger. C-089 records that C-086 was assigned to a permission capture and never given a heading.
+# They are a declared hole, not a parsing failure, and the declaration is checked below
 # against the ledger itself rather than being taken on this file's word.
-NEVER_WRITTEN = ("C-026", "C-027", "C-028")
+NEVER_WRITTEN = ("C-026", "C-027", "C-028", "C-086")
 
 
 class Published(unittest.TestCase):

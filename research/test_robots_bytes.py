@@ -133,5 +133,42 @@ class Bytes(unittest.TestCase):
                          "verdict depends on which one wrote it: " + "; ".join(disagreements))
 
 
+class OversizedBody(unittest.TestCase):
+    """C-087: a 200 whose body is larger than the capture reads is truncated, not failed."""
+
+    def run_capture(self, data_result):
+        from unittest.mock import patch
+
+        def fake(url, timeout, cap):
+            if url.endswith("/robots.txt"):
+                return {"status": 200, "headers": {"content-type": "text/plain"},
+                        "body": b"User-agent: *\nAllow: /\n", "error": None, "request_user_agent": "Beops-Research-Collect/1.0"}
+            return dict(data_result, request_user_agent="Beops-Research-Collect/1.0")
+        with patch.object(lc.transport, "fetch", fake):
+            return lc.capture("S999", "test", ["https://example.org/big.json"], [], "", dry=True)
+
+    def test_an_oversized_200_is_truncated_and_allowed(self):
+        e = self.run_capture({"status": 200, "headers": {"content-type": "application/json"},
+                              "body": None, "error": "Response exceeds 2097152 bytes"})
+        self.assertTrue(e["capture_ok"])
+        self.assertTrue(e["allowed_for_us"])
+        self.assertEqual(e["fetch_failed_urls"], [])
+        self.assertEqual(e["truncated_urls"], ["https://example.org/big.json"])
+
+    def test_an_oversized_body_still_carries_its_opt_out_header(self):
+        e = self.run_capture({"status": 200, "headers": {"x-robots-tag": "noai"},
+                              "body": None, "error": "Response exceeds 2097152 bytes"})
+        self.assertFalse(e["allowed_for_us"])
+
+    def test_other_errors_still_fail(self):
+        for res in ({"status": 200, "headers": {}, "body": None, "error": "Redirect requires a separate permission capture"},
+                    {"status": None, "headers": {}, "body": None, "error": "The operation was aborted due to timeout"},
+                    {"status": 206, "headers": {}, "body": None, "error": "Response exceeds 2097152 bytes"}):
+            e = self.run_capture(res)
+            self.assertFalse(e["capture_ok"], res)
+            self.assertIsNone(e["allowed_for_us"], res)
+            self.assertEqual(e["truncated_urls"], [], res)
+
+
 if __name__ == "__main__":
     unittest.main()

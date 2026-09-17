@@ -92,3 +92,13 @@ licence to strip a refuser's name out of a newspaper's headline, they will have 
 headline is the newspaper's. We are keeping a record of what the city's publishers said, and a
 publisher saying something about an organisation that declined to talk to us is not our business to
 edit.
+
+---
+
+## 5. Scope note, 2026-09-17 (D-004)
+
+A named refusal closes the route the refuser closed. An open-data release that the same organisation
+made itself, on a portal built for reuse and under an explicit licence, is a separate publication. It
+may be used as its own source, named with its publisher and its route. The one case so far is MUP's
+traffic-accident dataset on data.gov.rs (S224). S204 stays refused, and nothing is read from
+mup.gov.rs. See `research/DECISIONS.md` D-004 for the decision and its cost.

@@ -47,7 +47,7 @@ process.stdout.write(JSON.stringify({exitCode, calls, probes}));
             fixture = pathlib.Path(tmp) / 'runner-check.js'
             fixture.write_text(script, encoding='utf-8')
             result = subprocess.run(['node', str(fixture), str(ROOT/'tools/test-research.js'), mode],
-                                    capture_output=True, text=True, timeout=20, check=True)
+                                    capture_output=True, text=True, encoding='utf-8', timeout=20, check=True)
             return json.loads(result.stdout)
 
     def test_every_test_file_is_run_exactly_once_with_bounded_groups(self):

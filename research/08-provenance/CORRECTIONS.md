@@ -3614,3 +3614,90 @@ their sibling files were: `candidate10-*` and two r05 files.
 
 This is housekeeping. The one thing it prevents is a later `git add .` sweeping a model's scratch
 output into the record.
+
+## C-087 — the permission capture treated a large response as a failed one
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+`tools/legal_capture.py` says that a large body "is read up to a cap and the truncation is recorded
+rather than the capture being allowed to fail". It did not do that. The transport stops reading at
+2 MB and returns `Response exceeds 2097152 bytes` with no body, and the capture counted that as a
+failed fetch.
+
+In C-086 this marked two sources incomplete although their status, headers, robots.txt and terms had
+all been read:
+- the RZS municipal tables under S148 (3–11 MB);
+- the DanubeHIS latest-values page, S223 (2.2 MB).
+
+S148's newest ledger line said "unknown" for about half an hour. No collector polls S148.
+
+### Correction
+
+- An oversized HTTP 200 is now recorded in `truncated_urls` and in the stored headers. It is not a
+  failure.
+- Every other error, and every non-200 status, still fails the capture.
+- An opt-out header on an oversized response still refuses.
+- S148 was recaptured with the two tables that answer within the timeout. 050204IND01 (46 MB) timed
+  out and is left out. It uses the same path prefix, so the same robots verdict applies.
+- S223 was recaptured.
+- Three tests cover these cases.
+
+### Honest verdict
+
+The capture never needed the payload, only its status and headers, so this changes no permission
+reading. It does mean a truncated capture no longer stores a hash of the data it permits.
+
+## C-088 — four official notice sources enabled
+
+**Written at the commit that carries this entry.**
+
+This is not a correction. It is recorded here because it changes what the record collects.
+
+The permissions captured in C-086 now have collectors:
+- **S219**: Meteoalarm warnings for Belgrade (region RS003), in sr-Latn only.
+- **S220**: RHMZ UV-index forecast for Beograd.
+- **S221**: RHMZ heat- and cold-wave warnings for Beograd.
+- **S222**: the GZZJZ Beograd report listing.
+
+**How they are recorded.** Each is kept as a notice, the same way headlines are: title, link and the
+time the source states.
+- Their numbers go into named fields beside the text: warning level, colour and type, validity window,
+  UV index, and a reported week as written in the title. None of them is a measurement.
+- Every row is marked `parameter = notice`, so the baseline, agreement and latency tools skip it.
+
+**Honest verdict.** The UV index is a forecast, but the record has no rendering path for forecast
+values yet. It is kept as a notice rather than given a state the page cannot show. S222 only lists
+reports; reading the weekly figures from each report is a later parser. S223 (DanubeHIS), S224 (MUP
+open data) and the BVK faults route stay without collectors for now.
+
+## C-089 — C-086 was assigned to a permission capture and never given a heading in the ledger
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+Commit `10274bf` was titled `feat(sources): capture permission for six new senses and three new routes (C-086)`.
+The identifier C-086 was recorded in `LOG.md`, `LEDGER.jsonl`, `SOURCE_REGISTRY.json` and `COLLECTORS.json`,
+and subsequently cited in the texts of C-087 and C-088. However, no `## C-086` heading was added to
+`CORRECTIONS.md`.
+
+Because `research/test_corrections_published.py` verifies that every number between 1 and the highest
+published correction is present in the public list or declared in `NEVER_WRITTEN`, the unheaded C-086
+caused `test_every_number_the_ledger_uses_is_published_or_declared_missing` to fail. As a result, the
+research test suite failed during `publish_tick.bat`, preventing `Beops_Publish` from updating the public
+mirror and causing the watchman to report a stalled public site.
+
+### Correction
+
+- C-086 is recorded here as having been assigned to the permission capture of 2026-09-17 (S219–S224, S04/S11/S148)
+  without a dedicated ledger heading.
+- C-086 is added to `NEVER_WRITTEN` in `research/test_corrections_published.py`, documented by this entry.
+- `tools/correction_times.py` is run to refresh `CORRECTION_TIMES.json` with C-089.
+
+### Honest verdict
+
+This was an omission in ledger maintenance during the morning source additions. The capture itself was real
+and verified by byte-level evidence; only its publication heading was missing, which the test suite correctly caught.
+

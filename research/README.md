@@ -52,6 +52,7 @@ file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md)
 - **[Follow-up legal scope](07-legal/DEVICE_FOLLOWUP_LEGAL_2026-09-06.md)**: explicit licences, product scope,403 hold and restricted access.
 
 - **[Device/data discovery, 2026-09-06](02-senses/DEVICE_DATA_DISCOVERY_2026-09-06.md)** — six new records, concrete local archives, source corrections and remaining gaps.
+- **[New source candidates, 2026-09-17](02-senses/NEW_SOURCES_2026-09-17.md)** - six desk studies checked against the registry; tier-1 sources captured as S219-S224 (C-086), MUP decision D-004.
 - **[Legal sorting for this wave](07-legal/DEVICE_DATA_LEGAL_SORT_2026-09-06.md)** — access, declared basis, reuse and publication decisions under the existing legal frame.
 
 1. **_trail/PRESEK_2026-09-05_POPODNE.md (private working record)** — the situation

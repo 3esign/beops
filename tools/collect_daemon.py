@@ -571,9 +571,155 @@ def parse_rhmz_gauges(body: bytes, received: datetime, src: dict) -> list[dict]:
     return rows
 
 
+# ------------------------------------------------------------------ C-088: official warnings and notices
+def _notice(src: dict, received: datetime, key: str, title: str, link: str | None, result_time: str | None,
+            reason: str, resolution: str | None = None, **extra) -> dict:
+    """One notice row: a statement a public body made, kept like a headline (title, link, time).
+    Its numbers travel in named fields beside the text; none of them is a measurement."""
+    row = {
+        "schema": SCHEMA_ROW, "sid": src["sid"], "kind": "text",
+        "datastream": f"{src['sid']}|notice", "station_id": src["sid"], "parameter": "notice",
+        "result": " ".join(str(title).split())[:300], "unit": None, "link": link or src.get("url"),
+        "phenomenonTime": None, "phenomenonTimeUnknown": True, "phenomenonTimeReason": reason,
+        "resultTime": result_time, "receivedTime": iso(received), "resultQuality": "unvalidated",
+        "dedupe_key": f"{src['sid']}|{hashlib.sha256(key.encode('utf-8')).hexdigest()[:24]}",
+    }
+    if resolution:
+        row["resultTimeResolution"] = resolution
+    row.update({k: v for k, v in extra.items() if v is not None})
+    return row
+
+
+def parse_meteoalarm(body: bytes, received: datetime, src: dict) -> list[dict]:
+    """Meteoalarm CAP warnings for Serbia (S219). Only the region named in src['region'] (Belgrade,
+    EMMA_ID RS003) and only the language in src['language'] (sr-Latn) are kept. One row per alert and
+    warning type; a green level is kept too, because 'no warning issued' is itself the state's statement.
+    The warning's validity window is stated by the source and kept in named fields; the row itself is a
+    notice, not a forecast value."""
+    doc = json.loads(body.decode("utf-8"))
+    if not isinstance(doc, dict) or not isinstance(doc.get("warnings"), list):
+        raise ValueError("expected a Meteoalarm feed with a 'warnings' list")
+    region, lang = src.get("region", "RS003"), src.get("language", "sr-Latn")
+    rows = []
+    for w in doc["warnings"]:
+        alert = (w or {}).get("alert") or {}
+        for info in alert.get("info") or []:
+            if info.get("language") != lang:
+                continue
+            codes = {g.get("value") for a in info.get("area") or [] for g in a.get("geocode") or []}
+            if region not in codes:
+                continue
+            params = {p.get("valueName"): p.get("value") for p in info.get("parameter") or []}
+            level = (params.get("awareness_level") or "").split(";")
+            onset, expires = info.get("onset") or info.get("effective"), info.get("expires")
+            title = f"{info.get('headline') or info.get('event')} · {onset} – {expires}"
+            key = f"{alert.get('identifier')}|{info.get('event')}|{onset}|{expires}"
+            sent = alert.get("sent")
+            try:
+                sent = iso(datetime.fromisoformat(sent)) if sent else None
+            except (TypeError, ValueError):
+                sent = None
+            rows.append(_notice(
+                src, received, key, title, src.get("link"), sent,
+                "a warning is a statement about a coming window; the window is kept as stated, the event's own time is unknown",
+                warning_event=info.get("event"), warning_severity=info.get("severity"),
+                warning_certainty=info.get("certainty"), warning_urgency=info.get("urgency"),
+                warning_level=int(level[0]) if level and level[0].strip().isdigit() else None,
+                warning_colour=level[1].strip() if len(level) > 1 else None,
+                warning_type=(params.get("awareness_type") or "").split(";")[-1].strip() or None,
+                valid_from=onset, valid_to=expires, cap_identifier=alert.get("identifier"),
+                cap_msg_type=alert.get("msgType"), cap_sender=alert.get("sender")))
+    return rows
+
+
+def parse_rhmz_uv(body: bytes, received: datetime, src: dict) -> list[dict]:
+    """RHMZ UV-index forecast (S220): a table of cities by three dates. The Beograd row gives one notice
+    per forecast day, with the index in a named field. A forecast is never an observation."""
+    text = body.decode("utf-8", "replace")
+    at = text.find("Grad:")
+    if at < 0:
+        raise ValueError("UV table header 'Grad:' not found")
+    dates = re.findall(r"(\d{2})\.(\d{2})\.(\d{4})", text[at:])
+    days = []
+    for d, m, y in dates:
+        v = f"{y}-{m}-{d}"
+        if v not in days:
+            days.append(v)
+    city = src.get("city", "Beograd")
+    for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", text, re.S | re.I):
+        c = _cells(tr)
+        if c and c[0] == city:
+            values = [x for x in c[1:] if x]
+            break
+    else:
+        raise ValueError(f"no {city} row in the UV table")
+    if not days or len(values) < len(days[:3]):
+        raise ValueError("UV table dates and values do not line up")
+    rows = []
+    for day, v in zip(days[:3], values):
+        uv = int(v) if v.isdigit() else None
+        rows.append(_notice(
+            src, received, f"{day}|{city}|{v}", f"UV indeks – prognoza za {day}, {city}: {v}", None, None,
+            "a UV-index forecast for a named day; the forecast's issue time is not published",
+            forecast_day=day, uv_index=uv, place=city))
+    return rows
+
+
+def parse_rhmz_waves(body: bytes, received: datetime, src: dict) -> list[dict]:
+    """RHMZ heat- and cold-wave warnings (S221): a page titled with the wave type and the day, and one
+    row per region with a level image and a text. Only src['region'] (Beograd) is kept."""
+    import html as _html
+    text = body.decode("utf-8", "replace")
+    m = re.search(r"<h1[^>]*>(.*?)</h1>", text, re.S | re.I)
+    heading = " ".join(_html.unescape(re.sub(r"<[^>]+>", " ", m.group(1))).split()) if m else ""
+    dm = re.search(r"(\d{2})\.(\d{2})\.(\d{4})", heading)
+    if not dm:
+        raise ValueError("wave warning page has no dated heading")
+    day = f"{dm.group(3)}-{dm.group(2)}-{dm.group(1)}"
+    wave = heading.split(":")[0].strip()
+    region = src.get("region", "Beograd")
+    for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", text, re.S | re.I):
+        c = _cells(tr)
+        if len(c) >= 3 and c[0].rstrip(":") == region:
+            lvl = re.search(r"lvlbox(\d)", tr)
+            status_text = c[-1]
+            level = int(lvl.group(1)) if lvl else None
+            return [_notice(
+                src, received, f"{day}|{wave}|{region}|{level}|{status_text}",
+                f"{wave} – {day}, {region}: {status_text}", None, day,
+                "a warning for a named day; the issue time is not published",
+                resolution="day", warning_type=wave, warning_level=level, warning_day=day, place=region)]
+    raise ValueError(f"no {region} row on the wave warning page")
+
+
+def parse_gzzjz_listing(body: bytes, received: datetime, src: dict) -> list[dict]:
+    """GZZJZ Beograd report listing (S222): each linked report becomes a notice with its title and link.
+    The listing gives no dates; a week number written in the title is kept as written, never turned
+    into a date."""
+    import html as _html
+    text = body.decode("utf-8", "replace")
+    base = src.get("link_base", "https://www.zdravlje.org.rs")
+    prefix = src.get("link_prefix", "/index.php/izvestaji/epidemioloska-situacija-bgd/")
+    rows = []
+    for href, label in re.findall(r'<a href="(%s[^"]+)"[^>]*>(.*?)</a>' % re.escape(prefix), text, re.S):
+        title = " ".join(_html.unescape(re.sub(r"<[^>]+>", " ", label)).split())
+        if not title:
+            continue
+        wk = re.search(r"(\d{1,2})\.\s*(?:недељ|nedelj)\w*\s+(\d{4})", title)
+        rows.append(_notice(
+            src, received, href, title, base + href, None,
+            "a public health report listed without a publication date",
+            reported_week=f"{wk.group(2)}-W{int(wk.group(1)):02d}" if wk else None))
+    if not rows:
+        raise ValueError("no report links on the GZZJZ listing")
+    return rows
+
+
 PARSERS = {"sepa_hvd": parse_sepa_hvd, "sensor_community": parse_sensor_community, "parking": parse_parking, "rss": parse_rss,
            "city_listing": parse_city_listing, "eds_outages": parse_eds_outages, "rhmz_auto": parse_rhmz_auto,
-           "metar": parse_metar, "rhmz_gauges": parse_rhmz_gauges}
+           "metar": parse_metar, "rhmz_gauges": parse_rhmz_gauges,
+           "meteoalarm": parse_meteoalarm, "rhmz_uv": parse_rhmz_uv, "rhmz_waves": parse_rhmz_waves,
+           "gzzjz_listing": parse_gzzjz_listing}
 
 
 # ------------------------------------------------------------------ storage

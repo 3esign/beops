@@ -1,6 +1,6 @@
 # The permission landscape of a European capital
 
-**215 public data sources reviewed for a city observatory, with the reasons.**
+**221 public data sources reviewed for a city observatory, with the reasons.**
 Version 1.2 · licence **CC BY 4.0**. Capture dates are recorded in captures.csv; execution time is in MANIFEST.json.
 
 A city-scale evidence instrument can be built for nothing. What cannot be bought is permission. This
@@ -9,13 +9,13 @@ what was decided about it, why, and whether the bytes that justified the decisio
 
 | | |
 |---|---|
-| sources reviewed | 215 |
+| sources reviewed | 221 |
 | named refusals honoured | 14 |
 | unresolved and therefore not collected | 3 |
-| actually polled | 28 |
-| permission captures on file | 440 |
+| actually polled | 32 |
+| permission captures on file | 451 |
 
-Status breakdown: probe_ok 119, primary_page 27, lead 26, opted_out 14, no_coverage 10, collected 8, needs_decision 3, dead 2, account_required 2, token_required 1, restricted 1, blocked 1, probe_tls_failed 1
+Status breakdown: probe_ok 121, primary_page 27, lead 26, opted_out 14, collected 12, no_coverage 10, needs_decision 3, dead 2, account_required 2, token_required 1, restricted 1, blocked 1, probe_tls_failed 1
 
 ## Files
 

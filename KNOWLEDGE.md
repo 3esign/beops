@@ -451,3 +451,11 @@ Errors: A temporary git diff check with core.autocrlf=false reinterpreted histor
 ### 2026-09-16 — A prompt that demands a connection manufactures one
 
 Prompt v2 required a cross-domain link and urban relief; the model obliged every time (25 of 25 entries fail citizen-v3). A link is now allowed only where research/AI_FEED_RELATIONS.json names a mechanism or comparison within a time and distance limit; everything else is described separately (C-074).
+
+## Otklanjanje zastoja objave — 2026-09-17 (C-089)
+
+- Greske: Commit C-086 uneo je dozvole za S219-S224 i rute pod S04/S11/S148, i zabelezen je u registrima i citiran u C-087/C-088, ali nije imao svoje zaglavlje `## C-086` u `CORRECTIONS.md`. Kapija `test_corrections_published.py` je zbog tog nenavedenog broja pala, obustavila `Beops_Publish` i ostavila javni sajt sa statusom STALLED (176 min star).
+- Lek: Po uzoru na C-044, rupa je deklarisana u `NEVER_WRITTEN` u `research/test_corrections_published.py`, a C-089 je dodat u `CORRECTIONS.md` da objasni zasto je broj preskocen.
+- Greske: `README.md` je ostao na 215 izvora nakon sto je C-086 prosirio registar na 221 izvor, pa je `test_readme_status.py` pao. Lek: broj u README.md uskladjen sa 221.
+- Greske: `test_research_runner.py` je na Windows-u u `subprocess.run` propustio `encoding='utf-8'`, pa su se imena fajlova sa dijakriticima (poput `test_é.py`) dekodirala kao ANSI zamena i padala na proveri tacno-jednom pokrivanja. Lek: eksplicitni `encoding='utf-8'` u subprocess pozivu unutar runner fixture-a.
+

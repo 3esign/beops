@@ -286,3 +286,8 @@ Vreme · um · radnja · rezultat. Vodi `node tools/project_kit.js log`.
 - 2026-09-17T07:33:49.852Z · claude-cowork · C-083: node transport records the cause of a failed fetch (S201 said only 'fetch failed') · ok
 - 2026-09-17T08:06:17.193Z · claude-cowork · C-084: round check 2.3 reads the published mirror; the working copy docs/ is never rebuilt · ok
 - 2026-09-17T08:16:48.817Z · claude-cowork · C-085: root scratch moved to _to_delete and ignored; 7 trail files of 2026-09-14 committed · ok
+- 2026-09-17T10:01:09.003Z · claude-cowork · C-086: permission captures for S219-S224 and new routes under S04/S11/S148; D-004 (MUP open data on data.gov.rs) · ok
+- 2026-09-17T10:09:36.018Z · claude-cowork · C-087: oversized 200 is truncated, not failed, in legal_capture; S148 and S223 recaptured · ok
+- 2026-09-17T10:19:49.823Z · claude-cowork · C-088: collectors S219 Meteoalarm, S220 UV, S221 heat/cold waves, S222 GZZJZ listing (notices) · ok
+- 2026-09-17T12:30:00.000Z · Svemir · C-089: C-086 unheaded number declared in NEVER_WRITTEN, test_corrections_published passes, README count updated to 221, test_research_runner utf-8 decoding fixed on Windows, full research gate passes · ok
+

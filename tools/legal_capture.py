@@ -215,13 +215,24 @@ MAX_BODY = 2 * 1024 * 1024
 
 
 REQUEST_AGENTS = {}
+# C-087: the paragraph above was the intent, and the transport did not keep it. net_fetch.js stops
+# reading at the cap and reports "Response exceeds N bytes" with no body, and the capture counted
+# that as a failed fetch - so RZS tables and the DanubeHIS page (2-11 MB) came back "incomplete"
+# while their status, headers, robots and terms were all read. An oversized 200 is now recorded as
+# truncated and is NOT a failure. Any other error, and any non-200, still fails the capture.
+TRUNCATED = {}
+OVERSIZE = "Response exceeds "
 
 
 def fetch(url: str, timeout: int = 60):
     res = transport.fetch(url, timeout, MAX_BODY)
     if res.get("request_user_agent"):
         REQUEST_AGENTS[url] = res["request_user_agent"]
-    return res["status"], res["headers"], res.get("body") or b"", res.get("error")
+    err = res.get("error")
+    if res.get("status") == 200 and isinstance(err, str) and err.startswith(OVERSIZE):
+        TRUNCATED[url] = err
+        err = None
+    return res["status"], res["headers"], res.get("body") or b"", err
 
 
 def sha256(b: bytes) -> str:
@@ -277,6 +288,7 @@ def check_identity(sid: str, urls: list[str], new_source: bool) -> list[str]:
 def capture(sid: str, name: str, urls: list[str], terms: list[str], note: str, dry: bool = False,
             refused: str | None = None, needs_decision: str | None = None) -> dict:
     REQUEST_AGENTS.clear()
+    TRUNCATED.clear()
     stamp = utcstamp()
     outdir = os.path.join(EVIDENCE, sid, stamp)
     manifest: dict = {"files": {}}
@@ -405,6 +417,7 @@ def capture(sid: str, name: str, urls: list[str], terms: list[str], note: str, d
             "opt_out_signals": signals(hd),
             "body_sha256": sha256(body) if body else None,
             "body_bytes": len(body),
+            "truncated": TRUNCATED.get(u),
             "fetched_at": utcstamp(),
         }
     store("headers.json", json.dumps(heads, indent=2, ensure_ascii=False).encode(), {"generated": True})
@@ -480,6 +493,7 @@ def capture(sid: str, name: str, urls: list[str], terms: list[str], note: str, d
         "engines_disagreed": [u for v in verdicts.values() for u, p in v["paths"].items()
                               if p.get("engines_disagree")],
         "status_by_url": {u: h["status"] for u, h in heads.items()},
+        "truncated_urls": sorted(TRUNCATED),
         "note": note,
     }
     if permission_policy.header_refusals(entry) or any(

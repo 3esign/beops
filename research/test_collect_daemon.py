@@ -593,6 +593,95 @@ class RssTests(LiveDirCase):
                 cd.parse_rss(bad, NOW, SRC_RSS)
 
 
+METEOALARM = json.dumps({"warnings": [
+    {"uuid": "a", "alert": {"identifier": "2.49.x.1", "msgType": "Alert", "sender": "prognoza@hidmet.gov.rs",
+     "sent": "2026-09-12T19:00:06+02:00", "info": [
+        {"language": "en-GB", "event": "Wind green", "headline": "Wind Belgrade green",
+         "onset": "2026-09-15T00:00:00+02:00", "expires": "2026-09-15T23:59:59+02:00",
+         "area": [{"areaDesc": "Belgrade", "geocode": [{"value": "RS003", "valueName": "EMMA_ID"}]}],
+         "parameter": [{"valueName": "awareness_level", "value": "1; green; Minor"}]},
+        {"language": "sr-Latn", "event": "Vetar Neznatan nivo", "headline": "Vetar Beograd Neznatan nivo",
+         "severity": "Minor", "onset": "2026-09-15T00:00:00+02:00", "expires": "2026-09-15T23:59:59+02:00",
+         "area": [{"areaDesc": "Beograd", "geocode": [{"value": "RS003", "valueName": "EMMA_ID"}]}],
+         "parameter": [{"valueName": "awareness_level", "value": "1; green; Minor"},
+                       {"valueName": "awareness_type", "value": "1; wind"}]}]}},
+    {"uuid": "b", "alert": {"identifier": "2.49.x.2", "sent": "2026-09-12T19:00:06+02:00", "info": [
+        {"language": "sr-Latn", "event": "Grmljavina Umeren nivo", "headline": "Grmljavina Šumadija Umeren nivo",
+         "onset": "2026-09-15T00:00:00+02:00", "expires": "2026-09-15T23:59:59+02:00",
+         "area": [{"areaDesc": "Šumadija", "geocode": [{"value": "RS007", "valueName": "EMMA_ID"}]}],
+         "parameter": [{"valueName": "awareness_level", "value": "2; yellow; Moderate"}]}]}}]}).encode()
+UV_HTML = ("<p>Ažurirano 16.09.2026</p><table><tr><td>Grad:</td><td>17.09.2026 ČETVRTAK</td><td>18.09.2026 PETAK</td>"
+           "<td>19.09.2026 SUBOTA</td></tr><tr><td>Palić</td><td>5</td><td>3</td><td>4</td></tr>"
+           "<tr><td>Beograd</td><td>5</td><td>5</td><td>4</td></tr></table>").encode()
+WAVES_HTML = ("<h1 style='x'>Topli talas:&nbsp;Četvrtak&nbsp;&nbsp;17.09.2026.</h1><table>"
+              "<tr><td>&nbsp;<strong>Srem:</strong></td><td><img src='../mapa/lvlbox2.gif' /></td><td><strong>Upozorenje</strong></td></tr>"
+              "<tr><td>&nbsp;<strong>Beograd:</strong></td><td><img src='../mapa/lvlbox1.gif' /></td><td><strong>Nema upozorenja</strong></td></tr>"
+              "</table>").encode()
+GZZJZ_HTML = ('<table><tr><td><a href="/index.php/izvestaji/epidemioloska-situacija-bgd/1686-grip-36">'
+              'Епидемиолошки надзор над грипом за 36. недељу 2026.</a></td></tr>'
+              '<tr><td><a href="/index.php/izvestaji/epidemioloska-situacija-bgd/1408-kasalj">Информација о великом кашљу</a></td></tr>'
+              '<tr><td><a href="/index.php/drugo/1">Other</a></td></tr></table>').encode()
+
+
+class OfficialNoticeTests(unittest.TestCase):
+    """C-088: warnings and notices are text rows; their numbers ride beside them, never as measurements."""
+
+    def test_meteoalarm_keeps_only_belgrade_in_one_language(self):
+        rows = cd.parse_meteoalarm(METEOALARM, NOW, {"sid": "S219", "url": "u"})
+        self.assertEqual(len(rows), 1)
+        r = rows[0]
+        self.assertEqual((r["kind"], r["parameter"]), ("text", "notice"))
+        self.assertEqual((r["warning_level"], r["warning_colour"], r["warning_type"]), (1, "green", "wind"))
+        self.assertEqual(r["valid_from"], "2026-09-15T00:00:00+02:00")
+        self.assertEqual(r["resultTime"], "2026-09-12T17:00:06Z")
+        self.assertTrue(r["phenomenonTimeUnknown"])
+        self.assertIsNone(r["phenomenonTime"])
+
+    def test_meteoalarm_rejects_a_feed_without_warnings(self):
+        with self.assertRaises(ValueError):
+            cd.parse_meteoalarm(b'{"alerts": []}', NOW, {"sid": "S219"})
+
+    def test_uv_forecast_gives_one_notice_per_day_for_belgrade(self):
+        rows = cd.parse_rhmz_uv(UV_HTML, NOW, {"sid": "S220", "url": "u"})
+        self.assertEqual([(r["forecast_day"], r["uv_index"]) for r in rows],
+                         [("2026-09-17", 5), ("2026-09-18", 5), ("2026-09-19", 4)])
+        self.assertTrue(all(r["kind"] == "text" and r["resultTime"] is None for r in rows))
+
+    def test_uv_without_belgrade_fails_loudly(self):
+        with self.assertRaises(ValueError):
+            cd.parse_rhmz_uv(UV_HTML.replace(b"Beograd", b"Nis"), NOW, {"sid": "S220"})
+
+    def test_wave_warning_reads_the_belgrade_row_only(self):
+        rows = cd.parse_rhmz_waves(WAVES_HTML, NOW, {"sid": "S221", "url": "u"})
+        self.assertEqual(len(rows), 1)
+        r = rows[0]
+        self.assertEqual((r["warning_type"], r["warning_level"], r["warning_day"]), ("Topli talas", 1, "2026-09-17"))
+        self.assertIn("Nema upozorenja", r["result"])
+        self.assertEqual((r["resultTime"], r["resultTimeResolution"]), ("2026-09-17", "day"))
+
+    def test_gzzjz_listing_keeps_reports_and_never_invents_a_date(self):
+        rows = cd.parse_gzzjz_listing(GZZJZ_HTML, NOW, {"sid": "S222", "url": "u"})
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]["reported_week"], "2026-W36")
+        self.assertTrue(rows[0]["link"].startswith("https://www.zdravlje.org.rs/index.php/izvestaji/"))
+        self.assertNotIn("reported_week", rows[1])
+        self.assertTrue(all(r["resultTime"] is None for r in rows))
+
+    def test_the_same_notice_is_recorded_once(self):
+        a = cd.parse_rhmz_waves(WAVES_HTML, NOW, {"sid": "S221"})[0]
+        b = cd.parse_rhmz_waves(WAVES_HTML, NOW + timedelta(hours=3), {"sid": "S221"})[0]
+        self.assertEqual(a["dedupe_key"], b["dedupe_key"])
+
+    def test_notices_are_not_measurements_anywhere(self):
+        from contracts import parameter_semantics
+        for r in (cd.parse_rhmz_uv(UV_HTML, NOW, {"sid": "S220"}) + cd.parse_meteoalarm(METEOALARM, NOW, {"sid": "S219"})):
+            self.assertEqual(parameter_semantics(r)[0], "text")
+
+    def test_the_four_parsers_are_registered(self):
+        for name in ("meteoalarm", "rhmz_uv", "rhmz_waves", "gzzjz_listing"):
+            self.assertIn(name, cd.PARSERS)
+
+
 class ConfigTests(unittest.TestCase):
     def test_repo_config_is_valid_and_every_source_has_a_capture(self):
         cfg = cd.load_config()
