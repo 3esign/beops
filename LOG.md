@@ -290,4 +290,6 @@ Vreme · um · radnja · rezultat. Vodi `node tools/project_kit.js log`.
 - 2026-09-17T10:09:36.018Z · claude-cowork · C-087: oversized 200 is truncated, not failed, in legal_capture; S148 and S223 recaptured · ok
 - 2026-09-17T10:19:49.823Z · claude-cowork · C-088: collectors S219 Meteoalarm, S220 UV, S221 heat/cold waves, S222 GZZJZ listing (notices) · ok
 - 2026-09-17T12:30:00.000Z · Svemir · C-089: C-086 unheaded number declared in NEVER_WRITTEN, test_corrections_published passes, README count updated to 221, test_research_runner utf-8 decoding fixed on Windows, full research gate passes · ok
+- 2026-09-17T12:44:00.000Z · Svemir · Beops_Publish ciklus uspesno zavrsen: release na commitu 0f6f634 verifikovan, export objavljen na GitHub Pages (commit b38b08a), svih 85 javnih ruta potvrdjeno preko verify_public_site (hash 17e6669), watchman STALLED stanje ocisceno (0 stalled), round_check step 0-5 PASS · ok
+- 2026-09-17T13:04:00.000Z · Svemir · C-090: S223 DanubeHIS recni vodostaji (ICPDR) osposobljeni - parse_danubehis za stanice Beograd (Sava), Zemun (Dunav) i Pancevo (Tamis), konverzija Europe/Vienna u UTC preko belgrade_local, jedinica cm, tendencija i interval u metapodacima; provere u test_collect_daemon.py, live tick primio 3 validna zapisa, round_check PASS · ok
 

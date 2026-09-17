@@ -621,6 +621,40 @@ GZZJZ_HTML = ('<table><tr><td><a href="/index.php/izvestaji/epidemioloska-situac
               'Епидемиолошки надзор над грипом за 36. недељу 2026.</a></td></tr>'
               '<tr><td><a href="/index.php/izvestaji/epidemioloska-situacija-bgd/1408-kasalj">Информација о великом кашљу</a></td></tr>'
               '<tr><td><a href="/index.php/drugo/1">Other</a></td></tr></table>').encode()
+DANUBEHIS_HTML = (
+    "<html><body><table id='footable'><tbody>"
+    "<tr class='sync-id-493'>"
+    "<td class='views-field views-field-name'>Beograd RS</td>"
+    "<td class='views-field views-field-time'><span title='2026-09-17 13:30'>1 hour 26 min</span></td>"
+    "<td class='views-field views-field-value views-align-right'>132</td>"
+    "<td class='views-field views-field-unit'>cm</td>"
+    "<td class='views-field views-field-last-interval-hours views-align-right'>0.5 h</td>"
+    "<td class='views-field views-field-trend-since-yesterday'>upward</td>"
+    "</tr>"
+    "<tr class='sync-id-468'>"
+    "<td class='views-field views-field-name'>Zemun RS</td>"
+    "<td class='views-field views-field-time'><span title='2026-09-17 13:00'>1 hour 56 min</span></td>"
+    "<td class='views-field views-field-value views-align-right'>175</td>"
+    "<td class='views-field views-field-unit'>cm</td>"
+    "<td class='views-field views-field-last-interval-hours views-align-right'>1.0 h</td>"
+    "<td class='views-field views-field-trend-since-yesterday'>upward</td>"
+    "</tr>"
+    "<tr class='sync-id-500'>"
+    "<td class='views-field views-field-name'>Pančevo RS</td>"
+    "<td class='views-field views-field-time'><span title='2026-09-17 13:00'>1 hour 56 min</span></td>"
+    "<td class='views-field views-field-value views-align-right'>--</td>"
+    "<td class='views-field views-field-unit'>cm</td>"
+    "<td class='views-field views-field-last-interval-hours views-align-right'>1.0 h</td>"
+    "<td class='views-field views-field-trend-since-yesterday'>static</td>"
+    "</tr>"
+    "<tr class='sync-id-100'>"
+    "<td class='views-field views-field-name'>Budapest HU</td>"
+    "<td class='views-field views-field-time'><span title='2026-09-17 13:00'>1 hour 56 min</span></td>"
+    "<td class='views-field views-field-value views-align-right'>250</td>"
+    "<td class='views-field views-field-unit'>cm</td>"
+    "</tr>"
+    "</tbody></table></body></html>"
+).encode()
 
 
 class OfficialNoticeTests(unittest.TestCase):
@@ -680,6 +714,62 @@ class OfficialNoticeTests(unittest.TestCase):
     def test_the_four_parsers_are_registered(self):
         for name in ("meteoalarm", "rhmz_uv", "rhmz_waves", "gzzjz_listing"):
             self.assertIn(name, cd.PARSERS)
+
+
+class DanubeHISTests(unittest.TestCase):
+    """S223 DanubeHIS: latest water levels for Danube basin (ICPDR).
+    Extracts Beograd (Sava), Zemun (Dunav), and Pančevo (Tamiš).
+    Europe/Vienna timestamp converted to UTC via belgrade_local.
+    Water level in cm as scalar; tendency and interval kept as metadata."""
+
+    def test_extracts_in_scope_stations_with_vienna_to_utc_conversion(self):
+        rows = cd.parse_danubehis(DANUBEHIS_HTML, NOW, {"sid": "S223", "url": "https://www.danubehis.org/latest-results/h"})
+        self.assertEqual(len(rows), 3)
+        by = {r["station_id"]: r for r in rows}
+
+        self.assertIn("Beograd RS", by)
+        bg = by["Beograd RS"]
+        self.assertEqual(bg["station_name"], "Beograd (Sava)")
+        self.assertEqual(bg["parameter"], "water_level")
+        self.assertEqual(bg["result"], 132.0)
+        self.assertEqual(bg["unit"], "cm")
+        self.assertEqual(bg["phenomenonTime"], "2026-09-17T11:30:00Z")  # 13:30 Vienna (CEST, UTC+2) -> 11:30 UTC
+        self.assertFalse(bg["phenomenonTimeUnknown"])
+        self.assertEqual(bg["tendency"], "upward")
+        self.assertEqual(bg["interval"], "0.5 h")
+        self.assertEqual(bg["river"], "Sava")
+        self.assertEqual((bg["lat"], bg["lon"]), (44.8206, 20.4489))
+        self.assertEqual(bg["resultQuality"], "unvalidated")
+
+        self.assertIn("Zemun RS", by)
+        zm = by["Zemun RS"]
+        self.assertEqual(zm["station_name"], "Zemun (Dunav)")
+        self.assertEqual(zm["result"], 175.0)
+        self.assertEqual(zm["unit"], "cm")
+        self.assertEqual(zm["phenomenonTime"], "2026-09-17T11:00:00Z")
+        self.assertEqual(zm["tendency"], "upward")
+        self.assertEqual(zm["interval"], "1.0 h")
+
+        self.assertIn("Pančevo RS", by)
+        pa = by["Pančevo RS"]
+        self.assertEqual(pa["station_name"], "Pančevo (Tamiš)")
+        self.assertIsNone(pa["result"])
+        self.assertEqual(pa["resultQuality"], "missing")
+        self.assertEqual(pa["unit"], "cm")
+        self.assertEqual(pa["tendency"], "static")
+
+    def test_danubehis_empty_or_unrecognized_table_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            cd.parse_danubehis(b"<html><table><tr><td>Other</td></tr></table></html>", NOW, {"sid": "S223"})
+
+    def test_danubehis_parser_is_registered(self):
+        self.assertIn("danubehis", cd.PARSERS)
+
+    def test_danubehis_parameter_semantics_is_scalar(self):
+        from contracts import parameter_semantics
+        rows = cd.parse_danubehis(DANUBEHIS_HTML, NOW, {"sid": "S223"})
+        for r in rows:
+            self.assertEqual(parameter_semantics(r)[0], "scalar")
 
 
 class ConfigTests(unittest.TestCase):

@@ -3701,3 +3701,22 @@ mirror and causing the watchman to report a stalled public site.
 This was an omission in ledger maintenance during the morning source additions. The capture itself was real
 and verified by byte-level evidence; only its publication heading was missing, which the test suite correctly caught.
 
+## C-090 — S223 DanubeHIS river gauge collector and parser enabled
+
+**Written at the commit that carries this entry.**
+
+This is not a correction. It is recorded here because it changes what the record collects.
+
+The permission captured in C-086 and recaptured in C-087 now has an active collector and parser:
+- **S223**: DanubeHIS latest water levels for the Danube river basin (ICPDR).
+- Stations in scope: Beograd (Sava), Zemun (Dunav), and Pančevo (Tamiš).
+- All times stated in timezone Europe/Vienna; converted to UTC via `belgrade_local`.
+- Water level in cm recorded as scalar; tendency and interval kept as metadata attributes.
+- Missing/non-numeric values preserved with `result = None` and `resultQuality = "missing"`.
+- Byte budget capped at 4,000,000 bytes; CC BY-NC-SA 4.0 licence tracked.
+- Offline unit tests in `research/test_collect_daemon.py` verify station extraction, timezone conversion, scalar semantics, missing value handling, and parser registration.
+
+### Honest verdict
+
+Verified with live probe and offline unit tests. Only in-scope stations around Belgrade are extracted. Upstream and international stations remain in raw responses (under data/live/raw/S223/) but are excluded from observation rows.
+

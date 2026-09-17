@@ -571,6 +571,81 @@ def parse_rhmz_gauges(body: bytes, received: datetime, src: dict) -> list[dict]:
     return rows
 
 
+DANUBEHIS_STATIONS = {
+    "Beograd RS": {"name": "Beograd (Sava)", "river": "Sava", "lat": 44.8206, "lon": 20.4489},
+    "Zemun RS": {"name": "Zemun (Dunav)", "river": "Dunav", "lat": 44.8459, "lon": 20.4123},
+    "Pančevo RS": {"name": "Pančevo (Tamiš)", "river": "Tamiš", "lat": 44.8631, "lon": 20.6403},
+}
+
+
+def parse_danubehis(body: bytes, received: datetime, src: dict) -> list[dict]:
+    """DanubeHIS latest water levels (S223): HTML table for the Danube river basin (ICPDR).
+    Stations in scope: Beograd (Sava), Zemun (Dunav), Pančevo (Tamiš).
+    All times stated in timezone Europe/Vienna; converted to UTC via belgrade_local.
+    Water level in cm as numeric result; tendency and interval kept as metadata attributes."""
+    import html as _html
+    text = body.decode("utf-8", "replace")
+    stations = src.get("stations") or DANUBEHIS_STATIONS
+    rows = []
+    for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", text, re.S | re.I):
+        name_m = re.search(r"class=[\"'][^\"']*views-field-name[^\"']*[\"'][^>]*>(.*?)</td>", tr, re.S | re.I)
+        if not name_m:
+            continue
+        station_key = " ".join(_html.unescape(re.sub(r"<[^>]+>", " ", name_m.group(1))).split())
+        if station_key not in stations:
+            continue
+
+        meta = stations[station_key]
+        station_name = meta.get("name", station_key)
+
+        val_m = re.search(r"class=[\"'][^\"']*views-field-value[^\"']*[\"'][^>]*>(.*?)</td>", tr, re.S | re.I)
+        val_text = " ".join(_html.unescape(re.sub(r"<[^>]+>", " ", val_m.group(1))).split()) if val_m else ""
+        try:
+            val = float(val_text.replace(",", "."))
+            if not finite(val):
+                val = None
+        except (TypeError, ValueError):
+            val = None
+
+        unit_m = re.search(r"class=[\"'][^\"']*views-field-unit[^\"']*[\"'][^>]*>(.*?)</td>", tr, re.S | re.I)
+        unit = " ".join(_html.unescape(re.sub(r"<[^>]+>", " ", unit_m.group(1))).split()) if unit_m else "cm"
+
+        time_m = re.search(r"class=[\"'][^\"']*views-field-time[^\"']*[\"'][^>]*>.*?title=[\"'](\d{4}-\d{2}-\d{2}\s+\d{1,2}:\d{2})[\"']", tr, re.S | re.I)
+        if time_m:
+            raw_time = time_m.group(1)
+            try:
+                loc = datetime.strptime(raw_time, "%Y-%m-%d %H:%M")
+                pt, off = belgrade_local(loc)
+            except ValueError:
+                pt, off, raw_time = None, None, None
+        else:
+            pt, off, raw_time = None, None, None
+
+        intv_m = re.search(r"class=[\"'][^\"']*views-field-last-interval-hours[^\"']*[\"'][^>]*>(.*?)</td>", tr, re.S | re.I)
+        interval = " ".join(_html.unescape(re.sub(r"<[^>]+>", " ", intv_m.group(1))).split()) if intv_m else None
+
+        tend_m = re.search(r"class=[\"'][^\"']*views-field-(?:trend|tendency)[^\"']*[\"'][^>]*>(.*?)</td>", tr, re.S | re.I)
+        tend = " ".join(_html.unescape(re.sub(r"<[^>]+>", " ", tend_m.group(1))).split()) if tend_m else None
+
+        rows.append({
+            "schema": SCHEMA_ROW, "sid": src["sid"],
+            "datastream": f"{station_name}|water_level", "station_id": station_key, "station_name": station_name,
+            "parameter": "water_level", "result": val, "unit": unit,
+            "phenomenonTime": iso(pt), "phenomenonTimeUnknown": pt is None,
+            "phenomenonTimeSource": f"Europe/Vienna timestamp '{raw_time}' converted to UTC (UTC+{off})" if pt else None,
+            "phenomenonTimeReason": None if pt else "source timestamp absent or unparseable",
+            "resultTime": None, "receivedTime": iso(received),
+            "resultQuality": "unvalidated" if val is not None else "missing",
+            "lat": meta.get("lat"), "lon": meta.get("lon"), "river": meta.get("river"),
+            "tendency": tend, "interval": interval,
+            "spatial_binding": "gauge coordinates from station metadata, approximate",
+            "dedupe_key": f"{src['sid']}|{station_key}|water_level|{iso(pt)}",
+        })
+    if not rows:
+        raise ValueError("DanubeHIS table has no recognized station rows")
+    return rows
+
+
 # ------------------------------------------------------------------ C-088: official warnings and notices
 def _notice(src: dict, received: datetime, key: str, title: str, link: str | None, result_time: str | None,
             reason: str, resolution: str | None = None, **extra) -> dict:
@@ -717,7 +792,7 @@ def parse_gzzjz_listing(body: bytes, received: datetime, src: dict) -> list[dict
 
 PARSERS = {"sepa_hvd": parse_sepa_hvd, "sensor_community": parse_sensor_community, "parking": parse_parking, "rss": parse_rss,
            "city_listing": parse_city_listing, "eds_outages": parse_eds_outages, "rhmz_auto": parse_rhmz_auto,
-           "metar": parse_metar, "rhmz_gauges": parse_rhmz_gauges,
+           "metar": parse_metar, "rhmz_gauges": parse_rhmz_gauges, "danubehis": parse_danubehis,
            "meteoalarm": parse_meteoalarm, "rhmz_uv": parse_rhmz_uv, "rhmz_waves": parse_rhmz_waves,
            "gzzjz_listing": parse_gzzjz_listing}
 
