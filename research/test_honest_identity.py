@@ -34,6 +34,20 @@ class HonestIdentity(unittest.TestCase):
         src = (ROOT / 'tools' / 'collect_daemon.py').read_text(encoding='utf-8')
         self.assertIn('item["request_user_agent"] = res.get("request_user_agent")', src)
 
+    def test_a_network_failure_names_its_cause(self):
+        """C-083: 'fetch failed' alone hid why S201 failed three hours in a row."""
+        import socket
+        s = socket.socket()
+        s.bind(('127.0.0.1', 0))
+        port = s.getsockname()[1]
+        s.close()                      # nothing listens there now: the connection is refused
+        p = subprocess.run(['node', str(ROOT / 'tools' / 'net_fetch.js')],
+                           input=json.dumps({'url': f'http://127.0.0.1:{port}/feed', 'timeout_ms': 5000}),
+                           capture_output=True, text=True, encoding='utf-8', timeout=30)
+        err = json.loads(p.stdout)['error']
+        self.assertTrue(err.startswith('fetch failed'), err)
+        self.assertIn('ECONNREFUSED', err)
+
 
 if __name__ == '__main__':
     unittest.main()

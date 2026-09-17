@@ -3497,3 +3497,55 @@ The safety argument is a reading of today's writers. A future writer that opens 
 place would change released bytes after capture. The stat check covers only the moment of capture,
 not the rest of the build. Nothing enforces that rule in code except these tests. Whether the capture
 time drops enough to free the disk must be read from the next manifests.
+
+## C-082 — one unescaped ampersand in the B92 feed silenced the source
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+From the morning of 2026-09-17 the watch reported S198 (B92) as late: "last attempt unparsed (HTTP 200)
+... not well-formed (invalid token)". A diagnostic fetch made with the collector's own transport found
+the cause: a headline containing "R&D" with a bare `&`. One such character makes the whole document
+invalid XML, so no headline from that feed was recorded. S201 (Mašina) was late at the same time
+because of a failed fetch. It parsed normally on the next attempt (21 rows), so there was nothing to
+fix there.
+
+### Correction
+
+- `parse_rss` repairs exactly this one fault, and only after the first parse has failed: an `&` that
+  does not start a character or entity reference becomes `&amp;`. Any other malformed XML still fails.
+- The stored SHA-256 remains that of the bytes as received.
+- Every row from a repaired feed carries `source_repair`, and so does the receipt.
+- Three tests cover the repair, a clean feed with no repair note, and broken XML that must still fail.
+
+### Honest verdict
+
+This is the publisher's error. We now change their bytes before reading them, and we say so on every
+row. The rows from the hours before this fix are lost to the record. Those gaps stay visible as missed
+slots.
+
+## C-083 — a failed fetch said only "fetch failed"
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+S201 (Mašina) failed three hourly attempts in a row on 2026-09-17, at 05:03, 06:03 and 07:03 UTC. Each
+receipt said only `fetch failed`. A diagnostic fetch at about 07:20 through the same transport
+succeeded. Node's fetch keeps the real reason in `error.cause`, and the transport threw it away. From
+the record alone, a refused connection, a reset, a DNS failure, a TLS failure and a timeout all looked
+the same.
+
+### Correction
+
+- `tools/net_fetch.js` now writes the cause chain, up to three levels, into the receipt's `error`
+  field. Examples: `fetch failed <- ENOTFOUND getaddrinfo ENOTFOUND host` and
+  `fetch failed <- ECONNREFUSED ...`.
+- One test uses a refused local connection.
+
+### Honest verdict
+
+This explains future failures; it does not explain the three that already happened. Whether S201's
+failures come from its server or from this machine's network at those hours stays unknown until the
+next failure is recorded with its cause.

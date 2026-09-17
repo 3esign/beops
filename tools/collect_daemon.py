@@ -238,7 +238,23 @@ def parse_rss(body: bytes, received: datetime, src: dict) -> list[dict]:
     Publication time is resultTime; the event's own time is unknown (phenomenonTimeUnknown)."""
     import xml.etree.ElementTree as ET
     from email.utils import parsedate_to_datetime
-    root = ET.fromstring(body)
+    repair = None
+    try:
+        root = ET.fromstring(body)
+    except ET.ParseError as first:
+        # C-082: B92 (S198) publishes "R&D" with a bare ampersand, which makes the whole feed invalid
+        # XML, and the source went silent for hours. Only that one fault is repaired: an '&' that does
+        # not start a character or entity reference becomes '&amp;'. The hash stays the hash of the
+        # bytes as received; the repair is recorded on every row and in the receipt. Anything else
+        # that is wrong still fails.
+        fixed, n = re.subn(rb"&(?!(?:[A-Za-z][A-Za-z0-9._-]*|#[0-9]+|#[xX][0-9A-Fa-f]+);)", b"&amp;", body)
+        if not n:
+            raise
+        try:
+            root = ET.fromstring(fixed)
+        except ET.ParseError:
+            raise first
+        repair = f"{n} bare ampersand(s) escaped before parsing; the stored hash is of the bytes as received"
     ns = {"a": "http://www.w3.org/2005/Atom"}
     rows = []
     items = root.findall(".//item")
@@ -284,6 +300,8 @@ def parse_rss(body: bytes, received: datetime, src: dict) -> list[dict]:
             "resultQuality": "unvalidated" if title else "missing",
             "dedupe_key": f"{src['sid']}|{hashlib.sha256((guid or link or title).encode('utf-8')).hexdigest()[:24]}",
         })
+        if repair:
+            rows[-1]["source_repair"] = repair
     return rows
 
 
@@ -753,6 +771,9 @@ def collect_one(src: dict, now: datetime, latest_gate: dict, fetcher=fetch) -> d
                 r["raw_sha256"] = digest
                 r["row_id"] = content_id(r)
             item['rows_parsed'] = len(rows)
+            repairs = sorted({r["source_repair"] for r in rows if r.get("source_repair")})
+            if repairs:
+                item["source_repair"] = repairs[0]
             phase = 'storage'
             rows_path, written = append_rows(sid, rows, received)
             item["rows"] = len(rows)

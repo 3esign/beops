@@ -569,6 +569,29 @@ class RssTests(LiveDirCase):
         self.assertEqual(rec["raw_file"], None)
         self.assertIn("raw_not_stored", rec)
 
+    def test_a_bare_ampersand_is_repaired_and_said(self):
+        """C-082: B92 published 'R&D' unescaped and the whole feed failed to parse for hours."""
+        body = RSS_BODY.replace(b"Bez naslova", b"Otvaranje R&D centra &amp; laboratorije")
+        rows = cd.parse_rss(body, NOW, SRC_RSS)
+        self.assertEqual(rows[1]["result"], "Otvaranje R&D centra & laboratorije")
+        self.assertIn("1 bare ampersand", rows[1]["source_repair"])
+        PERMIT2 = dict(PERMIT, S68=permission(cd.ROOT, "S68", SRC_RSS["url"], NOW))
+        r = cd.collect_one(SRC_RSS, NOW, PERMIT2, fetcher=ok(body))
+        self.assertEqual(r["state"], "captured")
+        rec = json.loads((cd.LIVE / "receipts" / "S68" / (cd.stamp(NOW) + ".json")).read_text(encoding="utf-8"))
+        self.assertIn("bare ampersand", rec["source_repair"])
+        self.assertEqual(rec["raw_sha256"], __import__("hashlib").sha256(body).hexdigest())
+
+    def test_a_clean_feed_carries_no_repair(self):
+        self.assertTrue(all("source_repair" not in r for r in cd.parse_rss(RSS_BODY, NOW, SRC_RSS)))
+
+    def test_other_broken_xml_still_fails(self):
+        import xml.etree.ElementTree as ET
+        for bad in (RSS_BODY.replace(b"</channel>", b""), RSS_BODY.replace(b"<title>x</title>", b"<title>x < y</title>"),
+                    RSS_BODY.replace(b"</channel>", b"</channel>&") + b"<"):
+            with self.assertRaises(ET.ParseError):
+                cd.parse_rss(bad, NOW, SRC_RSS)
+
 
 class ConfigTests(unittest.TestCase):
     def test_repo_config_is_valid_and_every_source_has_a_capture(self):

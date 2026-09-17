@@ -44,5 +44,17 @@ async function main() {
   }
   process.stdout.write(JSON.stringify(out));
 }
+// C-083: undici reports every network failure as "fetch failed" and keeps the reason in error.cause.
+// Without it a failing source cannot be told apart: refused, reset, DNS, TLS or a timeout.
+function describe(error) {
+  const parts = [String(error && error.message)];
+  let cause = error && error.cause, depth = 0;
+  while (cause && depth < 3) {
+    const bits = [cause.code, cause.name !== 'Error' ? cause.name : null, cause.message].filter(Boolean);
+    if (bits.length) parts.push(bits.join(' '));
+    cause = cause.cause; depth += 1;
+  }
+  return parts.join(' <- ').slice(0, 240);
+}
 main().catch(error => { process.stdout.write(JSON.stringify({status:null, headers:{}, body:null,
-  error: String(error.message).slice(0,240), transport:'node/verified TLS; honest identity'})); process.exitCode=1; });
+  error: describe(error), transport:'node/verified TLS; honest identity'})); process.exitCode=1; });

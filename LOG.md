@@ -282,3 +282,5 @@ Vreme · um · radnja · rezultat. Vodi `node tools/project_kit.js log`.
 - 2026-09-16T22:56:25.277Z · claude-cowork · C-079: guard plan reuse accepts none-held raw captures (as on the real machine); C-078 was tested only in a world with raw bytes · ok
 - 2026-09-16T23:35:23.398Z · claude-cowork · C-080: releases hard-link research/evidence (~585 MB) instead of copying it every 30 min; hashes cached <=24 h · ok
 - 2026-09-17T06:30:51.820Z · claude-cowork · C-081: releases also link create-once record files (receipts, raw, model receipts/digests, AI feed); PAUSED stays copied · ok
+- 2026-09-17T07:24:04.853Z · claude-cowork · C-082: RSS parser escapes bare ampersands (B92 'R&D' silenced S198), repair recorded on rows and receipt · ok
+- 2026-09-17T07:33:49.852Z · claude-cowork · C-083: node transport records the cause of a failed fetch (S201 said only 'fetch failed') · ok
