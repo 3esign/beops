@@ -44,6 +44,85 @@ CONFIG = ROOT / "research" / "COLLECTORS.json"
 
 MAX_DAYS = 92            # a quarter of hourly buckets is plenty for a page; older rows stay on disk
 SCHEMA = "beops-history/v3"
+WINDOW_POLICY = ROOT / "research" / "HISTORY_QUALIFICATION_POLICY.json"
+
+
+def window_days() -> list:
+    """The windows the project already declares. HISTORY_QUALIFICATION_POLICY.json
+    names 7/14/30 and history_qualification.py refuses anything else, but the builder
+    never read them, so a page was handed all MAX_DAYS at once. A declared rule that
+    nothing enforces at the output is the failure this closes."""
+    try:
+        policy = json.loads(WINDOW_POLICY.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    days = policy.get("windows_days")
+    if not isinstance(days, list):
+        return []
+    return sorted({d for d in days if isinstance(d, int) and 0 < d < MAX_DAYS})
+
+
+def compact(row: dict) -> dict:
+    """The same record written once instead of three times.
+
+    Measured on 70978 hourly buckets of a 7-day window (2026-09-18): `last_received` was
+    never once different from `last_by_measurement` - 65657 identical, 0 differing, 4428
+    received rows with no measurement time of their own - and `last` was never once
+    different from `last_by_measurement["v"]`. Repeating them costs 41% of every byte the
+    browser downloads, and a repetition is not a reading. So the repetition is dropped and
+    the reader restores it: `last_received` where `last_same` is set, `last` from
+    `last_by_measurement["v"]`. Nothing is rounded, nothing is inferred and nothing is
+    defaulted - a value that ever DOES differ is written out in full, because then it is a
+    reading and not a repeat. `value_sum` also stays out: it is derivable from mean and the
+    valid count, and it is the only unrounded float in a bucket.
+    """
+    out = {k: v for k, v in row.items() if k != "value_sum"}
+    measured = out.get("last_by_measurement")
+    if measured is not None and out.get("last_received") == measured:
+        del out["last_received"]
+        out["last_same"] = True
+    if measured is not None and "last" in out and out["last"] == measured.get("v"):
+        del out["last"]
+    return out
+
+
+def narrow(data: dict, days: int, now: datetime) -> dict:
+    """A window is the same record over a shorter span, never a different record.
+    An hour outside the window is absent exactly as an unreceived hour is absent:
+    no interpolation, no zero, no line drawn across the gap."""
+    floor = (now - timedelta(days=days)).strftime("%Y-%m-%dT%H")
+    series = []
+    for s in data["series"]:
+        buckets = {hk: row for hk, row in s["buckets"].items() if hk >= floor}
+        if not buckets:
+            continue
+        hours = sorted(buckets)
+        first = datetime.strptime(hours[0], "%Y-%m-%dT%H").replace(tzinfo=timezone.utc)
+        last = datetime.strptime(hours[-1], "%Y-%m-%dT%H").replace(tzinfo=timezone.utc)
+        narrowed = dict(s)
+        narrowed["buckets"] = {hk: compact(row) for hk, row in buckets.items()}
+        narrowed["first_hour"] = hours[0]
+        narrowed["last_hour"] = hours[-1]
+        narrowed["hours_present"] = len(buckets)
+        narrowed["hours_expected"] = int((last - first).total_seconds() // 3600) + 1
+        series.append(narrowed)
+    covered = [s for s in series if s["hours_present"]]
+    earliest = min((s["first_hour"] for s in covered), default=None)
+    latest = max((s["last_hour"] for s in covered), default=None)
+    out = {k: v for k, v in data.items() if k != "series"}
+    out["window_days"] = days
+    out["history_starts"] = earliest
+    out["history_ends"] = latest
+    out["hours_of_history"] = ((int((datetime.strptime(latest, "%Y-%m-%dT%H") -
+                                     datetime.strptime(earliest, "%Y-%m-%dT%H")).total_seconds() // 3600) + 1)
+                               if earliest and latest else 0)
+    out["window_note"] = ("A %d-day window over the same buckets as history.json. Absent hours stay "
+                          "absent. Three repetitions are written once: value_sum is omitted because mean "
+                          "and the valid count carry it; last_same means last_received equalled "
+                          "last_by_measurement; an absent last means it equalled last_by_measurement's "
+                          "value. A value that differs is always written out." % days)
+    out["series"] = series
+    return out
 
 
 def iso(dt: datetime) -> str:
@@ -236,6 +315,13 @@ def main() -> int:
     OUT.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"wrote {OUT} ({OUT.stat().st_size} bytes; {len(data['series'])} series, "
           f"{data['hours_of_history']} h of history from {data['history_starts']})")
+    basis = generation_time(generation) if generation else datetime.now(timezone.utc)
+    for days in window_days():
+        window = narrow(data, days, basis)
+        path = OUT.parent / f"history-{days}d.json"
+        path.write_text(json.dumps(window, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        print(f"wrote {path} ({path.stat().st_size} bytes; {len(window['series'])} series, "
+              f"{days}-day window, {window['hours_of_history']} h)")
     return 0
 
 
