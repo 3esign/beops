@@ -285,3 +285,4 @@ Vreme · um · radnja · rezultat. Vodi `node tools/project_kit.js log`.
 - 2026-09-17T07:24:04.853Z · claude-cowork · C-082: RSS parser escapes bare ampersands (B92 'R&D' silenced S198), repair recorded on rows and receipt · ok
 - 2026-09-17T07:33:49.852Z · claude-cowork · C-083: node transport records the cause of a failed fetch (S201 said only 'fetch failed') · ok
 - 2026-09-17T08:06:17.193Z · claude-cowork · C-084: round check 2.3 reads the published mirror; the working copy docs/ is never rebuilt · ok
+- 2026-09-17T08:16:48.817Z · claude-cowork · C-085: root scratch moved to _to_delete and ignored; 7 trail files of 2026-09-14 committed · ok

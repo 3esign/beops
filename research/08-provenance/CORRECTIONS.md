@@ -3586,3 +3586,31 @@ missing identity.
 - `net_fetch.js` records the identity it sent even when the request fails, and records none for a
   request it never sent.
 - Network failures recorded before this change are skipped rather than counted as wrong.
+
+## C-085 — untidy repository root and unrecorded trail files
+
+**Written at the commit that carries this entry.**
+
+### What happened
+
+The review of 2026-09-17 found three untracked items at the repository root. None was created by
+BEOPS code:
+
+- `temp_entries/`: a one-off copy of 919 AI-feed entries and receipts from 12–15 September, last
+  written on 2026-09-15 at 10:58. It was not growing, and it did not duplicate `runtime/ai-feed/entries`.
+- `agy.log` and `observer-schema.json`: leftovers of one Antigravity run started from the repository
+  root instead of its work directory.
+
+Seven trail files from the release rehearsals of 2026-09-14 were also never committed, although
+their sibling files were: `candidate10-*` and two r05 files.
+
+### Correction
+
+- The three root items were moved, not deleted, to `_to_delete/2026-09-17/`. `_to_delete/`, and
+  those three names at the root, are now in `.gitignore`.
+- The seven trail files are committed beside their siblings.
+
+### Honest verdict
+
+This is housekeeping. The one thing it prevents is a later `git add .` sweeping a model's scratch
+output into the record.
