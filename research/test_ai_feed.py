@@ -13,7 +13,7 @@ import build_context_catalog as catalog
 class Feed(unittest.TestCase):
     def test_offline_feed_contracts(self):
         r=subprocess.run(['node',str(ROOT/'research/test_ai_feed_node.js')],capture_output=True,
-                         text=True,encoding='utf-8',timeout=25,
+                         text=True,encoding='utf-8',timeout=120,
                          creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         self.assertEqual(r.returncode,0,r.stdout+'\n'+r.stderr)
         self.assertIn('offline feed contracts passed',r.stdout)

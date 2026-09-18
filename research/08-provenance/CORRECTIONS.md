@@ -3761,3 +3761,74 @@ The permission captured under S224 on data.gov.rs in C-086 now has an active col
 
 Verified with live probe and offline unit tests. Both the data.gov.rs API endpoint (for continuous automated discovery) and monthly XLSX binary payloads (for granular Belgrade accident records) are handled. Notice rows use `parameter: "notice"` in conformance with the parameter semantics contract so baseline, agreement, and latency estimators skip them. MUP's closed door on mup.gov.rs (S204) remains strictly honoured.
 
+
+## C-093 — the history builder ignored the windows its own policy declares
+
+**Written at the commit that carries this entry.**
+
+This is a correction, and a second one inside it.
+
+`research/HISTORY_QUALIFICATION_POLICY.json` has declared `windows_days` `[7, 14, 30]` since it was written, and `tools/history_qualification.py` refuses any other value. The builder never read the key. It wrote one file spanning `MAX_DAYS = 92`, and nothing noticed, because a gate that checks the policy is not a gate that checks the builder against the policy.
+
+What that costs is arithmetic, not opinion. The published `public/history.json` is 34,148,782 bytes at 220 hours of history. At 92 days it is about 340 MB. GitHub refuses a file over 100 MB, so publication would have stopped at roughly 645 hours — about eighteen days from 2026-09-18. There was no error message anywhere. The deadline was only in the multiplication.
+
+Fixed in `29762cf`: the builder also writes `public/history-7d.json`, `-14d` and `-30d`. The full record is unchanged and no reader uses the windows yet, so nothing the site shows can have moved.
+
+Inside a window the same reading is now written once instead of three times. Measured over all 70,978 hourly buckets of the 7-day window: `last_received` was never once different from `last_by_measurement` — 65,657 identical, 0 differing, 4,428 received rows with no measurement time of their own — and `last` was never once different from `last_by_measurement["v"]`. Those two nested objects carried 71.6% of every byte and `last` another 5.3%. A repetition is not a reading, so the repetition is dropped, `last_same` records that it was one, and the reader restores it; a value that ever does differ is written out in full.
+
+| file | bytes | series | hours |
+| --- | --- | --- | --- |
+| `public/history.json` | 34,148,782 | 1098 | 220 (unchanged) |
+| `public/history-7d.json` | 16,168,605 | 476 | 168 |
+| `public/history-14d.json` | 21,783,672 | 1098 | 220 |
+| `public/history-30d.json` | 21,783,672 | 1098 | 220 |
+
+The 14-day window covers the same 220 hours as the full file and is 36% smaller. The 7-day window is bounded: it stays near 16 MB however long the history grows.
+
+Verified by round trip rather than by reading the patch. The rows are folded in memory, each window is cut from that fold, and every bucket of every window is asked to give the original back under the rule a browser would apply. 265,147 buckets, 0 failures. The full research gate passes: 88 groups, all of them.
+
+### The second correction, inside the first
+
+The comment written with that change said `value_sum` is omitted from a window "because mean and the valid count carry it". That is not true. `mean` is rounded, so `mean * valid` returns the sum only to the mean's own precision. Measured over the 87,028 buckets of the full record that carry both, 66,122 do not return the sum exactly, and on very small values the gap reaches 3% — worst case S146 CO at 2026-09-09T10, `value_sum` -0.001067825 against `mean * valid` -0.0011. The comment is corrected to say what is true: the window omits the exact sum, and anything that needs it reads `history.json`, which keeps it. Nothing outside the builder reads `value_sum`; `tools/build_city_view.py` is the only other mention and it reads the full record.
+
+Rounding itself is deliberately left alone. It would save 4 to 6 percent of the window and it would cost accuracy, and how many decimals each parameter honestly carries has not been decided.
+
+### Honest verdict
+
+The window files exist, they are correct, and nothing reads them yet — so the eighteen-day deadline still stands. It is removed only when `beopsView` takes the smallest window that covers the requested range and `tools/build_site.py` copies the windows into the site. That is a change in behaviour, with the suite run before and after, and it is not part of this entry.
+
+## C-094 — nothing asked whether a model could answer, so nothing knew that none could
+
+**Written at the commit that carries this entry.**
+
+This is not a correction of a published number. It is recorded here because it changes what the record is able to notice about itself.
+
+Between roughly 2026-09-17 21:00 and 2026-09-18 06:00 this observatory produced no observation at all, and every scheduled task reported success throughout. Collection never faltered: `Beops_Collect`, `Beops_Organ`, `Beops_Guard`, `Beops_Watch` and `Beops_AIFeed` all returned 0 on schedule. What stopped was thinking. `mind-tick` wrote `organ_silent, calls: 0, reason: model daemon not answering`; `organ-tick` wrote `waiting_total: 2800, waiting_eligible: 2673`; `watch-tick` wrote `stalled mind: newest drop 547 min ago`. The measured cause was that no model daemon was running — no `ollama` process, nothing listening on 11434, the HTTP probe refused — and the one CLI bridge that could have taken over had an expired login, which the Claude CLI states plainly when asked: `Failed to authenticate: OAuth session expired and could not be refreshed`.
+
+Neither state was hidden. Both were sitting in files, and both were reachable in seconds. Nothing asked.
+
+Two changes follow from that, and neither of them tries to make a model appear.
+
+**A second reviewed route.** `research/AI_FEED.json` carried exactly one provider, Antigravity/Gemini Flash, which is why every monologue the site has shown came from Gemini. It now also carries the Claude Code CLI, reached the same way: `tools/ai_feed_providers.js` already implemented the `claude-cli` adapter in safe mode, with built-in tools, MCP, slash commands and session persistence all disabled, and with tool isolation verified from the CLI's own init event before any answer is accepted. Availability comes from Svemir's live CLI menu, not from a key — there is no API key on this path, and `research/test_ai_feed_probe.py` refuses the probe source if one ever appears in it. The provider is restricted to the `sonnet` and `haiku` aliases; `opus` is not spent on a five-minute cadence. Until the CLI login is renewed the route reports `degraded` and is never called, which is the honest state rather than an error.
+
+**A probe that asks.** `tools/ai_feed_probe.js` asks every configured provider whether it is available and, with `--live`, whether it actually answers and how quickly. Availability costs nothing because it is the menu's own answer. A live probe spends one small request per provider and is the only thing that separates a route listed as ready from a route that replies. An empty reply is recorded as a failure, not as an answer. Every run appends one line to `runtime/ai-feed/probe.jsonl`, including a run that finds nothing — a probe that goes quiet when everything is down is the failure it was written to catch — and the exit code is 1 when no provider is available, so a watcher needs no parser.
+
+Its first run on the live system, seventeen seconds after it was installed, read:
+
+```
+gemini    antigravity-cli  unavailable   reason: probe-required
+claude    claude-cli       unavailable   reason: degraded
+0 of 2 available; no model was called
+```
+
+Twenty-five minutes earlier the same question had answered `gemini: available, gemini-3.8-flash-low`. That flap is exactly what a record of this kind is for: the feed had been alternating between working and unavailable for hours, and nothing had written it down.
+
+### A third thing, found by trying to prove the first two
+
+The research gate could not be run to completion while this was being written, and the reason is not a failing assertion. `research/test_ai_feed.py` gives the node contracts 25 seconds. Measured on this machine today, with 0.67 GB of 7.96 GB free and 43 node processes running, that file passes **alone in 15 seconds** — and inside the gate, with a Python interpreter and the rest of the suite competing for the same memory, it crosses 25 and is reported as an error. A test whose verdict depends on how busy the machine is has stopped being a test. The budget is raised to 120 seconds here, which still sits well inside the gate's own 300-second bound per group, so a genuine hang still fails — just not a slow morning. `research/test_ai_feed_probe.py` is written with the same budget for the same reason.
+
+This is the same failure class that rolled back C-089: a machine below one gigabyte of free memory makes honest tests lie, and the lie is always in the direction of failure.
+
+### Honest verdict
+
+Nothing here restores an observation. The mind and the news organ reach a model only through Ollama over HTTP; they have no CLI route at all, so while the daemon is down they stay silent whatever the feed can do. That door is not opened by this entry. What this entry changes is that the silence is now answerable in one command instead of being inferred from three logs.

@@ -73,8 +73,13 @@ def compact(row: dict) -> dict:
     the reader restores it: `last_received` where `last_same` is set, `last` from
     `last_by_measurement["v"]`. Nothing is rounded, nothing is inferred and nothing is
     defaulted - a value that ever DOES differ is written out in full, because then it is a
-    reading and not a repeat. `value_sum` also stays out: it is derivable from mean and the
-    valid count, and it is the only unrounded float in a bucket.
+    reading and not a repeat. `value_sum` also stays out, but not because the window carries it: it is the only
+    unrounded float in a bucket, and `mean` is rounded, so `mean * valid` returns the sum
+    only to the mean's own precision. Measured over 87028 buckets of the full record, 66122
+    do not return the sum exactly, and on very small values the gap reaches 3% - worst case
+    S146 CO 2026-09-09T10, value_sum -0.001067825 against mean*valid -0.0011. The window is
+    what a browser downloads and a browser draws a line; anything that needs the exact sum
+    reads history.json, which keeps it.
     """
     out = {k: v for k, v in row.items() if k != "value_sum"}
     measured = out.get("last_by_measurement")
@@ -117,10 +122,11 @@ def narrow(data: dict, days: int, now: datetime) -> dict:
                                      datetime.strptime(earliest, "%Y-%m-%dT%H")).total_seconds() // 3600) + 1)
                                if earliest and latest else 0)
     out["window_note"] = ("A %d-day window over the same buckets as history.json. Absent hours stay "
-                          "absent. Three repetitions are written once: value_sum is omitted because mean "
-                          "and the valid count carry it; last_same means last_received equalled "
-                          "last_by_measurement; an absent last means it equalled last_by_measurement's "
-                          "value. A value that differs is always written out." % days)
+                          "absent. Two repetitions are written once: last_same means last_received equalled "
+                          "last_by_measurement, and an absent last means it equalled "
+                          "last_by_measurement's value; a value that differs is always written out. "
+                          "value_sum is omitted, and it is recoverable from mean only to the mean's "
+                          "own rounding, so the exact sum lives in history.json." % days)
     out["series"] = series
     return out
 

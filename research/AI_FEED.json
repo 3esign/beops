@@ -19,11 +19,24 @@
       "catalogue_bridge": "antigravity",
       "models": [
         "gemini-3.8-flash-low",
-        "gemini-3.8-flash-medium"
+        "gemini-3.8-flash-medium",
+        "gemini-3.1-pro-high"
+      ]
+    },
+    {
+      "id": "claude",
+      "label": "Claude Code CLI",
+      "adapter": "claude-cli",
+      "interval_minutes": 240,
+      "offset_minutes": 2,
+      "catalogue_bridge": "claude",
+      "models": [
+        "sonnet",
+        "haiku"
       ]
     }
   ],
-  "policy": "Runnable models in the live local Svemir CLI menu are eligible only inside each provider's reviewed model family. Ollama is restricted to reviewed local chat models; remote and embedding-only models are excluded. Antigravity is restricted to Gemini Flash and does not mix in Claude or GPT aliases. One attempt per five-minute tick; at least 30 minutes between accepted monologues, at most 72 attempts per UTC day and 24 per route family. Failed models cool down; account quota errors also defer sibling models. Every attempt and complete response is retained. No catch-up bursts. Hourly output remains an availability target.",
+  "policy": "Runnable models in the live local Svemir CLI menu are eligible only inside each provider's reviewed model family. Ollama is restricted to reviewed local chat models; remote and embedding-only models are excluded. Antigravity is restricted to the reviewed Gemini family - the two Flash tiers and one Pro tier - and does not mix in Claude or GPT aliases. The Claude Code CLI is reached through the same Svemir bridge menu and is restricted to the sonnet and haiku aliases; opus is not spent on a routine cadence. Claude's own interval is four hours rather than fifty minutes, because one CLI round trip carries its whole environment as input and the subscription window is weekly; it is the route that answers when Antigravity cannot, not the busy one. One attempt per five-minute tick; at least 30 minutes between accepted monologues, at most 72 attempts per UTC day and 24 per route family. Failed models cool down; account quota errors also defer sibling models. Every attempt and complete response is retained. No catch-up bursts. Hourly output remains an availability target.",
   "max_live_facts": 8,
   "max_attempts_per_provider_per_day": 48,
   "global_min_interval_minutes": 1,
