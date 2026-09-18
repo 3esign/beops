@@ -1,23 +1,23 @@
 {
  "schema": "beops-watch/v1",
- "at": "2026-09-18T22:29:44Z",
+ "at": "2026-09-18T23:15:50Z",
  "verdict": "stalled",
  "counts": {
   "ok": 37,
-  "late": 1,
+  "late": 2,
   "unknown": 0,
-  "stalled": 3,
+  "stalled": 2,
   "blocked": 1,
   "paused": 0
  },
  "figures": {
-  "rows": 525961,
-  "hours": 244
+  "rows": 527540,
+  "hours": 245
  },
  "not_current": [
-  "AI observations",
   "mind",
   "published",
+  "source S146",
   "source S68",
   "watchman"
  ],
@@ -25,35 +25,36 @@
   {
    "check": "watchman",
    "state": "late",
-   "said": "140 min since the last reading - nothing here speaks for that gap",
-   "gap_min": 140.4
+   "said": "105 min since the last reading - nothing here speaks for that gap",
+   "gap_min": 105.1
   },
   {
    "check": "published",
    "state": "stalled",
-   "said": "the public site is 466 min old - the one-hour freshness target is exceeded; newer attempt failed; details in the local publication receipt",
-   "age_min": 466.3,
-   "commit": "c2351d924be27efb6aaea4541b10a4f26cdd7397",
-   "verified_at": "2026-09-18T15:02:13Z"
+   "said": "the public site is 61 min old - the one-hour freshness target is exceeded",
+   "age_min": 60.9,
+   "commit": "026364a44f29a90fb16831586b3992da526d5e77",
+   "verified_at": "2026-09-18T22:39:25Z"
   },
   {
    "check": "history",
    "state": "ok",
-   "said": "244 h of record, newest hour 0.5 h behind",
-   "hours": 244,
-   "newest_hour": "2026-09-18T22",
-   "hours_behind": 0.49
+   "said": "245 h of record, newest hour 0.3 h behind",
+   "hours": 245,
+   "newest_hour": "2026-09-18T23",
+   "hours_behind": 0.26
   },
   {
    "check": "mind",
    "state": "stalled",
-   "said": "newest drop 1557 min ago",
-   "age_min": 1557.3
+   "said": "newest drop 1603 min ago",
+   "age_min": 1603.4
   },
   {
    "check": "AI observations",
-   "state": "stalled",
-   "said": "no recent durable feed tick"
+   "state": "ok",
+   "said": "latest accepted monologue is within one hour",
+   "age_min": 16.5
   },
   {
    "check": "coverage 24h",
@@ -66,42 +67,42 @@
   {
    "check": "rows",
    "state": "ok",
-   "said": "525961 rows on disk",
-   "rows": 525961
+   "said": "527540 rows on disk",
+   "rows": 527540
   },
   {
    "check": "rows kept",
    "state": "ok",
-   "said": "1678 rows added since the last reading",
-   "before": 524283,
-   "after": 525961
+   "said": "661 rows added since the last reading",
+   "before": 526879,
+   "after": 527540
   },
   {
    "check": "source S146",
-   "state": "ok",
-   "said": "asked 67 min ago, newest value 67 min old",
+   "state": "late",
+   "said": "attempted 53 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S146",
    "cadence_min": 60,
-   "asked_min_ago": 66.6,
-   "heard_min_ago": 66.6
+   "asked_min_ago": 52.8,
+   "heard_min_ago": 112.7
   },
   {
    "check": "source S04",
    "state": "ok",
-   "said": "asked 17 min ago, newest value 17 min old",
+   "said": "asked 13 min ago, newest value 13 min old",
    "sid": "S04",
    "cadence_min": 10,
-   "asked_min_ago": 16.7,
-   "heard_min_ago": 16.7
+   "asked_min_ago": 12.8,
+   "heard_min_ago": 12.8
   },
   {
    "check": "source S10",
    "state": "ok",
-   "said": "asked 17 min ago, newest value 17 min old",
+   "said": "asked 28 min ago, newest value 28 min old",
    "sid": "S10",
    "cadence_min": 15,
-   "asked_min_ago": 16.7,
-   "heard_min_ago": 16.6
+   "asked_min_ago": 27.8,
+   "heard_min_ago": 27.8
   },
   {
    "check": "source S68",
@@ -114,273 +115,273 @@
   {
    "check": "source S69",
    "state": "ok",
-   "said": "asked 17 min ago, newest value 17 min old",
+   "said": "asked 28 min ago, newest value 28 min old",
    "sid": "S69",
    "cadence_min": 15,
-   "asked_min_ago": 16.7,
-   "heard_min_ago": 16.6
+   "asked_min_ago": 27.8,
+   "heard_min_ago": 27.8
   },
   {
    "check": "source S75",
    "state": "ok",
-   "said": "asked 17 min ago, silent for 338 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 28 min ago, silent for 384 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S75",
    "cadence_min": 15,
-   "asked_min_ago": 16.7,
-   "heard_min_ago": 338.4
+   "asked_min_ago": 27.8,
+   "heard_min_ago": 384.5
   },
   {
    "check": "source S76",
    "state": "ok",
-   "said": "asked 17 min ago, silent for 106 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 28 min ago, silent for 153 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S76",
    "cadence_min": 15,
-   "asked_min_ago": 16.7,
-   "heard_min_ago": 106.5
+   "asked_min_ago": 27.8,
+   "heard_min_ago": 152.6
   },
   {
    "check": "source S78",
    "state": "ok",
-   "said": "asked 27 min ago, newest value 86 min old",
+   "said": "asked 43 min ago, newest value 133 min old",
    "sid": "S78",
    "cadence_min": 30,
-   "asked_min_ago": 26.7,
-   "heard_min_ago": 86.5
+   "asked_min_ago": 42.8,
+   "heard_min_ago": 132.6
   },
   {
    "check": "source S74",
    "state": "ok",
-   "said": "asked 27 min ago, silent for 371 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 43 min ago, silent for 417 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S74",
    "cadence_min": 30,
-   "asked_min_ago": 26.7,
-   "heard_min_ago": 370.8
+   "asked_min_ago": 42.8,
+   "heard_min_ago": 416.9
   },
   {
    "check": "source S11",
    "state": "ok",
-   "said": "asked 67 min ago, newest value 66 min old",
+   "said": "asked 53 min ago, newest value 112 min old",
    "sid": "S11",
    "cadence_min": 60,
-   "asked_min_ago": 66.6,
-   "heard_min_ago": 66.3
+   "asked_min_ago": 52.8,
+   "heard_min_ago": 112.4
   },
   {
    "check": "source S175",
    "state": "ok",
-   "said": "asked 17 min ago, silent for 942 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 28 min ago, silent for 988 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S175",
    "cadence_min": 15,
-   "asked_min_ago": 16.7,
-   "heard_min_ago": 941.5
+   "asked_min_ago": 27.8,
+   "heard_min_ago": 987.6
   },
   {
    "check": "source S195",
    "state": "ok",
-   "said": "asked 17 min ago, newest value 32 min old",
+   "said": "asked 28 min ago, newest value 78 min old",
    "sid": "S195",
    "cadence_min": 15,
-   "asked_min_ago": 16.7,
-   "heard_min_ago": 31.5
+   "asked_min_ago": 27.8,
+   "heard_min_ago": 77.6
   },
   {
    "check": "source S196",
    "state": "ok",
-   "said": "asked 17 min ago, silent for 338 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 28 min ago, silent for 384 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S196",
    "cadence_min": 15,
-   "asked_min_ago": 16.7,
-   "heard_min_ago": 337.9
+   "asked_min_ago": 27.8,
+   "heard_min_ago": 384.0
   },
   {
    "check": "source S197",
    "state": "ok",
-   "said": "asked 17 min ago, newest value 16 min old",
+   "said": "asked 28 min ago, newest value 62 min old",
    "sid": "S197",
    "cadence_min": 15,
-   "asked_min_ago": 16.7,
-   "heard_min_ago": 16.4
+   "asked_min_ago": 27.8,
+   "heard_min_ago": 62.5
   },
   {
    "check": "source S198",
    "state": "ok",
-   "said": "asked 17 min ago, newest value 16 min old",
+   "said": "asked 28 min ago, newest value 62 min old",
    "sid": "S198",
    "cadence_min": 15,
-   "asked_min_ago": 16.7,
-   "heard_min_ago": 16.3
+   "asked_min_ago": 27.8,
+   "heard_min_ago": 62.5
   },
   {
    "check": "source S199",
    "state": "ok",
-   "said": "asked 67 min ago, silent for 1406 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 53 min ago, silent for 1453 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S199",
    "cadence_min": 60,
-   "asked_min_ago": 66.6,
-   "heard_min_ago": 1406.5
+   "asked_min_ago": 52.8,
+   "heard_min_ago": 1452.6
   },
   {
    "check": "source S200",
    "state": "ok",
-   "said": "asked 67 min ago, silent for 440 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 53 min ago, silent for 487 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S200",
    "cadence_min": 60,
-   "asked_min_ago": 66.6,
-   "heard_min_ago": 440.4
+   "asked_min_ago": 52.8,
+   "heard_min_ago": 486.6
   },
   {
    "check": "source S201",
    "state": "ok",
-   "said": "asked 67 min ago, silent for 370 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 53 min ago, silent for 416 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S201",
    "cadence_min": 60,
-   "asked_min_ago": 66.6,
-   "heard_min_ago": 370.1
+   "asked_min_ago": 52.8,
+   "heard_min_ago": 416.2
   },
   {
    "check": "source S202",
    "state": "ok",
-   "said": "asked 67 min ago, silent for 370 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 53 min ago, silent for 416 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S202",
    "cadence_min": 60,
-   "asked_min_ago": 66.6,
-   "heard_min_ago": 369.9
+   "asked_min_ago": 52.8,
+   "heard_min_ago": 416.0
   },
   {
    "check": "source S203",
    "state": "ok",
-   "said": "asked 67 min ago, newest value 306 min old",
+   "said": "asked 53 min ago, newest value 352 min old",
    "sid": "S203",
    "cadence_min": 60,
-   "asked_min_ago": 66.6,
-   "heard_min_ago": 305.9
+   "asked_min_ago": 52.8,
+   "heard_min_ago": 352.0
   },
   {
    "check": "source S15",
    "state": "ok",
-   "said": "asked 17 min ago, silent for 831 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 28 min ago, silent for 877 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S15",
    "cadence_min": 15,
-   "asked_min_ago": 16.7,
-   "heard_min_ago": 830.8
+   "asked_min_ago": 27.8,
+   "heard_min_ago": 876.9
   },
   {
    "check": "source S208",
    "state": "ok",
-   "said": "asked 17 min ago, silent for 256 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 28 min ago, silent for 302 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S208",
    "cadence_min": 15,
-   "asked_min_ago": 16.7,
-   "heard_min_ago": 256.3
+   "asked_min_ago": 27.8,
+   "heard_min_ago": 302.4
   },
   {
    "check": "source S207",
    "state": "ok",
-   "said": "asked 17 min ago, newest value 46 min old",
+   "said": "asked 28 min ago, silent for 92 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S207",
    "cadence_min": 15,
-   "asked_min_ago": 16.7,
-   "heard_min_ago": 46.3
+   "asked_min_ago": 27.8,
+   "heard_min_ago": 92.4
   },
   {
    "check": "source S12",
    "state": "ok",
-   "said": "asked 67 min ago, silent for 1046 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 53 min ago, silent for 1092 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S12",
    "cadence_min": 60,
-   "asked_min_ago": 66.6,
-   "heard_min_ago": 1046.4
+   "asked_min_ago": 52.8,
+   "heard_min_ago": 1092.5
   },
   {
    "check": "source S01",
    "state": "ok",
-   "said": "asked 17 min ago, newest value 16 min old",
+   "said": "asked 28 min ago, newest value 28 min old",
    "sid": "S01",
    "cadence_min": 15,
-   "asked_min_ago": 16.7,
-   "heard_min_ago": 16.2
+   "asked_min_ago": 27.8,
+   "heard_min_ago": 27.6
   },
   {
    "check": "source S03",
    "state": "ok",
-   "said": "asked 17 min ago, newest value 16 min old",
+   "said": "asked 28 min ago, newest value 28 min old",
    "sid": "S03",
    "cadence_min": 15,
-   "asked_min_ago": 16.7,
-   "heard_min_ago": 16.2
+   "asked_min_ago": 27.8,
+   "heard_min_ago": 27.6
   },
   {
    "check": "source S52",
    "state": "ok",
-   "said": "asked 67 min ago, silent for 861 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 53 min ago, silent for 907 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S52",
    "cadence_min": 60,
-   "asked_min_ago": 66.6,
-   "heard_min_ago": 861.1
+   "asked_min_ago": 52.8,
+   "heard_min_ago": 907.2
   },
   {
    "check": "source S54",
    "state": "ok",
-   "said": "asked 67 min ago, silent for 439 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 53 min ago, silent for 485 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S54",
    "cadence_min": 60,
-   "asked_min_ago": 66.6,
-   "heard_min_ago": 439.2
+   "asked_min_ago": 52.8,
+   "heard_min_ago": 485.4
   },
   {
    "check": "source S219",
    "state": "ok",
-   "said": "asked 27 min ago, silent for 246 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 43 min ago, silent for 292 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S219",
    "cadence_min": 30,
-   "asked_min_ago": 26.7,
-   "heard_min_ago": 246.2
+   "asked_min_ago": 42.8,
+   "heard_min_ago": 292.3
   },
   {
    "check": "source S220",
    "state": "ok",
-   "said": "asked 367 min ago, newest value 1087 min old",
+   "said": "asked 53 min ago, newest value 1133 min old",
    "sid": "S220",
    "cadence_min": 360,
-   "asked_min_ago": 366.7,
-   "heard_min_ago": 1086.7
+   "asked_min_ago": 52.8,
+   "heard_min_ago": 1132.8
   },
   {
    "check": "source S221",
    "state": "ok",
-   "said": "asked 187 min ago, newest value 906 min old",
+   "said": "asked 53 min ago, newest value 952 min old",
    "sid": "S221",
    "cadence_min": 180,
-   "asked_min_ago": 186.6,
-   "heard_min_ago": 906.1
+   "asked_min_ago": 52.8,
+   "heard_min_ago": 952.2
   },
   {
    "check": "source S222",
    "state": "ok",
-   "said": "asked 367 min ago, newest value 366 min old",
+   "said": "asked 53 min ago, newest value 412 min old",
    "sid": "S222",
    "cadence_min": 360,
-   "asked_min_ago": 366.7,
-   "heard_min_ago": 366.0
+   "asked_min_ago": 52.8,
+   "heard_min_ago": 412.1
   },
   {
    "check": "source S223",
    "state": "ok",
-   "said": "asked 22 min ago, newest value 22 min old",
+   "said": "asked 68 min ago, newest value 68 min old",
    "sid": "S223",
    "cadence_min": 60,
-   "asked_min_ago": 21.7,
-   "heard_min_ago": 21.6
+   "asked_min_ago": 67.8,
+   "heard_min_ago": 67.7
   },
   {
    "check": "source S224",
    "state": "ok",
-   "said": "asked 537 min ago, newest value 1977 min old",
+   "said": "asked 583 min ago, newest value 2023 min old",
    "sid": "S224",
    "cadence_min": 1440,
-   "asked_min_ago": 536.7,
-   "heard_min_ago": 1976.6
+   "asked_min_ago": 582.8,
+   "heard_min_ago": 2022.7
   }
  ],
- "elapsed_seconds": 23.9
+ "elapsed_seconds": 18.9
 }
