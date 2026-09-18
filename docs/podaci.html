@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="sr"><meta name="beops-input-generation" content="6e01229a1ca909bdd97ae2c2dcf96ba81e11601c525e3aca13f7be26840ae989"><script src="observation-clocks.js"></script>
+<html lang="sr"><meta name="beops-input-generation" content="dc1fb8749b09552f6aa1aed1db6ec0a59913e31436c49e39042a57578db24612"><script src="observation-clocks.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BEOPS Podaci</title>
@@ -948,15 +948,25 @@ function histSeries(){
 function renderHist(){
   const box=document.getElementById('histbox'), tabs=document.getElementById('histwin'), note=document.getElementById('histnote');
   if(!box) return;
-  if(!HIST||!HIST.hours_of_history){ box.innerHTML=''; tabs.innerHTML=''; note.textContent=S('istorija još ne postoji — prvi satni zapisi se skupljaju','no history yet — the first hourly records are still being collected'); return; }
-  const have=HIST.hours_of_history;
+  const totalHours = (GENERATION?.history?.hours_of_history) || (HIST ? HIST.hours_of_history : 0);
+  if(!totalHours){ box.innerHTML=''; tabs.innerHTML=''; note.textContent=S('istorija još ne postoji — prvi satni zapisi se skupljaju','no history yet — the first hourly records are still being collected'); return; }
+  const have = totalHours;
   const wins=[[6,'6 h','6 h'],[24,'24 h','24 h'],[72,'3 dana','3 days'],[have,S('sve','all'),S('sve','all')]];
   tabs.innerHTML='';
   wins.forEach(function(w){
     if(w[0]>have&&w[0]!==have) return;                      // a window longer than the history is not offered
     const b=document.createElement('button'); b.textContent=S(w[1],w[2]);
     b.setAttribute('aria-pressed',String(Math.min(HWIN,have)===Math.min(w[0],have)));
-    b.addEventListener('click',()=>{HWIN=w[0]; renderHist();});
+    b.addEventListener('click',async()=>{
+      HWIN=w[0];
+      if(GENERATION && HIST && HIST.hours_of_history < w[0]){
+        try{
+          const target = beopsView.historyResource ? beopsView.historyResource(w[0], GENERATION) : 'history.json';
+          HIST = await beopsView.read(target, GENERATION);
+        }catch(e){}
+      }
+      renderHist();
+    });
     tabs.appendChild(b);
   });
   const ss=histSeries();
@@ -1140,7 +1150,9 @@ async function refreshView(){
 document.getElementById('loaddetails').addEventListener('click',async()=>{
   if(!GENERATION||DETAILS_BUSY)return;DETAILS_BUSY=true;const requested=GENERATION,button=document.getElementById('loaddetails');button.disabled=true;
   viewNotice(S('Učitavanje nizova i provera da pripadaju istom zapisu…','Loading series and checking that they belong to the same record…'));
-  try{const [snapshot,history]=await Promise.all([beopsView.read('live-snapshot.json',requested),beopsView.read('history.json',requested)]);
+  const targetHist=(beopsView.historyResource?beopsView.historyResource(HWIN,requested):'history-7d.json');
+  const histFile=(requested.resources&&requested.resources[targetHist])?targetHist:'history.json';
+  try{const [snapshot,history]=await Promise.all([beopsView.read('live-snapshot.json',requested),beopsView.read(histFile,requested)]);
     if(GENERATION===requested){SNAP=snapshot;HIST=history;DETAILS=true;button.hidden=true;showCurrentView();}
   }catch(e){viewNotice(S('Nizovi nisu potvrđeni za ovaj zapis. Poslednja očitavanja ostaju prikazana; pokušaj ponovo.','Series could not be verified for this record. Latest observations remain visible; try again.'));}
   finally{DETAILS_BUSY=false;button.disabled=false;}

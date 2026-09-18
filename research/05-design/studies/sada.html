@@ -421,7 +421,9 @@ function render(){
 
 async function loadHistory(){
   if(!VIEW||HIST)return;var requested=VIEW;
-  try{var history=await beopsView.read('history.json',requested);if(VIEW===requested){HIST=history;HISTORY_ERROR=false;render();}}
+  var target=beopsView.historyResource?beopsView.historyResource(RANGE,requested):(RANGE==='24h'||RANGE==='7d'?'history-7d.json':'history.json');
+  if(!requested.resources||!requested.resources[target])target='history.json';
+  try{var history=await beopsView.read(target,requested);if(VIEW===requested){HIST=history;HISTORY_ERROR=false;render();}}
   catch(e){if(VIEW===requested){HISTORY_ERROR=true;render();}}
 }
 async function refresh(){

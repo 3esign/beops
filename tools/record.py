@@ -30,9 +30,10 @@ def lines(path: pathlib.Path, errors: str = "replace"):
 
 def count_lines(path: pathlib.Path, non_blank: bool = True) -> int:
     n = 0
-    for ln in lines(path):
-        if not non_blank or ln.strip():
-            n += 1
+    with open(path, "rb", buffering=1024 * 1024) as fh:
+        for raw in fh:
+            if not non_blank or raw.strip():
+                n += 1
     return n
 
 

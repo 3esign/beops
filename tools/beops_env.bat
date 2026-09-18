@@ -11,8 +11,11 @@ rem Keep temporary collector/build files with the physical project.
 set "TEMP=%BEOPS_ROOT%\runtime\tmp"
 set "TMP=%TEMP%"
 if not exist "%TEMP%" mkdir "%TEMP%"
+if not defined BEOPS_MODEL_BACKEND set "BEOPS_MODEL_BACKEND=cli"
 if not defined BEOPS_PYTHON (
-  if exist "C:\Svemir\python.cmd" (
+  if exist "%USERPROFILE%\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\python.exe" (
+    set "BEOPS_PYTHON=%USERPROFILE%\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\python.exe"
+  ) else if exist "C:\Svemir\python.cmd" (
     set "BEOPS_PYTHON=C:\Svemir\python.cmd"
   ) else (
     set "BEOPS_PYTHON=%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"

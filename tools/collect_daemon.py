@@ -1571,11 +1571,11 @@ def main() -> int:
         target = ROOT / "public" / "live-snapshot.json"
         try:
             age = time.time() - target.stat().st_mtime if target.exists() else None
-            if age is not None and 0 <= age < EXPORT_EVERY_SECONDS and not a.only:
+            if age is not None and -60 <= age < EXPORT_EVERY_SECONDS and not a.only:
                 # C-076: the export rereads the rows and waits for the publisher's lock; under a
                 # publish it took over 100 s and pushed the tick past the next scheduler slot,
                 # which Windows then skips. The local view only needs to be minutes old.
-                result['snapshot'] = f'kept ({int(age)} s old, refreshed every {EXPORT_EVERY_SECONDS} s)'
+                result['snapshot'] = f'kept ({int(max(0, age))} s old, refreshed every {EXPORT_EVERY_SECONDS} s)'
             else:
                 result['snapshot'] = str(export())
         except Exception as exc:

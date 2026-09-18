@@ -148,13 +148,15 @@ def analyze(history, as_of):
 def build(docs):
     docs = pathlib.Path(docs)
     resources, values = {}, {}
-    for name in ('live-snapshot.json', 'history.json', 'watch.json'):
+    for name in ('live-snapshot.json', 'history.json', 'history-7d.json', 'history-14d.json', 'history-30d.json', 'watch.json'):
         path = docs/name
         if not path.exists():
-            values[name] = {}
+            if name in ('live-snapshot.json', 'history.json', 'watch.json'):
+                values[name] = {}
             continue
         raw = path.read_bytes()
-        values[name] = json.loads(raw)
+        if name in ('live-snapshot.json', 'history.json', 'watch.json'):
+            values[name] = json.loads(raw)
         resources[name] = {'sha256': hashlib.sha256(raw).hexdigest(), 'bytes': len(raw)}
     snapshot = values['live-snapshot.json']
     if not snapshot.get('as_of'):

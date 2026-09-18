@@ -154,7 +154,7 @@ window.beopsJSON=(function(){
   var cache={};
   return function(name){
     if(!/^[a-z][a-z0-9-]*\.json$/.test(name)) return Promise.reject(new Error('Invalid data resource'));
-    if(['live-snapshot.json','history.json','watch.json','city-analysis.json'].includes(name))return window.beopsView.read(name);
+    if(['live-snapshot.json','history.json','history-7d.json','history-14d.json','history-30d.json','watch.json','city-analysis.json'].includes(name))return window.beopsView.read(name);
     var entry=cache[name], now=Date.now();
     if(!entry||now-entry.at>=60000){
       entry={at:now,promise:fetch(name,{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('Data unavailable');return r.json();})};
@@ -997,6 +997,9 @@ def main() -> int:
                      ("data/live/derived/agreement/SUMMARY.json", "agreement.json"),
                      ("public/live-snapshot.json", "live-snapshot.json"),
                      ("public/history.json", "history.json"),
+                     ("public/history-7d.json", "history-7d.json"),
+                     ("public/history-14d.json", "history-14d.json"),
+                     ("public/history-30d.json", "history-30d.json"),
                      ("public/headlines.json", "headlines.json"),
                      ("research/05-design/studies/naslovi.html", "naslovi.html"),
                      ("public/basemap-belgrade.json", "basemap-belgrade.json"),

@@ -15,7 +15,7 @@
 param([switch]$DryRun, [switch]$Isolated, [switch]$PrepareOnly, [string]$SourceOid, [string]$StateRoot, [string]$CycleStartedAt, [string]$PriorPublicOid)
 $ErrorActionPreference = 'Stop'
 if (-not $CycleStartedAt) { $CycleStartedAt = [DateTimeOffset]::UtcNow.ToString('o') }
-$env:BEOPS_CYCLE_DEADLINE = ([DateTimeOffset]::Parse($CycleStartedAt).AddMinutes(25)).ToString('o')
+$env:BEOPS_CYCLE_DEADLINE = ([DateTimeOffset]::Parse($CycleStartedAt).AddMinutes(45)).ToString('o')
 . (Join-Path $PSScriptRoot 'publish_safety.ps1')
 function Resolve-BeopsBundledPython {
   $bundled = Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'

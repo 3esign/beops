@@ -152,6 +152,7 @@ def _capture_inputs(source, dest, spool, metrics=None):
     immutable, inputs = [], []
     metrics = metrics if metrics is not None else {}
     phase_started = time.monotonic()
+    trace_phase('input inventory', 'start')
     captured = set()
     cap = int(os.environ.get('BEOPS_CAPTURE_LIMIT_MB', '2048')) * 1024 * 1024
     total = 0
@@ -189,9 +190,7 @@ def _capture_inputs(source, dest, spool, metrics=None):
         else:
             immutable.append((path, rel, stat))
 
-    trace_phase('input inventory', 'start')
-    with zipfile.ZipFile(spool, 'w', compression=zipfile.ZIP_STORED) as archive, exclusive(source/'research/08-provenance/LEDGER.lock'):
-        # Receipts are not self-contained evidence: replayable receipts name the
+    with zipfile.ZipFile(spool, 'w', compression=zipfile.ZIP_STORED) as archive:
         # immutable raw payload whose hash they attest. Keep both halves of that
         # reference in the isolated release. Raw captures are small compared with
         # rows/derived state and are immutable once their timestamped path exists.

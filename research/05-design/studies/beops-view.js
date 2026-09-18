@@ -77,9 +77,29 @@
   }
   try{if(root.parent!==root&&root.parent.beopsView){
     const parent=root.parent.beopsView;
-    root.beopsView={overview:async()=>checkPage(await parent.overview()),read:async(name,view)=>parent.read(name,checkPage(view||await parent.overview())),editionState,sourceState};
+    root.beopsView={overview:async()=>checkPage(await parent.overview()),read:async(name,view)=>parent.read(name,checkPage(view||await parent.overview())),historyResource:(range,view)=>parent.historyResource?parent.historyResource(range,view):historyResource(range,view),editionState,sourceState};
     mount(root.beopsView);return;
   }}catch(e){}
+  function historyResource(range,view){
+    let hours=typeof range==='number'?range:0;
+    if(typeof range==='string'){
+      if(range.endsWith('d'))hours=parseFloat(range)*24;
+      else if(range.endsWith('h'))hours=parseFloat(range);
+      else if(range==='now')hours=0;
+    }
+    const candidates=[
+      {maxHours:7*24,name:'history-7d.json'},
+      {maxHours:14*24,name:'history-14d.json'},
+      {maxHours:30*24,name:'history-30d.json'},
+      {maxHours:Infinity,name:'history.json'}
+    ];
+    for(const c of candidates){
+      if(hours<=c.maxHours){
+        if(!view||!view.resources||view.resources[c.name])return c.name;
+      }
+    }
+    return 'history.json';
+  }
   let current=null,started=0;const cache=new Map();
   async function overview(){
     if(!current||Date.now()-started>=60000){
@@ -113,6 +133,6 @@
     }
     return structuredClone(await cache.get(key));
   }
-  root.beopsView={overview,read,editionState,sourceState};
+  root.beopsView={overview,read,historyResource,editionState,sourceState};
   mount(root.beopsView);
 })(window);

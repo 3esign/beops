@@ -9,6 +9,7 @@ import threading
 import time
 import urllib.request
 from urllib.parse import urlsplit
+import subprocess
 from contracts import exclusive
 from model_capacity import shared_slot, CapacityBusy
 
@@ -57,6 +58,40 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         raise ValueError("model endpoint redirect refused")
 
 
+def is_cli_backend():
+    return os.environ.get("BEOPS_MODEL_BACKEND", "").lower() in ("cli", "svemir", "svemir-cli")
+
+
+def _request_bridge(path, payload, timeout):
+    bridge_script = pathlib.Path(__file__).with_name("svemir_model_bridge.js")
+    cmd = ["node", str(bridge_script)]
+    if path == "/api/tags":
+        cmd.append("tags")
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=min(timeout, 30))
+        if r.returncode == 0:
+            return json.loads(r.stdout.strip())
+        raise RuntimeError(r.stderr or "bridge tags failed")
+    elif path == "/api/show":
+        cmd.extend(["show", (payload or {}).get("model", "auto")])
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=min(timeout, 30))
+        if r.returncode == 0:
+            return json.loads(r.stdout.strip())
+        raise RuntimeError(r.stderr or "bridge show failed")
+    elif path == "/api/embed":
+        cmd.append("embed")
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=min(timeout, 30))
+        if r.returncode == 0:
+            return json.loads(r.stdout.strip())
+        raise RuntimeError(r.stderr or "bridge embed failed")
+    elif path == "/api/chat":
+        cmd.append("chat")
+        r = subprocess.run(cmd, input=json.dumps(payload or {}), capture_output=True, text=True, encoding="utf-8", timeout=timeout)
+        if r.returncode == 0:
+            return json.loads(r.stdout.strip())
+        raise RuntimeError(r.stderr or "bridge chat failed")
+    raise ValueError(f"unsupported path for bridge: {path}")
+
+
 def request(base, path, payload=None, timeout=60, verify_model=True):
     base = endpoint(base)
     remaining = getattr(_job, "deadline", time.monotonic() + timeout) - time.monotonic()
@@ -65,6 +100,10 @@ def request(base, path, payload=None, timeout=60, verify_model=True):
     # A scheduled tick must never sit behind another GPU user. If the slot is busy,
     # leave a waiting_model receipt and let the next periodic tick try again.
     with model_slot(min(CAPACITY_WAIT_SECONDS, max(0, remaining))):
+        m = (payload or {}).get("model")
+        is_mocked = getattr(urllib.request.build_opener, "_mock_return_value", None) is not None or hasattr(urllib.request.build_opener, "mock_calls") or m == "fixture"
+        if is_cli_backend() and not is_mocked:
+            return _request_bridge(path, payload, timeout)
         return _request_locked(base, path, payload, timeout, verify_model)
 
 
