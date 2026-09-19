@@ -1,6 +1,7 @@
 @echo off
 rem Disk maintenance: pause only publishing before starting any release preparation.
 if exist "%~dp0..\runtime\PUBLISH_PAUSED" exit /b 0
+if exist "%~dp0..\runtime\MAINTENANCE" exit /b 75
 rem BEOPS publish tick - scheduled task Beops_Publish, every 30 minutes.
 rem Older task registrations may still wake every 10 minutes. Cap successful full
 rem releases here as well, before environment setup or release allocation.

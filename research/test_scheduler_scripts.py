@@ -47,7 +47,7 @@ class RegisterTasks(unittest.TestCase):
                  for name, minutes, offset, limit in rows}
         self.assertEqual(specs["Beops_AIFeed"][0], 5)
         self.assertEqual(specs["Beops_Publish"][0], 30)
-        self.assertEqual(specs["Beops_Publish"][2], 30)
+        self.assertEqual(specs["Beops_Publish"][2], 45)
         self.assertEqual(len({offset for _, offset, _ in specs.values()}), len(specs))
         self.assertIn("AddMinutes($t.OffsetMinutes)", self.s)
         self.assertNotIn("AddMinutes(1)", self.s)
@@ -88,15 +88,54 @@ class RegisterTasks(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as td:
             receipt = pathlib.Path(td) / "receipt.json"
+            status = pathlib.Path(td) / "status.json"
             for payload, expected in cases:
                 receipt.write_text(json.dumps(payload), encoding="utf-8")
                 run = subprocess.run(
                     ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
                      "-File", str(PUBLISH_DUE), "-ReceiptPath", str(receipt),
-                     "-NowUtc", now],
+                     "-StatusPath", str(status), "-NowUtc", now],
                     capture_output=True, text=True, check=False,
                 )
                 self.assertEqual(run.returncode, expected, run.stdout + run.stderr)
+
+    def test_publish_cadence_writes_machine_status_for_skip_and_due(self):
+        now = "2026-09-12T06:30:00Z"
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td)
+            receipt = root / "receipt.json"
+            status = root / "status.json"
+            receipt.write_text(json.dumps({
+                "published": True,
+                "at": "2026-09-12T06:20:00Z",
+                "cycle_started_at": "2026-09-12T06:20:00Z",
+                "generated_as_of": "2026-09-12T06:19:00Z",
+                "source_head": "a" * 40,
+                "remote_head": "b" * 40,
+            }), encoding="utf-8")
+            run = subprocess.run(
+                ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
+                 "-File", str(PUBLISH_DUE), "-ReceiptPath", str(receipt),
+                 "-StatusPath", str(status), "-NowUtc", now],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(run.returncode, 75, run.stdout + run.stderr)
+            quiet = json.loads(status.read_text(encoding="utf-8-sig"))
+            self.assertEqual(quiet["schema"], "beops-publish-scheduler-status/v1")
+            self.assertEqual(quiet["decision"], "quiet")
+            self.assertEqual(quiet["reason"], "recent_success")
+            self.assertEqual(quiet["last_success_source_head"], "a" * 40)
+
+            run = subprocess.run(
+                ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
+                 "-File", str(PUBLISH_DUE), "-ReceiptPath", str(receipt),
+                 "-StatusPath", str(status), "-NowUtc", "2026-09-12T07:01:00Z"],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+            due = json.loads(status.read_text(encoding="utf-8-sig"))
+            self.assertEqual(due["decision"], "due")
+            self.assertEqual(due["reason"], "minimum_elapsed")
 
     def test_replacing_a_task_does_not_delete_it_first(self):
         self.assertIn("-Force", self.s)

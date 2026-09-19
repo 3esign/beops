@@ -1,6 +1,8 @@
 # Beops — Knowledge Base
 
 # Greske
+- [2026-09-19T12:55] P0 scheduler status: prvi puni gate posle dodavanja `publish-scheduler-status.json` pao je u `test_record_shape.py` jer svaki novi top-level fajl u `data/live` mora biti deklarisan u `research/RECORD_SHAPE.json`. Lek: operativni status nije "sporedan" ako sedi uz živi zapis; deklaracija oblika mora nastati u istom potezu kao fajl. — izvor: research/test_record_shape.py; research/RECORD_SHAPE.json
+- [2026-09-19T12:45] Clean Beops P0: `Beops_Publish` je imao scheduler limit 30 min dok `publish_github.ps1` ciklusu daje 45 min; uspešan ciklus od 41 min zato može biti ubijen spolja pre poštenog završnog traga. Lek: task spec i interni budžet moraju biti isti ugovor, a cadence/lock/active/success/failure moraju imati zaseban mašinski status koji ne podmlađuje `publish-last-success`. — izvor: research/_trail/clean-beops-baseline-20260919T124035Z; tools/beops_tasks.ps1; tools/publish_due.ps1; tools/publish_github.ps1
 - [2026-09-19T12:18] A19 repair: a public publish uses the committed HEAD, not the working tree. The 09:07 UTC scheduled publish failed on source 9dc3810 because it still contained the CLI SharedGPU regression, even though the later worktree full gate passed. Lek: commit the exact repair paths before expecting the regular publisher to heal a public stale state; do not read a green worktree test as a published fix. — izvor: data/live/publish-receipt.json; research/_trail/A19_REMEDIATION_2026-09-19.md
 - [2026-09-19T12:12] A19 live model proof: bridge `tags` proves catalogue availability only, not successful inference. After the contract fix, qwen2.5-1.5b-hf timed out at 180 s and llama3.2-1b timed out at 120 s without emitting done=true, while an earlier warm qwen probe had completed in 9.28 s. Lek: keep execution proof separate from availability and record timeout as capacity/state, not semantic model failure. — izvor: runtime/a19-20260919/contract_probe_result.json; research/_trail/A19_REMEDIATION_2026-09-19.md
 - [2026-09-19T08:56] CORRECTION to audit note at 08:42: the two SharedGPU failures must not be dismissed as mere test pollution. A fresh isolated process with BEOPS_MODEL_BACKEND=cli (scheduled environment) reproduces both: 10 tests, 2 errors; default backend passes 10/10. Cause: CLI skips shared_slot, while mocked requests still take HTTP parsing. Remedy: one resource-policy boundary for both adapters and explicit backend test matrix. The exact cause of the earlier combined-process environment was not established. — izvor: runtime/audit-20260919/operations-cli-env.txt
@@ -471,3 +473,57 @@ Prompt v2 required a cross-domain link and urban relief; the model obliged every
 - Lek: Po uzoru na C-044, rupa je deklarisana u `NEVER_WRITTEN` u `research/test_corrections_published.py`, a C-089 je dodat u `CORRECTIONS.md` da objasni zasto je broj preskocen.
 - Greske: `README.md` je ostao na 215 izvora nakon sto je C-086 prosirio registar na 221 izvor, pa je `test_readme_status.py` pao. Lek: broj u README.md uskladjen sa 221.
 - Greske: `test_research_runner.py` je na Windows-u u `subprocess.run` propustio `encoding='utf-8'`, pa su se imena fajlova sa dijakriticima (poput `test_é.py`) dekodirala kao ANSI zamena i padala na proveri tacno-jednom pokrivanja. Lek: eksplicitni `encoding='utf-8'` u subprocess pozivu unutar runner fixture-a.
+
+## 2026-09-19 — A19 posle objave: dokaz i raspored
+
+- Iskustva: Objavljeni A19 receipt meri 41 min 18 s od cycle_started_at do at, dok zivi Beops_Publish ima PT30M execution limit, a skripta 45 min; jedna uspesna objava zato nije dokaz odrzivog scheduled rada.
+- Odluke: Tri redovna ciklusa moraju imati dokaz porekla okidanja; TaskScheduler Operational log je u ovom preseku iskljucen, pa LastRunTime/exit nisu dovoljni za potvrdu redovnog okidaca.
+- Iskustva: permission_projection_failed u pregledanom AI statusu nosi ETIMEDOUT/SIGTERM procesa sa rokom 45 s. To nije dokaz odbijene dozvole niti nedostupnosti providera; tacan uzrok trazi merenje faza.
+- Izvori: research/_trail/CIST_BEOPS_PROMPT_2026-09-19.md i research/_trail/clean-beops-handoff-20260919/inspection.json. Provera: 2026-09-19T12:36:25.5066858Z.
+### 2026-09-19T12:56:00Z — Research trail prompts are indexed evidence
+
+**Greske:** Full `npm test` failed because `research/_trail/CIST_BEOPS_PROMPT_2026-09-19.md` existed as a work-order artefact but was not listed in `research/README.md`.
+
+**Iskustva:** In Beops, a saved prompt in `research/_trail/` is part of the research topology; registering it is not documentation polish, it is the guard that lets the next mind see the governing scope.
+
+**Izvori:** `research/test_research_index.py`, `research/README.md`, `research/_trail/CIST_BEOPS_PROMPT_2026-09-19.md`.
+
+**Vestine:** When adding or receiving any new `research/*.md` or `research/_trail/*.md`, update the index before trusting a full gate.
+
+**Odluke:** The prompt is indexed as a work order and explicitly not as a completion record.
+
+### 2026-09-19T13:08:00Z — Publish status tests must never write live status
+
+**Greske:** After adding the default `data/live/publish-scheduler-status.json`, an existing `publish_due.ps1` cadence test invoked the script without `-StatusPath` and wrote fixture data into the real live status path.
+
+**Iskustva:** Any test of an operational script that now has a live default output must pass an explicit temporary output path; otherwise a green test can leave a false runtime signal.
+
+**Izvori:** `research/test_scheduler_scripts.py`, `research/test_storage_health.py`, `tools/publish_due.ps1`, `data/live/publish-scheduler-status.json`.
+
+**Vestine:** For future Beops status files, add the override parameter and update every test caller in the same patch; search all tests for the producer script, not only the test file being edited.
+
+**Odluke:** Both known test callers now pass `-StatusPath` for temporary fixture status; the live fixture file is a test artefact, not evidence.
+
+### 2026-09-19T13:46:46Z — A successful scheduled publish can still finish cleanup after the receipt
+
+**Greske:** The live `Beops_Publish` task still has a 30 minute execution limit, and both `register_tasks.ps1 -Only Beops_Publish` and a direct `Set-ScheduledTask -Settings` update failed with Windows `Access is denied`.
+
+**Iskustva:** A receipt can be successful before the outer scheduled PowerShell has removed the isolated release and preparation lock. In the 2026-09-19T13:11Z cycle, the receipt was written at 13:39:57Z, but the release cleanup and `runtime/publish-preparation.lock` removal completed later; do not kill the owner while the release directory is still shrinking.
+
+**Izvori:** `runtime/publish-phases-22684-3d49343960b14bf7a5c5dfb74d4aa899.jsonl`, `data/live/publish-receipt.json`, `tools/audit_tasks.ps1`, `schtasks /query /tn Beops_Publish /fo LIST /v`.
+
+**Vestine:** Before declaring a publish lock stale, compare the owner process, task status, receipt timestamp, lock timestamp, and release directory size over a short interval. A disappearing release folder is cleanup, not a hung publish.
+
+**Odluke:** The live Windows task drift is an OS permission issue in this shell, not a code-only fix. The source contract remains 45 minutes; the live task must be updated from an elevated/owning scheduler context.
+
+### 2026-09-19T14:03:25Z — AI feed status must separate provider failure from job budget failure
+
+**Greske:** `permission_projection_failed` and an abandoned worker lock appeared when a scheduled AI worker was killed by its short task window; treating that as a provider or permission denial would be a false diagnosis.
+
+**Iskustva:** The AI feed needs two clocks in its public status: the permission projection timeout and the remaining job budget before that projection starts. If the job no longer has enough time, the honest state is `job_deadline`, not a fabricated model result.
+
+**Izvori:** `tools/ai_feed.js`, `tools/ai_feed_context.js`, `research/test_ai_feed_node.js`, `runtime/ai-feed-status.json`.
+
+**Vestine:** When a live AI tick fails, inspect `last_attempt`, `diagnostic.phase`, worker lock ownership, and the latest accepted receipt before changing prompts or provider configuration.
+
+**Odluke:** `last_success_age_minutes`, `health_state`, and `last_attempt` are now explicit status fields; a manual live tick accepted Gemini entry `97bbc7a853ec9424da93e78902c98b15` at 2026-09-19T14:01:21Z and cleared the overdue state.

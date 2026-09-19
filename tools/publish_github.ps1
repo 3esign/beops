@@ -165,6 +165,7 @@ $script:sourceArchivePath = $null
 $script:siteCheckOutRun = $null
 $script:copyRecovery = $null
 $receiptPath = Join-Path $StateRoot 'data\live\publish-receipt.json'
+$activeCyclePath = Join-Path $StateRoot 'data\live\publish-active-cycle.json'
 $generatedPublicPaths = @('public/history.json', 'public/headlines.json',
                           'public/watch.json',
                           'public/dataset/permission-landscape',
@@ -196,11 +197,38 @@ $receipt = [ordered]@{
   published         = $false
   why               = ''
 }
+function Write-BeopsPublishCycleState {
+  param([string]$State, [string]$Reason = '')
+  $dir = Split-Path $activeCyclePath -Parent
+  if ($dir -and -not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+  $row = [ordered]@{
+    schema = 'beops-publish-cycle-state/v1'
+    at = (Get-Date).ToUniversalTime().ToString('o')
+    state = $State
+    reason = $Reason
+    pid = $PID
+    cycle_started_at = $CycleStartedAt
+    source_head = $head
+    source_tree = $sourceTree
+    generated_as_of = $receipt.generated_as_of
+    remote_head = $receipt.remote_head
+    published = [bool]$receipt.published
+    tests_ok = [bool]$receipt.tests_ok
+    site_verified = [bool]$receipt.site_verified
+    phase_trace = [string]$env:BEOPS_PHASE_TRACE
+    receipt_path = $receiptPath
+  }
+  $tmp = $activeCyclePath + '.' + $PID + '.tmp'
+  $row | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $tmp -Encoding UTF8
+  Move-Item -LiteralPath $tmp -Destination $activeCyclePath -Force
+}
 function Write-BeopsPublishReceipt {
   $receipt.at = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
   $tempReceipt = $receiptPath + '.' + $PID + '.tmp'
   $receipt | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $tempReceipt -Encoding UTF8
   Move-Item -LiteralPath $tempReceipt -Destination $receiptPath -Force
+  $cycleState = if ($receipt.published -and $receipt.pushed -and $receipt.site_verified) { 'success' } else { 'failed' }
+  Write-BeopsPublishCycleState -State $cycleState -Reason ([string]$receipt.why)
   if ($receipt.published -and $receipt.pushed -and $receipt.site_verified) {
     $success = Join-Path $StateRoot 'data\live\publish-last-success.json'
     $receipt | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath ($success + '.' + $PID + '.tmp') -Encoding UTF8
@@ -261,8 +289,10 @@ function Invoke-BeopsSiteCheck {
   $history = Get-Content -LiteralPath (Join-Path $pub 'docs\history.json') -Raw | ConvertFrom-Json
   $receipt.verified_history = @{history_ends=$history.history_ends;hours_of_history=$history.hours_of_history}
 }
+Write-BeopsPublishCycleState -State 'active' -Reason 'publish cycle started'
 $lock = Enter-BeopsPublishLock -Path $lockFile -MaxAgeMinutes 15
 if (-not $lock.Acquired) {
+  Write-BeopsPublishCycleState -State 'lock_conflict' -Reason $lock.Message
   Write-Output ("STOP: {0}. NOTHING WAS PUBLISHED." -f $lock.Message)
   exit 4
 }

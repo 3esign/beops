@@ -6,6 +6,7 @@ Author: claude-cowork, Codex, Svemir
 
 - **_trail/AUDIT_SYSTEM_2026-09-19.md (private working record)** — dated internal audit of the public UI, observations, local CLI models and operations, with ordered remediation and explicit verification limits. Findings are not implemented repairs. Compact evidence: `_trail/audit-20260919/evidence-summary.json`.
 - **_trail/A19_REMEDIATION_2026-09-19.md (private working record)** — current A19 repair record: local execution-contract fixes, full gate result, live-site freshness failure, model timeout evidence, and remaining public/stability proof.
+- **_trail/CIST_BEOPS_PROMPT_2026-09-19.md (private working record)** — current work order for the clean Beops pass: baseline requirements, no-fake-green closure criteria, P0/P1 remediation scope and explicit limits. A prompt, not a completion record.
 
 Every document in this folder, what it is, and which one wins when two disagree. **A document that
 is not listed here does not exist to the next mind** — add your row in the same commit that adds the

@@ -68,8 +68,9 @@ class Storage(unittest.TestCase):
     def test_half_hour_tick_is_due_after_a_slow_success(self):
         with tempfile.TemporaryDirectory() as tmp:
             receipt=pathlib.Path(tmp)/'receipt.json'
+            status=pathlib.Path(tmp)/'publish-scheduler-status.json'
             receipt.write_text(json.dumps({'published':True,'cycle_started_at':'2026-09-14T00:00:00Z','at':'2026-09-14T00:07:00Z'}))
             def call(at):
-                return subprocess.run(['powershell','-NoProfile','-File',str(ROOT/'tools/publish_due.ps1'),'-ReceiptPath',str(receipt),'-NowUtc',at],capture_output=True,timeout=20).returncode
+                return subprocess.run(['powershell','-NoProfile','-File',str(ROOT/'tools/publish_due.ps1'),'-ReceiptPath',str(receipt),'-StatusPath',str(status),'-NowUtc',at],capture_output=True,timeout=20).returncode
             self.assertEqual(call('2026-09-14T00:10:00Z'),75)
             self.assertEqual(call('2026-09-14T00:30:00Z'),0)

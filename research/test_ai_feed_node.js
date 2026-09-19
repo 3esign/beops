@@ -58,7 +58,7 @@ async function main(){
  const child=require('node:child_process'),spawn=child.spawnSync;
  try{
    child.spawnSync=()=>({status:null,error:{code:'ETIMEDOUT'},stderr:'private fixture diagnostic'});
-   assert.throws(()=>C.allowedSources(tmp,now),e=>e.message==='permission_projection_failed'&&e.diagnostic.code==='ETIMEDOUT'&&!JSON.stringify(e).includes('private fixture'));
+   assert.throws(()=>C.allowedSources(tmp,now),e=>e.message==='permission_projection_failed'&&e.diagnostic.code==='ETIMEDOUT'&&e.diagnostic.phase==='permission_projection'&&e.diagnostic.timeout_ms===45000&&!JSON.stringify(e).includes('private fixture'));
    for(const stdout of ['invalid','{}','["S1",42]']){
      child.spawnSync=()=>({status:0,stdout});assert.throws(()=>C.allowedSources(tmp,now),/permission_projection_invalid_output/);
    }
@@ -78,11 +78,16 @@ async function main(){
  const config=JSON.parse(fs.readFileSync(path.join(root,'research/AI_FEED.json'),'utf8'));
  config.prompt_version=1;
  config.global_min_interval_minutes=0;
+ config.job_timeout_seconds=180;
  config.providers=[{id:'test',label:'Test model',adapter:'test',interval_minutes:37,offset_minutes:0}];
  write('research/AI_FEED.json',config);write('research/03-models/AI_FEED_SYSTEM_PROMPT_v1.txt','Fixture system prompt.');
  let calls=0;const opts={now,clock:()=>now,availability:async()=>({ready:true,model:'fake'}),buildContext:()=>packet,
    generate:async()=>{calls++;return {text:JSON.stringify(good),model:'fake',identity:'fixture',transport:'fake',tools:[]};}};
  const first=await F.tick(tmp,opts);assert.equal(first.state,'accepted');assert.equal(calls,1);
+ const acceptedStatus=JSON.parse(fs.readFileSync(path.join(tmp,'runtime/ai-feed/status.json'),'utf8'));
+ assert.equal(acceptedStatus.health_state,'current');
+ assert.equal(acceptedStatus.last_success_age_minutes,0);
+ assert.equal(acceptedStatus.last_attempt.state,'accepted');
  await F.tick(tmp,opts);assert.equal(calls,1,'same slot must not produce duplicate inference');
  const exp=F.exportFeed(tmp,now);assert.equal(exp.total,1);
  const index=JSON.parse(fs.readFileSync(path.join(tmp,'docs/ai-feed/latest.json'),'utf8'));
@@ -113,6 +118,14 @@ async function main(){
  const throttled={...fair,global_min_interval_minutes:30,max_attempts_per_provider_per_day:24};write('research/AI_FEED.json',throttled);
  const held=await F.tick(tmp,{...opts,now:new Date(+now+60000)});assert.equal(held.state,'global_interval','many newly available aliases must not multiply inference cadence');
  assert.equal(held.next_generation_at,new Date(+now+30*60000).toISOString());
+ const deadlineConfig={...fair,job_timeout_seconds:0.01,providers:[{id:'deadline',label:'Deadline',interval_minutes:35,offset_minutes:0}]};
+ write('research/AI_FEED.json',deadlineConfig);
+ let contextCalls=0;
+ const deadlineHeld=await F.tick(tmp,{...opts,now:new Date(+now+90*60000),
+   buildContext:()=>{contextCalls++;return packet;},
+   availability:async()=>({ready:true,model:'fake'})});
+ assert.equal(deadlineHeld.state,'job_deadline','tick must stop before context/projection when no internal budget remains');
+ assert.equal(contextCalls,0,'permission/context work must not start after the job budget is gone');
  write('research/AI_FEED.json',fair);
  const immutablePath=path.join(tmp,'immutable.json');F.immutable(immutablePath,{value:1});
  assert.throws(()=>F.immutable(immutablePath,{value:2}),/immutable_conflict/);

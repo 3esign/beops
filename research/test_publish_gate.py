@@ -115,6 +115,9 @@ class Gate(unittest.TestCase):
             "site_checked_at",
         ):
             self.assertIn(k, self.s, f"the receipt no longer records {k}")
+        self.assertIn("publish-active-cycle.json", self.s)
+        self.assertIn("beops-publish-cycle-state/v1", self.s)
+        self.assertIn("lock_conflict", self.s)
 
     def test_two_publishers_cannot_race_for_the_export(self):
         """C-045: the loser of a race for git's index.lock read exactly like a clean tree."""

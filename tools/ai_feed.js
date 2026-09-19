@@ -52,7 +52,7 @@ function acquire(directory){
   return ()=>{fs.unlinkSync(file);};
 }
 function stateFromReceipts(directory){
-  const state={providers:{},models:{},last_success:null};
+  const state={providers:{},models:{},last_success:null,last_attempt:null};
   const dir=path.join(directory,'receipts');
   const attempts=new Map();
   for(const name of fs.existsSync(dir)?fs.readdirSync(dir).sort():[]){
@@ -61,6 +61,7 @@ function stateFromReceipts(directory){
     if(name.endsWith('-finish.json')||!attempts.has(r.id))attempts.set(r.id,r);
   }
   for(const r of attempts.values()){
+    if(!state.last_attempt||r.at>state.last_attempt.at)state.last_attempt=r;
     const previous=state.providers[r.provider];
     if(!previous||r.at>previous.at)state.providers[r.provider]={at:r.at,next_at:r.next_at,state:r.state,model:r.model,failure_count:r.failure_count||0};
     if(r.state==='accepted'&&(!state.last_success||r.at>state.last_success))state.last_success=r.at;
@@ -70,6 +71,10 @@ function stateFromReceipts(directory){
   return state;
 }
 function allEntries(directory){const d=path.join(directory,'entries');return (fs.existsSync(d)?fs.readdirSync(d):[]).filter(n=>/^[a-f0-9]{32}\.json$/.test(n)).map(n=>readJSON(path.join(d,n),65536)).sort((a,b)=>b.at.localeCompare(a.at)||a.id.localeCompare(b.id));}
+function attemptStatus(r){
+  return r?{at:r.at,state:r.state,provider:r.provider,model:r.model||null,reason:r.reason||null,
+    failure_kind:r.failure_kind||null,next_at:r.next_at||null}:null;
+}
 function exportFeed(root=ROOT, now=new Date()){
   const config=readJSON(path.join(root,'research/AI_FEED.json'));
   const dir=path.join(root,'runtime/ai-feed'),out=path.join(root,'docs/ai-feed');
@@ -157,7 +162,11 @@ async function tick(root=ROOT, options={}){
     }
     let eligible=checked.filter(p=>p.ready && (!p.next_at||Date.parse(p.next_at)<=+now || options.retry && ['failed','deferred_capacity'].includes(state.providers[p.id]?.state)));
     eligible.sort((a,b)=>(a.last_at?Date.parse(a.last_at):0)-(b.last_at?Date.parse(b.last_at):0)||a.offset_minutes-b.offset_minutes);
+    const lastSuccessAge = state.last_success ? Math.round((+now-Date.parse(state.last_success))/60000) : null;
     const status={schema:'beops-ai-status/v1',at:now.toISOString(),state:'waiting',last_success:state.last_success,
+      last_success_age_minutes:lastSuccessAge,
+      health_state:state.last_success && lastSuccessAge<=60?'current':'stale',
+      last_attempt:attemptStatus(state.last_attempt),
       providers:checked.map(p=>({id:p.id,label:p.label,ready:p.ready,reason:p.reason||null,interval_minutes:p.interval_minutes,last_at:p.last_at,next_at:p.next_at,selected_model:p.model||null,route_id:p.route_id||null,candidate_count:p.candidate_count??null,held_count:p.held_count??null,qualification_held:p.qualification_held||0})),
       global_min_interval_minutes:config.global_min_interval_minutes||0,
       next_generation_at:state.last_success?new Date(Date.parse(state.last_success)+(config.global_min_interval_minutes||0)*60000).toISOString():null,
@@ -166,6 +175,14 @@ async function tick(root=ROOT, options={}){
     if(status.global_min_interval_minutes>0&&status.next_generation_at&&Date.parse(status.next_generation_at)>+now){status.state='global_interval';recordStatus();return status;}
     if(!eligible.length){status.state=checked.some(p=>p.ready)?'waiting':'providers_unavailable';recordStatus();return status;}
     if(attemptsToday>=config.max_attempts_per_day){status.state='daily_budget';recordStatus();return status;}
+    const projectionTimeout = config.permission_projection_timeout_ms || 45000;
+    const remainingBeforeContext = deadline-Date.now();
+    if(remainingBeforeContext < projectionTimeout + 15000){
+      status.state='job_deadline';
+      status.diagnostic={phase:'before_context',remaining_ms:Math.max(0,remainingBeforeContext),
+        required_ms:projectionTimeout+15000,permission_projection_timeout_ms:projectionTimeout};
+      recordStatus();return status;
+    }
     let packet;try{packet=(options.buildContext||buildContext)(root,now,config);}catch(e){status.state=e.message;if(e.diagnostic)status.diagnostic=e.diagnostic;recordStatus();return status;}
     const promptVersion=config.prompt_version||1;
     if(![1,2,3].includes(promptVersion))throw Error('invalid_prompt_version');
@@ -210,7 +227,13 @@ async function tick(root=ROOT, options={}){
     }
     immutable(path.join(receipts,prefix+'-finish.json'),finish);append(path.join(dir,'events.jsonl'),finish);
     status.state=finish.state;status.providers.find(p=>p.id===provider.id).last_at=finish.at;
-    status.providers.find(p=>p.id===provider.id).next_at=finish.next_at;recordStatus();
+    status.providers.find(p=>p.id===provider.id).next_at=finish.next_at;
+    status.last_attempt=attemptStatus(finish);
+    if(status.last_success){
+      status.last_success_age_minutes=Math.max(0,Math.round((+now-Date.parse(status.last_success))/60000));
+      status.health_state=status.last_success_age_minutes<=60?'current':'stale';
+    }
+    recordStatus();
     return finish;
   }finally{release();}
 }

@@ -13,7 +13,7 @@ const stamp = observationClocks.stamp;
 function sampleTime(p) { const clock=observationClocks.placement(p);return clock.basis==='unresolved'?null:clock.at; }
 function frame(p) { return ({corrected:'corrected_measurement',measured:'measurement',received:'reception_only',unresolved:'unknown_clock'})[observationClocks.placement(p).basis]; }
 function clean(s, n = 240) { return String(s || '').replace(/[\x00-\x1f<>]/g, ' ').slice(0,n); }
-function allowedSources(root, now) {
+function allowedSources(root, now, timeoutMs = 45000) {
   const {spawnSync}=require('node:child_process');
   const bundled=path.join(process.env.USERPROFILE||'', '.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe');
   const runtimePath=path.join(root,'runtime/test-python.json');
@@ -23,11 +23,13 @@ function allowedSources(root, now) {
   // The projection normally takes about five seconds on the live ledger, but collection, publishing
   // and the hourly baseline can legitimately contend for the same disk. Keep it inside the 120 s job
   // deadline while avoiding a false failure at the old 20 s cliff.
-  const r=spawnSync(exe,['-X','utf8','-B',path.join(__dirname,'ai_feed_policy.py'),root,now.toISOString()],{windowsHide:true,timeout:45000,encoding:'utf8',maxBuffer:1024*1024});
+  const started=Date.now();
+  const r=spawnSync(exe,['-X','utf8','-B',path.join(__dirname,'ai_feed_policy.py'),root,now.toISOString()],{windowsHide:true,timeout:timeoutMs,encoding:'utf8',maxBuffer:1024*1024});
   if(r.error || r.status!==0){
     const e=Error('permission_projection_failed');
     // Never copy child stderr (paths or secrets) into the public status.
     e.diagnostic={code:r.error?.code||null,exit_code:r.status,signal:r.signal||null,
+      phase:'permission_projection',timeout_ms:timeoutMs,duration_ms:Date.now()-started,
       stderr_bytes:Buffer.byteLength(r.stderr||''),stderr_sha256:hash(r.stderr||'')};throw e;
   }
   let allowed;try{allowed=JSON.parse(r.stdout);}catch{throw Error('permission_projection_invalid_output');}
@@ -40,7 +42,7 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
   if (asof === null || asof > time + 300000 || time - asof > (config.stale_snapshot_minutes || 30) * 60000) throw Error('snapshot_stale_or_invalid');
   const registry = readJSON(path.join(root,'research/SOURCE_REGISTRY.json'));
   const sources = new Map(registry.sources.map(s=>[s.id,s]));
-  const permitted=permittedOverride || allowedSources(root,now);
+  const permitted=permittedOverride || allowedSources(root,now,config.permission_projection_timeout_ms || 45000);
   const facts = [], coverage = [];
   for (const source of snapshot.sources || []) {
     const reg = sources.get(source.sid);
