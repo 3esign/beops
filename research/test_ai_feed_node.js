@@ -76,6 +76,14 @@ async function main(){
  fs.appendFileSync(path.join(tmp,'research/08-provenance/LEDGER.jsonl'),JSON.stringify({sid:'S1',captured_at_utc:'20260912T110000Z',manual_verdict:'refused'})+'\n');
  assert.throws(()=>C.buildContext(tmp,now,{},new Set()),/no_usable_facts/);
  const config=JSON.parse(fs.readFileSync(path.join(root,'research/AI_FEED.json'),'utf8'));
+ const codexProvider=config.providers.find(p=>p.id==='codex');
+ assert.deepEqual(codexProvider.models,['gpt-5.6-luna','gpt-5.6-terra','gpt-5.6-sol']);
+ assert.equal(codexProvider.allow_live_probe,true);
+ const attemptDir=path.join(tmp,'runtime','ai-feed','work','attempt-1');
+ assert.equal(P.aiFeedQualificationRoot(attemptDir),path.join(tmp,'runtime','ai-feed'),
+   'per-attempt Codex work must reuse the stable qualification store');
+ assert.equal(P.aiFeedQualificationRoot(path.join(tmp,'runtime','mind-cli')),path.join(tmp,'runtime','mind-cli'),
+   'non-feed callers retain their own qualification root');
  config.prompt_version=1;
  config.global_min_interval_minutes=0;
  config.job_timeout_seconds=180;

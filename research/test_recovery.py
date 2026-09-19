@@ -237,14 +237,17 @@ class Data(unittest.TestCase):
 
 
 class Claims(unittest.TestCase):
-    def test_cli_mind_refreshes_model_input_before_the_step(self):
+    def test_cli_mind_reuses_collector_snapshot_and_exports_only_on_cold_start(self):
         with tempfile.TemporaryDirectory() as td:
-            snapshot=pathlib.Path(td)/'snapshot.json';snapshot.write_text('{"generation":"old"}')
+            snapshot=pathlib.Path(td)/'snapshot.json';snapshot.write_text('{"generation":"current"}')
             def refresh():snapshot.write_text('{"generation":"current"}')
             def consume():
                 self.assertEqual(json.loads(snapshot.read_text())['generation'],'current')
                 return {'state':'checked'}
-            with patch.object(M,'LIVE',pathlib.Path(td)),patch.object(M.sys,'argv',['organ_mind.py','step']),patch.object(D,'export',side_effect=refresh),patch.object(M,'step',side_effect=consume):
+            with patch.object(M,'LIVE',pathlib.Path(td)),patch.object(M,'SNAPSHOT',snapshot),patch.object(M.sys,'argv',['organ_mind.py','step']),patch.object(D,'export',side_effect=AssertionError('existing collector snapshot must not be rebuilt')),patch.object(M,'step',side_effect=consume):
+                self.assertEqual(M.main(),0)
+            snapshot.unlink()
+            with patch.object(M,'LIVE',pathlib.Path(td)),patch.object(M,'SNAPSHOT',snapshot),patch.object(M.sys,'argv',['organ_mind.py','step']),patch.object(D,'export',side_effect=refresh),patch.object(M,'step',side_effect=consume):
                 self.assertEqual(M.main(),0)
 
     def test_registry_pause_stops_both_mind_entry_points_without_model_calls(self):

@@ -1,4 +1,4 @@
-"""Local-only model calls with one shared GPU lock and a deadline for the whole job."""
+"""Reviewed model calls with a shared local-GPU lock and one deadline for the whole job."""
 import contextlib
 import functools
 import ipaddress
@@ -109,7 +109,12 @@ def _request_bridge(path, payload, timeout):
         raise RuntimeError(r.stderr or "bridge embed failed")
     elif path == "/api/chat":
         cmd.append("chat")
-        r = subprocess.run(cmd, input=json.dumps(payload or {}), capture_output=True, text=True, encoding="utf-8", timeout=timeout)
+        bridge_payload = dict(payload or {})
+        # Let the bridge classify the failure and persist model cooldown before the Python
+        # subprocess guard fires. Otherwise equal inner/outer deadlines race and lose health state.
+        bridge_payload["timeout"] = max(0.001, timeout - 15)
+        r = subprocess.run(cmd, input=json.dumps(bridge_payload), capture_output=True, text=True,
+                           encoding="utf-8", timeout=timeout)
         if r.returncode == 0:
             return json.loads(r.stdout.strip())
         raise RuntimeError(r.stderr or "bridge chat failed")
@@ -122,15 +127,20 @@ def request(base, path, payload=None, timeout=60, verify_model=True, allow_cloud
     if remaining <= 0:
         raise ModelDeferred("model job deadline reached before request")
     m = (payload or {}).get("model")
-    if m and not allow_cloud and remote_model_name(m):
+    remote = bool(m and remote_model_name(m))
+    if remote and not allow_cloud:
         raise ValueError("cloud model is not permitted")
+    # Account-backed CLI inference does not use the local GPU and must not wait behind its mutex.
+    # The project bridge itself enforces the reviewed model list, tool-free qualification and cooldowns.
+    if is_cli_backend() and (remote or path == "/api/tags"):
+        return _request_bridge(path, payload, min(timeout, remaining))
     # A scheduled tick must never sit behind another GPU user. If the slot is busy,
     # leave a waiting_model receipt and let the next periodic tick try again.
     with model_slot(min(CAPACITY_WAIT_SECONDS, max(0, remaining))):
         remaining = getattr(_job, "deadline", time.monotonic() + timeout) - time.monotonic()
         if remaining <= 0:
             raise ModelDeferred("model job deadline reached before request")
-        if is_cli_backend():
+        if is_cli_backend() and path != "/api/embed":
             return _request_bridge(path, payload, min(timeout, remaining))
         return _request_locked(base, path, payload, timeout, verify_model)
 
@@ -143,7 +153,7 @@ def _request_locked(base, path, payload, timeout, verify_model):
         model = payload["model"]
         if remote_model_name(model):
             raise ValueError("cloud model is not permitted")
-        info = request(base, "/api/show", {"model": model}, min(remaining, 10), False)
+        info = _request_locked(base, "/api/show", {"model": model}, min(remaining, 10), False)
         if any(info.get(k) for k in ("remote_host", "remote_model", "remote_url")):
             raise ValueError("model metadata identifies a remote model")
     data = json.dumps(payload).encode() if payload is not None else None

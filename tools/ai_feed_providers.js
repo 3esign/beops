@@ -21,6 +21,13 @@ function ollamaBase(){
 }
 function claudeExecutable(){return path.join(os.homedir(),'.local','bin',process.platform==='win32'?'claude.exe':'claude');}
 function codexExecutable(){return path.join(os.homedir(),'AppData/Roaming/npm/node_modules/@openai/codex/node_modules/@openai/codex-win32-x64/vendor/x86_64-pc-windows-msvc/bin/codex.exe');}
+function stopProcessTree(child){
+  if(!child)return;
+  if(process.platform==='win32'&&child.pid){
+    try{const killer=spawn('taskkill',['/pid',String(child.pid),'/t','/f'],{windowsHide:true,stdio:'ignore'});killer.on('error',()=>{});killer.unref();return;}catch{}
+  }
+  try{child.kill();}catch{}
+}
 function codexQualification(){
   const q=JSON.parse(fs.readFileSync(path.join(__dirname,'../research/AI_FEED_CODEX_QUALIFICATION.json'),'utf8'));
   const digest=crypto.createHash('sha256').update(fs.readFileSync(codexExecutable())).digest('hex');
@@ -46,6 +53,15 @@ async function availability(provider,options={}){
     try {
       const bridge=require(path.join(svemirRoot(),'lib/cli_bridge.js'));
       let rows=bridge.chatModels({includeUnavailable:true,includeAuto:false}),held=0,probes=0;
+      if(provider.adapter==='codex-cli'&&provider.allow_live_probe){
+        const reviewed=new Set(provider.models||[]),at=+(options.now||new Date());
+        rows=rows.map(row=>{
+          const until=typeof row.disabledUntil==='number'?row.disabledUntil:Date.parse(row.disabledUntil||'');
+          const eligible=row.bridge==='codex'&&reviewed.has(row.model)&&bridge.isLocalDevice(row.device)&&!(until>at)&&
+            !['disabled','paused','rate-limited','cooldown','missing','offline'].includes(row.status);
+          return eligible?{...row,runnable:true,status:row.runnable?row.status:'live-probe'}:row;
+        });
+      }
       while(rows.length){
         const selected=selectModel(rows,provider,options.state,options.now,bridge.isLocalDevice);
         if(!selected.ready||provider.adapter!=='codex-cli')return {...selected,qualification_held:held};
@@ -145,33 +161,51 @@ function claude(prompt,system,model,cwd,timeout){
     child.stdin.end(prompt);
   });
 }
-async function codex(prompt,system,model,cwd,timeout){
+function aiFeedQualificationRoot(cwd){
+  const work=path.dirname(path.resolve(cwd));
+  return path.basename(work).toLowerCase()==='work'?path.dirname(work):path.resolve(cwd);
+}
+async function codex(prompt,system,model,cwd,timeout,outputSchema,qualificationDirectory=cwd){
   const q=codexQualification();
-  const proof=await qualify(codexExecutable(),q,model,path.resolve(cwd,'../..'));if(!proof.ok)throw Error('model_tool_qualification_failed');
-  fs.writeFileSync(path.join(cwd,'observer-system.txt'),system);
-  const schema={type:'object',additionalProperties:false,required:['title','paragraphs','question','limitations'],properties:{title:{type:'string'},paragraphs:{type:'array',items:{type:'object',additionalProperties:false,required:['text','cites'],properties:{text:{type:'string'},cites:{type:'array',items:{type:'string'}}}}},question:{type:'string'},limitations:{type:'string'}}};
-  fs.writeFileSync(path.join(cwd,'observer-schema.json'),JSON.stringify(schema));
+  const proof=await qualify(codexExecutable(),q,model,qualificationDirectory);if(!proof.ok)throw Error('model_tool_qualification_failed');
+  fs.mkdirSync(cwd,{recursive:true});
+  const nonce=process.pid+'-'+crypto.randomBytes(6).toString('hex');
+  const instructions=path.join(cwd,'codex-system-'+nonce+'.txt');
+  const schemaFile=path.join(cwd,'codex-schema-'+nonce+'.json');
+  fs.writeFileSync(instructions,system||'Follow the user prompt and return only JSON matching the supplied schema. Do not use tools.');
+  const schema=outputSchema||{type:'object',additionalProperties:false,required:['title','paragraphs','question','limitations'],properties:{title:{type:'string'},paragraphs:{type:'array',items:{type:'object',additionalProperties:false,required:['text','cites'],properties:{text:{type:'string'},cites:{type:'array',items:{type:'string'}}}}},question:{type:'string'},limitations:{type:'string'}}};
+  fs.writeFileSync(schemaFile,JSON.stringify(schema));
   return new Promise((resolve,reject)=>{
     const base=[...q.args],slot=base.indexOf('--model');if(slot<0)throw Error('qualification_missing_model_argument');base[slot+1]=model;
-    const args=[...base,'-c','model_instructions_file='+JSON.stringify(path.join(cwd,'observer-system.txt')),'--output-schema',path.join(cwd,'observer-schema.json'),'-'];
+    if(base.at(-1)==='-')base.pop();
+    const args=[...base,'-c','model_instructions_file='+JSON.stringify(instructions),'--output-schema',schemaFile,'-'];
     const child=spawn(codexExecutable(),args,{cwd,windowsHide:true,stdio:['pipe','pipe','pipe'],env:{...process.env,OTEL_SDK_DISABLED:'true'}});
-    let out='',bytes=0,text='',usage=null,violation=false,completed=false,timedOut=false,failureKind='runtime';
-    const timer=setTimeout(()=>{timedOut=true;child.kill();},timeout);
+    let out='',stderr='',bytes=0,text='',usage=null,violation=false,completed=false,timedOut=false,failureKind='runtime',failureMessage='';
+    const timer=setTimeout(()=>{timedOut=true;stopProcessTree(child);},timeout);
     child.stdout.setEncoding('utf8');child.stdin.on('error',()=>{});
     child.stdout.on('data',chunk=>{
-      bytes+=Buffer.byteLength(chunk);if(bytes>1024*1024){violation=true;child.kill();return;}out+=chunk;
+      bytes+=Buffer.byteLength(chunk);if(bytes>1024*1024){violation=true;stopProcessTree(child);return;}out+=chunk;
       let at;while((at=out.indexOf('\n'))>=0){const line=out.slice(0,at);out=out.slice(at+1);let e;try{e=JSON.parse(line);}catch{continue;}
-        if(e.item&&['command_execution','mcp_tool_call','web_search','file_change','collab_tool_call'].includes(e.item.type)){violation=true;child.kill();}
+        if(e.item&&['command_execution','mcp_tool_call','web_search','file_change','collab_tool_call'].includes(e.item.type)){violation=true;stopProcessTree(child);}
         if(e.type==='item.completed'&&e.item?.type==='agent_message')text=e.item.text||'';
         if(e.type==='turn.completed'){completed=true;usage=e.usage||null;}
-        if(e.type==='error'||e.type==='turn.failed')failureKind=classifyFailure(e.message||e.error?.message||JSON.stringify(e));
+        if(e.type==='error'||e.type==='turn.failed'){
+          failureMessage=String(e.message||e.error?.message||'').replace(/[\r\n]+/g,' ').slice(0,240);
+          failureKind=classifyFailure(failureMessage||JSON.stringify(e));
+        }
       }
     });
-    child.stderr.on('data',b=>{const kind=classifyFailure(b.toString());if(kind!=='runtime')failureKind=kind;});
-    child.on('error',e=>{clearTimeout(timer);reject(Error('cli_start_'+e.code));});
-    child.on('close',code=>{clearTimeout(timer);
+    child.stderr.on('data',b=>{stderr=(stderr+b.toString()).slice(-4000);const kind=classifyFailure(b.toString());if(kind!=='runtime')failureKind=kind;});
+    const cleanup=()=>{for(const file of [instructions,schemaFile])try{fs.unlinkSync(file);}catch{}};
+    child.on('error',e=>{clearTimeout(timer);cleanup();reject(Error('cli_start_'+e.code));});
+    child.on('close',code=>{clearTimeout(timer);cleanup();
       if(violation)return reject(Error('cli_unexpected_tool_or_large_output'));
-      if(code!==0||!completed||!text)return reject(Object.assign(Error(timedOut?'cli_timed_out':'cli_'+failureKind),{failureKind:timedOut?'timeout':failureKind}));
+      if(code!==0||!completed||!text){
+        const kind=timedOut?'timeout':failureKind;
+        const safeStderr=stderr.replace(/[\r\n]+/g,' ').replace(/\s+/g,' ').trim().slice(-320);
+        const detail=failureMessage?': '+failureMessage:safeStderr?': '+safeStderr:`: exit=${code}; completed=${completed}; output_chars=${text.length}`;
+        return reject(Object.assign(Error('cli_'+kind+detail),{failureKind:kind}));
+      }
       resolve({text,model,identity:'requested_alias',usage,transport:'Codex CLI; pinned executable qualified with empty tools',tools:[],qualification:q.executable_sha256});
     });
     child.stdin.end(prompt);
@@ -219,7 +253,7 @@ function antigravity(prompt,system,model,cwd,timeout){
 async function generate(provider,model,packet,system,cwd,timeout=110000){
   const deadline=Date.now()+timeout;
   const prompt='Write your monologue about this frozen situation. Data packet:\n'+JSON.stringify(packet);
-  if(provider.adapter==='codex-cli')return codex(prompt,system,model,cwd,timeout);
+  if(provider.adapter==='codex-cli')return codex(prompt,system,model,cwd,timeout,undefined,aiFeedQualificationRoot(cwd));
   if(provider.adapter==='antigravity-cli')return antigravity(prompt,system,model,cwd,timeout);
   if(provider.adapter==='ollama'){
     const mutex=require(path.join(svemirRoot(),'lib/mind_lock.js'));
@@ -257,4 +291,4 @@ async function generate(provider,model,packet,system,cwd,timeout=110000){
   }
   throw Error('unsupported_adapter');
 }
-module.exports={availability,generate,parseObject,parseAntigravity,antigravityFinal,request,ollamaBase,ollamaCatalogueRows,antigravityArgs};
+module.exports={availability,generate,codex,aiFeedQualificationRoot,parseObject,parseAntigravity,antigravityFinal,request,ollamaBase,ollamaCatalogueRows,antigravityArgs};

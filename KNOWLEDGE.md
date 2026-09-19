@@ -539,3 +539,35 @@ Prompt v2 required a cross-domain link and urban relief; the model obliged every
 **Vestine:** After a successful publish, wait for the outer cleanup before declaring locks clear; then run an independent public verifier and scheduler audit, because the receipt proves the release while the audit proves the live scheduler contract.
 
 **Odluke:** 24-hour and three-cycle proof is now delegated to heartbeat automation `beops-24h-stability-monitor`. Live code is fixed, but the live Windows task still needs an elevated or owning scheduler context to remove the `Beops_Publish` execution-limit drift.
+
+### 2026-09-19T17:38:39Z — Gornji um i Zapažanja su dva odvojena toka
+
+**Greske:** Javni donji panel je imao svež AI zapis, dok su tri gornja glasa ostala prazna jer `mind` organ i `AI_FEED` nemaju isti scheduler ni modele. `mind` je pokušavao ugašene lokalne Ollama rute i pre svakog koraka ponovo gradio ceo snimak.
+
+**Iskustva:** Account-backed Codex CLI modeli moraju da zaobiđu lokalni GPU mutex, ali i dalje prolaze kroz pregledanu listu modela, praznu tool-kvalifikaciju, read-only izvršenje, strogu JSON šemu i validaciju svake tvrdnje. Jedan dvojezični odgovor uklanja drugi skupi poziv za srpski glas.
+
+**Greske:** Codex opcije dodate posle završnog `-` nisu važile za `codex exec`; šema sa slobodnim objektom `claim` nije bila dovoljno stroga; jezički guard je srpsko `a` čitao kao englesku reč i nije prepoznavao da `rather than` odgovara srpskom `umesto`.
+
+**Iskustva:** Za CLI proveru treba testirati stvarnu poziciju argumenata, zahtevati `additionalProperties: false` do poslednjeg objekta i imati regresije sa kratkim rečima koje pripadaju oba jezika. Odbijeni append-only red se ne prepravlja; sledeći svež korak mora proizvesti novi dokaz.
+
+**Odluke:** Posmatrač automatski preferira Luna, Sumnjalo Terra, Povezivač Sol; svi imaju automatske pregledane fallback rute. Javna stranica više ne tvrdi da su um i Zapažanja isključivo lokalni ili isključivo Gemini, već imenuje stvarni model uz rezultat.
+
+**Greske:** Isti pozivni rok od 210 s bio je opravdan za hladno učitavanje lokalnog 4B modela, ali je udaljenoj Luna ruti dozvolio da pojede skoro ceo petominutni korak pre fallback-a. Lek: udaljena ruta ima 75 s po pokušaju, lokalna zadržava 210 s; ukupni budžet ostaje jedna tvrda granica.
+
+**Greske:** Python subprocess guard i Node provider imali su isti rok, a most nije dobijao skraćeni rok iz Python poziva. Roditelj je zato mogao da ubije most pre nego što on klasifikuje timeout i sačuva cooldown; tri sekunde rezerve nisu bile dovoljne da Windows zatvori `codex.exe` stablo. Lek: unutrašnji CLI rok se šalje u zahtev i završava petnaest sekundi pre spoljašnjeg process guarda.
+
+**Greske:** `surprise-ranker` je objavljivao `state=rejected` uz `reason=null`, a običan `child.kill()` na Windows-u nije pouzdano zatvarao ceo Codex ogranak. Lek: prazno rangiranje nosi jasan razlog, a timeout i tool-violation gase numerički PID i njegovu procesnu decu bez shell interpolacije.
+
+**Greske:** Kada `/api/tags` privremeno nije odgovorio, drip je upisao `organ_silent` i pomerio `ctx.step`, pa je Povezivač preskočen bez ijednog modelnog poziva. Lek: nedostupan katalog je `waiting_model` i isti korak ostaje na redu do sledećeg okidača.
+
+**Greske:** Interaktivni Codex PowerShell nema projektni Python u `PATH`-u: `python` vodi na Microsoft Store alias, a `py` ne postoji. Uz to, neuspešan poziv nepoznate komande nije pouzdano postavio `$LASTEXITCODE`, pa je sledeći uspešan Node proces mogao da prikrije Python neuspeh. Lek: testovi koriste eksplicitni bundled interpreter iz workspace runtime-a i svaki proces se proverava zasebno.
+
+**Greske:** `rg research/test_*.py` na Windows-u prosleđuje zvezdicu kao nevažeći deo putanje umesto kao shell glob. Lek: pretraži direktorijum uz `rg -g 'test_*.py' obrazac research`.
+
+**Greske:** AI-feed je ponavljao Codex offline qualification unutar svakog `work/<attempt>` direktorijuma; timeout je ostavio nepotpun duplikat na dubini 5 i puni record-shape gate je ispravno pao. Lek: per-attempt inference ima svoj radni direktorijum, ali qualification dokaz je zajednički i stabilan u korenu feed-a.
+
+**Greske:** Recovery test je još zahtevao da svaki CLI mind korak ponovo izveze ceo snapshot, iako collector sada atomski održava taj ulaz; vraćanje tog ponašanja bi ponovo zadržavalo model iza publish brave. Lek: recovery ugovor proverava reuse postojećeg snapshot-a i export samo pri hladnom startu.
+
+**Greske:** PowerShell `Sort-Object` sa dva inline parametra i `-split '\'` listing nisu bili validni u korišćenom obliku. Lek: za dubinu Windows putanje koristi `.Split([IO.Path]::DirectorySeparatorChar)` i jednostavan `Sort-Object Depth,LastWriteTime -Descending`.
+
+**Iskustva:** Vidljivi opis uma postoji i u glavnoj stranici i u generisanom sloju; obe kopije moraju da govore „automatski izabrani provereni modeli“, inače ugrađeni panel može da zadrži staru tvrdnju iako je izvršni put već popravljen.

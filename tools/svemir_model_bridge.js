@@ -3,9 +3,15 @@
  * svemir_model_bridge.js - routes Beops organ model requests to Svemir CLI bridge.
  * Zero-dependency bridge using Node.js stdlib and Svemir's existing CLI infrastructure.
  */
+const fs = require('node:fs');
 const path = require('node:path');
 const svemirRoot = process.env.BEOPS_SVEMIR_ROOT || 'C:/Svemir';
 const bridge = require(path.join(svemirRoot, 'lib', 'cli_bridge.js'));
+const providers = require('./ai_feed_providers');
+const { classifyFailure } = require('./ai_feed_catalogue');
+const projectRoot = path.resolve(__dirname, '..');
+const mindRuntime = path.join(projectRoot, 'runtime', 'mind-cli');
+const healthFile = path.join(mindRuntime, 'model-health.json');
 
 const REMOTE_MODEL_MARKERS = [
   ':cloud', '-cloud', 'cloud:',
@@ -44,24 +50,89 @@ function localModels() {
     }));
 }
 
-function findLocalModel(name) {
-  if (!name || isRemoteName(name)) return null;
+function configuredCodexModels() {
+  try {
+    const organs = JSON.parse(fs.readFileSync(path.join(projectRoot, 'research', 'ORGANS.json'), 'utf8'));
+    const mind = (organs.organs || []).find(row => row.id === 'mind') || {};
+    return Array.isArray(mind.codex_models) ? mind.codex_models : [];
+  } catch {
+    return [];
+  }
+}
+
+function readHealth() {
+  try { return JSON.parse(fs.readFileSync(healthFile, 'utf8')); }
+  catch { return { schema: 'beops-mind-cli-health/v1', models: {} }; }
+}
+
+function writeHealth(value) {
+  fs.mkdirSync(path.dirname(healthFile), { recursive: true });
+  const temp = healthFile + '.' + process.pid + '.tmp';
+  fs.writeFileSync(temp, JSON.stringify(value, null, 2));
+  fs.renameSync(temp, healthFile);
+}
+
+function modelHeld(model, now = Date.now()) {
+  const row = readHealth().models?.[model];
+  return row && Date.parse(row.cooldown_until || '') > now;
+}
+
+function recordHealth(model, state, error) {
+  const health = readHealth();
+  health.at = new Date().toISOString();
+  health.models ||= {};
+  if (state === 'ready') {
+    health.models[model] = { state, at: health.at, failure_kind: null, cooldown_until: null };
+  } else {
+    const kind = (error && error.failureKind) || classifyFailure(error && error.message);
+    const minutes = kind === 'rate-limit' ? 80 : ['auth', 'unsupported-model'].includes(kind) ? 360 : 20;
+    health.models[model] = { state: 'failed', at: health.at, failure_kind: kind,
+      cooldown_until: new Date(Date.now() + minutes * 60000).toISOString() };
+  }
+  writeHealth(health);
+}
+
+function codexModels() {
+  const configured = configuredCodexModels();
+  if (!configured.length) return [];
+  const rows = bridge.chatModels({ includeUnavailable: true, includeAuto: false }) || [];
+  const byModel = new Map(rows.filter(row => row && row.bridge === 'codex' && row.model && bridge.isLocalDevice(row.device))
+    .map(row => [row.model, row]));
+  return configured.filter(model => byModel.has(model) && !modelHeld(model)).map(model => {
+    const row = byModel.get(model);
+    return { name: model, id: row.id, bridge: 'codex', backend: 'codex-cli',
+      catalogue_status: row.status, capabilities: { chat: true, structured_output: true, embedding: false } };
+  });
+}
+
+function availableModels() {
+  const seen = new Set();
+  return [...codexModels(), ...localModels()].filter(model => {
+    const key = modelKey(model.name);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function findModel(name) {
+  if (!name) return null;
   const normalized = modelKey(name);
-  return localModels().find(m => {
+  return availableModels().find(m => {
     const names = [m.name, m.id, 'pc-llama-' + m.name].map(modelKey);
     return names.includes(normalized);
   }) || null;
 }
 
 async function getTags() {
-  return { models: localModels() };
+  return { models: availableModels() };
 }
 
 async function doChat(req) {
   const model = req.model || 'auto';
-  const found = findLocalModel(model);
+  const found = findModel(model);
   if (!found) {
-    throw new Error(`local model is unavailable or not permitted: ${model}`);
+    throw new Error(`model is unavailable, cooling down, or not permitted: ${model}`);
   }
   const messages = req.messages || [];
   let system = '';
@@ -82,7 +153,6 @@ async function doChat(req) {
     fullPrompt = `[System Instructions]\n${system}\n\n[Input]\n${fullPrompt}`;
   }
 
-  const bridgeName = 'llama';
   const targetModel = found.name;
 
   if (req.options && req.options.num_predict) {
@@ -97,15 +167,26 @@ async function doChat(req) {
   const timeoutMs = Math.max(1, Number(req.timeout || 210)) * 1000;
 
   let result;
-  try {
-    result = await bridge.runLocal({
-      bridge: bridgeName,
-      model: targetModel,
-      prompt: fullPrompt,
-      timeoutMs
-    });
-  } catch (err) {
-    result = { ok: false, err: err.message };
+  if (found.bridge === 'codex') {
+    try {
+      const response = await providers.codex(prompt, system, targetModel, mindRuntime, timeoutMs, req.format);
+      recordHealth(targetModel, 'ready');
+      result = { ok: true, out: response.text };
+    } catch (err) {
+      recordHealth(targetModel, 'failed', err);
+      result = { ok: false, err: err.message };
+    }
+  } else {
+    try {
+      result = await bridge.runLocal({
+        bridge: 'llama',
+        model: targetModel,
+        prompt: fullPrompt,
+        timeoutMs
+      });
+    } catch (err) {
+      result = { ok: false, err: err.message };
+    }
   }
 
   if (!result || !result.ok) {
@@ -154,7 +235,7 @@ async function doChat(req) {
   return {
     requested_model: model,
     model: targetModel,
-    backend: 'svemir-cli',
+    backend: found.backend,
     done: true,
     done_reason: 'stop',
     message: {
@@ -172,8 +253,8 @@ async function main() {
     return;
   }
   if (cmd === 'show') {
-    const found = findLocalModel(process.argv[3]);
-    if (!found) throw new Error(`local model is unavailable or not permitted: ${process.argv[3] || ''}`);
+    const found = findModel(process.argv[3]);
+    if (!found) throw new Error(`model is unavailable, cooling down, or not permitted: ${process.argv[3] || ''}`);
     process.stdout.write(JSON.stringify(found) + '\n');
     return;
   }

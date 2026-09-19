@@ -517,6 +517,12 @@ class ConversationTests(LiveDir):
 
 
 class DripTests(LiveDir):
+    def test_missing_catalogue_does_not_skip_the_entity(self):
+        rec = om.step(now=NOW, tags=lambda: None, snap=snapshot())
+        self.assertEqual(rec['state'], 'waiting_model')
+        self.assertEqual(rec['reason'], 'model catalogue not answering')
+        self.assertEqual(om._context()['step'], 0)
+
     def test_busy_tags_does_not_advance_the_step(self):
         def busy():raise om.local_models.ModelDeferred('capacity fixture')
         rec=om.step(now=NOW,tags=busy,snap=snapshot())
@@ -550,10 +556,13 @@ class DripTests(LiveDir):
         log = []
         chat = fake_chat_factory(log)
         names = []
+        receipts = []
         for i in range(6):
             rec = om.step(now=NOW + timedelta(minutes=4 * i), chat=chat, tags=lambda: MODELS, embed=fake_embed, snap=snapshot(extra_hour=(i == 5)))
             names.append(rec["step_name"])
+            receipts.append(rec)
         self.assertEqual(names, list(om.STEPS))
+        self.assertEqual(receipts[2]["reason"], "model returned no valid ratings")
         ctx = om._context()
         self.assertEqual((ctx["step"], ctx["cycle"]), (6, 1))
         self.assertEqual(len(ctx["links"]), 1)
@@ -597,6 +606,30 @@ class RetractionAndScoringTests(LiveDir):
         by = {(c["entity"], c["claim"]["kind"]): c for c in om._rows(om.OUT_DIR / "claims.jsonl")}
         self.assertEqual(by[("observer", "reception")]["outcome"], "true")
         self.assertTrue(any(n.get("claim_outcome") == "true" for n in om.notebook("observer")))
+
+
+class EmbeddedVoiceTests(unittest.TestCase):
+    def test_one_validated_bilingual_answer_needs_no_second_call(self):
+        row = {"hypotheses": [], "questions": []}
+        answer = {"sr": "Dve stanice [F1] su javile 41.", "hypotheses_sr": [], "questions_sr": []}
+        rec = {}
+        ok = om.accept_embedded_voice(row, answer, "Two stations [F1] reported 41.", {"numbers": {"41"}},
+                                      "gpt-5.6-luna", rec)
+        self.assertTrue(ok)
+        self.assertEqual(row["sr_state"], "voiced")
+        self.assertEqual(row["voice_attempts"], 0)
+        self.assertEqual(row["voice_model"], "gpt-5.6-luna")
+        self.assertEqual(rec["embedded_voice"], 1)
+
+    def test_scheduled_entrypoint_does_not_rebuild_an_existing_snapshot(self):
+        source = (ROOT / "tools" / "organ_mind.py").read_text(encoding="utf-8")
+        self.assertIn('cmd in ("run", "step") and not SNAPSHOT.exists()', source)
+
+    def test_serbian_a_and_rather_than_are_not_false_translation_failures(self):
+        ok, reasons = om.validate_voice("Ovo je prijem, a ne merenje [F1].",
+                                        "This is a reception rather than a measurement [F1].",
+                                        {"numbers": set()})
+        self.assertTrue(ok, reasons)
 
 
 if __name__ == "__main__":

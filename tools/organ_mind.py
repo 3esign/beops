@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-organ_mind.py - the mind of the observatory: small local models orchestrated in layers, checked by
+organ_mind.py - the mind of the observatory: reviewed models orchestrated in layers, checked by
 code, thinking aloud about what BEOPS has just seen. The real monologue: a conversation.
 
     python -B tools/organ_mind.py step       ONE drop: the next step of the endless conversation (scheduled every 4 min)
@@ -91,7 +91,7 @@ SNAPSHOT = ROOT / "public" / "live-snapshot.json"
 CONTEXT_POP = ROOT / "public" / "context-population.json"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "mind"
-ORGAN_VERSION = "0.5.2"
+ORGAN_VERSION = "0.6.0"
 OUT_DIR = LIVE / "derived" / "mind"
 ORCHESTRATIONS = ("council", "relay")   # for `run`; the scheduled mode is the drip (see STEPS)
 
@@ -439,8 +439,10 @@ For each connection below, give a surprise score: 1 = fully expected, 5 = very s
 Answer only JSON: {{"ratings": [{{"id": "F12", "surprise": 3}}, ...]}} using exactly these ids.
 
 {items}"""
-RANK_SCHEMA = {"type": "object", "properties": {"ratings": {"type": "array", "items": {"type": "object", "properties": {
-    "id": {"type": "string"}, "surprise": {"type": "integer"}}, "required": ["id", "surprise"]}}}, "required": ["ratings"]}
+RANK_SCHEMA = {"type": "object", "additionalProperties": False,
+               "properties": {"ratings": {"type": "array", "items": {"type": "object", "additionalProperties": False,
+                   "properties": {"id": {"type": "string"}, "surprise": {"type": "integer"}},
+                   "required": ["id", "surprise"]}}}, "required": ["ratings"]}
 
 
 def surprise_ranker(dg: dict, model: str | None, chat) -> dict:
@@ -535,6 +537,41 @@ SCHEMA = {
     "required": ["text", "cites", "hypotheses", "questions", "next_check", "claim"],
 }
 
+BILINGUAL_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "text": {"type": "string"},
+        "cites": {"type": "array", "items": {"type": "string"}},
+        "hypotheses": {"type": "array", "items": {"type": "string"}},
+        "questions": {"type": "array", "items": {"type": "string"}},
+        "next_check": {"type": "string"},
+        "claim": {"anyOf": [
+            {"type": "object", "additionalProperties": False, "properties": {}, "required": []},
+            {"type": "object", "additionalProperties": False,
+             "properties": {"kind": {"type": "string", "enum": ["reception"]}, "sid": {"type": "string"},
+                            "within_minutes": {"type": "integer"}},
+             "required": ["kind", "sid", "within_minutes"]},
+            {"type": "object", "additionalProperties": False,
+             "properties": {"kind": {"type": "string", "enum": ["spread"]}, "sid": {"type": "string"},
+                            "parameter": {"type": "string"}, "lo": {"type": "number"}, "hi": {"type": "number"},
+                            "within_minutes": {"type": "integer"}},
+             "required": ["kind", "sid", "parameter", "lo", "hi", "within_minutes"]}
+        ]},
+        "sr": {"type": "string"},
+        "hypotheses_sr": {"type": "array", "items": {"type": "string"}},
+        "questions_sr": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": SCHEMA["required"] + ["sr", "hypotheses_sr", "questions_sr"],
+}
+
+CLOUD_BILINGUAL = """
+This account-backed CLI route must also render the same answer in Serbian, ekavica, Latin script in
+the fields sr, hypotheses_sr and questions_sr. Preserve every quantity, clock, unit, negation and
+fact citation exactly. Do not add facts. The Serbian lists must have the same item counts and order
+as hypotheses and questions. This is one bilingual answer, not a second observation.
+"""
+
 VOICE_PROMPT = """Prevedi ovu misao na srpski jezik, EKAVICA, latinica, verno i prirodno, u prvom licu.
 Ekavica znači: vreme (ne vrijeme), mesto (ne mjesto), vrednost (ne vrijednost), promenile (ne promijenile),
 proveriti (ne provjeriti), gde (ne gdje), sledeći (ne sljedeći), uticaj (ne utjecaj), verovatno (ne vjerojatno),
@@ -555,8 +592,10 @@ def voice_split(text: str) -> tuple[str, str]:
     cites = "".join(f"[{c}]" for c in dict.fromkeys(re.findall(r"\[(F\d+)\]", text)))
     plain = re.sub(r"\s*\[F\d+\]", "", text).strip()
     return plain, cites
-VOICE_SCHEMA = {"type": "object", "properties": {"sr": {"type": "string"}, "hypotheses": {"type": "array", "items": {"type": "string"}},
-                                                 "questions": {"type": "array", "items": {"type": "string"}}}, "required": ["sr", "hypotheses", "questions"]}
+VOICE_SCHEMA = {"type": "object", "additionalProperties": False,
+                "properties": {"sr": {"type": "string"}, "hypotheses": {"type": "array", "items": {"type": "string"}},
+                               "questions": {"type": "array", "items": {"type": "string"}}},
+                "required": ["sr", "hypotheses", "questions"]}
 THINKING_MODELS = ("qwen3", "deepseek-r1", "gpt-oss", "magistral")   # Ollama accepts think=false only for models that can think
 
 
@@ -612,6 +651,32 @@ def voice(row: dict, text: str, dg: dict, voice_model: str | None, chat, rec: di
     if rec is not None:
         rec["voice_refused"] = rec.get("voice_refused", 0) + 1
     return row
+
+
+def accept_embedded_voice(row: dict, answer: dict, text: str, dg: dict, model: str | None,
+                          rec: dict | None = None) -> bool:
+    """Accept a validated Serbian rendering returned in the same constrained cloud call."""
+    sr = answer.get("sr")
+    h_sr = answer.get("hypotheses_sr")
+    q_sr = answer.get("questions_sr")
+    if not isinstance(sr, str) or not isinstance(h_sr, list) or not isinstance(q_sr, list):
+        return False
+    plain, cites = voice_split(sr)
+    sr = plain + (" " + cites if cites else "")
+    h_sr = [item.strip() for item in h_sr if isinstance(item, str) and item.strip()]
+    q_sr = [item.strip() for item in q_sr if isinstance(item, str) and item.strip()]
+    hyps = row.get("hypotheses") or []
+    questions = row.get("questions") or []
+    ok, reasons = validate_voice(sr, text, dg, h_sr, q_sr, len(hyps), len(questions), hyps, questions)
+    if not ok:
+        row["embedded_voice_refused"] = "; ".join(reasons)[:200]
+        return False
+    row["sr"], row["hypotheses_sr"], row["questions_sr"] = sr, h_sr, q_sr
+    row["sr_state"], row["voice_model"], row["voice_attempts"] = "voiced", model, 0
+    if rec is not None:
+        rec["voiced"] = rec.get("voiced", 0) + 1
+        rec["embedded_voice"] = rec.get("embedded_voice", 0) + 1
+    return True
 
 
 def stale_numbers_blanked(text: str, dg: dict) -> str:
@@ -713,14 +778,23 @@ def ollama_chat(model: str, prompt: str, schema: dict | None = None, num_predict
     # C-071: with "0s" the Serbian voice (same model, seconds later) paid a second cold load, and a step
     # budget of 180 s cannot hold two 84-93 s loads plus two generations - 16 of 44 accepted thoughts in
     # three days lost their Serbian to a TimeoutError. One minute of warmth covers the voice call only.
-    payload = {"model": model, "stream": False, "format": schema or SCHEMA, "keep_alive": "60s",
+    selected_schema = schema or SCHEMA
+    cloud = local_models.remote_model_name(model)
+    if cloud and selected_schema == SCHEMA:
+        selected_schema = BILINGUAL_SCHEMA
+        prompt += CLOUD_BILINGUAL
+    payload = {"model": model, "stream": False, "format": selected_schema, "keep_alive": "60s",
                "options": {"temperature": temperature, "num_ctx": 6144, "num_predict": num_predict},
                "messages": [{"role": "user", "content": prompt}]}
     if model.split(":")[0].startswith(THINKING_MODELS):
         payload["think"] = False   # the organ wants the answer, not a hidden monologue; the JSON must carry all of it
     # The step's own budget (local_models.budget) is the real limit; a second, silent cap of 120 s here
     # contradicted the 210 s stated above and cut cold-loaded calls short.
-    doc = local_models.request(OLLAMA, "/api/chat", payload, timeout=timeout)
+    # A remote route has no cold local load. Bound each one tightly enough that the next reviewed
+    # account model can still run inside the five-minute step budget.
+    request_timeout = min(timeout, 75) if cloud else timeout
+    doc = local_models.request(OLLAMA, "/api/chat", payload, timeout=request_timeout,
+                               allow_cloud=bool(register().get("allow_cloud", False)))
     if doc.get("done") is not True or doc.get("done_reason") not in (None, "", "stop"):
         raise ValueError("incomplete Ollama response")
     return json.loads((doc.get("message") or {}).get("content") or "{}")
@@ -730,7 +804,7 @@ def ollama_chat(model: str, prompt: str, schema: dict | None = None, num_predict
 FUTURE_IS = re.compile(r"\b(will|is going to|biće|će biti|sigurno će)\b", re.I)
 HEDGE = re.compile(r"možda|pretpostavljam|ako |ako\b|maybe|perhaps|if |might|could|verovatno|probably|may ", re.I)
 SR_WORDS = re.compile(r" (je|su|i|u|na|ne|se|da|od|do|za|sa|što|koji|ali|nema|ima|pre|posle|sat|min|dok|kad|još) ")
-EN_WORDS = re.compile(r" (the|is|are|and|of|in|no|not|at|with|for|that|from|has|have|was|were|while|but|to|a|an|up|by|on|as|it|we|this|between) ")
+EN_WORDS = re.compile(r" (the|is|are|and|of|in|no|not|at|with|for|that|from|has|have|was|were|while|but|an|up|by|on|as|it|we|this|between) ")
 PROMPT_FRAGMENTS = ["You notice.", "You doubt.", "You connect.", "Rules (a program checks", "You may use only numbers", "Answer only JSON",
                     "Do not repeat these instructions", "Ti primećuješ", "Ti sumnjaš", "Ti povezuješ"]
 
@@ -1133,8 +1207,8 @@ def validate_voice(sr: str, en: str, dg: dict, hyp_sr: list[str] | None = None, 
         reasons.append("clocks differ from the original")
     if _units([sr]) != _units([en]):
         reasons.append("units differ from the original")
-    en_negative = bool(re.search(r"\b(no|not|never|without|cannot|isn't|aren't)\b", en, re.I))
-    sr_negative = bool(re.search(r"\b(ne|nije|nisu|nema|nikad|nikada|bez)\b", sr, re.I))
+    en_negative = bool(re.search(r"\b(no|not|never|without|cannot|isn't|aren't|rather than|instead of)\b", en, re.I))
+    sr_negative = bool(re.search(r"\b(ne|nije|nisu|nema|nikad|nikada|bez|umesto)\b", sr, re.I))
     if en_negative != sr_negative:
         reasons.append("negation differs from the original")
     for label, translated, original in (("hypothesis", hyp_sr or [], hyp_en), ("question", q_sr or [], q_en)):
@@ -1354,7 +1428,8 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=o
                    "claim": claim, "rejected_because": reasons or None}
             # L3 - the voice: Serbian ekavica rendering of an accepted thought, validated against the original
             if ok:
-                voice(row, text, dg, voice_model, chat, rec)
+                if not accept_embedded_voice(row, answer, text, dg, spoke, rec):
+                    voice(row, text, dg, voice_model, chat, rec)
             _append(out_path, row)
             _append(OUT_DIR / "notebook" / f"{ent['id']}.jsonl",
                     {"at": iso(now), "conversation": conv_id, "round": rnd, "state": row["state"], "text": text, "sr": row["sr"],
@@ -1443,9 +1518,7 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
         dg0 = digest(snap, hours=int(reg.get("window_hours", 6)), now=now, context=context)
         avail = tags()
         if avail is None:
-            rec["state"], rec["reason"] = "organ_silent", "model daemon not answering"
-            ctx["step"] += 1
-            _save_context(ctx, now)
+            rec["state"], rec["reason"] = "waiting_model", "model catalogue not answering"
             publish(receipt_path, rec)
             return rec
         allow_cloud = bool(reg.get("allow_cloud", False))
@@ -1483,6 +1556,7 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
             else:
                 ratings = surprise_ranker(dg1, rank_model, chat)
                 rec["calls"], rec["state"], rec["ratings"] = 1, "derived" if ratings else "rejected", len(ratings)
+                rec["reason"] = None if ratings else "model returned no valid ratings"
                 ctx["ratings"], ctx["rank_model"] = ratings, rank_model
                 ctx["rated_facts"] = {f["en"]: ratings[f["id"]] for f in dg1["facts"] if f["id"] in ratings}
                 if ratings:
@@ -1549,7 +1623,8 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
                            "next_check": (answer.get("next_check") or "")[:300] if isinstance(answer.get("next_check"), str) else "",
                            "claim": claim, "rejected_because": reasons or None}
                     if ok:
-                        voice(row, text, dg, voice_model, chat, rec)
+                        if not accept_embedded_voice(row, answer, text, dg, model, rec):
+                            voice(row, text, dg, voice_model, chat, rec)
                     _append(out_path, row)
                     _append(OUT_DIR / "notebook" / f"{name}.jsonl", {"at": iso(now), "conversation": cycle_id, "round": ctx["step"], "state": row["state"],
                                                                      "text": text, "sr": row["sr"], "reason": "; ".join(reasons) if reasons else None, "claim": claim})
@@ -1738,9 +1813,10 @@ def voice_bench(model_names: list[str], n: int = 8) -> dict:
 
 def main() -> int:
     cmd = sys.argv[1] if len(sys.argv) > 1 else "status"
-    if cmd in ("run", "step"):
-        # Publication builds in isolation. Model input must therefore refresh
-        # independently from the current canonical record on every CLI run.
+    if cmd in ("run", "step") and not SNAPSHOT.exists():
+        # The collector owns routine snapshot refreshes. Rebuilding the whole export here made each
+        # four-minute mind drop wait behind an active publication before it could even reach a model.
+        # Keep only the cold-start fallback; normal drops consume the collector's atomic snapshot.
         from collect_daemon import export
         export()
     if cmd == "run":
