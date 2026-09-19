@@ -101,6 +101,15 @@ class Corruption(unittest.TestCase):
             with self.assertRaises(ValueError):
                 S.read_json(path, {})
 
+    def test_atomic_json_replace_failure_leaves_previous_complete_file(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = pathlib.Path(td) / 'state.json'
+            path.write_text('{"old": true}\n', encoding='utf-8')
+            with patch.object(C.os, 'replace', side_effect=PermissionError('fixture')):
+                with self.assertRaises(PermissionError):
+                    C.atomic_json(path, {'old': False, 'new': True})
+            self.assertEqual(path.read_text(encoding='utf-8'), '{"old": true}\n')
+
     def test_monitor_refuses_healthy_state_when_middle_row_is_corrupt(self):
         with tempfile.TemporaryDirectory() as td:
             live = pathlib.Path(td)
@@ -223,6 +232,9 @@ class ModelCapacity(unittest.TestCase):
     def setUp(self):
         # These tests exercise transport and the private OS mutex. Interoperation
         # with the real Svemir mutex is covered with isolated data in test_operations.
+        backend = patch.object(LM, 'is_cli_backend', return_value=False)
+        backend.start()
+        self.addCleanup(backend.stop)
         slot = patch.object(LM, 'shared_slot', side_effect=lambda timeout: contextlib.nullcontext())
         slot.start()
         self.addCleanup(slot.stop)

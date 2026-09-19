@@ -1,7 +1,10 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),{spawnSync}=require('node:child_process');
 const bundled=path.join(process.env.USERPROFILE||'','.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe');
-const candidates=[process.env.BEOPS_PYTHON,fs.existsSync(bundled)?bundled:null,'python','python3'].filter(Boolean);
+const runtimePath=path.resolve(__dirname,'..','runtime','test-python.json');
+let runtime={};
+try{if(fs.existsSync(runtimePath))runtime=JSON.parse(fs.readFileSync(runtimePath,'utf8').replace(/^\uFEFF/,''));}catch{}
+const candidates=[process.env.BEOPS_PYTHON,process.env.BEOPS_TEST_PYTHON,runtime.python,fs.existsSync(bundled)?bundled:null,'python','python3'].filter(Boolean);
 const checks=[{name:'Node 22+',ok:Number(process.versions.node.split('.')[0])>=22,actual:process.version}];
 let python=null;
 for(const exe of candidates){const r=spawnSync(exe,['-X','utf8','-B','-c','import sys,json; print(json.dumps({"version":sys.version,"supported":sys.version_info >= (3,12)}))'],{encoding:'utf8',timeout:5000,windowsHide:true});if(r.status===0){const d=JSON.parse(r.stdout);checks.push({name:'Python 3.12+',ok:d.supported,actual:d.version,executable:exe});python=exe;break;}}

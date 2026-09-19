@@ -4,6 +4,9 @@ Status: current
 Date: 2026-09-14
 Author: claude-cowork, Codex, Svemir
 
+- **_trail/AUDIT_SYSTEM_2026-09-19.md (private working record)** — dated internal audit of the public UI, observations, local CLI models and operations, with ordered remediation and explicit verification limits. Findings are not implemented repairs. Compact evidence: `_trail/audit-20260919/evidence-summary.json`.
+- **_trail/A19_REMEDIATION_2026-09-19.md (private working record)** — current A19 repair record: local execution-contract fixes, full gate result, live-site freshness failure, model timeout evidence, and remaining public/stability proof.
+
 Every document in this folder, what it is, and which one wins when two disagree. **A document that
 is not listed here does not exist to the next mind** — add your row in the same commit that adds the
 file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md).

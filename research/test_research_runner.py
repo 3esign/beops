@@ -115,5 +115,50 @@ process.stdout.write(JSON.stringify({exitCode, calls, probes}));
         self.assertEqual(self.simulate('no-files')['exitCode'],1)
 
 
+class Doctor(unittest.TestCase):
+    def test_runtime_python_manifest_precedes_broken_path_alias(self):
+        script = r'''
+const fs = require('node:fs'), vm = require('node:vm'), path = require('node:path');
+const doctorPath = process.argv[1];
+const source = fs.readFileSync(doctorPath, 'utf8');
+let printed = '', exitCode = null, calls = [];
+const runtimePath = path.resolve(path.dirname(doctorPath), '..', 'runtime', 'test-python.json');
+const context = {
+  __dirname: path.dirname(doctorPath),
+  process: {versions: {node: '24.0.0'}, env: {USERPROFILE: 'C:/missing'}, stdout: {write(s) { printed += s; }}},
+  require(name) {
+    if (name === 'node:fs') return {
+      existsSync(p) { return p === runtimePath || String(p).endsWith('docs/index.html') || String(p).endsWith('/incognito.js'); },
+      readFileSync(p) {
+        if (p === runtimePath) return JSON.stringify({python: 'runtime-python'});
+        return fs.readFileSync(p, 'utf8');
+      }
+    };
+    if (name === 'node:child_process') return {spawnSync(exe, args) {
+      calls.push(exe);
+      if (exe === 'runtime-python' && args.includes('-c')) {
+        return {status: 0, stdout: JSON.stringify({version: '3.12 fixture', supported: true})};
+      }
+      if (exe === 'git') return {status: 0};
+      return {status: 1, stdout: '', stderr: ''};
+    }};
+    if (name === 'node:path') return path;
+    return require(name);
+  }
+};
+vm.runInNewContext(source, context);
+process.stdout.write(JSON.stringify({printed, exitCode: context.process.exitCode || 0, calls}));
+'''
+        result = subprocess.run(['node', '-e', script, str(ROOT/'tools/doctor.js')],
+                                capture_output=True, text=True, encoding='utf-8', timeout=10, check=True)
+        doc = json.loads(result.stdout)
+        checks = json.loads(doc['printed'])['checks']
+        python = next(c for c in checks if c['name'] == 'Python 3.12+')
+        self.assertTrue(python['ok'])
+        self.assertEqual(python['executable'], 'runtime-python')
+        self.assertEqual(doc['exitCode'], 0)
+        self.assertIn('runtime-python', doc['calls'])
+
+
 if __name__ == '__main__':
     unittest.main()

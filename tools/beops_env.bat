@@ -13,7 +13,9 @@ set "TMP=%TEMP%"
 if not exist "%TEMP%" mkdir "%TEMP%"
 if not defined BEOPS_MODEL_BACKEND set "BEOPS_MODEL_BACKEND=cli"
 if not defined BEOPS_PYTHON (
-  if exist "%USERPROFILE%\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\python.exe" (
+  if exist "C:\Users\treed\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\python.exe" (
+    set "BEOPS_PYTHON=C:\Users\treed\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\python.exe"
+  ) else if exist "%USERPROFILE%\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\python.exe" (
     set "BEOPS_PYTHON=%USERPROFILE%\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\python.exe"
   ) else if exist "C:\Svemir\python.cmd" (
     set "BEOPS_PYTHON=C:\Svemir\python.cmd"

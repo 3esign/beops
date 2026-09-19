@@ -10,6 +10,6 @@ if errorlevel 1 exit /b %ERRORLEVEL%
 cd /d "%BEOPS_ROOT%" || exit /b 9
 if not exist runtime mkdir runtime
 for /f "usebackq tokens=*" %%i in (`powershell -NoProfile -Command "(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')"`) do set NOWUTC=%%i
-echo ---- %NOWUTC% >> runtime\mind-tick-live.log
-call "%BEOPS_PYTHON%" -X utf8 -B tools\organ_mind.py step >> runtime\mind-tick-live.log 2>&1
+echo ---- %NOWUTC% >> runtime\mind-tick-live-2.log
+call "%BEOPS_PYTHON%" -X utf8 -B tools\organ_mind.py step >> runtime\mind-tick-live-2.log 2>&1
 exit /b %ERRORLEVEL%

@@ -88,11 +88,20 @@ def atomic_json(path, value):
             json.dump(value, f, ensure_ascii=False, indent=1, allow_nan=False)
             f.write("\n")
             f.flush()
-            os.fsync(f.fileno())
-        os.replace(tmp, path)
+        for attempt in range(5):
+            try:
+                os.replace(tmp, path)
+                break
+            except OSError:
+                if attempt == 4:
+                    raise
+                time.sleep(0.05)
     finally:
         if os.path.exists(tmp):
-            os.unlink(tmp)
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
 
 
 class RecordFormatError(ValueError):

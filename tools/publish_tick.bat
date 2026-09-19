@@ -17,6 +17,6 @@ if errorlevel 1 exit /b %ERRORLEVEL%
 cd /d "%BEOPS_ROOT%" || exit /b 9
 if not exist runtime mkdir runtime
 for /f "usebackq tokens=*" %%i in (`powershell -NoProfile -Command "(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')"`) do set NOWUTC=%%i
-echo ---- %NOWUTC% >> runtime\publish-tick-4.log
-powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish_github.ps1 >> runtime\publish-tick-4.log 2>&1
+echo ---- %NOWUTC% >> runtime\publish-tick-5.log
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish_github.ps1 >> runtime\publish-tick-5.log 2>&1
 exit /b %ERRORLEVEL%

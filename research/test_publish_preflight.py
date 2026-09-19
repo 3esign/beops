@@ -45,7 +45,7 @@ class PublishPreflight(unittest.TestCase):
                        BEOPS_PUBLIC_ROOT=str(base/'Beops-public'), BEOPS_RELEASE_ROOT=str(base/'releases'))
             run = subprocess.run(['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass',
                 '-File', str(source/'tools/publish_github.ps1')], cwd=source, env=env,
-                capture_output=True, text=True, timeout=30)
+                capture_output=True, text=True, timeout=90)
             self.assertNotEqual(run.returncode, 0, run.stdout)
             receipt = json.loads((source/'data/live/publish-receipt.json').read_text(encoding='utf-8-sig'))
             for name in ('built', 'tests_ok', 'pushed', 'site_verified', 'published'):

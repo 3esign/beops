@@ -64,6 +64,8 @@ from __future__ import annotations
 import hashlib
 from decimal import Decimal
 from contracts import finite, row_clock, belgrade_offset, exclusive, json_rows, content_id, atomic_json
+import os
+os.environ['BEOPS_MODEL_BACKEND'] = 'cli'
 import local_models
 from model_capacity import receipt_scope
 from contracts import serialized, organ_pause_reason
@@ -71,12 +73,13 @@ import claim_evidence
 import json
 import math
 import os
+import tempfile
+import time
+import urllib.request
 import pathlib
 import re
 import sys
 import tempfile
-import time
-import urllib.request
 from datetime import datetime, timedelta, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -718,6 +721,8 @@ def ollama_chat(model: str, prompt: str, schema: dict | None = None, num_predict
     # The step's own budget (local_models.budget) is the real limit; a second, silent cap of 120 s here
     # contradicted the 210 s stated above and cut cold-loaded calls short.
     doc = local_models.request(OLLAMA, "/api/chat", payload, timeout=timeout)
+    if doc.get("done") is not True or doc.get("done_reason") not in (None, "", "stop"):
+        raise ValueError("incomplete Ollama response")
     return json.loads((doc.get("message") or {}).get("content") or "{}")
 
 
@@ -1407,7 +1412,7 @@ def _save_context(ctx: dict, now: datetime) -> None:
 
 
 @serialized(lambda: LIVE / "derived/mind/.job.lock")
-@local_models.budget(180)
+@local_models.budget(300)
 def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=ollama_embed, snap: dict | None = None,
          context: dict | None = None) -> dict:
     """One drop of the endless conversation. State lives in context.json; every step rebuilds the digest

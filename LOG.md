@@ -297,3 +297,8 @@ Vreme · um · radnja · rezultat. Vodi `node tools/project_kit.js log`.
 
 
 
+2026-09-19T08:24:04.9238372Z · Svemir · Started public-UI-first audit at source 9dc3810; preserved pre-existing edits in research/AI_FEED.json and tools/publish_tick.bat. · Audit only, no deployment.
+- 2026-09-19T09:00:38.108Z · Svemir · Completed public UI, data, scheduler and model audit at source 9dc3810. Report: research/_trail/AUDIT_SYSTEM_2026-09-19.md; durable evidence: research/_trail/audit-20260919/evidence-summary.json. Public verifier 102 routes; 14 browser views; 143 default-environment tests pass, CLI operations 8/10 pass with 2 errors. No production repair, inference, commit or deployment. · partial
+- 2026-09-19T12:18:00+02:00 · Svemir · A19 core execution contract repaired: CLI bridge fail-closed, local-only dispatch, shared capacity for CLI, bounded remaining budget, atomic JSON failure, runner nonzero/empty failure, organ terminal-response checks, doctor runtime manifest. Full npm test passed after the code repair; targeted bridge/runner/atomic tests passed. · local-ok
+- 2026-09-19T12:18:00+02:00 · Svemir · A19 live proof remains open: npm run test:site matched public bytes across 102 routes but failed freshness (snapshot 128.8 min old); current publish receipt shows the last scheduled publish failed at source 9dc3810 on the old CLI SharedGPU regression; controlled local model probes now fail closed on timeout rather than claiming completion. · partial
+- 2026-09-19T12:52:00+02:00 · Svemir · Final A19 local gate rerun completed after the publish-preflight watchdog adjustment. `npm test` ended with "Full research gate passed: all discovery groups completed." · local-ok

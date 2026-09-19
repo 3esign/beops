@@ -49,12 +49,14 @@
       ],
       "models_by_entity": {
         "observer": [
+          "qwen2.5-1.5b-hf",
           "qwen2.5-3b-hf"
         ],
         "skeptic": [
           "qwen2.5-1.5b-hf"
         ],
         "connector": [
+          "qwen2.5-1.5b-hf",
           "qwen2.5-3b-hf"
         ]
       },
@@ -71,6 +73,7 @@
       "measured_2026_09_09": "First conversation (0.2.0, 00:26 UTC): llama3.2:1b (Skeptic) returned empty or English word salad in the sr field; lfm2.5:1.2b (Connector) returned Serbian-looking word salad ('možeš da se to je ne dovolno') that PASSED validation because its cites array was well-formed while its text cited nothing - retracted, and the validator now requires inline citations, a language check and a prompt-echo check (0.2.1). qwen2.5:3b (Observer) wrote correct Serbian with every number in the digest but cited nothing inline, and its first call overran num_predict=900 (raised to 1400). Consequence on this hardware: only one local family speaks Serbian, so heterogeneity is by temperament and temperature, not by family, until a second Serbian-capable family is present (candidates to test when hardware allows: gemma3:4b, qwen2.5:7b, mistral-nemo). Recorded, not hidden: the family comparison is the experiment, and its first result is that two of three families cannot take part in Serbian. || 00:53 UTC, first drips of 0.3.1: the Skeptic and the Connector (both qwen2.5:3b) produced nearly the same sentence ('The city's maximum values of PM10 and NO2 have moved significantly...') - the convergence the literature predicts for one family; the Serbian voice passed on two of three thoughts and was refused once (citations differ) - and it leans ijekavian ('promijenile'), which the prompt asks it not to. Changes: rule 8 (do not restate the others), Skeptic moved to qwen2.5:1.5b (Apache-2.0; size heterogeneity within the one family that writes English well). || 08:38 UTC: paraphrase-multilingual pulled (768 dims); on Serbian headlines the same event scored cosine 0.725 and a different one 0.266, so the link threshold is 0.70 (register key link_threshold), not the 0.80 written before measuring. || First night of the drip (00:50-08:38 UTC, 76 drops): 37 thoughts accepted, 23 refused (29 of the reasons: a number not in the digest), 16 organelle drops, 4 claims (reception true 1, spread false 2, open 1); voice 17 rendered, 15 refused (citations changed), 5 failed (timeouts). THE FINDING: by morning all three entities were saying one sentence ('The city's maximum PM10 and NO2 values have increased significantly ... population density near Zemun TB and Ada petlja ... expected to be checked') - the echo collapse the literature predicts, produced here by three mechanisms: each read the others' last utterances, each re-read its own accepted text in its notebook, and the digest changed little between drops. 0.3.4: an utterance that restates the conversation (word-4-gram Jaccard >= 0.5 with any recent utterance) is REFUSED by code; the notebook reads back only refusals and claim outcomes, never the entity's own accepted text; the conversation context is one latest utterance per other entity; a 'NEW since you last spoke' fact lists what changed; citations are stripped before the Serbian rendering and re-appended after (they were half of the voice refusals); ijekavian is refused.",
       "mode": "drip: one step every 4 minutes (linker, observer, ranker, skeptic, connector, score); `run` on demand for a whole conversation (council or relay, alternating)",
       "voice_models": [
+        "qwen2.5-1.5b-hf",
         "qwen2.5-3b-hf"
       ],
       "ranker_models": [

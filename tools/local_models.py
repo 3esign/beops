@@ -16,6 +16,12 @@ from model_capacity import shared_slot, CapacityBusy
 _job = threading.local()
 LOCK = pathlib.Path(os.environ.get("BEOPS_MODEL_LOCK", "C:/Svemir/data/locks/beops-model.lock"))
 CAPACITY_WAIT_SECONDS = 0.0
+REMOTE_MODEL_MARKERS = (
+    ":cloud", "-cloud", "cloud:",
+    "claude", "sonnet", "opus", "haiku",
+    "gemini", "flash", "antigravity",
+    "codex", "openai", "gpt-",
+)
 
 
 class ModelDeferred(CapacityBusy):
@@ -62,9 +68,27 @@ def is_cli_backend():
     return os.environ.get("BEOPS_MODEL_BACKEND", "").lower() in ("cli", "svemir", "svemir-cli")
 
 
+def normalized_model_name(model):
+    if not isinstance(model, str):
+        return ""
+    name = model.strip().lower()
+    for prefix in ("cli:", "pc-llama-"):
+        if name.startswith(prefix):
+            name = name[len(prefix):]
+    return name
+
+
+def remote_model_name(model):
+    name = normalized_model_name(model)
+    if not name:
+        return False
+    return any(marker in name for marker in REMOTE_MODEL_MARKERS)
+
+
 def _request_bridge(path, payload, timeout):
     bridge_script = pathlib.Path(__file__).with_name("svemir_model_bridge.js")
     cmd = ["node", str(bridge_script)]
+    timeout = max(0.001, float(timeout))
     if path == "/api/tags":
         cmd.append("tags")
         r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=min(timeout, 30))
@@ -92,18 +116,22 @@ def _request_bridge(path, payload, timeout):
     raise ValueError(f"unsupported path for bridge: {path}")
 
 
-def request(base, path, payload=None, timeout=60, verify_model=True):
+def request(base, path, payload=None, timeout=60, verify_model=True, allow_cloud=False):
     base = endpoint(base)
     remaining = getattr(_job, "deadline", time.monotonic() + timeout) - time.monotonic()
     if remaining <= 0:
         raise ModelDeferred("model job deadline reached before request")
+    m = (payload or {}).get("model")
+    if m and not allow_cloud and remote_model_name(m):
+        raise ValueError("cloud model is not permitted")
     # A scheduled tick must never sit behind another GPU user. If the slot is busy,
     # leave a waiting_model receipt and let the next periodic tick try again.
     with model_slot(min(CAPACITY_WAIT_SECONDS, max(0, remaining))):
-        m = (payload or {}).get("model")
-        is_mocked = getattr(urllib.request.build_opener, "_mock_return_value", None) is not None or hasattr(urllib.request.build_opener, "mock_calls") or m == "fixture"
-        if is_cli_backend() and not is_mocked:
-            return _request_bridge(path, payload, timeout)
+        remaining = getattr(_job, "deadline", time.monotonic() + timeout) - time.monotonic()
+        if remaining <= 0:
+            raise ModelDeferred("model job deadline reached before request")
+        if is_cli_backend():
+            return _request_bridge(path, payload, min(timeout, remaining))
         return _request_locked(base, path, payload, timeout, verify_model)
 
 
@@ -113,7 +141,7 @@ def _request_locked(base, path, payload, timeout, verify_model):
         raise ModelDeferred("model job deadline reached before request")
     if payload and payload.get("model") and verify_model:
         model = payload["model"]
-        if "cloud" in model.lower():
+        if remote_model_name(model):
             raise ValueError("cloud model is not permitted")
         info = request(base, "/api/show", {"model": model}, min(remaining, 10), False)
         if any(info.get(k) for k in ("remote_host", "remote_model", "remote_url")):

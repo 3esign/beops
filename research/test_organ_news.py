@@ -130,6 +130,9 @@ class OrganTests(unittest.TestCase):
         self.assertEqual(on.pick_model(["qwen3.5:cloud", "qwen2.5:3b"], ["qwen3.5", "qwen2.5:3b"]), "qwen2.5:3b")
         self.assertEqual(on.pick_model(["qwen3.5:cloud"], ["qwen3.5"], allow_cloud=True), "qwen3.5:cloud")
 
+    def test_cli_file_model_names_match_ollama_style_preferences(self):
+        self.assertEqual(on.pick_model(["qwen3.5-4b", "qwen2.5-1.5b-hf"], ["qwen3.5:4b"]), "qwen3.5-4b")
+
     def test_cold_model_has_time_to_load_and_stays_warm_between_batches(self):
         captured = {}
         original = on.local_models.request

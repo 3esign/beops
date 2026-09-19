@@ -166,12 +166,16 @@ def pick_model(available: list[str], preferred: list[str], allow_cloud: bool = F
     """First preferred model that is actually present. Names ending in ':cloud' are Ollama-hosted
     models that would send the prompt off the machine; they are skipped unless the organ's register
     entry says allow_cloud, because the register promises that no headline leaves the body."""
+    def key(value: str) -> str:
+        return re.sub(r"[^a-z0-9]+", "-", (value or "").lower()).strip("-")
     for p in preferred:
+        wanted = key(p)
         for a in available:
             if a.endswith(":cloud") or a.endswith("-cloud"):
                 if not allow_cloud:
                     continue
-            if a == p or a.startswith(p + ":") or a.split(":")[0] == p:
+            got = key(a)
+            if got == wanted or got.startswith(wanted + "-") or wanted.startswith(got + "-"):
                 return a
     return None
 
