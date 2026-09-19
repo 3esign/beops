@@ -527,3 +527,15 @@ Prompt v2 required a cross-domain link and urban relief; the model obliged every
 **Vestine:** When a live AI tick fails, inspect `last_attempt`, `diagnostic.phase`, worker lock ownership, and the latest accepted receipt before changing prompts or provider configuration.
 
 **Odluke:** `last_success_age_minutes`, `health_state`, and `last_attempt` are now explicit status fields; a manual live tick accepted Gemini entry `97bbc7a853ec9424da93e78902c98b15` at 2026-09-19T14:01:21Z and cleared the overdue state.
+
+### 2026-09-19T14:42:29Z — Clean public proof still has a time boundary and an OS boundary
+
+**Greske:** A single manual publish, even when completely verified, is not the same thing as three regular scheduled cycles or a 24-hour stability proof.
+
+**Iskustva:** The repaired publisher now leaves three independent proofs for one cycle: `publish-receipt.json`, `publish-active-cycle.json`, and `npm run test:site`. On 2026-09-19 the cycle from source `3c3dfd2` published remote `b9a9788`, verified 103 routes, and left no publish lock after cleanup.
+
+**Izvori:** `data/live/publish-receipt.json`, `data/live/publish-active-cycle.json`, `runtime/publish-phases-8996-cb16595ba5ed47bc8ce96ce1b1b087af.jsonl`, `tools/audit_tasks.ps1 -Json`, `D:\Svemir\!Projekti\Beops-public\docs\ai-feed\latest.json`.
+
+**Vestine:** After a successful publish, wait for the outer cleanup before declaring locks clear; then run an independent public verifier and scheduler audit, because the receipt proves the release while the audit proves the live scheduler contract.
+
+**Odluke:** 24-hour and three-cycle proof is now delegated to heartbeat automation `beops-24h-stability-monitor`. Live code is fixed, but the live Windows task still needs an elevated or owning scheduler context to remove the `Beops_Publish` execution-limit drift.
