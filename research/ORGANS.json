@@ -32,7 +32,7 @@
     },
     {
       "id": "mind",
-      "version": "0.6.0",
+      "version": "0.6.1",
       "tool": "tools/organ_mind.py",
       "purpose": "The real monologue as a conversation, drop by drop: reviewed CLI and local models orchestrated in layers - a program builds the digest and computes connections; local organelles annotate it; three temperaments (Observer, Skeptic, Connector) answer each other through automatically selected models; one constrained bilingual response carries both the English thought and its Serbian rendering; every utterance is validated by code, notebooks are read back (learning without training), claims are scored when reality arrives.",
       "inputs": "public/live-snapshot.json only (receptions, silences, SEPA spreads, headlines, other organs' derived rows) rendered as numbered facts F1..Fn; the entity's own notebook; the other entities' VALIDATED utterances of the same conversation",
@@ -115,7 +115,7 @@
       "voice_bench_2026_09_09": "qwen3.5:4b (Apache-2.0, pulled 2026-09-09) rendered one real thought in correct, natural ekavica on the first attempt ('Maksimalne vrednosti PM10 i NO2 u gradu su se povećale sa 85 na 119 µg/m³ ...') - the first Serbian sentence of the project a Serbian reader would not correct. The bench then timed out twice; the diagnosis (runtime/ollama_diag.py, same day): with think=false the model answers 28 tokens in 3.6 s warm on the RX 580 (7.8 tok/s), cold load 84 s; with thinking left on it spends all 600 tokens thinking and returns empty content - exactly the empty fields the bench saw; and the body has 8 GB RAM with a 4 GB GPU, so two resident models (qwen2.5:3b + qwen3.5:4b) thrash. Decision: ONE main model - qwen3.5:4b thinks (Observer, Connector) and voices; the Skeptic stays on qwen2.5:1.5b for heterogeneity; the voice bench command remains for the next model. qwen2.5:3b (non-commercial) leaves the default chain.",
       "hardware_2026_09_09": "i7-7700K (4 cores), 8 GB RAM, Radeon RX 580 4 GB; Ollama runs the 4b at 100% GPU with num_ctx 2048; at 6144 part of the cache spills - measure the step time in the receipts",
       "operational_state": "active",
-      "automation_2026_09_19": "v0.6.0 dynamically discovers the reviewed Codex CLI family, uses one constrained bilingual response per entity, cools down failed routes and falls back automatically",
+      "automation_2026_09_19": "v0.6.1 dynamically discovers the reviewed Codex CLI family, uses one constrained bilingual response per entity, cools down failed routes, falls back automatically, and retries the same entity on the next tick when every route times out",
       "local_execution_contract": "Local routes retain the loopback endpoint, remote metadata refusal and shared Ollama lease. Reviewed Codex CLI routes use the pinned executable, an offline empty-tool qualification, read-only ephemeral execution, strict JSON schema, bounded output, a 75-second per-route deadline and per-model cooldowns. Busy local capacity preserves the current drip step; remote CLI work never occupies the GPU lease."
     },
     {

@@ -536,6 +536,19 @@ class DripTests(LiveDir):
         with self.assertRaises(om.local_models.ModelDeferred):om.chat_chain(['first','second'],'prompt',busy,{})
         self.assertEqual(called,['first'])
 
+    def test_all_model_timeouts_keep_the_entity_step_for_retry(self):
+        om.step(now=NOW, tags=lambda: MODELS, embed=fake_embed, snap=snapshot())
+        self.assertEqual(om._context()['step'], 1)
+
+        def timeout(*args, **kwargs):
+            raise TimeoutError('route fixture')
+
+        rec = om.step(now=NOW + timedelta(minutes=4), chat=timeout,
+                      tags=lambda: MODELS, embed=fake_embed, snap=snapshot())
+        self.assertEqual(rec['step_name'], 'observer')
+        self.assertEqual(rec['state'], 'organ_failed')
+        self.assertEqual(om._context()['step'], 1)
+
     def test_busy_embedding_keeps_the_same_step_for_retry(self):
         def busy(*args,**kwargs):raise om.local_models.ModelDeferred('capacity fixture')
         rec=om.step(now=NOW,tags=lambda:MODELS,embed=busy,snap=snapshot())

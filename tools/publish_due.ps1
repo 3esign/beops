@@ -62,13 +62,11 @@ try {
     Write-Output 'publish due: last receipt is not a successful publication'
     exit 0
   }
-  $publishedAt = [DateTimeOffset]::Parse(
-    [string]$(if ($receipt.cycle_started_at) { $receipt.cycle_started_at } else { $receipt.at }),
-    [System.Globalization.CultureInfo]::InvariantCulture,
-    [System.Globalization.DateTimeStyles]::AssumeUniversal
-  ).ToUniversalTime()
   $finishedAt = [DateTimeOffset]::Parse([string]$receipt.at).ToUniversalTime()
-  if ($publishedAt -gt $finishedAt) { $publishedAt = $finishedAt }
+  # A release can take longer than the cadence itself on the observatory disk. The
+  # quiet window begins only after the verified release finishes; measuring from
+  # cycle_started_at otherwise creates an almost continuous publish loop.
+  $publishedAt = $finishedAt
 } catch {
   Write-PublishDueStatus -Decision 'due' -ExitCode 0 -Reason 'successful_receipt_unreadable'
   Write-Output 'publish due: successful receipt is unreadable'

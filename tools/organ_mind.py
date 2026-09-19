@@ -91,7 +91,7 @@ SNAPSHOT = ROOT / "public" / "live-snapshot.json"
 CONTEXT_POP = ROOT / "public" / "context-population.json"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "mind"
-ORGAN_VERSION = "0.6.0"
+ORGAN_VERSION = "0.6.1"
 OUT_DIR = LIVE / "derived" / "mind"
 ORCHESTRATIONS = ("council", "relay")   # for `run`; the scheduled mode is the drip (see STEPS)
 
@@ -1604,6 +1604,10 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
                     rec["fell_back_from"] = tried
                 if answer is None:
                     rec["state"], rec["reason"] = "organ_failed", "; ".join(tried)[:160] or "no model answered"
+                    # A transient failure must not consume a character's turn. The next
+                    # scheduled tick retries this same step after route cooldowns expire.
+                    publish(receipt_path, rec)
+                    return rec
                 else:
                     rec["model"] = model
                 if answer is not None:
