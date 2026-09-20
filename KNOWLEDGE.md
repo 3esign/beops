@@ -723,3 +723,15 @@ Prompt v2 required a cross-domain link and urban relief; the model obliged every
 - Greske: Calling the site current from hash/route match alone would hide stale data; this run matched `346b3e53` but `live-snapshot.json` was about 84 minutes old against a 60 minute limit. Lek: require both byte equality and freshness before claiming `site_verified` or current public operation.
 - Izvori: `npm run test:site` 2026-09-20T18:10Z, `data/live/publish-receipt.json`, `tools/publish_capacity.ps1`.
 - Odluke: Do not force a fresh publish below the 1024 MB free-memory capacity gate; the blocker is body capacity, not site verifier correctness.
+
+### 2026-09-20T19:10Z - Receipt success is not process completion
+
+- Iskustva: A publish can write a successful receipt and active-cycle success while the outer PowerShell process still spends minutes cleaning the isolated release folder. Wait for the process to exit before final reporting, but use `data/live/publish-receipt.json` and `publish-active-cycle.json` as the publication authority.
+- Izvori: `data/live/publish-receipt.json` for `de2d705` -> `337ddea`, `runtime/release-diagnostics/beops-release-9c5a9cc2a8fe499eab948085274261b6*.{json,jsonl,txt}`, independent `npm run test:site` 2026-09-20T19:10Z.
+- Odluke: Final public status requires all three: successful receipt, exited publish process, and independent `test:site` returning `CURRENT_AND_VERIFIED`.
+
+### 2026-09-20T19:43Z - Byte equality can outlive freshness
+
+- Iskustva: A public export can remain byte-perfect on every route while falling out of operational freshness; `npm run test:site` is allowed to fail only on `live-snapshot.json` age even when every route hash matches.
+- Izvori: Fresh `npm test` 2026-09-20T19:35-19:42Z passed; independent `npm run test:site` 2026-09-20T19:42Z failed with snapshot age 75 min; `tools/publish_capacity.ps1` passed at 1,345.8 MB free.
+- Odluke: When freshness alone fails and capacity passes, run the controlled publisher instead of treating byte-match as enough.
