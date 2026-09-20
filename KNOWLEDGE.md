@@ -1,6 +1,7 @@
 # Beops — Knowledge Base
 
 # Greske
+- [2026-09-20T07:56] Beops publish handoff: na PC-u sa ~278 MB slobodne memorije sledeci publish ne sme ni da udje u release pripremu; prethodni pokusaji su vec potrosili 45 min ili naleteli na `.write.lock`. Lek: cadence gate nije dovoljan; publish_tick dobija poseban capacity gate pre `beops_env.bat` i `publish_github.ps1`. — izvor: /api/operational-snapshot; runtime/release-diagnostics; tools/publish_capacity.ps1
 - [2026-09-19T12:55] P0 scheduler status: prvi puni gate posle dodavanja `publish-scheduler-status.json` pao je u `test_record_shape.py` jer svaki novi top-level fajl u `data/live` mora biti deklarisan u `research/RECORD_SHAPE.json`. Lek: operativni status nije "sporedan" ako sedi uz živi zapis; deklaracija oblika mora nastati u istom potezu kao fajl. — izvor: research/test_record_shape.py; research/RECORD_SHAPE.json
 - [2026-09-19T12:45] Clean Beops P0: `Beops_Publish` je imao scheduler limit 30 min dok `publish_github.ps1` ciklusu daje 45 min; uspešan ciklus od 41 min zato može biti ubijen spolja pre poštenog završnog traga. Lek: task spec i interni budžet moraju biti isti ugovor, a cadence/lock/active/success/failure moraju imati zaseban mašinski status koji ne podmlađuje `publish-last-success`. — izvor: research/_trail/clean-beops-baseline-20260919T124035Z; tools/beops_tasks.ps1; tools/publish_due.ps1; tools/publish_github.ps1
 - [2026-09-19T12:18] A19 repair: a public publish uses the committed HEAD, not the working tree. The 09:07 UTC scheduled publish failed on source 9dc3810 because it still contained the CLI SharedGPU regression, even though the later worktree full gate passed. Lek: commit the exact repair paths before expecting the regular publisher to heal a public stale state; do not read a green worktree test as a published fix. — izvor: data/live/publish-receipt.json; research/_trail/A19_REMEDIATION_2026-09-19.md
@@ -105,6 +106,9 @@
 - [2026-09-19T20:21Z] Uzrok: publish cadence je merio 29 minuta od pocetka ciklusa, pa je objava duza od 29 minuta odmah dozvoljavala novu punu objavu; pod tim stalnim I/O opterecenjem sva tri model puta su mogla isteci, a drip je ipak trosio red lika. Lek: mirni period pocinje od zavrsne uspesne potvrde, a neuspeh svih ruta cuva isti korak za sledeci automatski tick. — izvor: tools/publish_due.ps1; tools/organ_mind.py; runtime/mind-tick-live-2.log
 
 # Iskustva
+- [2026-09-20T11:59] test_source_clock.py must not scan monthly live row JSONL files in the normal gate; the public 24h snapshot already carries source labels, corrected times and clock notes, while the full row corpus stays static evidence.
+- [2026-09-20T11:42] test_refusal_route.py was spending minutes scanning data/live/rows for an assertion that was always true; the refuser-name contract is static and should be checked from REFUSER_NAMES.json plus the legal rule, while snapshot behavior remains covered separately.
+- [2026-09-20T10:57] Frozen release already proves read-only JSONL identity; repeated hashing/parsing of the same row corpus by watch/history gates is maintenance cost, not stronger evidence. Store per-row-file freshness in release-inputs and let frozen readers validate sealed identity.
 - [2026-09-19T12:04] A19 bridge names: Svemir local model files are exposed with hyphenated names (`qwen3.5-4b`) while Beops organ preferences use Ollama-style colons (`qwen3.5:4b`). Lek: selectors may normalize for matching, but receipts must preserve the actual executed model name and bridge must not invent aliases in `tags`. — izvor: tools/organ_news.py; tools/svemir_model_bridge.js
 - [2026-09-19T11:58] Runtime doctor must read `runtime/test-python.json` before PATH aliases. The machine's default `python` alias may be absent or point somewhere unusable while the full gate has a working Python 3.12 manifest. Lek: doctor, test gate and publisher share the same runtime manifest; PATH is only a fallback. — izvor: tools/doctor.js; research/test_research_runner.py
 - [2026-09-19T09:00] Audit 2026-09-19: project_kit check found stats.log=173 while LOG contained 201 records. Derived counters can drift from append-only evidence; compute or reconcile them from the actual log, and do not treat them as independent proof of project activity. — izvor: research/_trail/AUDIT_SYSTEM_2026-09-19.md
@@ -573,3 +577,135 @@ Prompt v2 required a cross-domain link and urban relief; the model obliged every
 **Greske:** PowerShell `Sort-Object` sa dva inline parametra i `-split '\'` listing nisu bili validni u korišćenom obliku. Lek: za dubinu Windows putanje koristi `.Split([IO.Path]::DirectorySeparatorChar)` i jednostavan `Sort-Object Depth,LastWriteTime -Descending`.
 
 **Iskustva:** Vidljivi opis uma postoji i u glavnoj stranici i u generisanom sloju; obe kopije moraju da govore „automatski izabrani provereni modeli“, inače ugrađeni panel može da zadrži staru tvrdnju iako je izvršni put već popravljen.
+
+### 2026-09-19T23:25:07Z — GPU mutex test mora da izoluje backend
+
+**Greske:** Dva regularna publish ciklusa pala su na testu koji očekuje `ModelDeferred`, ali je test nasledio `BEOPS_MODEL_BACKEND=cli` iz `beops_env.bat`; CLI `/api/tags` namerno ne koristi lokalni GPU mutex, pa assertion nije proveravao rutu koju je tvrdio da proverava.
+
+**Iskustva:** Integracioni test zajedničkog GPU locka mora eksplicitno postaviti lokalni backend. Scheduler okruženje je ulaz testa i ne sme nevidljivo menjati njegovu semantiku.
+
+**Izvori:** `tools/beops_env.bat`, `tools/local_models.py`, `research/test_operations.py`, dva neuspešna release transkripta u `runtime/release-diagnostics/`.
+
+**Vestine:** Kada isti test prolazi interaktivno a pada samo pod schedulerom, prvo uporedi promenljive okruženja i rutu izvršenja pre menjanja timeouta ili produkcionog lock protokola.
+
+**Odluke:** `SharedGPU.setUp` fiksira `BEOPS_MODEL_BACKEND=ollama`; CLI-specifični testovi ga lokalno prepisuju. AI feed dobija zasebnu regresiju koja potvrđuje da lock mrtvog PID-a biva automatski preuzet.
+
+### 2026-09-20T01:50Z — Failed publish attempts must cool down before retry
+
+- Greske: `publish_due.ps1` treated a failed 45-minute publish attempt as immediately due, so Beops could restart an expensive publish loop under PC load. Uzrok: cadence gate only considered the last successful receipt. Lek: the gate now also reads `data/live/publish-receipt.json` and opens a bounded `recent_failed_attempt` quiet window.
+- Iskustva: `test_states.py` passed in isolation in about 80 s; the live failure at `test_states.py` was caused by `BEOPS_CYCLE_DEADLINE` exhaustion after earlier publish phases, not by an undeclared state defect.
+- Izvori: `tools/publish_due.ps1`, `research/test_scheduler_scripts.py`, `runtime/publish-phases-91544-9a8bf36b6b7c49cd976f0245022b3663.jsonl`, `data/live/publish-scheduler-status.json`.
+- Odluke: Keep `runtime/PUBLISH_PAUSED` during this takeover until the publish path is shortened or moved; cooldown prevents retry storms but does not prove publication can finish inside budget.
+
+### 2026-09-20T01:56Z — `test_states.py` is disk-scan bound, not only JSON-parse bound
+
+- Iskustva: Raw-line and binary chunk prefilters reduced isolated `test_states.py` from about 80 s to about 62 s, but the first measurement-row check still spends most time walking the live archive on disk.
+- Greske: Treating the timeout as a single slow assertion hides that publish has several heavyweight phases before tests; shaving one test is not enough while release preparation, frozen watch/history/rows and the complete research gate run inside one deadline.
+- Vestine: The durable fix is to write a generated state-key index/manifest during live row generation or move the publish gate to a secondary body; do not keep adding ad-hoc parsing shortcuts once the bottleneck is file traversal.
+- Izvori: `research/test_states.py`, isolated timings 2026-09-20 (~80 s before, ~66 s line prefilter, ~62 s chunk prefilter).
+- Greske: Dva `cmd /c` wrappera nisu mogla pouzdano da pozovu `%BEOPS_PYTHON%` postavljen tek unutar prethodnog `call`: prvi je polomio navodnike, drugi je ostavio literalnu promenljivu. Uzrok je mešanje PowerShell, `cmd /s` i batch ekspanzije; lek za interaktivnu proveru je postaviti potrebne BEOPS promenljive u PowerShell-u i direktno pozvati eksplicitni provereni interpreter, uz zasebnu proveru exit koda.
+
+### 2026-09-20T08:46Z — Kapacitet na ulazu ne sprečava kasniji sudar diskovnih poslova
+
+- Iskustva: Poslednji uspešan publish završio je za oko 24 minuta, dok je ciklus za `1507e2f` potrošio svih 45 minuta; u sporom ciklusu watch view je porastao sa ~51–59 s na 395 s, gate sa 294 s na 951 s, a više pojedinačnih skenova sa desetina na preko 100 s.
+- Greske: Provera slobodne memorije samo na početku ne sprečava da se satni baseline uključi petnaest minuta kasnije i deli isti disk sa aktivnim publisherom. Live raspored trenutno pokreće publish u `:04/:34`, a baseline u `:49`; preklapanje sa ciklusom iz `:34` je očekivano. Lek: teški periodični čitač mora pre rada proveriti publish preparation/processing lock i tiho prepustiti termin aktivnoj objavi.
+- Izvori: `runtime/publish-phases-55708-9111bffd567b4fe9bf756dabe3cafcb9.jsonl`, `runtime/publish-phases-91544-9a8bf36b6b7c49cd976f0245022b3663.jsonl`, živi Task Scheduler triggeri pročitani 2026-09-20T08:46Z.
+- Odluke: Tretirati sudar kao snažnu radnu hipotezu dok naredni regularni ciklus bez baseline preklapanja ne potvrdi kraće trajanje; ne pripisivati sav zastoj memoriji.
+- Greske: Task Scheduler je posle tačno 60 minuta označio `Beops_Baseline` kao terminated (`267014`) i ugasio batch PID 22772, ali je njegov Python child PID 46376 (`history_qualification.py build`) ostao živ bez roditelja. Uzrok je oslanjanje na spoljašnji task limit kao da garantuje gašenje procesa potomaka; lek je unutrašnji kraći rok sa eksplicitnim gašenjem tačno pokrenutog stabla, plus regresija koja proverava wrapper ugovor.
+- Greske: Binary/line prefilter u `test_states.py` jeste sačuvao semantiku i test je prošao, ali sveže merenje bez baseline siročeta trajalo je 568.418 s (573.087 s wall). Uzrok je što test i dalje čita svaki bajt rastućeg živog reda; manje JSON parsiranja ne rešava diskovni trošak. Lek: publish gate mora koristiti state-presence indeks čiji identitet odgovara već zamrznutom release manifestu, a puni fallback sken ostaje samo kada takav dokaz ne postoji ili se ne slaže.
+
+### 2026-09-20T09:46Z — Baseline i publish dele jednu atomsku bravu
+
+- Greske: Batch provera da lock fajl trenutno postoji nije koordinaciona garancija, jer publisher može uzeti bravu između provere i prvog baseline child procesa. Lek: orkestrator mora koristiti isti `Enter-BeopsPublishLock` nad `runtime/publish-preparation.lock`, pre oba koraka, i držati ga do zajedničkog `finally` bloka.
+- Iskustva: Zauzeta brava je normalan scheduler ishod i zato baseline izlazi tiho sa kodom 0; neuspeh jednog bounded koraka zadržava njegov kod, preskače sledeći korak i ipak oslobađa samo bravu čiji PID odgovara tekućem procesu.
+- Greske: Prva statička regresija tražila je opšti tekst `baseline build` i pogodila komentar umesto komandne faze. Uzrok je neprecizno tekstualno sidro; lek je proveravati tačan `-Name 'baseline build'` poziv.
+- Izvori: `tools/baseline_run.ps1`, `tools/baseline_tick.bat`, `tools/publish_safety.ps1`, `research/test_scheduler_scripts.py`.
+- Odluke: Pre-check u batch wrapperu ostaje samo jeftina optimizacija; atomska `CreateNew` brava u PowerShell orkestratoru je jedina garancija protiv baseline/publish trke.
+
+### 2026-09-20T09:53Z — Ubrzani gate mora ostati dokaz, ne keš
+
+- Greske: Manifest hash i veličina fajla nisu dovoljni da state-presence odluka opiše bajtove koji se kasnije testiraju; ista-veličina izmena i JSON ključ zapisan kao `\u0073tate` mogu sakriti novo stanje.
+- Iskustva: Indeks je bez drugog diskovnog prolaza bezbedan samo u fizički vezanom release-u kada su tačan inventar, source OID, workspace marker i manifest hash provereni, a indeksirani JSONL zatvoreni kao read-only i njihov identitet ostao isti. Lokalni rad bez frozen bindinga i dalje koristi puni sken; oštećen frozen binding pada odmah.
+- Greske: Uspeh `taskkill /T /F` i izlazak wrappera ranije nisu bili deo računa, pa timeout nije dokazivao containment. Lek: status razlikuje `tree_terminated` od `containment_failed`, a regresija proverava i child i grandchild PID.
+- Odluke: Capacity proveru sprovodi i direktni outer publisher; nečitljiv cadence receipt je greška, ne dozvola za skup retry.
+
+### 2026-09-20T10:10Z — Bounded runner root must be execution root too
+
+- Greske: `run_bounded.ps1` resolved outputs against `AllowedRoot`, but started the child process in the script repository root. Uzrok: containment was treated as a path-output rule, not a working-directory rule. Lek: a bounded phase must use `AllowedRoot` as both output boundary and process working directory.
+- Izvori: `tools/run_bounded.ps1`, `research/test_scheduler_scripts.py`.
+
+### 2026-09-20T10:14Z — Scheduler fixtures must not read live cadence state
+
+- Greske: A cadence test omitted `-AttemptReceiptPath`, so the stricter fail-closed guard read the real `data/live/publish-receipt.json` and treated it as a future receipt relative to the fixture clock. Uzrok: test isolation covered success receipt and status path, but not the new attempt receipt. Lek: every publish_due fixture must pass all mutable state paths explicitly.
+- Greske: The preflight fixture passed the Python executable but not the recorded `BEOPS_TEST_PYTHONPATH`, so prerequisite import failed before the intended research-index refusal. Lek: tests that exercise the publish gate must carry the complete runtime pair from `runtime/test-python.json`.
+- Izvori: `research/test_scheduler_scripts.py`, `research/test_publish_preflight.py`, `runtime/test-python.json`.
+### 2026-09-20T12:57Z - Release preparation must not scan or spool the same large inputs twice
+
+- Greske: The first real prepare measurement stayed in `capacity and inventory` for several minutes before any writer lock was reached. Uzrok: release preparation did a deep stat walk over live/evidence/AI-feed inputs, then capture walked the same tree again. Lek: normal cadence should estimate capacity from the last frozen manifest plus margin and keep the live stat scan only as a no-cache fallback.
+- Iskustva: The 575 MB mutable cost is mostly `data/live/rows`, not evidence; evidence was already static-linked. Copying mutable bytes directly into the release and sealing hash/prefix/state after the lock removes the extra ZIP spool/extract pass while preserving the same manifest fields.
+- Izvori: `tools/prepare_release.py`, `research/test_release_observation.py`, `research/test_followthrough.py`, `runtime/release-inputs-last.json`.
+- Odluke: Keep `source_sha256`, complete-line prefix truncation and sealed state identity unchanged; optimize the I/O route, not the proof contract.
+
+### 2026-09-20T13:22Z - Public mirror sync must be content-addressed
+
+- Greske: Publish still treated the public mirror as one mutable package after the release gate: rollback zipped every public file and sync recopied every stage file, including large unchanged JSON. Uzrok: safety was implemented as whole-tree recovery, not as a content-addressed change plan. Lek: use the previous and next `docs/export-manifest.json` hashes to back up and copy only files whose bytes can change; keep the full original file list only for rollback of newly introduced files.
+- Iskustva: `docs/history*.json` and `docs/live-snapshot.json` dominate the mirror; static files must remain stable in place while generated files still pass through manifest and staged-byte verification.
+- Izvori: `tools/mirror_transaction.py`, `tools/publish_github.ps1`, `Beops-public/docs/export-manifest.json`.
+- Odluke: Rollback archive is now partial by default for publish sync, but legacy full capture remains available for review and older diagnostics.
+
+### 2026-09-20T13:38Z - Fixture timeout must not be the rollback contract
+
+- Greske: `test_deadline_during_real_public_copy_restores_previous_tree` could time out at the Python harness after 45 s under concurrent full-gate load even though the same rollback completed in about 11 s in isolation. Uzrok: the test timeout measured PowerShell startup and system load, while the production deadline is already forced inside the fixture via `BEOPS_CYCLE_DEADLINE`. Lek: keep the production expired-deadline assertion, but give the harness enough time to observe the rollback receipt.
+- Izvori: `research/test_publish_failure.py`, full `npm test` failure 2026-09-20, isolated unittest rerun.
+
+### 2026-09-20T14:02Z - Watchman row total should use the same validated index as per-source freshness
+
+- Greske: `watchman.py` had already stopped reparsing each source for freshness, but `rows_total()` still counted every nonblank line across `data/live/rows` on every watch tick. Uzrok: the aggregate shrink check was left on the old full-scan path. Lek: when `watch-row-index.json` exactly matches the current row files by path, size and mtime, sum its strict row counts; fall back to the full scan only on drift.
+- Izvori: `tools/watchman.py`, `research/test_watchman.py`, `data/live/watch-row-index.json`.
+
+### 2026-09-20T14:13Z - Row index freshness belongs to the writer
+
+- Iskustva: Watchman can be fast only when the index already matches the current row files; `--dry` correctly showed the stale-cache path by falling back into an expensive scan. The durable route is to update the index inside `collect_daemon.append_rows`, while the `.write.lock` already proves the append boundary.
+- Odluke: Collector updates `watch-row-index.json` only for a new file or when the cached file identity matches the pre-append identity. If the prefix is unknown, it leaves the cache stale and watchman performs one strict rebuild instead of inventing continuity.
+- Izvori: `tools/collect_daemon.py`, `research/test_collect_daemon.py`, `tools/watchman.py`, `runtime/watch-tick.log`.
+
+### 2026-09-20T14:17Z - ACL tests must budget for cold PowerShell startup
+
+- Greske: Full gate failed in `test_ai_feed_review` because the shared `Get-Acl` helper timed out after 15 s before returning JSON. Uzrok: under full-gate load, starting PowerShell and importing ACL support can exceed the old fixture timeout. Lek: keep the ACL inheritance assertion, but make the helper timeout 60 s so the test measures permissions instead of shell cold-start latency.
+- Izvori: `research/test_artifact_staging.py`, `research/test_ai_feed_review.py`, full `npm test` failure 2026-09-20T14:15Z.
+
+### 2026-09-20T14:20Z - Research prerequisite readiness is not a 60-second invariant
+
+- Greske: A rerun of full `npm test` failed before discovery because the Python/reportlab prerequisite import exceeded the hard 60 s guard. Uzrok: interpreter readiness under machine load can be slower than an individual test import, especially after heavy scheduled work. Lek: the prerequisite probe remains bounded, but its budget is 120 s so the gate refuses broken runtimes rather than cold starts.
+- Izvori: `tools/test-research.js`, `research/test_research_runner.py`, full `npm test` failure 2026-09-20T14:19Z.
+
+### 2026-09-20T14:31Z - Full gate passed, and named the next bottlenecks
+
+- Iskustva: After the row-index and timeout repairs, full `npm test` passed; the slowest remaining buckets were `test_paper_numbers.py` at 131.698 s and `test_states.py` at 90.567 s. Lek: the next optimization should not touch publish first; it should remove repeated row-count/state scans from those two proof surfaces.
+- Izvori: full `npm test` output 2026-09-20T14:31Z, `tools/paper_numbers.py`, `research/test_states.py`.
+
+### 2026-09-20T14:34Z - Paper figures can cite indexed row counts
+
+- Iskustva: The paper row-count figure does not need to rescan every row when the release manifest or live watch index already binds file identity to counts. The release path still carries byte hashes; the live path checks path, size and mtime against `watch-row-index.json`.
+- Greske: The first optimization made the figure fast but left its test doing a second full independent count, so isolated `test_paper_numbers.py` still hung on the old proof. Lek: tests must verify the same proof surface being used, not secretly reintroduce the retired expensive path.
+- Izvori: `tools/paper_numbers.py`, `research/test_paper_numbers.py`, `data/live/watch-row-index.json`.
+
+### 2026-09-20T14:52Z - State index must mean row state, not nested clock metadata
+
+- Greske: `state_key_present` treated any decoded `state` key as a candidate, so S146 rows with `phenomenonTimeCorrected.state` forced the state vocabulary test to reread a large measurement file even though no row-level `state` existed. Lek: cache and release manifest decisions must detect only a top-level JSONL row key.
+- Iskustva: A cold v2 cache still costs one exact scan of changed candidate files, but a warm cache reduced isolated `test_states.py` to 7.032 s; this keeps the proof while removing the repeated monthly archive scan.
+- Izvori: `research/test_states.py`, `tools/prepare_release.py`, `research/test_release_observation.py`, `runtime/state-key-index.json`.
+- Odluke: Bump the local state-key cache schema whenever the indexed semantics change; stale acceleration is worse than one cold rebuild.
+
+### 2026-09-20T15:10Z - State cache append proof must know the line boundary
+
+- Greske: A valid warm state-key cache still became expensive after a collector append, because changed size/mtime sent the whole monthly row file back through the binary scan. Uzrok: the cache knew the old decision but not whether new bytes began at a JSONL row boundary. Lek: store `ends_newline`; if the same file only grows after a proven newline, scan only appended rows, otherwise fall back to the full scan.
+- Iskustva: The first migration run must populate the new boundary field, but the next isolated `test_states.py` dropped to 3.658 s while still catching a newly appended top-level `state`.
+- Izvori: `research/test_states.py`, `runtime/state-key-index.json`, full `npm test` phase trace 2026-09-20.
+
+### 2026-09-20T16:35Z - Isolated publish tests cannot depend on live runtime files
+
+- Greske: The controlled publish for `a89dc09` built its release and then failed only in `test_publish_preflight.py`, because that test read `ROOT/runtime/test-python.json` from the isolated workspace where runtime is deliberately excluded. Uzrok: the test assumed the live repo layout while the publisher correctly passed runtime through `BEOPS_TEST_PYTHON` and `BEOPS_TEST_PYTHONPATH`. Lek: publish-gate tests must read the environment first and fall back to `runtime/test-python.json` only for live local runs.
+- Iskustva: The same fixture must use the recorded complete test runtime for its child publisher, not `sys.executable`; local runners can be an incomplete Python while the publish gate runtime is complete.
+- Izvori: `research/test_publish_preflight.py`, `runtime/release-diagnostics/beops-release-c8084860282b4909b7e4548ddfe64353-tests.txt`, `runtime/test-python.json`.
+- Odluke: Keep `runtime/PUBLISH_PAUSED` while publish is being repaired or retested after a failed release; a recent failed receipt gives cooldown, but an operator pause prevents another expensive automatic retry.

@@ -59,24 +59,47 @@ def _hour_of(row: dict) -> tuple[int | None, bool, str]:
 
 
 def source_qualification(sid: str, now: datetime) -> dict | None:
+    found, current = source_qualification_state(sid, now)
+    return found if current and found and found.get("eligible_source_for_serious_baseline") is True else None
+
+
+def source_qualification_state(sid: str, now: datetime) -> tuple[dict | None, bool]:
     """Return the current 30-day source receipt gate, or None when it is absent/stale."""
     try:
         report = json.loads(QUALIFICATION.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        return None
+        return None, False
     yesterday = (now.astimezone(timezone.utc).date() - timedelta(days=1)).isoformat()
     if report.get("schema") != "beops-history-qualification/v1" or report.get("as_of_complete_day") != yesterday:
-        return None
+        return None, False
     window = next((row for row in report.get("windows", []) if row.get("days") == 30), None)
     if not window:
-        return None
+        return None, True
     found = next((row for row in window.get("sources", []) if row.get("sid") == sid), None)
-    return found if found and found.get("eligible_source_for_serious_baseline") is True else None
+    return found, True
+
+
+def empty_baseline(sid: str, now: datetime, qualification: dict | None = None) -> dict:
+    return {"schema": SCHEMA, "sid": sid, "made_at": now.isoformat().replace("+00:00", "Z"),
+            "record_from": None, "record_to": None,
+            "days_of_record": 0,
+            "min_days_per_bucket": BUCKET_MIN_DAYS, "min_values_per_bucket": BUCKET_MIN_N,
+            "source_receipt_gate_passed": False,
+            "serious_baseline_eligible": False,
+            "qualification": qualification,
+            "buckets_published": 0, "buckets_too_thin_to_publish": 0,
+            "what_this_is": "the median of what this record received from this station at this hour of "
+                            "the day. A fact about the observatory, not a norm, a limit or a health "
+                            "threshold, and not usable as one.",
+            "clocks": [], "source_clock_note": None, "stations": {}, "buckets": {}}
 
 
 def build_source(sid: str, now: datetime | None = None) -> dict | None:
     now = now or datetime.now(timezone.utc)
-    qualification = source_qualification(sid, now)
+    gate, gate_current = source_qualification_state(sid, now)
+    qualification = gate if gate and gate.get("eligible_source_for_serious_baseline") is True else None
+    if gate_current and qualification is None:
+        return empty_baseline(sid, now, gate)
     d = ROWS / sid
     if not d.exists():
         return None

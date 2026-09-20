@@ -34,7 +34,9 @@ import argparse
 import hashlib
 import json
 from contracts import RecordFormatError, json_rows, exclusive, atomic_json
+from release_observation import frozen_manifest
 import pathlib
+import stat as statmod
 import subprocess
 import permission_policy
 import source_policy
@@ -100,6 +102,43 @@ def newest_receipt(sid: str):
 
 def row_index_path() -> pathlib.Path:
     return LIVE / "watch-row-index.json"
+
+
+def frozen_newest_row(sid: str):
+    try:
+        manifest = frozen_manifest(LIVE)
+    except Exception as exc:                                    # noqa: BLE001
+        return None, f"unreadable rows: frozen manifest {exc}"
+    if manifest is None:
+        return None
+    prefix = f"data/live/rows/{sid}/"
+    indexed = {}
+    for entry in manifest.get("files", []):
+        name = entry.get("path")
+        if isinstance(name, str) and name.startswith(prefix) and name.endswith(".jsonl"):
+            indexed[name] = entry
+    d = LIVE / "rows" / sid
+    if not indexed and not d.is_dir():
+        return None, "no rows directory"
+    actual = {p.relative_to(ROOT).as_posix() for p in sorted(d.glob("*.jsonl"))} if d.is_dir() else set()
+    if actual != set(indexed):
+        return None, "unreadable rows: frozen row inventory changed"
+    newest = None
+    for name, entry in indexed.items():
+        path = ROOT / name
+        if entry.get("state_index_sealed") is not True or path.is_symlink():
+            return None, "unreadable rows: frozen row identity is unsealed"
+        observed = path.stat()
+        if (observed.st_size != entry.get("bytes") or
+                observed.st_mtime_ns != entry.get("state_index_mtime_ns") or
+                observed.st_ino != entry.get("state_index_file_id") or
+                observed.st_dev != entry.get("state_index_device") or
+                observed.st_mode & (statmod.S_IWUSR | statmod.S_IWGRP | statmod.S_IWOTH)):
+            return None, "unreadable rows: frozen row identity changed"
+        t = parse(entry.get("newest_received_time"))
+        if t and (newest is None or t > newest):
+            newest = t
+    return (newest, None) if newest else (None, "no dated row")
 
 
 def load_row_index() -> dict:
@@ -208,6 +247,9 @@ def extend_row_entry(path: pathlib.Path, cached: dict, current) -> dict:
 
 
 def newest_row(sid: str, row_index: dict | None = None):
+    frozen = frozen_newest_row(sid)
+    if frozen is not None:
+        return frozen
     d = LIVE / "rows" / sid
     if not d.is_dir():
         return None, "no rows directory"
@@ -365,6 +407,9 @@ def rows_total() -> dict:
     d = LIVE / "rows"
     if not d.is_dir():
         return check("rows", UNKNOWN, "the rows directory is not there")
+    indexed = indexed_rows_total(d)
+    if indexed is not None:
+        return check("rows", OK, f"{indexed} rows on disk, counted from the validated row index", rows=indexed)
     n = 0
     try:
         for f in d.rglob("*.jsonl"):
@@ -373,6 +418,37 @@ def rows_total() -> dict:
     except Exception as e:                                        # noqa: BLE001
         return check("rows", UNKNOWN, f"the rows could not be counted ({type(e).__name__})")
     return check("rows", OK, f"{n} rows on disk", rows=n)
+
+
+def indexed_rows_total(rows_dir: pathlib.Path) -> int | None:
+    """Use the row index only when it exactly describes the current row files."""
+    row_index = load_row_index()
+    entries = row_index.get("files")
+    if not isinstance(entries, dict) or not entries:
+        return None
+    try:
+        files = sorted(rows_dir.rglob("*.jsonl"))
+        actual = {p.relative_to(LIVE).as_posix(): p for p in files}
+    except (OSError, ValueError):
+        return None
+    if set(actual) != set(entries):
+        return None
+    total = 0
+    try:
+        for key, path in actual.items():
+            cached = entries.get(key)
+            if not isinstance(cached, dict):
+                return None
+            st = path.stat()
+            if cached.get("size") != st.st_size or cached.get("mtime_ns") != st.st_mtime_ns:
+                return None
+            rows = cached.get("rows")
+            if not isinstance(rows, int) or rows < 0:
+                return None
+            total += rows
+    except (OSError, ValueError):
+        return None
+    return total
 
 
 def published(now: datetime) -> dict:

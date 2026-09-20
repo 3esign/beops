@@ -53,6 +53,42 @@ class RowCounting(unittest.TestCase):
             self.assertEqual(record.count_lines(rows/'sample.jsonl',non_blank=False),5)
             self.assertEqual(record.count_lines(rows/'empty.jsonl'),0)
 
+    def test_release_manifest_supplies_row_count_and_evidence_without_scanning(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = pathlib.Path(folder)
+            (root / "runtime").mkdir()
+            manifest = {"files": [{
+                "path": "data/live/rows/S01/2026-09.jsonl",
+                "bytes": 10,
+                "sha256": "a" * 64,
+                "nonblank_lines": 4,
+            }]}
+            (root / "runtime/release-inputs.json").write_text(json.dumps(manifest), encoding="utf-8")
+            evidence = {}
+            with patch.object(pathlib.Path, "rglob", side_effect=AssertionError("row scan attempted")):
+                with patch.object(pn, "ROOT", root):
+                    self.assertEqual(pn.rows_on_disk(evidence), {"rows": 4, "files": 1})
+            self.assertEqual(evidence["data/live/rows/S01/2026-09.jsonl"]["sha256"], "a" * 64)
+
+    def test_watch_row_index_supplies_live_count_without_reading_payload(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = pathlib.Path(folder)
+            rows = root / "data/live/rows/S01"
+            rows.mkdir(parents=True)
+            file = rows / "2026-09.jsonl"
+            file.write_text('{"a":1}\n{"b":2}\n', encoding="utf-8")
+            observed = file.stat()
+            index = {"schema": pn.ROW_INDEX_SCHEMA, "files": {
+                "rows/S01/2026-09.jsonl": {
+                    "size": observed.st_size,
+                    "mtime_ns": observed.st_mtime_ns,
+                    "rows": 2,
+                }}}
+            (root / "data/live/watch-row-index.json").write_text(json.dumps(index), encoding="utf-8")
+            with patch.object(pn, "open", side_effect=AssertionError("payload read"), create=True):
+                with patch.object(pn, "ROOT", root):
+                    self.assertEqual(pn.rows_on_disk({}), {"rows": 2, "files": 1})
+
 
 class Figures(unittest.TestCase):
     @classmethod
@@ -120,6 +156,23 @@ class Figures(unittest.TestCase):
                 self.assertEqual(actual['bytes'], row['bytes'], name)
                 self.assertEqual(actual['rows'], row['nonblank_lines'], name)
                 n += row['nonblank_lines']
+            self.assertEqual(n, self.out['rows']['rows'])
+            return
+        if self.row_evidence and all('sha256' not in row for row in self.row_evidence.values()):
+            index_path = ROOT / 'data/live/watch-row-index.json'
+            index = json.loads(index_path.read_text(encoding='utf-8-sig'))
+            expected = {'data/live/' + name: row for name, row in index['files'].items()}
+            self.assertEqual(set(expected), set(self.row_evidence))
+            n = 0
+            for name, row in expected.items():
+                actual = self.row_evidence[name]
+                path = ROOT / name
+                observed = path.stat()
+                self.assertEqual(observed.st_size, row['size'], name)
+                self.assertEqual(observed.st_mtime_ns, row['mtime_ns'], name)
+                self.assertEqual(actual['rows'], row['rows'], name)
+                self.assertEqual(actual['bytes'], row['size'], name)
+                n += row['rows']
             self.assertEqual(n, self.out['rows']['rows'])
             return
         n = 0

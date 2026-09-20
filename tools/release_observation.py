@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import pathlib
+import stat as statmod
 from datetime import datetime, timezone
 
 
@@ -99,6 +100,16 @@ def verify(live, manifest):
         if path.is_symlink() or not path.resolve().is_relative_to(live):
             raise ValueError('unsafe frozen observation path')
         entry = selected[path.relative_to(root).as_posix()]
+        if entry.get('state_index_sealed') is True:
+            observed = path.stat()
+            if (observed.st_size != entry.get('bytes') or
+                    observed.st_mtime_ns != entry.get('state_index_mtime_ns') or
+                    observed.st_ino != entry.get('state_index_file_id') or
+                    observed.st_dev != entry.get('state_index_device') or
+                    observed.st_mode & (statmod.S_IWUSR | statmod.S_IWGRP | statmod.S_IWOTH)):
+                raise ValueError('frozen observation identity changed: ' + entry['path'])
+            total += entry['bytes']
+            continue
         digest, size = hashlib.sha256(), 0
         with path.open('rb') as stream:
             for block in iter(lambda: stream.read(1024*1024), b''):

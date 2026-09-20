@@ -8,17 +8,68 @@ import hashlib
 import json
 import os
 import pathlib
+import re
 import shutil
+import stat as statmod
 import subprocess
 import tarfile
-import tempfile
 import time
-import zipfile
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from contracts import atomic_json, exclusive
 from storage_health import require_release_capacity
 from release_observation import is_observation_path
+
+STATE_KEY_PATTERN = re.compile(
+    rb'"(?:s|\\u0073)(?:t|\\u0074)(?:a|\\u0061)(?:t|\\u0074)(?:e|\\u0065)"[ \t\r\n]*:'
+)
+STATE_KEY_TAIL_BYTES = 64
+STATE_KEY_PREFILTER = (b'"state"', b'\\u0073', b'\\u0074', b'\\u0061', b'\\u0065')
+RECEIVED_TIME_PATTERN = re.compile(rb'"receivedTime"[ \t\r\n]*:[ \t\r\n]*"([^"]+)"')
+
+
+def raw_may_spell_state_key(raw):
+    return any(needle in raw for needle in STATE_KEY_PREFILTER)
+
+
+def _json_depth_before(raw: bytes, stop: int) -> int:
+    depth = 0
+    in_string = False
+    escaped = False
+    for ch in raw[:stop]:
+        if in_string:
+            if escaped:
+                escaped = False
+            elif ch == 92:  # backslash
+                escaped = True
+            elif ch == 34:  # "
+                in_string = False
+            continue
+        if ch == 34:  # "
+            in_string = True
+        elif ch in (123, 91):  # { [
+            depth += 1
+        elif ch in (125, 93):  # } ]
+            depth -= 1
+    return depth
+
+
+def raw_has_top_level_state_key(raw: bytes) -> bool:
+    if not raw_may_spell_state_key(raw):
+        return False
+    for match in STATE_KEY_PATTERN.finditer(raw):
+        if _json_depth_before(raw, match.start()) == 1:
+            return True
+    return False
+
+
+def scan_state_key_block(pending: bytes, block: bytes) -> tuple[bytes, bool]:
+    haystack = pending + block
+    lines = haystack.split(b'\n')
+    for raw_line in lines[:-1]:
+        if raw_has_top_level_state_key(raw_line):
+            return b'', True
+    return lines[-1], False
 
 
 def trace_phase(name, event, seconds=None, **details):
@@ -79,6 +130,7 @@ def linkable(posix):
             and parts[-2] in LINKABLE_DERIVED and posix.endswith('.json') and not parts[-1].startswith('.'))
 HASH_CACHE_NAME = '.beops-evidence-sha-cache.json'
 HASH_CACHE_MAX_AGE_SECONDS = 24 * 3600
+CAPACITY_ESTIMATE_MARGIN_BYTES = 512 * 1024 * 1024
 
 
 def link_enabled():
@@ -121,9 +173,8 @@ class EvidenceHashes:
 
 
 def capture_inputs(source, dest, metrics=None):
-    """Bound RAM with one temporary spool, then write destination files unlocked."""
-    with tempfile.TemporaryFile(dir=dest.parent) as spool:
-        return _capture_inputs(source, dest, spool, metrics)
+    """Freeze release inputs with bounded RAM and short live writer locks."""
+    return _capture_inputs(source, dest, metrics)
 
 
 def archive_paths(source, oid):
@@ -140,22 +191,46 @@ def archive_paths(source, oid):
     return paths
 
 
-def _capture_inputs(source, dest, spool, metrics=None):
-    """Hold writer locks while spooling mutable bytes, not while writing many copies.
+def estimate_release_input_bytes(source):
+    """Avoid a duplicate deep stat walk when the last release manifest exists."""
+    manifest = source / 'runtime/release-inputs-last.json'
+    if manifest.is_file():
+        try:
+            previous = json.loads(manifest.read_text(encoding='utf-8-sig'))
+            captured = int(previous.get('timings', {}).get('captured_bytes') or 0)
+            if captured > 0:
+                return captured + CAPACITY_ESTIMATE_MARGIN_BYTES, 'runtime/release-inputs-last.json+512MiB'
+        except (OSError, ValueError, TypeError):
+            pass
+    input_bytes = sum(p.stat().st_size for folder in ('data/live', 'research/evidence', 'research/observations', 'runtime/ai-feed')
+                      for p in (source/folder).rglob('*') if p.is_file() and p.suffix not in ('.lock', '.tmp'))
+    return input_bytes, 'live_stat_scan'
+
+
+def _capture_inputs(source, dest, metrics=None):
+    """Hold writer locks only while freezing mutable bytes.
 
     Immutable evidence and receipts use a frozen path/stat inventory. Their bytes
     are copied after release and any intervening modification refuses the release.
-    Mutable streams/caches enter one temporary container in 1 MiB chunks under
-    the shared locks. Extraction and immutable copying happen after unlocking.
+    Mutable streams/caches are copied directly into the release under the shared
+    lock, then hashed, prefix-trimmed and sealed after unlocking.
     """
     source, dest = pathlib.Path(source).resolve(), pathlib.Path(dest).resolve()
-    immutable, inputs = [], []
+    immutable, mutable, inputs = [], [], []
     metrics = metrics if metrics is not None else {}
     phase_started = time.monotonic()
     trace_phase('input inventory', 'start')
     captured = set()
     cap = int(os.environ.get('BEOPS_CAPTURE_LIMIT_MB', '2048')) * 1024 * 1024
     total = 0
+    prepared_parents = set()
+
+    def prepare_parent(parent):
+        if parent not in prepared_parents:
+            if parent != dest:
+                prepare_parent(parent.parent)
+            parent.mkdir(exist_ok=True)
+            prepared_parents.add(parent)
 
     def identity(path):
         rel = path.relative_to(source)
@@ -184,72 +259,64 @@ def _capture_inputs(source, dest, spool, metrics=None):
             total += stat[0]
             if total > cap:
                 raise RuntimeError('mutable release input exceeds capture size limit; no release produced')
-            with path.open('rb') as src, archive.open(rel.as_posix(), 'w') as member:
-                shutil.copyfileobj(src, member, 1024 * 1024)
+            target = dest / rel
+            prepare_parent(target.parent)
+            shutil.copyfile(path, target)
             verify(path, stat)
+            mutable.append(rel)
         else:
             immutable.append((path, rel, stat))
 
-    with zipfile.ZipFile(spool, 'w', compression=zipfile.ZIP_STORED) as archive:
-        # immutable raw payload whose hash they attest. Keep both halves of that
-        # reference in the isolated release. Raw captures are small compared with
-        # rows/derived state and are immutable once their timestamped path exists.
-        for folder in ('research/evidence', 'data/live/receipts', 'data/live/raw',
-                       'runtime/ai-feed/entries', 'runtime/ai-feed/contexts', 'runtime/ai-feed/prompts'):
+    # immutable raw payload whose hash they attest. Keep both halves of that
+    # reference in the isolated release. Raw captures are small compared with
+    # rows/derived state and are immutable once their timestamped path exists.
+    for folder in ('research/evidence', 'data/live/receipts', 'data/live/raw',
+                   'runtime/ai-feed/entries', 'runtime/ai-feed/contexts', 'runtime/ai-feed/prompts'):
+        directory = source / folder
+        for path in sorted(directory.rglob('*')) if directory.exists() else []:
+            if path.is_file():
+                collect(path, False)
+    # Timestamped model receipts and digests are immutable inputs too.
+    # Reading thousands of them under the live lock exceeded other writers'
+    # deadline. Inventory before locking; changed bytes still refuse release.
+    for path in sorted((source/'data/live/derived').rglob('*.json')):
+        if path.parent.name in ('receipts', 'digests') and path.is_file():
+            collect(path, False)
+    metrics['inventory_seconds'] = round(time.monotonic()-phase_started, 3)
+    trace_phase('input inventory', 'end', metrics['inventory_seconds'], files=len(immutable))
+    phase_started = time.monotonic()
+    trace_phase('mutable capture', 'start')
+    with exclusive(source/'data/live/.write.lock', timeout=120):
+        started = time.monotonic()
+        # Refresh both sides of receipt -> raw references after the writer
+        # boundary. A collector may have completed between the first inventory
+        # and this lock, so refreshing receipts alone would create a release
+        # whose own recovery tests cannot replay its newest observation.
+        for pattern in ('data/live/receipts/*/*', 'data/live/raw/**/*'):
+            for path in sorted(source.glob(pattern)):
+                if path not in captured and path.is_file():
+                    collect(path, False)
+        for folder in ('research/observations', 'data/live/rows', 'data/live/derived'):
             directory = source / folder
             for path in sorted(directory.rglob('*')) if directory.exists() else []:
-                if path.is_file():
-                    collect(path, False)
-        # Timestamped model receipts and digests are immutable inputs too.
-        # Reading thousands of them under the live lock exceeded other writers'
-        # deadline. Inventory before locking; changed bytes still refuse release.
-        for path in sorted((source/'data/live/derived').rglob('*.json')):
-            if path.parent.name in ('receipts', 'digests') and path.is_file():
-                collect(path, False)
-        metrics['inventory_seconds'] = round(time.monotonic()-phase_started, 3)
-        trace_phase('input inventory', 'end', metrics['inventory_seconds'], files=len(immutable))
-        phase_started = time.monotonic()
-        trace_phase('mutable capture', 'start')
-        with exclusive(source/'data/live/.write.lock', timeout=120):
-            started = time.monotonic()
-            # Refresh both sides of receipt -> raw references after the writer
-            # boundary. A collector may have completed between the first inventory
-            # and this lock, so refreshing receipts alone would create a release
-            # whose own recovery tests cannot replay its newest observation.
-            for pattern in ('data/live/receipts/*/*', 'data/live/raw/**/*'):
-                for path in sorted(source.glob(pattern)):
-                    if path not in captured and path.is_file():
-                        collect(path, False)
-            for folder in ('research/observations', 'data/live/rows', 'data/live/derived'):
-                directory = source / folder
-                for path in sorted(directory.rglob('*')) if directory.exists() else []:
-                    if path not in captured and path.is_file():
-                        collect(path, True)
-            for rel in ('research/08-provenance/LEDGER.jsonl', 'data/ca-bundle-windows.pem',
-                        'runtime/ai-feed/status.json',
-                        'data/live/corrections.jsonl', 'data/live/retention-ledger.jsonl',
-                        'data/live/guard-ledger.jsonl', 'data/live/publish-receipt.json'):
-                if (source/rel).is_file():
-                    collect(source/rel, True)
-            shape = dest/'research/RECORD_SHAPE.json'
-            if shape.exists():
-                names = json.loads(shape.read_text(encoding='utf-8')).get('files_directly_in_data_live', {}).get('files', {})
-                for name in names:
-                    if pathlib.Path(name).name == name and (source/'data/live'/name).is_file():
-                        collect(source/'data/live'/name, True)
-            captured_at = datetime.now(timezone.utc).isoformat()
-            lock_seconds = round(time.monotonic() - started, 3)
-        metrics['mutable_capture_seconds'] = round(time.monotonic()-phase_started, 3)
-        trace_phase('mutable capture', 'end', metrics['mutable_capture_seconds'], writer_lock_seconds=lock_seconds, bytes=total)
-
-    prepared_parents = set()
-
-    def prepare_parent(parent):
-        if parent not in prepared_parents:
-            if parent != dest:
-                prepare_parent(parent.parent)
-            parent.mkdir(exist_ok=True)
-            prepared_parents.add(parent)
+                if path not in captured and path.is_file():
+                    collect(path, True)
+        for rel in ('research/08-provenance/LEDGER.jsonl', 'data/ca-bundle-windows.pem',
+                    'runtime/ai-feed/status.json',
+                    'data/live/corrections.jsonl', 'data/live/retention-ledger.jsonl',
+                    'data/live/guard-ledger.jsonl', 'data/live/publish-receipt.json'):
+            if (source/rel).is_file():
+                collect(source/rel, True)
+        shape = dest/'research/RECORD_SHAPE.json'
+        if shape.exists():
+            names = json.loads(shape.read_text(encoding='utf-8')).get('files_directly_in_data_live', {}).get('files', {})
+            for name in names:
+                if pathlib.Path(name).name == name and (source/'data/live'/name).is_file():
+                    collect(source/'data/live'/name, True)
+        captured_at = datetime.now(timezone.utc).isoformat()
+        lock_seconds = round(time.monotonic() - started, 3)
+    metrics['mutable_capture_seconds'] = round(time.monotonic()-phase_started, 3)
+    trace_phase('mutable capture', 'end', metrics['mutable_capture_seconds'], writer_lock_seconds=lock_seconds, bytes=total)
 
     def write(rel, stream):
         target = dest / rel
@@ -258,7 +325,11 @@ def _capture_inputs(source, dest, spool, metrics=None):
         complete_digest, complete_size = hashlib.sha256(), 0
         prefix_only = is_observation_path(rel.as_posix())
         count_rows = rel.as_posix().startswith('data/live/rows/') and rel.suffix == '.jsonl'
+        index_state_key = (rel.suffix == '.jsonl' and
+                           rel.as_posix().startswith(('data/live/rows/', 'data/live/derived/')))
+        state_tail, state_key_present = b'', False
         row_count, pending_nonblank = 0, False
+        row_tail, newest_received_time = b'', None
         with target.open('wb') as out:
             for block in iter(lambda: stream.read(1024 * 1024), b''):
                 out.write(block)
@@ -269,6 +340,8 @@ def _capture_inputs(source, dest, spool, metrics=None):
                     complete_size = size + last_lf + 1
                 digest.update(block)
                 size += len(block)
+                if index_state_key and not state_key_present:
+                    state_tail, state_key_present = scan_state_key_block(state_tail, block)
                 if count_rows:
                     # Count the same captured bytes while they are already in RAM.
                     # Independent from the paper's line iterator; no second disk pass.
@@ -279,8 +352,31 @@ def _capture_inputs(source, dest, spool, metrics=None):
                         row_count += bool(pending_nonblank or parts[0].strip())
                         row_count += sum(bool(part.strip()) for part in parts[1:-1])
                         pending_nonblank = bool(parts[-1].strip())
+                    row_bytes = row_tail + block
+                    row_parts = row_bytes.split(b'\n')
+                    for raw_line in row_parts[:-1]:
+                        if not raw_line.strip():
+                            continue
+                        match = RECEIVED_TIME_PATTERN.search(raw_line)
+                        if match:
+                            try:
+                                stamp = match.group(1).decode('ascii')
+                            except UnicodeDecodeError:
+                                stamp = None
+                            if stamp and (newest_received_time is None or stamp > newest_received_time):
+                                newest_received_time = stamp
+                    row_tail = row_parts[-1]
             if prefix_only:
                 out.truncate(complete_size)
+        if index_state_key and not state_key_present and state_tail:
+            state_key_present = raw_has_top_level_state_key(state_tail)
+        sealed_stat = None
+        if index_state_key:
+            # The state index describes these exact captured bytes. Freeze them
+            # before the manifest is written so later builders cannot invalidate
+            # the index with an accidental same-size rewrite.
+            target.chmod(statmod.S_IREAD)
+            sealed_stat = target.stat()
         result = {'path': rel.as_posix(), 'bytes': complete_size if prefix_only else size,
                   'sha256': complete_digest.hexdigest() if prefix_only else digest.hexdigest()}
         if prefix_only:
@@ -288,17 +384,97 @@ def _capture_inputs(source, dest, spool, metrics=None):
                           excluded_tail_bytes=size-complete_size)
         if count_rows:
             result['nonblank_lines'] = row_count
+            if newest_received_time:
+                result['newest_received_time'] = newest_received_time
+        if index_state_key:
+            # This is an acceleration claim over the exact bytes already hashed into
+            # release-inputs.json, never a second source of truth. A possible match in
+            # an excluded partial observation tail is a safe false positive: the state
+            # test will parse that frozen file instead of skipping it.
+            result['state_key_present'] = state_key_present
+            result.update(state_index_sealed=True,
+                          state_index_mtime_ns=sealed_stat.st_mtime_ns,
+                           state_index_file_id=sealed_stat.st_ino,
+                           state_index_device=sealed_stat.st_dev)
+        return result
+
+    def seal_existing(rel):
+        target = dest / rel
+        digest, size = hashlib.sha256(), 0
+        complete_digest, complete_size = hashlib.sha256(), 0
+        prefix_only = is_observation_path(rel.as_posix())
+        count_rows = rel.as_posix().startswith('data/live/rows/') and rel.suffix == '.jsonl'
+        index_state_key = (rel.suffix == '.jsonl' and
+                           rel.as_posix().startswith(('data/live/rows/', 'data/live/derived/')))
+        state_tail, state_key_present = b'', False
+        row_count, pending_nonblank = 0, False
+        row_tail, newest_received_time = b'', None
+        with target.open('rb') as stream:
+            for block in iter(lambda: stream.read(1024 * 1024), b''):
+                last_lf = block.rfind(b'\n') if prefix_only else -1
+                if last_lf >= 0:
+                    complete_digest = digest.copy()
+                    complete_digest.update(block[:last_lf+1])
+                    complete_size = size + last_lf + 1
+                digest.update(block)
+                size += len(block)
+                if index_state_key and not state_key_present:
+                    state_tail, state_key_present = scan_state_key_block(state_tail, block)
+                if count_rows:
+                    parts = block.split(b'\n')
+                    if len(parts) == 1:
+                        pending_nonblank = pending_nonblank or bool(parts[0].strip())
+                    else:
+                        row_count += bool(pending_nonblank or parts[0].strip())
+                        row_count += sum(bool(part.strip()) for part in parts[1:-1])
+                        pending_nonblank = bool(parts[-1].strip())
+                    row_bytes = row_tail + block
+                    row_parts = row_bytes.split(b'\n')
+                    for raw_line in row_parts[:-1]:
+                        if not raw_line.strip():
+                            continue
+                        match = RECEIVED_TIME_PATTERN.search(raw_line)
+                        if match:
+                            try:
+                                stamp = match.group(1).decode('ascii')
+                            except UnicodeDecodeError:
+                                stamp = None
+                            if stamp and (newest_received_time is None or stamp > newest_received_time):
+                                newest_received_time = stamp
+                    row_tail = row_parts[-1]
+        if prefix_only:
+            with target.open('r+b') as out:
+                out.truncate(complete_size)
+        if index_state_key and not state_key_present and state_tail:
+            state_key_present = raw_has_top_level_state_key(state_tail)
+        sealed_stat = None
+        if index_state_key:
+            target.chmod(statmod.S_IREAD)
+            sealed_stat = target.stat()
+        result = {'path': rel.as_posix(), 'bytes': complete_size if prefix_only else size,
+                  'sha256': complete_digest.hexdigest() if prefix_only else digest.hexdigest()}
+        if prefix_only:
+            result.update(source_bytes=size, source_sha256=digest.hexdigest(),
+                          excluded_tail_bytes=size-complete_size)
+        if count_rows:
+            result['nonblank_lines'] = row_count
+            if newest_received_time:
+                result['newest_received_time'] = newest_received_time
+        if index_state_key:
+            result['state_key_present'] = state_key_present
+            result.update(state_index_sealed=True,
+                          state_index_mtime_ns=sealed_stat.st_mtime_ns,
+                          state_index_file_id=sealed_stat.st_ino,
+                          state_index_device=sealed_stat.st_dev)
         return result
 
     phase_started = time.monotonic()
     trace_phase('mutable extract', 'start')
-    spool.seek(0)
-    with zipfile.ZipFile(spool) as archive:
-        for name in archive.namelist():
-            with archive.open(name) as stream:
-                inputs.append(write(pathlib.PurePosixPath(name), stream))
+    for rel in mutable:
+        inputs.append(seal_existing(rel))
     metrics['mutable_extract_seconds'] = round(time.monotonic()-phase_started, 3)
     metrics['spooled_bytes'] = total
+    metrics['mutable_copied_bytes'] = total
     metrics['extracted_bytes'] = sum(item['bytes'] for item in inputs)
     trace_phase('mutable extract', 'end', metrics['mutable_extract_seconds'], bytes=metrics['extracted_bytes'])
     hashes = EvidenceHashes(dest.parent / HASH_CACHE_NAME) if link_enabled() else None
@@ -361,15 +537,17 @@ def prepare(source, destination, oid=None, owner_pid=None, retained=False):
     oid = git(source, 'rev-parse', '--verify', (oid or 'HEAD') + '^{commit}')
     tree = git(source, 'rev-parse', oid + '^{tree}')
     dest.parent.mkdir(parents=True, exist_ok=True)
-    # The spool and final input copy coexist. Refuse before allocating anything
-    # large; a publish must never consume the operating system's last free bytes.
-    input_bytes = sum(p.stat().st_size for folder in ('data/live', 'research/evidence', 'research/observations', 'runtime/ai-feed')
-                      for p in (source/folder).rglob('*') if p.is_file() and p.suffix not in ('.lock', '.tmp'))
+    # Refuse before allocating anything large; a publish must never consume the
+    # operating system's last free bytes. The last manifest avoids a duplicate
+    # deep stat walk over immutable evidence and receipts on normal cadence.
+    input_bytes, input_bytes_from = estimate_release_input_bytes(source)
     source_bytes = sum(int(line.split()[3]) for line in git(source, 'ls-tree', '-r', '-l', oid).splitlines()
                        if len(line.split()) >= 4 and line.split()[3].isdigit())
     capacity = require_release_capacity(dest.parent, input_bytes, source_bytes)
     timings['capacity_and_inventory_seconds'] = round(time.monotonic()-phase_started, 3)
-    trace_phase('capacity and inventory', 'end', timings['capacity_and_inventory_seconds'], input_bytes=input_bytes, source_bytes=source_bytes)
+    timings['capacity_input_bytes_from'] = input_bytes_from
+    trace_phase('capacity and inventory', 'end', timings['capacity_and_inventory_seconds'],
+                input_bytes=input_bytes, input_bytes_from=input_bytes_from, source_bytes=source_bytes)
     phase_started = time.monotonic()
     trace_phase('fixed source', 'start')
     dest.mkdir()
@@ -405,6 +583,7 @@ def prepare(source, destination, oid=None, owner_pid=None, retained=False):
             raw = file.read_bytes()
             configuration.append({'path':name, 'bytes':len(raw), 'sha256':hashlib.sha256(raw).hexdigest()})
     manifest = {'schema':'beops-release-inputs/v1','source_oid':oid,'source_tree':tree,
+        'state_index':'sealed-readonly-jsonl/v1',
         'observation_prefix':'complete-lf-lines/v1', 'configuration':configuration,
         'captured_at':captured_at, 'writer_lock_seconds':lock_seconds, 'capacity':capacity,
         'timings':timings, 'files':inputs}

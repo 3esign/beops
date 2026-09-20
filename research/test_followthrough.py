@@ -357,12 +357,12 @@ class ReleaseCapture(unittest.TestCase):
             mutable = source/'data/live/derived/mind/context.json'
             digest.parent.mkdir(parents=True); dest.mkdir()
             digest.write_bytes(b'{"v":1}'); mutable.write_bytes(b'{}')
-            real_open = pathlib.Path.open
-            def writer(path, *args, **kwargs):
-                if path.is_relative_to(dest) and 'w' in str(args[0] if args else kwargs.get('mode', 'r')):
+            real_link = P.os.link
+            def writer(src, dst, *args, **kwargs):
+                if pathlib.Path(src) == digest:
                     digest.write_bytes(b'{"v":222}')
-                return real_open(path, *args, **kwargs)
-            with patch.object(pathlib.Path, 'open', writer), self.assertRaisesRegex(RuntimeError, 'changed after capture'):
+                return real_link(src, dst, *args, **kwargs)
+            with patch.object(P.os, 'link', writer), self.assertRaisesRegex(RuntimeError, 'changed after capture'):
                 P.capture_inputs(source, dest)
 
     def test_writing_copies_releases_live_lock_and_preserves_one_mutable_snapshot(self):
@@ -374,7 +374,7 @@ class ReleaseCapture(unittest.TestCase):
             real_open = pathlib.Path.open
             checked = []
             def writer(path, *args, **kwargs):
-                if path.is_relative_to(dest) and 'w' in str(args[0] if args else kwargs.get('mode', 'r')):
+                if path.is_relative_to(dest) and 'r' in str(args[0] if args else kwargs.get('mode', 'r')):
                     def live_writer():
                         with C.exclusive(source/'data/live/.write.lock', timeout=.05):
                             return True
@@ -395,12 +395,12 @@ class ReleaseCapture(unittest.TestCase):
             raw = source/'research/evidence/input.json'; raw.parent.mkdir(parents=True)
             mutable = source/'data/live/rows/S1/a.jsonl'; mutable.parent.mkdir(parents=True)
             raw.write_bytes(b'old'); mutable.write_bytes(b'{}\n'); dest.mkdir()
-            real_open = pathlib.Path.open
-            def writer(path, *args, **kwargs):
-                if path.is_relative_to(dest) and 'w' in str(args[0] if args else kwargs.get('mode', 'r')):
+            real_link = P.os.link
+            def writer(src, dst, *args, **kwargs):
+                if pathlib.Path(src) == raw:
                     raw.write_bytes(b'changed after capture')
-                return real_open(path, *args, **kwargs)
-            with patch.object(pathlib.Path, 'open', writer), self.assertRaisesRegex(RuntimeError, 'changed after capture'):
+                return real_link(src, dst, *args, **kwargs)
+            with patch.object(P.os, 'link', writer), self.assertRaisesRegex(RuntimeError, 'changed after capture'):
                 P.capture_inputs(source, dest)
 
 

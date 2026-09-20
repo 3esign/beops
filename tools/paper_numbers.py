@@ -22,6 +22,7 @@ import sys
 from collections import Counter
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+ROW_INDEX_SCHEMA = "beops-watch-row-index/v1"
 
 
 def safe(fn, default="unavailable"):
@@ -86,6 +87,12 @@ def provenance():
 
 
 def rows_on_disk(evidence=None):
+    manifested = rows_from_release_manifest(evidence)
+    if manifested is not None:
+        return manifested
+    indexed = rows_from_watch_index(evidence)
+    if indexed is not None:
+        return indexed
     n, files = 0, 0
     for p in (ROOT / "data" / "live" / "rows").rglob("*.jsonl"):
         files += 1
@@ -104,6 +111,67 @@ def rows_on_disk(evidence=None):
                 evidence[p.relative_to(ROOT).as_posix()] = {
                     'rows': count, 'bytes': size, 'sha256': digest.hexdigest()}
     return {"rows": n, "files": files}
+
+
+def rows_from_release_manifest(evidence=None):
+    manifest = ROOT / "runtime" / "release-inputs.json"
+    if not manifest.is_file():
+        return None
+    try:
+        document = json.loads(manifest.read_text(encoding="utf-8-sig"))
+        entries = [row for row in document.get("files", [])
+                   if isinstance(row, dict)
+                   and isinstance(row.get("path"), str)
+                   and row["path"].startswith("data/live/rows/")
+                   and row["path"].endswith(".jsonl")]
+        if not entries or any(not isinstance(row.get("nonblank_lines"), int) for row in entries):
+            return None
+    except (OSError, UnicodeError, ValueError, AttributeError):
+        return None
+    if evidence is not None:
+        for row in entries:
+            evidence[row["path"]] = {
+                "rows": row["nonblank_lines"],
+                "bytes": row["bytes"],
+                "sha256": row["sha256"],
+            }
+    return {"rows": sum(row["nonblank_lines"] for row in entries), "files": len(entries)}
+
+
+def rows_from_watch_index(evidence=None):
+    live = ROOT / "data" / "live"
+    rows_dir = live / "rows"
+    index_path = live / "watch-row-index.json"
+    if not rows_dir.is_dir() or not index_path.is_file():
+        return None
+    try:
+        index = json.loads(index_path.read_text(encoding="utf-8-sig"))
+        entries = index.get("files")
+        if index.get("schema") != ROW_INDEX_SCHEMA or not isinstance(entries, dict) or not entries:
+            return None
+        actual = {p.relative_to(live).as_posix(): p for p in sorted(rows_dir.rglob("*.jsonl"))}
+    except (OSError, UnicodeError, ValueError, AttributeError):
+        return None
+    if set(actual) != set(entries):
+        return None
+    total = 0
+    try:
+        for key, path in actual.items():
+            row = entries.get(key)
+            if not isinstance(row, dict):
+                return None
+            st = path.stat()
+            if row.get("size") != st.st_size or row.get("mtime_ns") != st.st_mtime_ns:
+                return None
+            rows = row.get("rows")
+            if not isinstance(rows, int) or rows < 0:
+                return None
+            total += rows
+            if evidence is not None:
+                evidence[path.relative_to(ROOT).as_posix()] = {"rows": rows, "bytes": st.st_size}
+    except (OSError, ValueError):
+        return None
+    return {"rows": total, "files": len(actual)}
 
 
 def history():

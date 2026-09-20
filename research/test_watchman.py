@@ -2,6 +2,7 @@
 """The watchman is the thing that will be believed when nobody is looking, so it is tested for the
 ways a monitor lies: calling silence a failure, calling blindness success, and vouching for a period
 it slept through."""
+import hashlib
 import json
 import pathlib
 import shutil
@@ -144,6 +145,64 @@ class WatchmanTests(unittest.TestCase):
         newest, error = W.newest_row("S01")
         self.assertIsNone(newest)
         self.assertIn("unreadable rows", error)
+
+    def test_frozen_manifest_supplies_newest_row_without_reparsing_payload(self):
+        self.t.row("S01", NOW - timedelta(minutes=5))
+        path = self.t.dir / "data" / "live" / "rows" / "S01" / "2026-09.jsonl"
+        path.chmod(0o444)
+        self.addCleanup(lambda: path.exists() and path.chmod(0o666))
+        observed = path.stat()
+        manifest = {
+            "schema": "beops-release-inputs/v1",
+            "source_oid": "a" * 40,
+            "source_tree": "b" * 40,
+            "files": [{
+                "path": path.relative_to(self.t.dir).as_posix(),
+                "bytes": observed.st_size,
+                "sha256": "0" * 64,
+                "state_index_sealed": True,
+                "state_index_mtime_ns": observed.st_mtime_ns,
+                "state_index_file_id": observed.st_ino,
+                "state_index_device": observed.st_dev,
+                "newest_received_time": iso(NOW - timedelta(minutes=5)),
+            }],
+        }
+        (self.t.dir / "runtime").mkdir(exist_ok=True)
+        raw = json.dumps(manifest).encode()
+        (self.t.dir / "runtime/release-inputs.json").write_bytes(raw)
+        (self.t.dir / ".beops-generated-workspace.json").write_text(
+            json.dumps({"source_oid": "a" * 40}), encoding="utf-8")
+        env = {"BEOPS_FROZEN_ROOT": str(self.t.dir),
+               "BEOPS_FROZEN_SOURCE_OID": "a" * 40,
+               "BEOPS_FROZEN_MANIFEST_SHA256": hashlib.sha256(raw).hexdigest()}
+        with patch.dict("os.environ", env), patch.object(W, "json_rows", side_effect=AssertionError("payload parsed")):
+            newest, error = W.newest_row("S01")
+        self.assertIsNone(error)
+        self.assertEqual(newest, NOW - timedelta(minutes=5))
+
+    def test_rows_total_uses_validated_row_index_without_reading_payload(self):
+        self.t.row("S01", NOW, 3)
+        index = {"schema": W.ROW_INDEX_SCHEMA, "files": {}}
+        W.newest_row("S01", index)
+        W.row_index_path().write_text(json.dumps(index), encoding="utf-8")
+
+        with patch.object(W, "open", side_effect=AssertionError("payload read"), create=True):
+            c = W.rows_total()
+
+        self.assertEqual(c["rows"], 3)
+        self.assertIn("row index", c["said"])
+
+    def test_rows_total_falls_back_when_the_index_identity_is_stale(self):
+        self.t.row("S01", NOW, 2)
+        index = {"schema": W.ROW_INDEX_SCHEMA, "files": {}}
+        W.newest_row("S01", index)
+        W.row_index_path().write_text(json.dumps(index), encoding="utf-8")
+        self.t.row("S01", NOW, 3)
+
+        c = W.rows_total()
+
+        self.assertEqual(c["rows"], 5)
+        self.assertNotIn("row index", c["said"])
 
     def test_what_cannot_be_read_is_unknown_and_never_ok(self):
         # no receipts at all for S02

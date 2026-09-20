@@ -161,6 +161,25 @@ class CollectTests(LiveDirCase):
         self.assertIn("from=2026-09-09T09:00:00Z", rec["url"])
         self.assertFalse((cd.LIVE / "receipts" / "S146" / (cd.stamp(NOW) + ".claim")).exists())
 
+    def test_append_rows_maintains_the_watch_row_index_when_the_prefix_is_known(self):
+        row1 = {"receivedTime": cd.iso(NOW), "dedupe_key": "a", "result": 1}
+        path, written = cd.append_rows("S01", [row1], NOW)
+        self.assertEqual(written, 1)
+        key = path.relative_to(cd.LIVE).as_posix()
+        index = json.loads((cd.LIVE / "watch-row-index.json").read_text(encoding="utf-8"))
+        self.assertEqual(index["files"][key]["rows"], 1)
+        self.assertEqual(index["files"][key]["validated_by"], "collector_append_under_write_lock")
+
+        later = NOW + timedelta(minutes=1)
+        row2 = {"receivedTime": cd.iso(later), "dedupe_key": "b", "result": 2}
+        cd.append_rows("S01", [row2], later)
+        index = json.loads((cd.LIVE / "watch-row-index.json").read_text(encoding="utf-8"))
+        entry = index["files"][key]
+
+        self.assertEqual(entry["rows"], 2)
+        self.assertEqual(entry["physical_lines"], 2)
+        self.assertEqual(datetime.fromisoformat(entry["newest"]).astimezone(timezone.utc), later)
+
     def test_same_slot_is_never_refetched(self):
         cd.collect_one(SRC_SEPA, NOW, PERMIT, fetcher=ok(SEPA_BODY))
         calls = []

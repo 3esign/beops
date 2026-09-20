@@ -10,10 +10,10 @@ delivering values which arrive BEFORE their own measurement window has closed mu
 second source with the same defect would have been silently wrong in the same way. This file is that
 assertion, written as a property of any source rather than as a fact about SEPA:
 
-  1. a row cannot arrive before the hour it describes has ended. Where a source does that materially,
-     it must carry a written source_clock_note;
-  2. a note that names an offset must actually produce a corrected time on the rows, so that a note
-     cannot be decorative;
+  1. a public point cannot arrive before the hour it describes has ended. Where a source does that
+     materially, it must carry a written source_clock_note;
+  2. a note that names an offset must actually produce a corrected time on public points, so that a
+     note cannot be decorative;
   3. the corrected time must be an estimate and must say so - it is our reading of somebody else's
      clock, never their statement.
 """
@@ -25,8 +25,7 @@ from datetime import datetime
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
-import record  # noqa: E402
-ROWS = ROOT / "data" / "live" / "rows"
+SNAPSHOT = ROOT / "public" / "live-snapshot.json"
 COLLECTORS = ROOT / "research" / "COLLECTORS.json"
 
 MIN_ROWS = 5          # below this it is not a pattern
@@ -46,33 +45,32 @@ def sources():
 
 
 def scan():
-    """(sid) -> {'timed': n, 'early': n, 'corrected': n, 'estimated': n}"""
+    """(sid) -> {'timed': n, 'early': n, 'corrected': n, 'estimated': n} from the public 24 h cut."""
     out = {}
-    if not ROWS.exists():
+    if not SNAPSHOT.exists():
         return out
-    for d in sorted(ROWS.iterdir()):
-        if not d.is_dir():
+    snapshot = json.loads(SNAPSHOT.read_text(encoding="utf-8"))
+    for source in snapshot.get("sources", []):
+        sid = source.get("sid")
+        if not sid:
             continue
         c = {"timed": 0, "early": 0, "corrected": 0, "estimated": 0}
-        for f in sorted(d.glob("*.jsonl")):
-            for r in record.objects(f):
-                if r.get("phenomenonTimeUnknown"):
+        for stream in source.get("datastreams", []):
+            for point in stream.get("points", []):
+                if point.get("tu"):
                     continue
-                pt = r.get("phenomenonTime")
-                end = pt.get("end") if isinstance(pt, dict) else pt
-                pe, rx = _p(end), _p(r.get("receivedTime"))
+                pe, rx = _p(point.get("t")), _p(point.get("rx"))
                 if not pe or not rx:
                     continue
                 c["timed"] += 1
                 if rx < pe:
                     c["early"] += 1
-                pc = r.get("phenomenonTimeCorrected")
-                if isinstance(pc, dict) and pc.get("end"):
+                if point.get("tc") or point.get("tc0") or point.get("rtc"):
                     c["corrected"] += 1
-                    if pc.get("state") == "estimated":
+                    if "ESTIMATE" in str(point.get("clock_note") or ""):
                         c["estimated"] += 1
         if c["timed"]:
-            out[d.name] = c
+            out[sid] = c
     return out
 
 
@@ -82,7 +80,7 @@ class SourceClock(unittest.TestCase):
         cls.scan = scan()
         cls.src = sources()
         if not cls.scan:
-            raise unittest.SkipTest("no rows on this machine")
+            raise unittest.SkipTest("no public snapshot on this machine")
 
     def test_a_source_that_delivers_rows_before_their_hour_has_closed_is_declared(self):
         """The general form of the SEPA defect. A source is allowed a wrong clock; it is not allowed

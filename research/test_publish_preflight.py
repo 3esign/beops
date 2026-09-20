@@ -11,6 +11,26 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
+def test_runtime_pythonpath():
+    from_env = os.environ.get('BEOPS_TEST_PYTHONPATH', '')
+    if from_env:
+        return from_env
+    runtime_path = ROOT/'runtime/test-python.json'
+    if not runtime_path.is_file():
+        return ''
+    runtime = json.loads(runtime_path.read_text(encoding='utf-8-sig'))
+    return str(runtime.get('pythonpath', ''))
+
+
+def test_runtime_python():
+    runtime_path = ROOT/'runtime/test-python.json'
+    if runtime_path.is_file():
+        runtime = json.loads(runtime_path.read_text(encoding='utf-8-sig'))
+        if runtime.get('python'):
+            return str(runtime['python'])
+    return sys.executable
+
+
 @unittest.skipUnless(os.name == 'nt', 'Windows publisher entry point')
 class PublishPreflight(unittest.TestCase):
     def test_broken_test_runtime_refuses_release_and_preserves_unrelated_files(self):
@@ -24,7 +44,8 @@ class PublishPreflight(unittest.TestCase):
             base = pathlib.Path(folder)
             source = base/'source'
             (source/'tools').mkdir(parents=True)
-            for name in ('publish_github.ps1', 'publish_safety.ps1', 'test-research.js', 'incognito_user_agent.js'):
+            for name in ('publish_github.ps1', 'publish_safety.ps1', 'publish_capacity.ps1',
+                         'test-research.js', 'incognito_user_agent.js'):
                 shutil.copyfile(ROOT/'tools'/name, source/'tools'/name)
             (source/'tools/prepare_release.py').write_text(
                 'import pathlib\npathlib.Path("PREPARATION_RAN").write_text("unexpected")\nraise SystemExit(99)\n', encoding='utf-8')
@@ -41,13 +62,17 @@ class PublishPreflight(unittest.TestCase):
                 '-c', 'user.email=scumutator@gmail.com', 'commit', '-qm', 'preflight fixture'],
                 check=True, capture_output=True, timeout=10)
             (source/'research/unindexed-study.md').write_text('New unindexed document\n',encoding='utf-8')
-            env = dict(os.environ, BEOPS_PYTHON=sys.executable, BEOPS_TEST_PYTHON=str(broken) if broken_runtime else sys.executable,
-                       BEOPS_PUBLIC_ROOT=str(base/'Beops-public'), BEOPS_RELEASE_ROOT=str(base/'releases'))
+            env = dict(os.environ, BEOPS_PYTHON=test_runtime_python(), BEOPS_TEST_PYTHON=str(broken) if broken_runtime else test_runtime_python(),
+                       BEOPS_TEST_PYTHONPATH=test_runtime_pythonpath(),
+                       BEOPS_PUBLIC_ROOT=str(base/'Beops-public'), BEOPS_RELEASE_ROOT=str(base/'releases'),
+                       BEOPS_PUBLISH_MIN_FREE_MB='0')
             run = subprocess.run(['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass',
                 '-File', str(source/'tools/publish_github.ps1')], cwd=source, env=env,
                 capture_output=True, text=True, timeout=90)
             self.assertNotEqual(run.returncode, 0, run.stdout)
-            receipt = json.loads((source/'data/live/publish-receipt.json').read_text(encoding='utf-8-sig'))
+            receipt_path = source/'data/live/publish-receipt.json'
+            self.assertTrue(receipt_path.is_file(), run.stdout + run.stderr)
+            receipt = json.loads(receipt_path.read_text(encoding='utf-8-sig'))
             for name in ('built', 'tests_ok', 'pushed', 'site_verified', 'published'):
                 self.assertFalse(receipt[name], name)
             if broken_runtime:

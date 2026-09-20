@@ -7,6 +7,7 @@ const runtimePath = path.resolve(__dirname, '..', 'runtime', 'test-python.json')
 const runtime = fs.existsSync(runtimePath) ? JSON.parse(fs.readFileSync(runtimePath, 'utf8').replace(/^\uFEFF/, '')) : {};
 const explicitPython = process.env.BEOPS_PYTHON;
 const testEnv = {...process.env};
+const prerequisiteTimeoutMs = 120000;
 function phase(name, started, status, error) {
   if (!process.env.BEOPS_PHASE_TRACE) return;
   fs.appendFileSync(process.env.BEOPS_PHASE_TRACE, JSON.stringify({
@@ -37,10 +38,10 @@ for (const [exe, prefix] of candidates) {
   }
   const check = spawnSync(exe, [...prefix, '-B', '-c',
     'import sys; assert sys.version_info >= (3, 12); from reportlab.pdfbase.ttfonts import TTFont'],
-    { windowsHide: true, timeout: Math.min(60000, prerequisiteRemaining), stdio: 'ignore', env: testEnv });
+    { windowsHide: true, timeout: Math.min(prerequisiteTimeoutMs, prerequisiteRemaining), stdio: 'ignore', env: testEnv });
   phase('research prerequisites', started, check.status, check.error);
   if (check.error?.code === 'ETIMEDOUT') {
-    console.error('Research prerequisite import exceeded 60 s; interpreter readiness is unconfirmed.');
+    console.error('Research prerequisite import exceeded 120 s; interpreter readiness is unconfirmed.');
     process.exit(1);
   }
   if (check.status === 0) { selected = [exe, prefix]; break; }

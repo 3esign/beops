@@ -50,6 +50,14 @@ if (-not $Isolated -and (Test-Path -LiteralPath (Join-Path $src 'runtime\PUBLISH
   Write-Output 'Publication is explicitly paused by runtime/PUBLISH_PAUSED. Collectors are unaffected.'
   exit 75
 }
+if (-not $Isolated -and -not $DryRun) {
+  # This is an invariant of the expensive outer lifecycle, not merely a scheduler
+  # convenience: direct callers must not bypass the body's capacity boundary.
+  & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'publish_capacity.ps1')
+  $capacityExit = $LASTEXITCODE
+  if ($capacityExit -eq 75) { exit 75 }
+  if ($capacityExit -ne 0) { exit 9 }
+}
 $projectParent = Split-Path $src -Parent
 $pub = if ($env:BEOPS_PUBLIC_ROOT) { $env:BEOPS_PUBLIC_ROOT } else { Join-Path $projectParent 'Beops-public' }
 $pub = Assert-BeopsPublicRootSafe -SourceRoot $src -PublicRoot $pub -ExpectedRemote $remote
@@ -500,6 +508,41 @@ function Write-BeopsExportManifest {
   $manifestText = ($manifest | ConvertTo-Json -Depth 8) -replace "`r`n", "`n"
   [System.IO.File]::WriteAllText($manifestPath, $manifestText, (New-Object System.Text.UTF8Encoding($false)))
 }
+function Read-BeopsExportManifestMap {
+  param([string]$Root)
+  $map = @{}
+  $manifestPath = Join-Path $Root 'docs\export-manifest.json'
+  if (-not (Test-Path -LiteralPath $manifestPath)) { return $map }
+  try {
+    $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    foreach ($item in @($manifest.files)) {
+      if ($item.path -and $item.sha256 -and $item.bytes -ne $null) {
+        $map[[string]$item.path] = [pscustomobject]@{ sha256 = [string]$item.sha256; bytes = [int64]$item.bytes }
+      }
+    }
+  } catch {}
+  return $map
+}
+function Test-BeopsStageFileAlreadyPublished {
+  param(
+    [string]$Rel,
+    [string]$StageFile,
+    [string]$TargetFile,
+    [hashtable]$PreviousMap,
+    [hashtable]$NextMap
+  )
+  if (-not (Test-Path -LiteralPath $TargetFile)) { return $false }
+  $key = $Rel.Replace('\', '/')
+  if ($key -ne 'docs/export-manifest.json' -and $PreviousMap.ContainsKey($key) -and $NextMap.ContainsKey($key)) {
+    $old = $PreviousMap[$key]
+    $new = $NextMap[$key]
+    if ($old.sha256 -eq $new.sha256 -and $old.bytes -eq $new.bytes -and (Get-Item -LiteralPath $TargetFile).Length -eq $new.bytes) {
+      return $true
+    }
+  }
+  if ((Get-Item -LiteralPath $StageFile).Length -ne (Get-Item -LiteralPath $TargetFile).Length) { return $false }
+  return (Get-FileHash -LiteralPath $StageFile -Algorithm SHA256).Hash -eq (Get-FileHash -LiteralPath $TargetFile -Algorithm SHA256).Hash
+}
 # One commit per publish: the public history becomes a free archive of what the observatory held at
 # each moment - the "git scraping" pattern - and a second, independent record against our own receipts.
 $snap = Join-Path $src 'public\live-snapshot.json'
@@ -527,11 +570,14 @@ Invoke-BeopsNative 'git config core.autocrlf false' 'git' @('-C', $pub, 'config'
 # Validate every existing physical target before the first mutation.
 $existing = @(Get-ChildItem -LiteralPath $pub -File -Recurse -Force | Where-Object { $_.FullName -notlike ((Join-Path $pub '.git') + '\*') })
 foreach ($item in $existing) { $null = Assert-BeopsDeletionTarget -PublicRoot $pub -Target $item.FullName }
+$previousManifestMap = Read-BeopsExportManifestMap $pub
+$nextManifestMap = Read-BeopsExportManifestMap $stage
 $priorHead = & git -C $pub rev-parse --verify --quiet HEAD
 if ($LASTEXITCODE -eq 0) {
-  $script:copyRecovery = (Get-BeopsNativeOutput 'capture public copy rollback' $py @('-X', 'utf8', '-B', 'tools\mirror_transaction.py', 'capture', $pub) | ConvertFrom-Json).archive
+  $script:copyRecovery = (Get-BeopsNativeOutput 'capture public copy rollback' $py @('-X', 'utf8', '-B', 'tools\mirror_transaction.py', 'capture-changes', $pub, $stage) | ConvertFrom-Json).archive
 }
 $backup = Join-Path (Split-Path $pub -Parent) ('_to_delete\beops-obsolete-' + [guid]::NewGuid().ToString('N'))
+$mirrorDeleted = 0
 foreach ($item in $existing) {
   Assert-BeopsCycleRemaining
   $rel = $item.FullName.Substring($pub.Length + 1)
@@ -539,15 +585,26 @@ foreach ($item in $existing) {
     $to = Join-Path $backup $rel
     New-Item -ItemType Directory -Path (Split-Path $to -Parent) -Force | Out-Null
     Move-Item -LiteralPath $item.FullName -Destination $to
+    $mirrorDeleted += 1
   }
 }
+$mirrorCopied = 0
+$mirrorSkipped = 0
 foreach ($file in Get-ChildItem -LiteralPath $stage -File -Recurse -Force) {
   Assert-BeopsCycleRemaining
   $rel = $file.FullName.Substring($stage.Length + 1)
   $to = Join-Path $pub $rel
+  if (Test-BeopsStageFileAlreadyPublished -Rel $rel -StageFile $file.FullName -TargetFile $to -PreviousMap $previousManifestMap -NextMap $nextManifestMap) {
+    $mirrorSkipped += 1
+    continue
+  }
   New-Item -ItemType Directory -Path (Split-Path $to -Parent) -Force | Out-Null
   Copy-Item -LiteralPath $file.FullName -Destination $to -Force
+  $mirrorCopied += 1
 }
+$receipt | Add-Member -NotePropertyName mirror_deleted_files -NotePropertyValue $mirrorDeleted -Force
+$receipt | Add-Member -NotePropertyName mirror_copied_files -NotePropertyValue $mirrorCopied -Force
+$receipt | Add-Member -NotePropertyName mirror_skipped_files -NotePropertyValue $mirrorSkipped -Force
 Invoke-BeopsNative 'git add public export' 'git' @('-C', $pub, 'add', '-A')
 # The source .gitignore travels with the export and lists docs/ (generated locally, never committed
 # in the source repo). In the EXPORT repo docs/ is the published site, so it must be forced in.

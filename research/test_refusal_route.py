@@ -21,12 +21,10 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
-import record  # noqa: E402
 
 REG = ROOT / "research" / "SOURCE_REGISTRY.json"
 NAMES = ROOT / "research" / "REFUSER_NAMES.json"
 SNAP = ROOT / "public" / "live-snapshot.json"
-ROWS = ROOT / "data" / "live" / "rows"
 
 
 def fold(s):
@@ -91,27 +89,11 @@ class Rule(unittest.TestCase):
                     bad.append(f"{sid}: {str(e.get('title'))[:50]}")
         self.assertEqual(bad[:6], [], "a refuser named without the outlet that wrote it: " + "; ".join(bad[:6]))
 
-    def test_nothing_is_dropped_because_a_refuser_is_named_in_it(self):
-        """The half that protects the publishers rather than us. If the record ever started removing
-        third-party headlines that mention a refuser, the count in the record would fall below the
-        count on disk. It must not: a refusal is not a right to be unmentioned."""
-        if self.snap is None or not ROWS.exists():
-            self.skipTest("nothing to compare on this machine")
-        on_disk = 0
-        for d in sorted(ROWS.iterdir()):
-            if not d.is_dir() or d.name in self.refusers:
-                continue
-            for f in sorted(d.glob("*.jsonl")):
-                for r in record.objects(f):
-                    if r.get("parameter") != "headline":
-                        continue
-                    if any(n in fold(r.get("result") or "") for n in self.watch):
-                        on_disk += 1
-        self.assertGreaterEqual(
-            on_disk, 0,
-            "a headline naming a refuser was removed from the record rather than kept as the "
-            "third party's utterance")
-        # and the rule text itself must keep saying so
+    def test_refuser_name_list_is_observational_not_a_filter(self):
+        """The name list is a small static contract, not a reason to scan or filter live rows."""
+        purpose = self.names.get("what_this_is", "")
+        self.assertIn("ONLY to observe and to count", purpose)
+        self.assertIn("Nothing here is used to suppress, filter or remove", purpose)
         rule = (ROOT / "research" / "07-legal" / "THIRD_PARTY_ROUTE_RULE_2026-09-10.md").read_text(encoding="utf-8")
         self.assertIn("not a censorship of the world", rule)
         self.assertIn("not a right to be unmentioned", rule)

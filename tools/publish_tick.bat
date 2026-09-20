@@ -8,6 +8,9 @@ rem releases here as well, before environment setup or release allocation.
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0publish_due.ps1"
 if "%ERRORLEVEL%"=="75" exit /b 0
 if not "%ERRORLEVEL%"=="0" exit /b 9
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0publish_capacity.ps1"
+if "%ERRORLEVEL%"=="75" exit /b 0
+if not "%ERRORLEVEL%"=="0" exit /b 9
 rem Exports the current tree (without the captured evidence) and the generated docs/ to
 rem github.com/3esign/beops, so the public site shows the last receptions rather than a frozen day.
 rem The schedule is owned by the scheduler and verified with: schtasks /query /tn Beops_Publish

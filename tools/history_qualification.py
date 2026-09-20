@@ -113,45 +113,75 @@ def receipt_metrics(receipts: list[dict], start: datetime, end: datetime, cadenc
 
 
 def row_metrics(root: pathlib.Path, sid: str, start: datetime, end: datetime) -> dict:
+    return row_metrics_many(root, sid, [(0, start, end)])[0]
+
+
+def _empty_row_window() -> dict:
+    return {
+        "valid": 0,
+        "invalid_clock": 0,
+        "missing_unit": 0,
+        "missing_space": 0,
+        "signatures": {},
+        "days": set(),
+    }
+
+
+def _finalize_row_window(window: dict) -> dict:
+    revised = sum(max(0, len(values) - 1) for values in window["signatures"].values())
+    return {
+        "valid_numeric_observations": window["valid"],
+        "observation_days": len(window["days"]),
+        "invalid_clock_rows": window["invalid_clock"],
+        "missing_unit_rows": window["missing_unit"],
+        "missing_spatial_label_rows": window["missing_space"],
+        "revised_events": revised,
+    }
+
+
+def row_metrics_many(root: pathlib.Path, sid: str, windows: list[tuple[int, datetime, datetime]]) -> dict:
+    """Compute all declared windows in one row-file pass.
+
+    The old build scanned every source once per window. With 7/14/30-day windows,
+    the hourly baseline did three identical disk walks before it could even start
+    building medians.
+    """
     directory = root / "data" / "live" / "rows" / sid
-    valid = 0
-    invalid_clock = 0
-    missing_unit = 0
-    missing_space = 0
-    signatures: dict[tuple, set] = {}
-    days = set()
+    metrics = {days: _empty_row_window() for days, _, _ in windows}
+    if not windows:
+        return {}
+    earliest = min(start for _, start, _ in windows)
+    latest = max(end for _, _, end in windows)
     if directory.exists():
         for path in sorted(directory.glob("*.jsonl")):
             for row in observation_rows(path):
-                event_at, clock = row_clock(row)
                 received = parse_time(row.get("receivedTime"))
-                if not received or not start <= received < end:
+                if not received or not earliest <= received < latest:
                     continue
+                selected = [(days, start, end) for days, start, end in windows if start <= received < end]
+                if not selected:
+                    continue
+                event_at, clock = row_clock(row)
                 if event_at is None:
-                    invalid_clock += 1
+                    for days, _, _ in selected:
+                        metrics[days]["invalid_clock"] += 1
                     continue
                 value = row.get("result")
                 if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
                     continue
-                valid += 1
-                days.add(event_at.date().isoformat())
-                if not row.get("unit"):
-                    missing_unit += 1
-                if not (row.get("station_name") or row.get("station_id")):
-                    missing_space += 1
                 event_key = (str(row.get("datastream")), iso(event_at))
                 signature = canonical([row.get("result"), row.get("unit"), row.get("resultQuality"),
                                        row.get("resultTime"), clock])
-                signatures.setdefault(event_key, set()).add(signature)
-    revised = sum(max(0, len(values) - 1) for values in signatures.values())
-    return {
-        "valid_numeric_observations": valid,
-        "observation_days": len(days),
-        "invalid_clock_rows": invalid_clock,
-        "missing_unit_rows": missing_unit,
-        "missing_spatial_label_rows": missing_space,
-        "revised_events": revised,
-    }
+                for days, _, _ in selected:
+                    window = metrics[days]
+                    window["valid"] += 1
+                    window["days"].add(event_at.date().isoformat())
+                    if not row.get("unit"):
+                        window["missing_unit"] += 1
+                    if not (row.get("station_name") or row.get("station_id")):
+                        window["missing_space"] += 1
+                    window["signatures"].setdefault(event_key, set()).add(signature)
+    return {days: _finalize_row_window(window) for days, window in metrics.items()}
 
 
 def build(root: pathlib.Path = ROOT, now: datetime | None = None) -> dict:
@@ -162,15 +192,16 @@ def build(root: pathlib.Path = ROOT, now: datetime | None = None) -> dict:
     limits = policy["serious_baseline"]
     enabled = [source for source in config.get("sources", []) if source.get("enabled", True)]
     windows = []
+    window_bounds = [(days, end - timedelta(days=days), end) for days in policy["windows_days"]]
     receipt_cache = {source["sid"]: receipts_for(root, source["sid"]) for source in enabled}
-    for days in policy["windows_days"]:
-        start = end - timedelta(days=days)
+    row_cache = {source["sid"]: row_metrics_many(root, source["sid"], window_bounds) for source in enabled}
+    for days, start, _ in window_bounds:
         sources = []
         for source in enabled:
             sid = source["sid"]
             cadence = int(source["cadence_seconds"])
             receipt = receipt_metrics(receipt_cache[sid], start, end, cadence)
-            rows = row_metrics(root, sid, start, end)
+            rows = row_cache[sid][days]
             eligible_source = bool(
                 days == limits["consecutive_complete_calendar_days"]
                 and receipt["receipt_coverage"] >= limits["minimum_receipt_coverage"]
@@ -198,6 +229,35 @@ def build(root: pathlib.Path = ROOT, now: datetime | None = None) -> dict:
         "limits": policy["limits"],
     }
     report["report_sha256"] = digest(report)
+    return report
+
+
+def reusable_current(root: pathlib.Path = ROOT, now: datetime | None = None) -> dict | None:
+    """Reuse the current complete-day report when the inputs that define it match.
+
+    The row archive changes all day, but this report deliberately counts only
+    complete UTC days. Rebuilding it hourly rereads the same large files for no
+    new fact.
+    """
+    root = pathlib.Path(root).resolve()
+    now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    end = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    expected_day = (end - timedelta(days=1)).date().isoformat()
+    try:
+        report = json_object(root / "data" / "live" / "derived" / "history-qualification" / "current.json")
+        config, policy = load_inputs(root)
+    except (OSError, ValueError):
+        return None
+    if (report.get("schema") != SCHEMA or
+            report.get("as_of_complete_day") != expected_day or
+            report.get("policy_sha256") != digest(policy) or
+            report.get("collector_contract_sha256") != digest(config)):
+        return None
+    claimed = report.get("report_sha256")
+    unsigned = dict(report)
+    unsigned.pop("report_sha256", None)
+    if not claimed or digest(unsigned) != claimed:
+        return None
     return report
 
 
@@ -230,7 +290,7 @@ def main(argv: list[str]) -> int:
     if len(argv) > 1 and argv[1] not in ("build",):
         print("usage: history_qualification.py [build]", file=sys.stderr)
         return 2
-    report = build()
+    report = reusable_current() or build()
     result = persist(report)
     window30 = next(window for window in report["windows"] if window["days"] == 30)
     result["eligible_sources"] = sum(row["eligible_source_for_serious_baseline"] for row in window30["sources"])

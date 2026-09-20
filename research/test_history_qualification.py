@@ -6,6 +6,7 @@ import pathlib
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -95,6 +96,24 @@ class Qualification(unittest.TestCase):
         self.assertEqual(source["observation_days"], 30)
         self.assertTrue(source["eligible_source_for_serious_baseline"])
         self.assertEqual(report, hq.build(self.root, NOW))
+
+    def test_declared_windows_share_one_row_file_pass(self):
+        real_rows = hq.observation_rows
+        calls = []
+
+        def counted(path):
+            calls.append(path)
+            yield from real_rows(path)
+
+        with patch.object(hq, "observation_rows", counted):
+            hq.build(self.root, NOW)
+        self.assertEqual(len(calls), 1)
+
+    def test_complete_day_current_report_is_reused_without_row_scan(self):
+        report = hq.build(self.root, NOW)
+        hq.persist(report, self.root)
+        with patch.object(hq, "observation_rows", side_effect=AssertionError("rows were scanned")):
+            self.assertEqual(hq.reusable_current(self.root, NOW), report)
 
     def test_daily_output_is_immutable_and_versioned(self):
         report = hq.build(self.root, NOW)

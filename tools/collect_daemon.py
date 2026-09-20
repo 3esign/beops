@@ -72,6 +72,7 @@ LIVE = ROOT / "data" / "live"
 UA = "Beops-Research-Collect/1.0 (urban observatory research; identifies honestly)"
 SCHEMA_RECEIPT = "beops-live-receipt/v1"
 SCHEMA_ROW = "beops-observation-row/v1"
+ROW_INDEX_SCHEMA = "beops-watch-row-index/v1"
 
 sys.path.insert(0, str(RESEARCH))
 
@@ -87,6 +88,69 @@ def stamp(dt: datetime) -> str:
 
 def iso(dt: datetime | None) -> str | None:
     return None if dt is None else dt.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _row_index_path() -> pathlib.Path:
+    return LIVE / "watch-row-index.json"
+
+
+def _load_row_index() -> dict:
+    try:
+        value = json.loads(_row_index_path().read_text(encoding="utf-8-sig"))
+        if value.get("schema") == ROW_INDEX_SCHEMA and isinstance(value.get("files"), dict):
+            return value
+    except (OSError, UnicodeError, ValueError, AttributeError):
+        pass
+    return {"schema": ROW_INDEX_SCHEMA, "files": {}}
+
+
+def _parsed_time(value):
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
+    except ValueError:
+        return None
+
+
+def _newest_received(existing: str | None, rows: list[dict]) -> str | None:
+    newest = _parsed_time(existing)
+    for row in rows:
+        t = _parsed_time(row.get("receivedTime"))
+        if t and (newest is None or t > newest):
+            newest = t
+    return newest.isoformat() if newest else existing
+
+
+def _update_watch_row_index_after_append(path: pathlib.Path, before, written_rows: list[dict]) -> None:
+    if not written_rows:
+        return
+    key = path.relative_to(LIVE).as_posix()
+    current = path.stat()
+    index = _load_row_index()
+    files = index.setdefault("files", {})
+    cached = files.get(key)
+    if before is None or before.st_size == 0:
+        base_rows = 0
+        base_physical = 0
+        base_newest = None
+    elif (isinstance(cached, dict) and cached.get("size") == before.st_size
+          and cached.get("mtime_ns") == before.st_mtime_ns):
+        base_rows = int(cached.get("rows", 0))
+        base_physical = int(cached.get("physical_lines", base_rows))
+        base_newest = cached.get("newest")
+    else:
+        return
+    files[key] = {
+        "size": current.st_size,
+        "mtime_ns": current.st_mtime_ns,
+        "rows": base_rows + len(written_rows),
+        "physical_lines": base_physical + len(written_rows),
+        "newest": _newest_received(base_newest, written_rows),
+        "ends_newline": True,
+        "validated_by": "collector_append_under_write_lock",
+    }
+    atomic_json(_row_index_path(), index)
 
 
 # --------------------------------------------------------------------- gate
@@ -1087,6 +1151,7 @@ def _append_rows_locked(sid: str, rows: list[dict], received: datetime, dedupe_h
     unknown are keyed on receivedTime as well, so a repeated parking value is still a new reception."""
     p = LIVE / "rows" / sid / (received.strftime("%Y-%m") + ".jsonl")
     p.parent.mkdir(parents=True, exist_ok=True)
+    before = p.stat() if p.exists() else None
     seen_path = LIVE / "rows" / sid / "_seen.json"
     seen: dict = {}
     if seen_path.exists():
@@ -1097,6 +1162,7 @@ def _append_rows_locked(sid: str, rows: list[dict], received: datetime, dedupe_h
     cutoff = iso(received - timedelta(hours=dedupe_hours))
     seen = {k: v for k, v in seen.items() if v >= cutoff}
     written = 0
+    written_rows = []
     with open(p, "a", encoding="utf-8") as fh:
         for r in rows:
             k = _row_key(r)
@@ -1105,9 +1171,11 @@ def _append_rows_locked(sid: str, rows: list[dict], received: datetime, dedupe_h
             seen[k] = r.get("receivedTime") or iso(received)
             fh.write(json.dumps(r, ensure_ascii=False) + "\n")
             written += 1
+            written_rows.append(r)
     tmp = seen_path.with_suffix(".tmp")
     tmp.write_text(json.dumps(seen, ensure_ascii=False), encoding="utf-8")
     os.replace(tmp, seen_path)
+    _update_watch_row_index_after_append(p, before, written_rows)
     return p, written
 
 

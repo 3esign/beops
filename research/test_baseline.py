@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
@@ -59,6 +60,16 @@ class Tree(unittest.TestCase):
             "as_of_complete_day": "2026-09-09",
             "windows": [{"days": 30, "sources": [
                 {"sid": sid, "eligible_source_for_serious_baseline": True}
+            ]}],
+        }), encoding="utf-8")
+
+    def disqualify(self, sid):
+        bl.QUALIFICATION.parent.mkdir(parents=True, exist_ok=True)
+        bl.QUALIFICATION.write_text(json.dumps({
+            "schema": "beops-history-qualification/v1",
+            "as_of_complete_day": "2026-09-09",
+            "windows": [{"days": 30, "sources": [
+                {"sid": sid, "eligible_source_for_serious_baseline": False}
             ]}],
         }), encoding="utf-8")
 
@@ -167,6 +178,14 @@ class Buckets(Tree):
     def test_nothing_is_written_for_a_source_with_no_record(self):
         self.assertIsNone(bl.build_source("S999", now=NOW))
         self.assertIsNone(bl.usual(None, "x", "y", 3))
+
+    def test_current_disqualification_skips_the_row_scan(self):
+        self.disqualify("S146")
+        self.write("S146", [row("S146", "Stari grad", "PM10", 20, AT(9, 0, 0))])
+        with patch.object(bl, "observation_rows", side_effect=AssertionError("rows were scanned")):
+            b = bl.build_source("S146", now=NOW)
+        self.assertFalse(b["source_receipt_gate_passed"])
+        self.assertEqual(b["buckets"], {})
 
 
 if __name__ == "__main__":

@@ -71,7 +71,11 @@ class Policy(unittest.TestCase):
 class SharedGPU(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
-        env=patch.dict(os.environ,{'SVEMIR_DATA':self.tmp.name,'BEOPS_SVEMIR_ROOT':'C:/Svemir'})
+        # Scheduled tasks default to the CLI backend. These integration tests exercise
+        # the local GPU mutex, so isolate that route instead of inheriting task state.
+        env=patch.dict(os.environ,{'SVEMIR_DATA':self.tmp.name,
+                                    'BEOPS_SVEMIR_ROOT':'C:/Svemir',
+                                    'BEOPS_MODEL_BACKEND':'ollama'})
         env.start();self.addCleanup(env.stop)
         self.lock=pathlib.Path(self.tmp.name)/'brain/locks/ollama.lock'
 

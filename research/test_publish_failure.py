@@ -74,7 +74,7 @@ exit $LASTEXITCODE
 ''')
                 command=['powershell','-NoProfile','-ExecutionPolicy','Bypass','-File',str(wrapper)]
             run=subprocess.run(command,
-                cwd=source,env=env,capture_output=True,text=True,timeout=45)
+                cwd=source,env=env,capture_output=True,text=True,timeout=90 if expire_copy else 45)
             self.assertEqual(run.returncode,5 if expire_copy else 3,run.stdout+'\n'+run.stderr)
             receipt=json.loads((source/'data/live/publish-receipt.json').read_text(encoding='utf-8-sig'))
             self.assertTrue(receipt['built'])

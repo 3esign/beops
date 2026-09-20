@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 import pathlib
+import stat as statmod
 import sys
 import tempfile
 import unittest
@@ -62,6 +63,26 @@ class FrozenObservations(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'payload changed'):
             with live_view.observation_view(self.live):
                 self.fail('unverified bytes yielded')
+
+    def test_sealed_jsonl_identity_avoids_rehashing_frozen_observation_bytes(self):
+        self.file.chmod(statmod.S_IREAD)
+        self.addCleanup(lambda: self.file.exists() and self.file.chmod(statmod.S_IREAD | statmod.S_IWRITE))
+        observed = self.file.stat()
+        self.manifest['files'][0].update(state_index_sealed=True,
+                                         state_index_mtime_ns=observed.st_mtime_ns,
+                                         state_index_file_id=observed.st_ino,
+                                         state_index_device=observed.st_dev)
+        self.bind_manifest()
+        real_open = pathlib.Path.open
+
+        def guarded_open(path, *args, **kwargs):
+            if pathlib.Path(path) == self.file and args and args[0] == 'rb':
+                raise AssertionError('sealed payload was rehashed')
+            return real_open(path, *args, **kwargs)
+
+        with patch.object(pathlib.Path, 'open', guarded_open):
+            with live_view.observation_view(self.live) as reused:
+                self.assertEqual(reused, self.live)
 
     def test_manifest_identity_is_required_and_foreign_fixture_uses_live_copy(self):
         with patch.dict(os.environ, {'BEOPS_FROZEN_MANIFEST_SHA256':'0'*64}):
@@ -135,6 +156,17 @@ class FrozenObservations(unittest.TestCase):
 
 
 class CaptureCounts(unittest.TestCase):
+    def test_capacity_estimate_uses_last_manifest_before_deep_scan(self):
+        with tempfile.TemporaryDirectory() as folder:
+            source = pathlib.Path(folder)/'source'
+            (source/'runtime').mkdir(parents=True)
+            (source/'runtime/release-inputs-last.json').write_text(
+                json.dumps({'timings': {'captured_bytes': 1234}}), encoding='utf-8')
+            with patch.object(pathlib.Path, 'rglob', side_effect=AssertionError('deep scan attempted')):
+                amount, origin = prepare_release.estimate_release_input_bytes(source)
+            self.assertEqual(amount, 1234 + prepare_release.CAPACITY_ESTIMATE_MARGIN_BYTES)
+            self.assertEqual(origin, 'runtime/release-inputs-last.json+512MiB')
+
     def test_immutable_siblings_prepare_the_output_directory_once(self):
         with tempfile.TemporaryDirectory() as folder:
             base=pathlib.Path(folder);source=base/'source';dest=base/'dest';dest.mkdir()
@@ -157,7 +189,8 @@ class CaptureCounts(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             base=pathlib.Path(folder);source=base/'source';dest=base/'dest';dest.mkdir()
             file=source/'data/live/rows/S01/sample.jsonl';file.parent.mkdir(parents=True)
-            data=b' \r\n\n'+b'x'*(1024*1024+3)+b'\n\t\r\n{"x":2}\r\nunterminated'
+            data=(b' \r\n\n'+b'x'*(1024*1024+3)+
+                  b'\n\t\r\n{"receivedTime":"2026-09-14T11:01:00Z","x":2}\r\nunterminated')
             file.write_bytes(data)
             trace = base/'phases.jsonl'
             with patch.dict(os.environ, {'BEOPS_PHASE_TRACE': str(trace)}):
@@ -167,6 +200,7 @@ class CaptureCounts(unittest.TestCase):
             self.assertEqual(phases[3]['bytes'], len(data))
             self.assertTrue(all(row['seconds'] >= 0 for row in phases if row['event'] == 'end'))
             item=next(row for row in inputs if row['path'].endswith('sample.jsonl'))
+            self.assertEqual(item['newest_received_time'], '2026-09-14T11:01:00Z')
             evidence={}
             with patch.object(paper_numbers, 'ROOT', dest):
                 self.assertEqual(paper_numbers.rows_on_disk(evidence), {'rows':2,'files':1})
@@ -180,6 +214,39 @@ class CaptureCounts(unittest.TestCase):
             self.assertEqual(item['source_sha256'],hashlib.sha256(data).hexdigest())
             self.assertEqual(item['source_bytes'],len(data))
             self.assertEqual(item['excluded_tail_bytes'],len(b'unterminated'))
+
+    def test_capture_indexes_state_key_across_block_boundary_without_a_second_read(self):
+        with tempfile.TemporaryDirectory() as folder:
+            base=pathlib.Path(folder);source=base/'source';dest=base/'dest';dest.mkdir()
+            clean=source/'data/live/rows/S01/clean.jsonl';clean.parent.mkdir(parents=True)
+            marked=source/'data/live/derived/mind/marked.jsonl';marked.parent.mkdir(parents=True)
+            escaped=source/'data/live/derived/mind/escaped.jsonl'
+            noisy=source/'data/live/derived/mind/noisy.jsonl'
+            nested=source/'data/live/rows/S146/nested.jsonl'
+            clean.write_bytes(b'{"result":"'+b'x'*(1024*1024)+b'"}\n')
+            # The six-byte needle starts in one 1 MiB block and ends in the next.
+            marked.write_bytes(b'{"padding":"'+b'x'*(1024*1024-17)+b'","state":"thought"}\n')
+            escaped.write_bytes(b'{"\\u0073tate":"thought"}\n')
+            noisy.write_bytes(b'{"path":"C:\\\\temp","word":"\\u0073tate"}\n')
+            nested.parent.mkdir(parents=True)
+            nested.write_bytes(b'{"phenomenonTimeCorrected":{"state":"estimated"},"result":1}\n')
+            inputs, _, _ = prepare_release.capture_inputs(source, dest)
+            indexed={row['path']:row for row in inputs}
+            self.assertIs(indexed['data/live/rows/S01/clean.jsonl']['state_key_present'], False)
+            self.assertIs(indexed['data/live/derived/mind/marked.jsonl']['state_key_present'], True)
+            self.assertIs(indexed['data/live/derived/mind/escaped.jsonl']['state_key_present'], True)
+            self.assertIs(indexed['data/live/derived/mind/noisy.jsonl']['state_key_present'], False)
+            self.assertIs(indexed['data/live/rows/S146/nested.jsonl']['state_key_present'], False)
+            for rel in ('data/live/rows/S01/clean.jsonl',
+                        'data/live/derived/mind/marked.jsonl',
+                        'data/live/derived/mind/escaped.jsonl',
+                        'data/live/derived/mind/noisy.jsonl',
+                        'data/live/rows/S146/nested.jsonl'):
+                item=indexed[rel];observed=(dest/rel).stat()
+                self.assertIs(item['state_index_sealed'], True)
+                self.assertEqual(item['state_index_mtime_ns'], observed.st_mtime_ns)
+                self.assertEqual(item['state_index_file_id'], observed.st_ino)
+                self.assertFalse(observed.st_mode & (statmod.S_IWUSR|statmod.S_IWGRP|statmod.S_IWOTH))
 
 
 if __name__ == '__main__':

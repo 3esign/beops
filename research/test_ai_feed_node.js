@@ -144,7 +144,17 @@ async function main(){
  const proofPath=path.join(tmp,'runtime/ai-feed/contexts',page.entries[0].context_hash+'.json');
  fs.writeFileSync(proofPath,JSON.stringify({...packet,as_of:'tampered'}));
  assert.throws(()=>F.exportFeed(tmp,now),/context_hash_mismatch/);
- const release=F.acquire(path.join(tmp,'runtime/ai-feed'));assert.equal(F.acquire(path.join(tmp,'runtime/ai-feed')),null);release();
+ const lockDirectory=path.join(tmp,'runtime/ai-feed');
+ const release=F.acquire(lockDirectory);assert.equal(F.acquire(lockDirectory),null);release();
+ const dead=child.spawn(process.execPath,['-e','process.exit(0)'],{stdio:'ignore'}),deadPid=dead.pid;
+ await new Promise((resolve,reject)=>{
+   dead.once('error',reject);dead.once('exit',resolve);
+ });
+ fs.writeFileSync(path.join(lockDirectory,'worker.lock'),JSON.stringify({
+   schema:'beops-ai-lock/v1',pid:deadPid,at:now.toISOString()
+ }));
+ const recovered=F.acquire(lockDirectory);
+ assert.equal(typeof recovered,'function','a dead worker PID must not strand the feed lock');recovered();
  // Multi-domain context contracts: S52 hydro window and S120 population
  write('public/context-population.json',{name:'test-pop',people_total:1719722,attribution:'Test Kontur',source:{sid:'S120',release:'2022-06-30'}});
  write('public/live-snapshot.json',{as_of:now.toISOString(),sources:[

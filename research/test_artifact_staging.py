@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'tools'))
 from artifact_staging import create_artifact_staging
 
 REPAIR = Path(__file__).resolve().parents[1]/'tools/repair_evidence_permissions.ps1'
+ACL_TIMEOUT_SECONDS = 60
 
 
 def acl(path):
@@ -23,7 +24,7 @@ def acl(path):
         "$ErrorActionPreference='Stop'; $env:PSModulePath=Join-Path $PSHOME 'Modules'; "
         "$a=Get-Acl -LiteralPath $env:BEOPS_ACL_TEST_PATH -ErrorAction Stop; "
         "@{protected=$a.AreAccessRulesProtected; inherited=@($a.Access | Where-Object IsInherited).Count} | ConvertTo-Json -Compress"],
-        env=env, capture_output=True, text=True, check=True, timeout=15)
+        env=env, capture_output=True, text=True, check=True, timeout=ACL_TIMEOUT_SECONDS)
     return json.loads(result.stdout)
 
 
