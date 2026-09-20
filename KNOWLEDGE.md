@@ -709,3 +709,17 @@ Prompt v2 required a cross-domain link and urban relief; the model obliged every
 - Iskustva: The same fixture must use the recorded complete test runtime for its child publisher, not `sys.executable`; local runners can be an incomplete Python while the publish gate runtime is complete.
 - Izvori: `research/test_publish_preflight.py`, `runtime/release-diagnostics/beops-release-c8084860282b4909b7e4548ddfe64353-tests.txt`, `runtime/test-python.json`.
 - Odluke: Keep `runtime/PUBLISH_PAUSED` while publish is being repaired or retested after a failed release; a recent failed receipt gives cooldown, but an operator pause prevents another expensive automatic retry.
+
+### 2026-09-20T17:22Z - Site verification must follow the Pages canonical host
+
+- Greske: The `de02e86` publish pushed public commit `346b3e53`, but final receipt stayed `published=false` because `node fetch` crashed during `verify_public_site.js`; after replacing it with stdlib HTTP(S), the verifier exposed the next real issue: GitHub Pages returns HTTP 301 from `3esign.github.io/beops` to the configured custom host. Lek: the verifier must not depend on undici fetch on Windows, and it must follow the official Pages redirect before comparing hashes.
+- Iskustva: Once redirect following was added, `npm run test:site` returned `CURRENT_AND_VERIFIED`: live/local index hashes matched, all checked routes matched, and the snapshot age was within the 60 minute limit.
+- Izvori: `tools/verify_public_site.js`, `package.json:test:site`, `data/live/publish-receipt.json`, public mirror commit `346b3e53`.
+- Odluke: Treat a pushed-but-unverified receipt as incomplete until an independent `test:site` passes or a fresh publish writes a successful receipt; do not infer publication from push alone.
+
+### 2026-09-20T18:11Z - Hash match is not current publication
+
+- Iskustva: After a pushed-but-unverified publish, `npm run test:site` can prove that live GitHub Pages bytes match the public mirror while still failing the operational verdict because the snapshot is too old.
+- Greske: Calling the site current from hash/route match alone would hide stale data; this run matched `346b3e53` but `live-snapshot.json` was about 84 minutes old against a 60 minute limit. Lek: require both byte equality and freshness before claiming `site_verified` or current public operation.
+- Izvori: `npm run test:site` 2026-09-20T18:10Z, `data/live/publish-receipt.json`, `tools/publish_capacity.ps1`.
+- Odluke: Do not force a fresh publish below the 1024 MB free-memory capacity gate; the blocker is body capacity, not site verifier correctness.

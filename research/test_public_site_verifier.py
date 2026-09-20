@@ -73,6 +73,12 @@ class PublicSiteVerifierTests(unittest.TestCase):
         self.assertIn("incognito.js", self.script)
         self.assertIn("incognito.headers", self.script)
 
+    def test_the_verifier_uses_stable_transport_and_follows_pages_redirects(self):
+        self.assertIn("require('node:http')", self.script)
+        self.assertIn("require('node:https')", self.script)
+        self.assertIn("response.headers.location", self.script)
+        self.assertIn("redirectsLeft", self.script)
+
 
 if __name__ == "__main__":
     unittest.main()

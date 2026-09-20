@@ -9,6 +9,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const http = require('node:http');
+const https = require('node:https');
 
 const ROOT = path.resolve(__dirname, '..');
 const SITE_URL = process.env.BEOPS_SITE_URL || 'https://3esign.github.io/beops/';
@@ -115,26 +117,62 @@ function tryIncognitoHeaders(url) {
 
 async function fetchText(url) {
   const asked = cacheBusted(url);
-  const response = await fetch(asked, {
-    cache: 'no-store',
-    redirect: 'error',
-    signal: AbortSignal.timeout(Math.max(1, Math.min(10000, RUN_DEADLINE - Date.now()))),
-    headers: tryIncognitoHeaders(url)
-  });
-  const reader = response.body?.getReader(); const chunks=[]; let size=0;
-  if(reader) for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;
-    if(size>64*1024*1024){await reader.cancel();throw new Error('Public response exceeds byte limit');}chunks.push(Buffer.from(value));}
-  const bytes=Buffer.concat(chunks); const text=bytes.toString('utf8');
-  return {
-    url,
-    asked,
-    status: response.status,
-    ok: response.ok,
-    etag: response.headers.get('etag') || '',
-    lastModified: response.headers.get('last-modified') || '',
-    cacheControl: response.headers.get('cache-control') || '',
-    text, bytes
-  };
+  const timeoutMs = Math.max(1, Math.min(10000, RUN_DEADLINE - Date.now()));
+  async function requestText(currentUrl, redirectsLeft) {
+    const parsed = new URL(currentUrl);
+    const headers = tryIncognitoHeaders(parsed.toString());
+    const client = parsed.protocol === 'http:' ? http : https;
+    return await new Promise((resolve, reject) => {
+      const req = client.request(parsed, {method: 'GET', headers}, response => {
+        const status = response.statusCode || 0;
+        const location = response.headers.location || '';
+        if (status >= 300 && status < 400 && location) {
+          response.resume();
+          if (redirectsLeft <= 0) {
+            reject(new Error(`Public response redirected too many times from ${currentUrl}`));
+            return;
+          }
+          let nextUrl;
+          try { nextUrl = new URL(location, currentUrl).toString(); }
+          catch (error) { reject(new Error(`Public redirect is invalid: ${location}`)); return; }
+          if (!/^https?:$/.test(new URL(nextUrl).protocol)) {
+            reject(new Error(`Public redirect uses unsupported protocol: ${nextUrl}`));
+            return;
+          }
+          resolve(requestText(nextUrl, redirectsLeft - 1));
+          return;
+        }
+        const chunks = [];
+        let size = 0;
+        response.on('data', chunk => {
+          size += chunk.length;
+          if (size > 64 * 1024 * 1024) {
+            req.destroy(new Error('Public response exceeds byte limit'));
+            return;
+          }
+          chunks.push(Buffer.from(chunk));
+        });
+        response.on('end', () => {
+          const bytes = Buffer.concat(chunks);
+          resolve({
+            url,
+            asked: currentUrl,
+            status,
+            ok: status >= 200 && status < 300,
+            etag: response.headers.etag || '',
+            lastModified: response.headers['last-modified'] || '',
+            cacheControl: response.headers['cache-control'] || '',
+            text: bytes.toString('utf8'),
+            bytes
+          });
+        });
+      });
+      req.setTimeout(timeoutMs, () => req.destroy(new Error(`Public fetch timed out after ${timeoutMs}ms`)));
+      req.on('error', reject);
+      req.end();
+    });
+  }
+  return await requestText(asked, 5);
 }
 
 async function fetchMatchingRoute(url, expectedHash, deadline, options = {}) {
