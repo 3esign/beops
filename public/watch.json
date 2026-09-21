@@ -1,58 +1,58 @@
 {
  "schema": "beops-watch/v1",
- "at": "2026-09-21T09:31:15Z",
- "verdict": "stalled",
+ "at": "2026-09-21T10:06:27Z",
+ "verdict": "late",
  "counts": {
   "ok": 39,
-  "late": 0,
+  "late": 1,
   "unknown": 0,
-  "stalled": 1,
+  "stalled": 0,
   "blocked": 2,
   "paused": 0
  },
  "figures": {
-  "rows": 678337,
+  "rows": 680101,
   "hours": 303
  },
  "not_current": [
-  "published",
   "source S68",
-  "source S75"
+  "source S75",
+  "source S76"
  ],
  "checks": [
   {
    "check": "watchman",
    "state": "ok",
-   "said": "12 min since the last reading",
-   "gap_min": 12.0
+   "said": "17 min since the last reading",
+   "gap_min": 16.8
   },
   {
    "check": "published",
-   "state": "stalled",
-   "said": "the public site is 84 min old - the one-hour freshness target is exceeded; newer attempt failed; details in the local publication receipt",
-   "age_min": 83.8,
-   "commit": "f84cfcc8b56a145c696553b4cd848b8e83453399",
-   "verified_at": "2026-09-21T08:16:55Z"
+   "state": "ok",
+   "said": "last verified publication carries inputs 44 min old",
+   "age_min": 43.7,
+   "commit": "927499f78a9b8279c6be45eff90768fe3b83e75d",
+   "verified_at": "2026-09-21T09:39:39Z"
   },
   {
    "check": "history",
    "state": "ok",
-   "said": "303 h of record, newest hour 0.5 h behind",
+   "said": "303 h of record, newest hour 1.1 h behind",
    "hours": 303,
    "newest_hour": "2026-09-21T09",
-   "hours_behind": 0.52
+   "hours_behind": 1.11
   },
   {
    "check": "mind",
    "state": "ok",
-   "said": "newest drop 10 min ago",
-   "age_min": 9.9
+   "said": "newest drop 21 min ago",
+   "age_min": 21.1
   },
   {
    "check": "AI observations",
    "state": "ok",
    "said": "latest accepted monologue is within one hour",
-   "age_min": 58.6
+   "age_min": 33.4
   },
   {
    "check": "coverage 24h",
@@ -66,42 +66,42 @@
   {
    "check": "rows",
    "state": "ok",
-   "said": "678337 rows on disk",
-   "rows": 678337
+   "said": "680101 rows on disk",
+   "rows": 680101
   },
   {
    "check": "rows kept",
    "state": "ok",
    "said": "0 rows added since the last reading",
-   "before": 678337,
-   "after": 678337
+   "before": 680101,
+   "after": 680101
   },
   {
    "check": "source S146",
    "state": "ok",
-   "said": "asked 53 min ago, newest value 53 min old",
+   "said": "asked 28 min ago, newest value 28 min old",
    "sid": "S146",
    "cadence_min": 60,
-   "asked_min_ago": 53.2,
-   "heard_min_ago": 53.2
+   "asked_min_ago": 28.4,
+   "heard_min_ago": 28.4
   },
   {
    "check": "source S04",
    "state": "ok",
-   "said": "asked 13 min ago, newest value 13 min old",
+   "said": "asked 18 min ago, newest value 18 min old",
    "sid": "S04",
    "cadence_min": 10,
-   "asked_min_ago": 13.2,
-   "heard_min_ago": 13.2
+   "asked_min_ago": 18.4,
+   "heard_min_ago": 18.4
   },
   {
    "check": "source S10",
    "state": "ok",
-   "said": "asked 13 min ago, newest value 13 min old",
+   "said": "asked 18 min ago, newest value 18 min old",
    "sid": "S10",
    "cadence_min": 15,
-   "asked_min_ago": 13.2,
-   "heard_min_ago": 13.2
+   "asked_min_ago": 18.4,
+   "heard_min_ago": 18.4
   },
   {
    "check": "source S68",
@@ -114,11 +114,11 @@
   {
    "check": "source S69",
    "state": "ok",
-   "said": "asked 13 min ago, newest value 13 min old",
+   "said": "asked 18 min ago, newest value 18 min old",
    "sid": "S69",
    "cadence_min": 15,
-   "asked_min_ago": 13.2,
-   "heard_min_ago": 13.2
+   "asked_min_ago": 18.4,
+   "heard_min_ago": 18.4
   },
   {
    "check": "source S75",
@@ -130,256 +130,256 @@
   },
   {
    "check": "source S76",
-   "state": "ok",
-   "said": "asked 13 min ago, newest value 13 min old",
+   "state": "late",
+   "said": "attempted 18 min ago; last attempt unparsed (HTTP 200); {'type': 'ParseError', 'message': 'unbound prefix: line 61, column 60'}",
    "sid": "S76",
    "cadence_min": 15,
-   "asked_min_ago": 13.2,
-   "heard_min_ago": 13.2
+   "asked_min_ago": 18.4,
+   "heard_min_ago": 48.4
   },
   {
    "check": "source S78",
    "state": "ok",
-   "said": "asked 33 min ago, newest value 123 min old",
+   "said": "asked 38 min ago, newest value 158 min old",
    "sid": "S78",
    "cadence_min": 30,
-   "asked_min_ago": 33.2,
-   "heard_min_ago": 123.2
+   "asked_min_ago": 38.4,
+   "heard_min_ago": 158.4
   },
   {
    "check": "source S74",
    "state": "ok",
-   "said": "asked 33 min ago, newest value 33 min old",
+   "said": "asked 38 min ago, newest value 38 min old",
    "sid": "S74",
    "cadence_min": 30,
-   "asked_min_ago": 33.2,
-   "heard_min_ago": 33.2
+   "asked_min_ago": 38.4,
+   "heard_min_ago": 38.3
   },
   {
    "check": "source S11",
    "state": "ok",
-   "said": "asked 53 min ago, newest value 53 min old",
+   "said": "asked 28 min ago, newest value 88 min old",
    "sid": "S11",
    "cadence_min": 60,
-   "asked_min_ago": 53.2,
-   "heard_min_ago": 53.2
+   "asked_min_ago": 28.4,
+   "heard_min_ago": 88.4
   },
   {
    "check": "source S175",
    "state": "ok",
-   "said": "asked 13 min ago, newest value 58 min old",
+   "said": "asked 18 min ago, silent for 93 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S175",
    "cadence_min": 15,
-   "asked_min_ago": 13.2,
-   "heard_min_ago": 58.2
+   "asked_min_ago": 18.4,
+   "heard_min_ago": 93.4
   },
   {
    "check": "source S195",
    "state": "ok",
-   "said": "asked 13 min ago, newest value 13 min old",
+   "said": "asked 18 min ago, newest value 18 min old",
    "sid": "S195",
    "cadence_min": 15,
-   "asked_min_ago": 13.2,
-   "heard_min_ago": 13.1
+   "asked_min_ago": 18.4,
+   "heard_min_ago": 18.3
   },
   {
    "check": "source S196",
    "state": "ok",
-   "said": "asked 13 min ago, silent for 223 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 18 min ago, newest value 33 min old",
    "sid": "S196",
    "cadence_min": 15,
-   "asked_min_ago": 13.2,
-   "heard_min_ago": 223.1
+   "asked_min_ago": 18.4,
+   "heard_min_ago": 33.4
   },
   {
    "check": "source S197",
    "state": "ok",
-   "said": "asked 13 min ago, newest value 13 min old",
+   "said": "asked 18 min ago, newest value 18 min old",
    "sid": "S197",
    "cadence_min": 15,
-   "asked_min_ago": 13.2,
-   "heard_min_ago": 13.1
+   "asked_min_ago": 18.4,
+   "heard_min_ago": 18.3
   },
   {
    "check": "source S198",
    "state": "ok",
-   "said": "asked 13 min ago, newest value 13 min old",
+   "said": "asked 18 min ago, newest value 18 min old",
    "sid": "S198",
    "cadence_min": 15,
-   "asked_min_ago": 13.2,
-   "heard_min_ago": 13.1
+   "asked_min_ago": 18.4,
+   "heard_min_ago": 18.3
   },
   {
    "check": "source S199",
    "state": "ok",
-   "said": "asked 53 min ago, silent for 593 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 28 min ago, silent for 628 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S199",
    "cadence_min": 60,
-   "asked_min_ago": 53.2,
-   "heard_min_ago": 593.2
+   "asked_min_ago": 28.4,
+   "heard_min_ago": 628.4
   },
   {
    "check": "source S200",
    "state": "ok",
-   "said": "asked 53 min ago, newest value 53 min old",
+   "said": "asked 28 min ago, newest value 28 min old",
    "sid": "S200",
    "cadence_min": 60,
-   "asked_min_ago": 53.2,
-   "heard_min_ago": 53.1
+   "asked_min_ago": 28.4,
+   "heard_min_ago": 28.3
   },
   {
    "check": "source S201",
    "state": "ok",
-   "said": "asked 53 min ago, newest value 53 min old",
+   "said": "asked 28 min ago, newest value 28 min old",
    "sid": "S201",
    "cadence_min": 60,
-   "asked_min_ago": 53.2,
-   "heard_min_ago": 53.1
+   "asked_min_ago": 28.4,
+   "heard_min_ago": 28.3
   },
   {
    "check": "source S202",
    "state": "ok",
-   "said": "asked 53 min ago, silent for 893 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 28 min ago, silent for 928 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S202",
    "cadence_min": 60,
-   "asked_min_ago": 53.2,
-   "heard_min_ago": 893.1
+   "asked_min_ago": 28.4,
+   "heard_min_ago": 928.3
   },
   {
    "check": "source S203",
    "state": "ok",
-   "said": "asked 53 min ago, newest value 53 min old",
+   "said": "asked 28 min ago, newest value 88 min old",
    "sid": "S203",
    "cadence_min": 60,
-   "asked_min_ago": 53.2,
-   "heard_min_ago": 53.1
+   "asked_min_ago": 28.4,
+   "heard_min_ago": 88.3
   },
   {
    "check": "source S15",
    "state": "ok",
-   "said": "asked 13 min ago, newest value 43 min old",
+   "said": "asked 18 min ago, newest value 78 min old",
    "sid": "S15",
    "cadence_min": 15,
-   "asked_min_ago": 13.2,
-   "heard_min_ago": 43.1
+   "asked_min_ago": 18.4,
+   "heard_min_ago": 78.3
   },
   {
    "check": "source S208",
    "state": "ok",
-   "said": "asked 13 min ago, newest value 43 min old",
+   "said": "asked 18 min ago, newest value 78 min old",
    "sid": "S208",
    "cadence_min": 15,
-   "asked_min_ago": 13.2,
-   "heard_min_ago": 43.0
+   "asked_min_ago": 18.4,
+   "heard_min_ago": 78.2
   },
   {
    "check": "source S207",
    "state": "ok",
-   "said": "asked 13 min ago, newest value 13 min old",
+   "said": "asked 18 min ago, newest value 48 min old",
    "sid": "S207",
    "cadence_min": 15,
-   "asked_min_ago": 13.2,
-   "heard_min_ago": 13.0
+   "asked_min_ago": 18.4,
+   "heard_min_ago": 48.2
   },
   {
    "check": "source S12",
    "state": "ok",
-   "said": "asked 53 min ago, newest value 293 min old",
+   "said": "asked 28 min ago, newest value 328 min old",
    "sid": "S12",
    "cadence_min": 60,
-   "asked_min_ago": 53.2,
-   "heard_min_ago": 292.8
+   "asked_min_ago": 28.4,
+   "heard_min_ago": 328.0
   },
   {
    "check": "source S01",
    "state": "ok",
-   "said": "asked 13 min ago, newest value 13 min old",
+   "said": "asked 18 min ago, newest value 18 min old",
    "sid": "S01",
    "cadence_min": 15,
-   "asked_min_ago": 13.2,
-   "heard_min_ago": 13.0
+   "asked_min_ago": 18.4,
+   "heard_min_ago": 18.3
   },
   {
    "check": "source S03",
    "state": "ok",
-   "said": "asked 13 min ago, newest value 13 min old",
+   "said": "asked 18 min ago, newest value 18 min old",
    "sid": "S03",
    "cadence_min": 15,
-   "asked_min_ago": 13.2,
-   "heard_min_ago": 13.0
+   "asked_min_ago": 18.4,
+   "heard_min_ago": 18.3
   },
   {
    "check": "source S52",
    "state": "ok",
-   "said": "asked 53 min ago, newest value 113 min old",
+   "said": "asked 28 min ago, newest value 148 min old",
    "sid": "S52",
    "cadence_min": 60,
-   "asked_min_ago": 53.2,
-   "heard_min_ago": 113.1
+   "asked_min_ago": 28.4,
+   "heard_min_ago": 148.3
   },
   {
    "check": "source S54",
    "state": "ok",
-   "said": "asked 53 min ago, newest value 293 min old",
+   "said": "asked 28 min ago, newest value 328 min old",
    "sid": "S54",
    "cadence_min": 60,
-   "asked_min_ago": 53.2,
-   "heard_min_ago": 292.7
+   "asked_min_ago": 28.4,
+   "heard_min_ago": 327.9
   },
   {
    "check": "source S219",
    "state": "ok",
-   "said": "asked 33 min ago, newest value 123 min old",
+   "said": "asked 38 min ago, newest value 158 min old",
    "sid": "S219",
    "cadence_min": 30,
-   "asked_min_ago": 33.2,
-   "heard_min_ago": 123.1
+   "asked_min_ago": 38.4,
+   "heard_min_ago": 158.3
   },
   {
    "check": "source S220",
    "state": "ok",
-   "said": "asked 308 min ago, newest value 308 min old",
+   "said": "asked 343 min ago, newest value 343 min old",
    "sid": "S220",
    "cadence_min": 360,
-   "asked_min_ago": 308.2,
-   "heard_min_ago": 308.2
+   "asked_min_ago": 343.4,
+   "heard_min_ago": 343.4
   },
   {
    "check": "source S221",
    "state": "ok",
-   "said": "asked 128 min ago, newest value 128 min old",
+   "said": "asked 163 min ago, newest value 163 min old",
    "sid": "S221",
    "cadence_min": 180,
-   "asked_min_ago": 128.2,
-   "heard_min_ago": 128.2
+   "asked_min_ago": 163.4,
+   "heard_min_ago": 163.4
   },
   {
    "check": "source S222",
    "state": "ok",
-   "said": "asked 308 min ago, newest value 1388 min old",
+   "said": "asked 343 min ago, newest value 1423 min old",
    "sid": "S222",
    "cadence_min": 360,
-   "asked_min_ago": 308.2,
-   "heard_min_ago": 1388.2
+   "asked_min_ago": 343.4,
+   "heard_min_ago": 1423.4
   },
   {
    "check": "source S223",
    "state": "ok",
-   "said": "asked 63 min ago, newest value 63 min old",
+   "said": "asked 38 min ago, newest value 38 min old",
    "sid": "S223",
    "cadence_min": 60,
-   "asked_min_ago": 63.2,
-   "heard_min_ago": 63.0
+   "asked_min_ago": 38.4,
+   "heard_min_ago": 38.1
   },
   {
    "check": "source S224",
    "state": "ok",
-   "said": "asked 1198 min ago, newest value 1198 min old",
+   "said": "asked 1233 min ago, newest value 1233 min old",
    "sid": "S224",
    "cadence_min": 1440,
-   "asked_min_ago": 1198.2,
-   "heard_min_ago": 1198.0
+   "asked_min_ago": 1233.4,
+   "heard_min_ago": 1233.2
   }
  ],
- "elapsed_seconds": 5.9
+ "elapsed_seconds": 12.4
 }
