@@ -68,6 +68,17 @@ class LiveDir(unittest.TestCase):
         self.tmp.cleanup()
 
 
+class RegisterContractTests(unittest.TestCase):
+    def test_skeptic_keeps_the_reviewed_codex_family_as_fallbacks(self):
+        reg = json.loads((ROOT / "research" / "ORGANS.json").read_text(encoding="utf-8"))
+        mind = next(o for o in reg["organs"] if o["id"] == "mind")
+        self.assertTrue(mind.get("allow_cloud"))
+        self.assertEqual(
+            mind["models_by_entity"]["skeptic"][:3],
+            ["gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.6-sol"],
+        )
+
+
 class DigestTests(unittest.TestCase):
     def test_facts_connections_and_context(self):
         dg = om.digest(snapshot(), hours=6, now=NOW, context=CONTEXT)

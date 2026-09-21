@@ -742,3 +742,9 @@ Prompt v2 required a cross-domain link and urban relief; the model obliged every
 - Iskustva: Live repair cooled every local llama route and left `news-sorter` as `waiting_model` with reason `no alternate local model after transport failure`; Codex routes remained ready for the mind entities, but headlines still do not leave the machine because `news-sorter.allow_cloud=false`.
 - Izvori: `tools/svemir_model_bridge.js`, `tools/organ_news.py`, `runtime/mind-cli/model-health.json`, `data/live/derived/news/receipts/20260920T223857Z.json`, targeted unittests 2026-09-20T22:43Z.
 - Odluke: Treat local headline sorting silence as model-route capacity, not public-site failure; do not send headline prompts to Codex/cloud routes unless the organ register is explicitly changed by a human decision.
+
+### 2026-09-21T00:57Z - Sumnjalo needs the whole reviewed Codex family
+
+- Greske: A live drip receipt for Sumnjalo reported `organ_silent` while the mind still had Codex capacity for another entity. Uzrok: the skeptic chain had Terra and Luna, but not Sol, so a temporary hold on the first two could leave that entity without an allowed reviewed route. Lek: every required entity should carry all reviewed Codex fallbacks unless there is a deliberate role reason to forbid one.
+- Izvori: `data/live/derived/mind/receipts/20260921T004119Z-skeptic.json`, `research/ORGANS.json`, `tools/organ_mind.py status`.
+- Odluke: Sumnjalo keeps Terra first and Luna second, with Sol as third fallback; a register contract test locks the chain.
