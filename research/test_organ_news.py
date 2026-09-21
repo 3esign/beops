@@ -62,6 +62,27 @@ class OrganTests(unittest.TestCase):
         self.assertTrue(all(row["state"] == "failed" and row["transport_failures"] == 1
                             for row in retry.values()))
 
+    def test_transport_failure_falls_back_to_next_local_model(self):
+        seed(on.LIVE, H)
+        calls = []
+
+        def tags():
+            return ["qwen2.5:1.5b", "qwen3.5:4b"] if not calls else ["qwen3.5:4b"]
+
+        def chat(model, _prompt):
+            calls.append(model)
+            if model == "qwen2.5:1.5b":
+                raise RuntimeError("CLI returned no output")
+            return {"items": [{"i": 0, "headline": H[1]["result"], "category": "nije_beograd",
+                               "belgrade": False, "zones": [], "event_time_text": None}]}
+
+        rec = on.run(NOW, chat=chat, tags=tags, batch_size=1, limit=2)
+        self.assertEqual(calls, ["qwen2.5:1.5b", "qwen3.5:4b"])
+        self.assertEqual(rec["state"], "derived")
+        self.assertEqual(rec["derived"], 1)
+        self.assertEqual(rec["fallbacks"], [{"from": "qwen2.5:1.5b", "to": "qwen3.5:4b",
+                                             "after": "RuntimeError"}])
+
     def test_reconcile_rebuilds_attempt_budget_from_retained_rows(self):
         seed(on.LIVE, H[:1])
         answer = {"items": [{"i": 0, "headline": H[0]["result"], "category": "radovi",

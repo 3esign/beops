@@ -735,3 +735,10 @@ Prompt v2 required a cross-domain link and urban relief; the model obliged every
 - Iskustva: A public export can remain byte-perfect on every route while falling out of operational freshness; `npm run test:site` is allowed to fail only on `live-snapshot.json` age even when every route hash matches.
 - Izvori: Fresh `npm test` 2026-09-20T19:35-19:42Z passed; independent `npm run test:site` 2026-09-20T19:42Z failed with snapshot age 75 min; `tools/publish_capacity.ps1` passed at 1,345.8 MB free.
 - Odluke: When freshness alone fails and capacity passes, run the controlled publisher instead of treating byte-match as enough.
+
+### 2026-09-20T22:43Z - Local llama route failures must cool the whole alias family
+
+- Greske: `news-sorter` kept selecting local `qwen*` routes that all failed with `CLI returned no output`, because the Svemir bridge only cooled Codex routes and treated `qwen2.5-1.5b`, `qwen2.5-1.5b-hf`, `qwen3.5-4b` and `qwen3.5-4b-2` as unrelated choices. Uzrok: local bridge failures were not persisted in `runtime/mind-cli/model-health.json`, and alias names were matched exactly. Lek: local failures must write the same health file, hide `-hf` and numbered duplicate families during cooldown, and let the organ try the next allowed local model in the same cycle.
+- Iskustva: Live repair cooled every local llama route and left `news-sorter` as `waiting_model` with reason `no alternate local model after transport failure`; Codex routes remained ready for the mind entities, but headlines still do not leave the machine because `news-sorter.allow_cloud=false`.
+- Izvori: `tools/svemir_model_bridge.js`, `tools/organ_news.py`, `runtime/mind-cli/model-health.json`, `data/live/derived/news/receipts/20260920T223857Z.json`, targeted unittests 2026-09-20T22:43Z.
+- Odluke: Treat local headline sorting silence as model-route capacity, not public-site failure; do not send headline prompts to Codex/cloud routes unless the organ register is explicitly changed by a human decision.

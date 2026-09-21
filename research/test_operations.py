@@ -149,11 +149,13 @@ class SvemirBridge(unittest.TestCase):
             (lib/'cli_bridge.js').write_text("""
 exports.chatModels = () => JSON.parse(process.env.STUB_MODELS || '[]');
 exports.runLocal = async args => {
+  if (process.env.STUB_LOCAL_FAIL === '1') return {ok:false,err:'CLI returned no output'};
   process.env.STUB_LAST_CALL = JSON.stringify(args);
   return {ok:true,out:JSON.stringify({status:'COMPLETED',response:'{"items":[]}'})};
 };
 """, encoding='utf-8')
             env=os.environ.copy();env['BEOPS_SVEMIR_ROOT']=td
+            env['BEOPS_MODEL_HEALTH']=str(root/'model-health.json')
             env['STUB_MODELS']=json.dumps(models if models is not None else [])
             result=subprocess.run(['node',str(ROOT/'tools/svemir_model_bridge.js'),cmd]+(args or []),
                                   input=stdin,capture_output=True,text=True,encoding='utf-8',
@@ -184,6 +186,32 @@ exports.runLocal = async args => {
         self.assertTrue(doc['done'])
         self.assertEqual(doc['done_reason'],'stop')
         self.assertEqual(doc['message']['content'],'{"items":[]}')
+
+    def test_failed_local_model_is_cooled_down_before_next_tags(self):
+        with tempfile.TemporaryDirectory() as td:
+            root=pathlib.Path(td);lib=root/'lib';lib.mkdir()
+            (lib/'cli_bridge.js').write_text("""
+exports.chatModels = () => JSON.parse(process.env.STUB_MODELS || '[]');
+exports.runLocal = async () => ({ok:false,err:'CLI returned no output'});
+exports.isLocalDevice = () => true;
+""", encoding='utf-8')
+            env=os.environ.copy()
+            env['BEOPS_SVEMIR_ROOT']=td
+            env['BEOPS_MODEL_HEALTH']=str(root/'model-health.json')
+            env['STUB_MODELS']=json.dumps([
+                {'bridge':'llama','model':'qwen2.5-1.5b-hf','id':'pc-llama-qwen-hf','runnable':True},
+                {'bridge':'llama','model':'qwen2.5-1.5b','id':'pc-llama-qwen','runnable':True},
+            ])
+            failed=subprocess.run(['node',str(ROOT/'tools/svemir_model_bridge.js'),'chat'],
+                                  input=json.dumps({'model':'qwen2.5-1.5b-hf','messages':[{'role':'user','content':'x'}]}),
+                                  capture_output=True,text=True,encoding='utf-8',timeout=10,env=env)
+            self.assertNotEqual(failed.returncode,0)
+            health=json.loads((root/'model-health.json').read_text(encoding='utf-8'))
+            self.assertEqual(health['models']['qwen2.5-1.5b-hf']['state'],'failed')
+            tags=subprocess.run(['node',str(ROOT/'tools/svemir_model_bridge.js'),'tags'],
+                                capture_output=True,text=True,encoding='utf-8',timeout=10,env=env)
+            self.assertEqual(tags.returncode,0,tags.stderr)
+            self.assertEqual(json.loads(tags.stdout)['models'],[])
 
 
 class SvemirRunner(unittest.TestCase):

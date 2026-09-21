@@ -402,6 +402,22 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
             with exclusive(LIVE / '.write.lock', timeout=120):
                 atomic_json(attempts_path, attempts)
                 atomic_json(retry_path, retry)
+            try:
+                refreshed = tags()
+            except local_models.ModelDeferred as refresh_exc:
+                deferred = str(refresh_exc)
+                break
+            replacement = pick_model(refreshed or [], organ["models_preferred"], bool(organ.get("allow_cloud"))) if refreshed else None
+            if replacement and replacement != model:
+                rec.setdefault('fallbacks', []).append({
+                    'from': model,
+                    'to': replacement,
+                    'after': type(exc).__name__,
+                })
+                model = replacement
+            elif not replacement:
+                deferred = 'no alternate local model after transport failure'
+                break
             continue
         rows = derive(batch, answer, model, sha, now)
         with exclusive(LIVE / ".write.lock", timeout=120):

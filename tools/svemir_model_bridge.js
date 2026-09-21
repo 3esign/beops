@@ -11,7 +11,7 @@ const providers = require('./ai_feed_providers');
 const { classifyFailure } = require('./ai_feed_catalogue');
 const projectRoot = path.resolve(__dirname, '..');
 const mindRuntime = path.join(projectRoot, 'runtime', 'mind-cli');
-const healthFile = path.join(mindRuntime, 'model-health.json');
+const healthFile = process.env.BEOPS_MODEL_HEALTH || path.join(mindRuntime, 'model-health.json');
 
 const REMOTE_MODEL_MARKERS = [
   ':cloud', '-cloud', 'cloud:',
@@ -32,6 +32,10 @@ function modelKey(name) {
   return normalizeModelName(name).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
+function modelFamilyKey(name) {
+  return modelKey(name).replace(/-hf$/, '').replace(/-\d+$/, '');
+}
+
 function isRemoteName(name) {
   const normalized = normalizeModelName(name);
   return REMOTE_MODEL_MARKERS.some(marker => normalized.includes(marker));
@@ -40,7 +44,7 @@ function isRemoteName(name) {
 function localModels() {
   const rows = bridge.chatModels({ includeUnavailable: false, includeAuto: false }) || [];
   return rows
-    .filter(m => m && m.bridge === 'llama' && m.model && m.model !== 'auto' && m.runnable !== false)
+    .filter(m => m && m.bridge === 'llama' && m.model && m.model !== 'auto' && m.runnable !== false && !modelHeld(m.model))
     .map(m => ({
       name: m.model,
       id: m.id,
@@ -73,8 +77,11 @@ function writeHealth(value) {
 }
 
 function modelHeld(model, now = Date.now()) {
-  const row = readHealth().models?.[model];
-  return row && Date.parse(row.cooldown_until || '') > now;
+  const family = modelFamilyKey(model);
+  return Object.entries(readHealth().models || {}).some(([name, row]) =>
+    row && Date.parse(row.cooldown_until || '') > now &&
+    (name === model || modelFamilyKey(name) === family)
+  );
 }
 
 function recordHealth(model, state, error) {
@@ -184,13 +191,16 @@ async function doChat(req) {
         prompt: fullPrompt,
         timeoutMs
       });
+      if (result && result.ok) recordHealth(targetModel, 'ready');
     } catch (err) {
+      recordHealth(targetModel, 'failed', err);
       result = { ok: false, err: err.message };
     }
   }
 
   if (!result || !result.ok) {
     const errorMsg = (result && (result.err || result.out)) || 'CLI bridge execution failed';
+    if (found.bridge !== 'codex') recordHealth(targetModel, 'failed', new Error(errorMsg));
     throw new Error(errorMsg);
   }
 
