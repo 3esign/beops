@@ -748,3 +748,9 @@ Prompt v2 required a cross-domain link and urban relief; the model obliged every
 - Greske: A live drip receipt for Sumnjalo reported `organ_silent` while the mind still had Codex capacity for another entity. Uzrok: the skeptic chain had Terra and Luna, but not Sol, so a temporary hold on the first two could leave that entity without an allowed reviewed route. Lek: every required entity should carry all reviewed Codex fallbacks unless there is a deliberate role reason to forbid one.
 - Izvori: `data/live/derived/mind/receipts/20260921T004119Z-skeptic.json`, `research/ORGANS.json`, `tools/organ_mind.py status`.
 - Odluke: Sumnjalo keeps Terra first and Luna second, with Sol as third fallback; a register contract test locks the chain.
+
+### 2026-09-21T07:04Z - Transport silence is not a failed news organ
+
+- Greske: `news-sorter` correctly rolled back headline quality attempts after `CLI returned no output` and `[stopped after timeout]`, but the final receipt still became `organ_failed` when no derived rows existed. Uzrok: final state used `errors` alone, not whether every error was a local transport failure. Lek: pure local transport failures are `waiting_model`; parser/semantic model errors remain `organ_failed`.
+- Izvori: `data/live/derived/news/receipts/20260921T064502Z.json`, `tools/organ_news.py`, `research/test_organ_news.py`.
+- Odluke: Keep `news-sorter.allow_cloud=false`; do not send headlines to Codex just to make the receipt green. A green state means local route capacity is honestly represented.

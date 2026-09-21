@@ -41,7 +41,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 LIVE = ROOT / "data" / "live"
 ORGANS = ROOT / "research" / "ORGANS.json"
 ORGAN_ID = "news-sorter"
-ORGAN_VERSION = "0.2.7"
+ORGAN_VERSION = "0.2.8"
 OLLAMA = os.environ.get("BEOPS_OLLAMA", "http://127.0.0.1:11434")
 MODEL_KEEP_ALIVE = "2m"
 MODEL_REQUEST_TIMEOUT = 210
@@ -178,6 +178,16 @@ def pick_model(available: list[str], preferred: list[str], allow_cloud: bool = F
             if got == wanted or got.startswith(wanted + "-") or wanted.startswith(got + "-"):
                 return a
     return None
+
+
+def model_transport_failure(exc: Exception) -> bool:
+    text = str(exc).lower()
+    return isinstance(exc, TimeoutError) or any(fragment in text for fragment in (
+        "cli returned no output",
+        "[stopped after timeout]",
+        "timed out",
+        "timeout",
+    ))
 
 
 THINKING_MODELS = ("qwen3", "deepseek-r1", "gpt-oss", "magistral")   # Ollama accepts think=false only for models that can think
@@ -350,6 +360,8 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
     derived_n = 0
     errors = []
     deferred = None
+    transport_failures_seen = False
+    non_transport_errors_seen = False
     for k in range(0, len(todo), batch_size):
         batch = todo[k:k + batch_size]
         prompt = prompt_for(batch)
@@ -386,6 +398,9 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
                 atomic_json(retry_path, retry)
             break
         except Exception as exc:  # noqa: BLE001
+            transport_failure = model_transport_failure(exc)
+            transport_failures_seen = transport_failures_seen or transport_failure
+            non_transport_errors_seen = non_transport_errors_seen or not transport_failure
             errors.append(f"{type(exc).__name__}: {str(exc)[:160]}")
             for row in batch:
                 key = row['dedupe_key']
@@ -415,8 +430,9 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
                     'after': type(exc).__name__,
                 })
                 model = replacement
-            elif not replacement:
-                deferred = 'no alternate local model after transport failure'
+            else:
+                if transport_failure:
+                    deferred = 'no alternate local model after transport failure'
                 break
             continue
         rows = derive(batch, answer, model, sha, now)
@@ -436,7 +452,17 @@ def run(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, batch_s
     rec["derived"] = derived_n
     rec["errors"] = errors
     rec["incomplete_exhausted"] = sum(1 for key, count in attempts.items() if count >= 3 and key not in done)
-    rec["state"] = "derived" if derived_n else ('waiting_model' if deferred else ("organ_failed" if errors else "nothing_to_do"))
+    if derived_n:
+        rec["state"] = "derived"
+    elif deferred:
+        rec["state"] = "waiting_model"
+    elif errors and transport_failures_seen and not non_transport_errors_seen:
+        rec["state"] = "waiting_model"
+        rec["reason"] = "local model transport failed before a complete answer"
+    elif errors:
+        rec["state"] = "organ_failed"
+    else:
+        rec["state"] = "nothing_to_do"
     if deferred:
         rec['reason'] = deferred
     rec["output"] = str(out_path)

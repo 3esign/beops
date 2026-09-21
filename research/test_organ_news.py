@@ -55,12 +55,40 @@ class OrganTests(unittest.TestCase):
             raise TimeoutError("fixture timeout")
 
         rec = on.run(NOW, chat=timeout, tags=lambda: ["qwen2.5:1.5b"])
-        self.assertEqual(rec["state"], "organ_failed")
+        self.assertEqual(rec["state"], "waiting_model")
+        self.assertEqual(rec["reason"], "no alternate local model after transport failure")
         attempts = json.loads((on.LIVE / "derived/news/attempts.json").read_text(encoding="utf-8"))
         retry = json.loads((on.LIVE / "derived/news/retry.json").read_text(encoding="utf-8"))
         self.assertEqual(attempts, {})
         self.assertTrue(all(row["state"] == "failed" and row["transport_failures"] == 1
                             for row in retry.values()))
+
+    def test_only_transport_failures_are_waiting_model_even_when_last_fallback_is_untried(self):
+        seed(on.LIVE, H)
+        calls = []
+
+        def tags():
+            return ["qwen2.5:1.5b", "qwen3.5:4b"] if not calls else ["qwen3.5:4b"]
+
+        def timeout(model, _prompt):
+            calls.append(model)
+            raise RuntimeError("CLI returned no output")
+
+        rec = on.run(NOW, chat=timeout, tags=tags, batch_size=1, limit=1)
+        self.assertEqual(calls, ["qwen2.5:1.5b"])
+        self.assertEqual(rec["fallbacks"], [{"from": "qwen2.5:1.5b", "to": "qwen3.5:4b",
+                                             "after": "RuntimeError"}])
+        self.assertEqual(rec["state"], "waiting_model")
+        self.assertEqual(rec["reason"], "local model transport failed before a complete answer")
+
+    def test_non_transport_model_error_remains_organ_failed(self):
+        seed(on.LIVE, H[:1])
+
+        def malformed(_model, _prompt):
+            raise json.JSONDecodeError("bad model json", "x", 0)
+
+        rec = on.run(NOW, chat=malformed, tags=lambda: ["qwen2.5:1.5b"])
+        self.assertEqual(rec["state"], "organ_failed")
 
     def test_transport_failure_falls_back_to_next_local_model(self):
         seed(on.LIVE, H)

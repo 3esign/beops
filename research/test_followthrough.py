@@ -143,7 +143,7 @@ class NewsCompletion(unittest.TestCase):
             with patch.object(N, 'LIVE', live), patch.object(N, 'ORGANS', organs), \
                     patch.object(N, 'headlines', return_value=rows), patch.object(N, 'exclusive', observed_lock):
                 rec = N.run(NOW, chat=model_timeout, tags=lambda: ['fixture:local'])
-            self.assertEqual(rec['state'], 'organ_failed')
+            self.assertEqual(rec['state'], 'waiting_model')
             self.assertTrue(waits)
             self.assertTrue(all(timeout == 120 for timeout in waits), waits)
 
