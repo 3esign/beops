@@ -1,13 +1,13 @@
 {
  "schema": "beops-agreement/v1",
- "made_at": "2026-09-23T08:17:55.252553Z",
+ "made_at": "2026-09-23T10:43:23.232434Z",
  "min_shared_hours": 6,
  "what_this_is": "the difference between what two independent sources said about the same parameter in the same hour. It contains instrumental disagreement AND real difference between the places they stand in, and this record cannot separate them. It is not an error bar, not a check of any source, and it is never used to adjust a value.",
  "parameters": {
   "humidity": {
-   "shared_hours": 330,
+   "shared_hours": 332,
    "widest_gap": {
-    "median": 5.27,
+    "median": 5.25,
     "min": 0.02,
     "max": 24.85
    },
@@ -15,13 +15,13 @@
     {
      "a": "S01",
      "b": "S04",
-     "shared_hours": 330,
+     "shared_hours": 332,
      "unit_a": "%",
      "unit_b": "%",
      "units_match": true,
      "geometry": "linear",
-     "median_gap": 5.27,
-     "p90_gap": 14.4,
+     "median_gap": 5.25,
+     "p90_gap": 14.34,
      "max_gap": 24.85
     }
    ],
@@ -58,13 +58,13 @@
    "geometry": "linear"
   },
   "pressure": {
-   "shared_hours": 330,
+   "shared_hours": 332,
    "widest_gap": null,
    "pairs": [
     {
      "a": "S01",
      "b": "S04",
-     "shared_hours": 330,
+     "shared_hours": 332,
      "unit_a": "hPa",
      "unit_b": "Pa",
      "units_match": false,
@@ -109,9 +109,9 @@
    "geometry": "linear"
   },
   "temperature": {
-   "shared_hours": 330,
+   "shared_hours": 332,
    "widest_gap": {
-    "median": 3.06,
+    "median": 3.05,
     "min": 0.13,
     "max": 7.05
    },
@@ -119,7 +119,7 @@
     {
      "a": "S01",
      "b": "S03",
-     "shared_hours": 326,
+     "shared_hours": 329,
      "unit_a": "Cel",
      "unit_b": "Cel",
      "units_match": true,
@@ -131,24 +131,24 @@
     {
      "a": "S01",
      "b": "S04",
-     "shared_hours": 330,
+     "shared_hours": 332,
      "unit_a": "Cel",
      "unit_b": "Cel",
      "units_match": true,
      "geometry": "linear",
-     "median_gap": 2.46,
-     "p90_gap": 3.62,
+     "median_gap": 2.45,
+     "p90_gap": 3.61,
      "max_gap": 4.95
     },
     {
      "a": "S03",
      "b": "S04",
-     "shared_hours": 326,
+     "shared_hours": 329,
      "unit_a": "Cel",
      "unit_b": "Cel",
      "units_match": true,
      "geometry": "linear",
-     "median_gap": 2.8,
+     "median_gap": 2.77,
      "p90_gap": 5.1,
      "max_gap": 7.05
     }
@@ -194,10 +194,58 @@
    "centre_estimator": "median",
    "geometry": "linear"
   },
-  "wind_direction": {
-   "shared_hours": 314,
+  "water_level": {
+   "shared_hours": 6,
    "widest_gap": {
-    "median": 19.27,
+    "median": 21.25,
+    "min": 21.0,
+    "max": 22.5
+   },
+   "pairs": [
+    {
+     "a": "S223",
+     "b": "S52",
+     "shared_hours": 6,
+     "unit_a": "cm",
+     "unit_b": "cm",
+     "units_match": true,
+     "geometry": "linear",
+     "median_gap": 21.25,
+     "p90_gap": 22.5,
+     "max_gap": 22.5
+    }
+   ],
+   "sources": {
+    "S223": {
+     "clocks": [
+      "measured"
+     ],
+     "places": [
+      "Beograd (Sava)",
+      "Pančevo (Tamiš)",
+      "Zemun (Dunav)"
+     ],
+     "unit": "cm"
+    },
+    "S52": {
+     "clocks": [
+      "measured"
+     ],
+     "places": [
+      "Beograd (Sava)",
+      "Zemun (Dunav)"
+     ],
+     "unit": "cm"
+    }
+   },
+   "these_are_different_places": "the sources below stand in different places, so part of every gap is the city itself and not the instruments.",
+   "centre_estimator": "median",
+   "geometry": "linear"
+  },
+  "wind_direction": {
+   "shared_hours": 317,
+   "widest_gap": {
+    "median": 19.25,
     "min": 0.25,
     "max": 174.46
    },
@@ -205,12 +253,12 @@
     {
      "a": "S01",
      "b": "S03",
-     "shared_hours": 314,
+     "shared_hours": 317,
      "unit_a": "deg",
      "unit_b": "deg",
      "units_match": true,
      "geometry": "circular_degrees",
-     "median_gap": 19.27,
+     "median_gap": 19.25,
      "p90_gap": 67.91,
      "max_gap": 174.46
     }
@@ -240,13 +288,13 @@
    "geometry": "circular_degrees"
   },
   "wind_speed": {
-   "shared_hours": 326,
+   "shared_hours": 329,
    "widest_gap": null,
    "pairs": [
     {
      "a": "S01",
      "b": "S03",
-     "shared_hours": 326,
+     "shared_hours": 329,
      "unit_a": "m/s",
      "unit_b": "kt",
      "units_match": false,
@@ -284,10 +332,5 @@
    "geometry": "linear"
   }
  },
- "withheld_too_few_shared_hours": [
-  {
-   "parameter": "water_level",
-   "shared_hours": 5
-  }
- ]
+ "withheld_too_few_shared_hours": []
 }
