@@ -1,0 +1,186 @@
+"""Reviewed model calls with a shared local-GPU lock and one deadline for the whole job."""
+import contextlib
+import functools
+import ipaddress
+import json
+import os
+import pathlib
+import threading
+import time
+import urllib.request
+from urllib.parse import urlsplit
+import subprocess
+from contracts import exclusive
+from model_capacity import shared_slot, CapacityBusy
+
+_job = threading.local()
+LOCK = pathlib.Path(os.environ.get("BEOPS_MODEL_LOCK", "C:/Svemir/data/locks/beops-model.lock"))
+CAPACITY_WAIT_SECONDS = 0.0
+REMOTE_MODEL_MARKERS = (
+    ":cloud", "-cloud", "cloud:",
+    "claude", "sonnet", "opus", "haiku",
+    "gemini", "flash", "antigravity",
+    "codex", "openai", "gpt-",
+)
+
+
+class ModelDeferred(CapacityBusy):
+    """No inference request was sent: wait for capacity without spending a retry."""
+
+
+@contextlib.contextmanager
+def model_slot(timeout):
+    if getattr(_job, 'slot_held', False):
+        yield
+        return
+    started = time.monotonic()
+    with contextlib.ExitStack() as stack:
+        try:
+            stack.enter_context(exclusive(LOCK, timeout=timeout))
+            stack.enter_context(shared_slot(max(0, timeout - (time.monotonic() - started))))
+        except TimeoutError as exc:
+            raise ModelDeferred(str(exc) if isinstance(exc, CapacityBusy) else 'local model capacity is busy') from exc
+        _job.slot_held = True
+        try:
+            yield
+        finally:
+            _job.slot_held = False
+
+
+def endpoint(base):
+    p = urlsplit(base)
+    local = p.hostname == "localhost"
+    try:
+        local = local or ipaddress.ip_address(p.hostname or "").is_loopback
+    except ValueError:
+        pass
+    if p.scheme != "http" or not local or p.username or p.password or p.path not in ("", "/"):
+        raise ValueError("model endpoint must be local loopback HTTP")
+    return base.rstrip("/")
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise ValueError("model endpoint redirect refused")
+
+
+def is_cli_backend():
+    return os.environ.get("BEOPS_MODEL_BACKEND", "").lower() in ("cli", "svemir", "svemir-cli")
+
+
+def normalized_model_name(model):
+    if not isinstance(model, str):
+        return ""
+    name = model.strip().lower()
+    for prefix in ("cli:", "pc-llama-"):
+        if name.startswith(prefix):
+            name = name[len(prefix):]
+    return name
+
+
+def remote_model_name(model):
+    name = normalized_model_name(model)
+    if not name:
+        return False
+    return any(marker in name for marker in REMOTE_MODEL_MARKERS)
+
+
+def _request_bridge(path, payload, timeout):
+    bridge_script = pathlib.Path(__file__).with_name("svemir_model_bridge.js")
+    cmd = ["node", str(bridge_script)]
+    timeout = max(0.001, float(timeout))
+    if path == "/api/tags":
+        cmd.append("tags")
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=min(timeout, 30))
+        if r.returncode == 0:
+            return json.loads(r.stdout.strip())
+        raise RuntimeError(r.stderr or "bridge tags failed")
+    elif path == "/api/show":
+        cmd.extend(["show", (payload or {}).get("model", "auto")])
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=min(timeout, 30))
+        if r.returncode == 0:
+            return json.loads(r.stdout.strip())
+        raise RuntimeError(r.stderr or "bridge show failed")
+    elif path == "/api/embed":
+        cmd.append("embed")
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=min(timeout, 30))
+        if r.returncode == 0:
+            return json.loads(r.stdout.strip())
+        raise RuntimeError(r.stderr or "bridge embed failed")
+    elif path == "/api/chat":
+        cmd.append("chat")
+        bridge_payload = dict(payload or {})
+        # Let the bridge classify the failure and persist model cooldown before the Python
+        # subprocess guard fires. Otherwise equal inner/outer deadlines race and lose health state.
+        bridge_payload["timeout"] = max(0.001, timeout - 15)
+        r = subprocess.run(cmd, input=json.dumps(bridge_payload), capture_output=True, text=True,
+                           encoding="utf-8", timeout=timeout)
+        if r.returncode == 0:
+            return json.loads(r.stdout.strip())
+        raise RuntimeError(r.stderr or "bridge chat failed")
+    raise ValueError(f"unsupported path for bridge: {path}")
+
+
+def request(base, path, payload=None, timeout=60, verify_model=True, allow_cloud=False):
+    base = endpoint(base)
+    remaining = getattr(_job, "deadline", time.monotonic() + timeout) - time.monotonic()
+    if remaining <= 0:
+        raise ModelDeferred("model job deadline reached before request")
+    m = (payload or {}).get("model")
+    remote = bool(m and remote_model_name(m))
+    if remote and not allow_cloud:
+        raise ValueError("cloud model is not permitted")
+    # Account-backed CLI inference does not use the local GPU and must not wait behind its mutex.
+    # The project bridge itself enforces the reviewed model list, tool-free qualification and cooldowns.
+    if is_cli_backend() and (remote or path == "/api/tags"):
+        return _request_bridge(path, payload, min(timeout, remaining))
+    # A scheduled tick must never sit behind another GPU user. If the slot is busy,
+    # leave a waiting_model receipt and let the next periodic tick try again.
+    with model_slot(min(CAPACITY_WAIT_SECONDS, max(0, remaining))):
+        remaining = getattr(_job, "deadline", time.monotonic() + timeout) - time.monotonic()
+        if remaining <= 0:
+            raise ModelDeferred("model job deadline reached before request")
+        if is_cli_backend() and path != "/api/embed":
+            return _request_bridge(path, payload, min(timeout, remaining))
+        return _request_locked(base, path, payload, timeout, verify_model)
+
+
+def _request_locked(base, path, payload, timeout, verify_model):
+    remaining = getattr(_job, "deadline", time.monotonic() + timeout) - time.monotonic()
+    if remaining <= 0:
+        raise ModelDeferred("model job deadline reached before request")
+    if payload and payload.get("model") and verify_model:
+        model = payload["model"]
+        if remote_model_name(model):
+            raise ValueError("cloud model is not permitted")
+        info = _request_locked(base, "/api/show", {"model": model}, min(remaining, 10), False)
+        if any(info.get(k) for k in ("remote_host", "remote_model", "remote_url")):
+            raise ValueError("model metadata identifies a remote model")
+    data = json.dumps(payload).encode() if payload is not None else None
+    req = urllib.request.Request(base + path, data=data, headers={"Content-Type": "application/json"})
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
+    remaining = getattr(_job, "deadline", time.monotonic() + timeout) - time.monotonic()
+    if remaining <= 0:
+        raise ModelDeferred("model job deadline reached before request")
+    with opener.open(req, timeout=min(timeout, remaining)) as response:
+        body = response.read(8 * 1024 * 1024 + 1)
+        if len(body) > 8 * 1024 * 1024:
+            raise ValueError("model response too large")
+        return json.loads(body)
+
+
+def budget(seconds):
+    def decorate(fn):
+        @functools.wraps(fn)
+        def wrapped(*args, **kwargs):
+            previous = getattr(_job, "deadline", None)
+            _job.deadline = min(previous or float("inf"), time.monotonic() + seconds)
+            try:
+                return fn(*args, **kwargs)
+            finally:
+                if previous is None:
+                    del _job.deadline
+                else:
+                    _job.deadline = previous
+        return wrapped
+    return decorate

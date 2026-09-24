@@ -15,7 +15,17 @@ from model_capacity import shared_slot, CapacityBusy
 
 _job = threading.local()
 LOCK = pathlib.Path(os.environ.get("BEOPS_MODEL_LOCK", "C:/Svemir/data/locks/beops-model.lock"))
-CAPACITY_WAIT_SECONDS = 0.0
+# 24.09.2026: bilo 0.0 - "zakazani otkucaj ne sme da sedi iza drugog korisnika GPU-a".
+# Namera dobra, ishod obrnut: um i news-sorter kucaju na 4 minuta, poziv traje 2-40 s,
+# pa onaj koji izgubi trku ne ceka sekundu nego propusti ceo svoj ciklus. Ko izgubi
+# nekoliko puta zaredom, stoji satima ("local model capacity is busy", "have []").
+# Nula nije bila zastita od cekanja nego garancija gladovanja.
+# 60 s je krace od najkraceg razmaka izmedju otkucaja, pa organ koji saceka i dalje
+# stigne svoj posao pre sledeceg poziva.
+# 2026-09-24: podrazumevano 0, kako je bilo do 93e29b0. Commit 4e0ed75 ga je podigao na 60,
+# pa je test_busy_shared_capacity_is_not_queued pao, objava je fail-closed stala i javni sajt
+# je stajao 641 min. Podesivost ostaje; ceka se samo ako to neko izricito trazi.
+CAPACITY_WAIT_SECONDS = float(os.environ.get("BEOPS_CAPACITY_WAIT_SECONDS", "0"))
 REMOTE_MODEL_MARKERS = (
     ":cloud", "-cloud", "cloud:",
     "claude", "sonnet", "opus", "haiku",

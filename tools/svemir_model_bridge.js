@@ -92,7 +92,16 @@ function recordHealth(model, state, error) {
     health.models[model] = { state, at: health.at, failure_kind: null, cooldown_until: null };
   } else {
     const kind = (error && error.failureKind) || classifyFailure(error && error.message);
-    const minutes = kind === 'rate-limit' ? 80 : ['auth', 'unsupported-model'].includes(kind) ? 360 : 20;
+    /* 24.09.2026: hladjenje od 20 min je politika za CLOUD kvotu. Lokalni model nema
+       kvotu - njegov jedini "zauzet" je ucitavanje u VRAM (mereno 30-290 s na ovoj
+       kartici). Kad se ta minuta naplati kao 20, nekoliko zamena modela zaredom
+       isprazni ceo registar i organ ostane bez ijednog sagovornika ("have []").
+       Lokalnom se daje tacno onoliko koliko traje ucitavanje, pa se pokusava opet. */
+    const lokalni = /^(pc-llama-|llama|qwen|lfm|deepseek|gemma|phi|mistral)/i.test(String(model))
+      && !/^(gpt-|claude|sonnet|opus|haiku|gemini|flash|antigravity|codex|openai)/i.test(String(model));
+    const minutes = kind === 'rate-limit' ? 80
+      : ['auth', 'unsupported-model'].includes(kind) ? 360
+      : lokalni ? 2 : 20;
     health.models[model] = { state: 'failed', at: health.at, failure_kind: kind,
       cooldown_until: new Date(Date.now() + minutes * 60000).toISOString() };
   }
@@ -112,9 +121,45 @@ function codexModels() {
   });
 }
 
+/* 24.09.2026: bilo je samo codexModels(). Kad je codexu nestalo kvote, um je ostao
+   bez ijednog oblacnog modela iako su claude (5) i antigravity (14) bili READY.
+   Sada ulaze svi CLI mostovi osim llama, filtrirani po IZMERENOJ dostupnosti.
+   Redosled mostova ovde ne znaci prednost - izbor je nasumican, vidi nasumicniCli(). */
+const CLI_MOSTOVI = String(process.env.BEOPS_CLI_MOSTOVI || 'claude,antigravity,codex')
+  .split(',').map(s => s.trim()).filter(Boolean);
+
+function cliModels() {
+  const rows = bridge.chatModels({ includeUnavailable: false, includeAuto: false }) || [];
+  const out = [];
+  for (const row of rows) {
+    if (!row || !row.model || row.model === 'auto') continue;
+    if (row.bridge === 'llama') continue;
+    if (!CLI_MOSTOVI.includes(row.bridge)) continue;
+    if (!bridge.isLocalDevice(row.device)) continue;
+    if (row.runnable === false) continue;
+    if (modelHeld(row.model)) continue;
+    out.push({
+      name: row.model,
+      id: row.id,
+      bridge: row.bridge,
+      backend: row.bridge + '-cli',
+      catalogue_status: row.status,
+      capabilities: { chat: true, structured_output: true, embedding: false }
+    });
+  }
+  return out;
+}
+
+/* Nasumicno medju onima koji rade. Ne "najbolji" - ravnopravno.
+   Provajderi se ne razlikuju po oceni nego po tome da li rade, a to se meri. */
+function nasumicniCli() {
+  const l = cliModels();
+  return l.length ? l[Math.floor(Math.random() * l.length)] : null;
+}
+
 function availableModels() {
   const seen = new Set();
-  return [...codexModels(), ...localModels()].filter(model => {
+  return [...cliModels(), ...localModels()].filter(model => {
     const key = modelKey(model.name);
     if (!key || seen.has(key)) return false;
     seen.add(key);
@@ -124,6 +169,12 @@ function availableModels() {
 
 function findModel(name) {
   if (!name) return null;
+  /* "auto" i "cli-auto" nisu model nego uputstvo: uzmi nasumicno nekog ko radi.
+     Ako nijedan CLI ne radi (npr. svima nestala kvota), pada na lokalne. */
+  const trazen = String(name).trim().toLowerCase();
+  if (trazen === 'auto' || trazen === 'cli-auto' || trazen === 'svemir-auto') {
+    return nasumicniCli() || (localModels()[0] || null);
+  }
   const normalized = modelKey(name);
   return availableModels().find(m => {
     const names = [m.name, m.id, 'pc-llama-' + m.name].map(modelKey);
@@ -132,7 +183,22 @@ function findModel(name) {
 }
 
 async function getTags() {
-  return { models: availableModels() };
+  const svi = availableModels();
+  const cli = svi.filter(m => m && m.bridge !== 'llama');
+  /* 24.09.2026: "cli-auto" je imenovan izbor, ne model. Bez njega u katalogu um ga
+     nikad ne zatrazi, jer svoj spisak presece sa onim sto tags vrati. */
+  if (cli.length) {
+    svi.unshift({
+      name: 'cli-auto',
+      id: 'cli-auto',
+      bridge: 'cli-auto',
+      backend: 'svemir-cli-auto',
+      catalogue_status: 'ready',
+      izbor_medju: cli.length,
+      capabilities: { chat: true, structured_output: true, embedding: false }
+    });
+  }
+  return { models: svi };
 }
 
 async function doChat(req) {
@@ -174,7 +240,24 @@ async function doChat(req) {
   const timeoutMs = Math.max(1, Number(req.timeout || 210)) * 1000;
 
   let result;
-  if (found.bridge === 'codex') {
+  if (found.bridge !== 'codex' && found.bridge !== 'llama') {
+    /* claude, antigravity i svaki drugi CLI most: generican put kroz Svemirov
+       cli_bridge. Codex ostaje na svom postojecem putu da mu se nista ne pokvari
+       kad mu se kvota vrati (26.09.), a llama ide dole kao i do sada. */
+    try {
+      result = await bridge.runLocal({
+        bridge: found.bridge,
+        model: targetModel,
+        prompt: fullPrompt,
+        timeoutMs,
+        shema: req.format ? (typeof req.format === 'string' ? 'json' : req.format) : undefined
+      });
+      if (result && result.ok) recordHealth(targetModel, 'ready');
+    } catch (err) {
+      recordHealth(targetModel, 'failed', err);
+      result = { ok: false, err: err.message };
+    }
+  } else if (found.bridge === 'codex') {
     try {
       const response = await providers.codex(prompt, system, targetModel, mindRuntime, timeoutMs, req.format);
       recordHealth(targetModel, 'ready');
@@ -189,7 +272,12 @@ async function doChat(req) {
         bridge: 'llama',
         model: targetModel,
         prompt: fullPrompt,
-        timeoutMs
+        timeoutMs,
+        /* 24.09.2026: kad organ trazi JSON, shema ide kao GRAMATIKA u llama-server
+           (response_format), ne samo kao recenica u promptu. Uputstvo je molba koju
+           model od 1B ume da ignorise; gramatika je ograda. Odatle je dolazio
+           JSONDecodeError: Expecting value: line 1 column 1 (char 0). */
+        shema: req.format ? (typeof req.format === 'string' ? 'json' : req.format) : undefined
       });
       if (result && result.ok) recordHealth(targetModel, 'ready');
     } catch (err) {

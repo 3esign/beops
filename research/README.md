@@ -299,6 +299,8 @@ first and moves second, and the reverse order silently leaves every moved file p
 ## Rich context collaboration, 2026-09-06
 
 - Domestic room prompt (private working record) and international comparative room prompt (private working record): ready handoff packets; startup not assumed.
+- [Domestic literature & theses context](04-bibliography/agents/DOMESTIC_CONTEXT_2026-09-06.md) — domestic repositories, dissertations, and institutional sensor literature for Belgrade.
+- [Comparative sensing literature](04-bibliography/agents/COMPARATIVE_CONTEXT_2026-09-06.md) — international comparative baseline and transferable urban sensing datasets.
 - Rich-context board (private working record) and [teamwork](../TEAMWORK.md): real queue IDs and disjoint ownership.
 
 ## Sensing-context additions, 2026-09-06
