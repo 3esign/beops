@@ -173,11 +173,16 @@ def fold(now: datetime | None = None, rows=None) -> dict:
     floor = now - timedelta(days=MAX_DAYS)
     cfg = load_config()
     series: dict[str, dict] = {}
-    revisions = {}
     unparsed: dict[str, int] = {}
+    lower, upper = floor.timestamp(), now.timestamp()
 
     for sid_dir in sorted(p for p in rows.iterdir() if p.is_dir()) if rows.exists() else []:
         sid = sid_dir.name
+        # Every event_key and every series key begins with sid, so a revision and a
+        # series belong to exactly one source. Holding all sources' revisions at once
+        # made the peak the whole record (814 MB of rows on 2026-09-24, two sources
+        # 92% of it); drained per source the peak is the largest single source.
+        revisions = {}
         for f in sorted(sid_dir.glob("*.jsonl")):
           for r in observation_rows(f):
                 ds = r.get("datastream")
@@ -220,11 +225,10 @@ def fold(now: datetime | None = None, rows=None) -> dict:
                 if prior is None or event[1] >= prior[1][1]:
                     revisions[event_key] = (s, event)
 
-    lower, upper = floor.timestamp(), now.timestamp()
-    for s, event in revisions.values():
-        if event[0] is not None and lower <= event[0] <= upper:
-            s['events'].append(event)
-    del revisions
+        for s, event in revisions.values():
+            if event[0] is not None and lower <= event[0] <= upper:
+                s['events'].append(event)
+        revisions = None
 
     out_series = []
     for key, s in sorted(series.items()):
@@ -318,16 +322,21 @@ def main() -> int:
         data['as_of'] = iso(generation_time(generation))
         data['built'] = iso(datetime.now(timezone.utc))
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    # Streamed: json.dumps held the whole output as one str and write_text its utf-8
+    # bytes beside it, both alive while data still was. The file is byte-identical.
+    with OUT.open("w", encoding="utf-8") as handle:
+        json.dump(data, handle, ensure_ascii=False, separators=(",", ":"))
     print(f"wrote {OUT} ({OUT.stat().st_size} bytes; {len(data['series'])} series, "
           f"{data['hours_of_history']} h of history from {data['history_starts']})")
     basis = generation_time(generation) if generation else datetime.now(timezone.utc)
     for days in window_days():
         window = narrow(data, days, basis)
         path = OUT.parent / f"history-{days}d.json"
-        path.write_text(json.dumps(window, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        with path.open("w", encoding="utf-8") as handle:
+            json.dump(window, handle, ensure_ascii=False, separators=(",", ":"))
         print(f"wrote {path} ({path.stat().st_size} bytes; {len(window['series'])} series, "
               f"{days}-day window, {window['hours_of_history']} h)")
+        window = None
     return 0
 
 
