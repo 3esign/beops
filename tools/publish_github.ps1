@@ -17,6 +17,44 @@ $ErrorActionPreference = 'Stop'
 if (-not $CycleStartedAt) { $CycleStartedAt = [DateTimeOffset]::UtcNow.ToString('o') }
 $env:BEOPS_CYCLE_DEADLINE = ([DateTimeOffset]::Parse($CycleStartedAt).AddMinutes(45)).ToString('o')
 . (Join-Path $PSScriptRoot 'publish_safety.ps1')
+function Get-BeopsJsonHeadValue {
+  # A top-level scalar out of a large compact JSON, without ever parsing the file.
+  # ConvertFrom-Json builds a PSCustomObject per node: measured 2026-09-25, reading
+  # docs/history.json this way held 1,304 MB in this process and drove free memory on
+  # an 8 GB body to 95 MB - below the publisher's own 1,024 MB gate - while python
+  # build_history held 15 MB. build_history.py and the snapshot writer emit their
+  # scalar header keys before the large arrays, so the value sits in the first chunk
+  # (measured: 203 ms for history_ends, 100 ms for as_of). A miss widens the window to
+  # 4 MB and then gives up: a full parse is never a fallback, because the whole point
+  # is that this function cannot be what runs the body out of memory.
+  param([Parameter(Mandatory)][string]$Path, [Parameter(Mandatory)][string]$Name)
+  if (-not (Test-Path -LiteralPath $Path)) { return $null }
+  $pattern = '"' + [regex]::Escape($Name) + '"\s*:\s*(?:"(?<s>(?:[^"\\]|\\.)*)"|(?<n>-?\d+(?:\.\d+)?)|(?<k>true|false|null))'
+  $m = $null
+  foreach ($limit in @(65536, 1048576, 4194304)) {
+    $head = ''
+    $read = 0
+    try {
+      $reader = [System.IO.StreamReader]::new($Path, [System.Text.Encoding]::UTF8)
+      try {
+        $buffer = [char[]]::new($limit)
+        $read = $reader.Read($buffer, 0, $limit)
+        if ($read -gt 0) { $head = -join $buffer[0..($read - 1)] }
+      } finally { $reader.Dispose() }
+    } catch { return $null }
+    $m = [regex]::Match($head, $pattern)
+    if ($m.Success -or $read -lt $limit) { break }
+  }
+  if ($null -eq $m -or -not $m.Success) { return $null }
+  if ($m.Groups['s'].Success) { return $m.Groups['s'].Value }
+  if ($m.Groups['k'].Success) {
+    switch ($m.Groups['k'].Value) { 'true' { return $true } 'false' { return $false } default { return $null } }
+  }
+  $num = $m.Groups['n'].Value
+  if ($num -match '^-?\d+$') { return [int]$num }
+  return [double]$num
+}
+
 function Resolve-BeopsBundledPython {
   $bundled = Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
   if (Test-Path $bundled) { return $bundled }
@@ -294,8 +332,11 @@ function Invoke-BeopsSiteCheck {
     if ($site -and $site.errors) { $detail = @($site.errors) -join '; ' }
     throw "site verification failed after push with exit code ${siteRc}: $($detail.Substring(0, [Math]::Min(500, $detail.Length)))"
   }
-  $history = Get-Content -LiteralPath (Join-Path $pub 'docs\history.json') -Raw | ConvertFrom-Json
-  $receipt.verified_history = @{history_ends=$history.history_ends;hours_of_history=$history.hours_of_history}
+  $historyPath = Join-Path $pub 'docs\history.json'
+  $receipt.verified_history = @{
+    history_ends     = Get-BeopsJsonHeadValue -Path $historyPath -Name 'history_ends'
+    hours_of_history = Get-BeopsJsonHeadValue -Path $historyPath -Name 'hours_of_history'
+  }
 }
 Write-BeopsPublishCycleState -State 'active' -Reason 'publish cycle started'
 $lock = Enter-BeopsPublishLock -Path $lockFile -MaxAgeMinutes 15
@@ -546,7 +587,7 @@ function Test-BeopsStageFileAlreadyPublished {
 # One commit per publish: the public history becomes a free archive of what the observatory held at
 # each moment - the "git scraping" pattern - and a second, independent record against our own receipts.
 $snap = Join-Path $src 'public\live-snapshot.json'
-$asof = if (Test-Path $snap) { try { (Get-Content $snap -Raw | ConvertFrom-Json).as_of } catch { '' } } else { '' }
+$asof = if (Test-Path $snap) { [string](Get-BeopsJsonHeadValue -Path $snap -Name 'as_of') } else { '' }
 $receipt.generated_as_of = $asof
 $msg = if ($asof) { "Live snapshot $asof (export of $head)" } else { "Publish export of local commit $head ($(Get-Date -Format 'yyyy-MM-dd HH:mm') local)" }
 Invoke-BeopsNative 'validate exported public links' $py @('-X', 'utf8', '-B', 'tools\validate_public_tree.py', $pub)
