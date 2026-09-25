@@ -367,3 +367,6 @@ Vreme · um · radnja · rezultat. Vodi `node tools/project_kit.js log`.
 - 2026-09-21T07:09:54Z - Svemir - News transport-state fix passed targeted `test_organ_news.py`, targeted `test_followthrough.py`, and full `npm test` after one unrelated flaky collect-daemon rerun passed in isolation. - full-gate-ok
 - 2026-09-21T08:37:21Z - Svemir - Verified final publish for source `799b46f` to public `f84cfcc8`: receipt has tests_ok/published/site_verified true, `npm run test:site` returned CURRENT_AND_VERIFIED for 139 routes, public history reports 302 verified hours, and scheduler is quiet only because of recent_success. - publish-verified
 - 2026-09-21T09:45:15Z - Svemir - Hygiene found 36 untracked legal evidence capture folders from 2026-09-19 (151 files, 0.34 MiB); older legal captures are tracked, so these are being committed as evidence rather than deleted, then republished to keep source/public parity. - legal-evidence-hygiene
+- 2026-09-23T18:56:00Z - BEOPS Komparativni - International sensing literature report and JSON evidence added (t090612034704) - ok
+- 2026-09-23T19:21:00Z - BEOPS Domaci - Domestic repositories, theses and institutional literature report and JSON evidence added (t090612034216) - ok
+

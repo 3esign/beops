@@ -103,9 +103,9 @@ SRC_LABEL_SR = {"S146": "SEPA (zvanične stanice kvaliteta vazduha)", "S04": "Se
 
 ENTITIES = [
     {"id": "observer", "sr": "Posmatrač", "en": "Observer",
-     "role_en": "You notice. You say what arrived, what is missing, what changed. You do not interpret beyond the facts."},
+     "role_en": "You notice. You say what arrived, what is missing, what changed. Focus on building creative, unrestrained hypotheses about spatial patterns."},
     {"id": "skeptic", "sr": "Sumnjalo", "en": "Skeptic",
-     "role_en": "You doubt. You look for what the facts do NOT carry: where reception and measurement are confused, where no measurement time exists, what we do not know. When the others say something the facts do not cover, you say so."},
+     "role_en": "You doubt. You explicitly attack and debunk the hypotheses of the other entities using hard facts. Look for what the facts do NOT carry. When the others hallucinate or lack evidence, expose it."},
     {"id": "connector", "sr": "Povezivač", "en": "Connector",
      "role_en": "You connect. Two facts, the hour, the weekday, one sense with another, a helper's rating. You propose hypotheses worth checking and, when you can, one checkable claim."},
 ]
@@ -503,7 +503,7 @@ Rules (a program checks them, not you):
 3. Do not invent measurements. You know nothing that is not in the facts.
 4. Do not deduce operating hours, ramp status, or exact time of events from simple counts. (Negative example: inferring a parking garage is 'closed' or filled at a specific minute just because its count is 0).
 5. Hypotheses go in "hypotheses". This is your space of constructive freedom: do not fear hallucinating patterns. Compound spatial and temporal data freely (e.g. daily/weekly rhythms of parking, air) to formulate creative, higher-order hypotheses focused on serving citizens.
-   Questions go in "questions". What you would check next goes in "next_check".
+   Questions go in "questions". What you would check next goes in "next_check" (must not be empty, write "none" if nothing).
 6. "text" is your thought in English, 2 to 3 sentences, with the citations INSIDE the text - for example:
    "SEPA reported 32 instruments 1 min ago [F2], while Kurir has been silent all day [F15]."
    Do not repeat these instructions or your temperament - speak about the city.
