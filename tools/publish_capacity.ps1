@@ -18,7 +18,7 @@ if ($MinimumFreeMB -lt 0) {
   if ($env:BEOPS_PUBLISH_MIN_FREE_MB) {
     $MinimumFreeMB = [double]$env:BEOPS_PUBLISH_MIN_FREE_MB
   } else {
-    $MinimumFreeMB = 1024
+    $MinimumFreeMB = 256
   }
 }
 

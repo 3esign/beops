@@ -23,6 +23,9 @@ if (-not $StatusPath) {
 if (-not $AttemptReceiptPath) {
   $AttemptReceiptPath = Join-Path $root 'data\live\publish-receipt.json'
 }
+if (-not $PSBoundParameters.ContainsKey('FailureCooldownMinutes') -and $env:BEOPS_PUBLISH_FAILURE_COOLDOWN_MINUTES) {
+  $FailureCooldownMinutes = [double]$env:BEOPS_PUBLISH_FAILURE_COOLDOWN_MINUTES
+}
 
 function Write-PublishDueStatus {
   param(

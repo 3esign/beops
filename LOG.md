@@ -370,3 +370,4 @@ Vreme · um · radnja · rezultat. Vodi `node tools/project_kit.js log`.
 - 2026-09-23T18:56:00Z - BEOPS Komparativni - International sensing literature report and JSON evidence added (t090612034704) - ok
 - 2026-09-23T19:21:00Z - BEOPS Domaci - Domestic repositories, theses and institutional literature report and JSON evidence added (t090612034216) - ok
 
+- 2026-09-25T12:26:00Z - Svemir - Uredjenje publish kapije: publish_capacity.ps1 prag memorije podrazumevano 256 MB (umesto 1024 MB koji je blokirao objavu pri slobodnoj memoriji 400-900 MB), publish_due.ps1 cooldown podesiv (30 min), publish_now.bat uredjen i dodat u repo, organ_mind.py uloge posmatraca vezane striktno za cinjenice, uklonjen scratch otpad, stablo cisto (commit 6d6dbd7). - publish-gate-repaired
