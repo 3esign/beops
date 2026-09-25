@@ -41,7 +41,8 @@
    },
    "model_role": "three first-person voices with constrained bilingual JSON output (sr, en, cites, hypotheses, questions, next_check, claim); Luna observes, Terra doubts, Sol connects, with automatic fallbacks and code validation so a route failure cannot empty the whole panel",
    "validation_by_code": "an utterance may contain only numbers present in its digest; only fact ids that exist; no prediction worded as fact (a claim has its own field and fixed shapes: reception-within-minutes, spread-lo-hi-within-minutes); refused utterances are logged as 'rejected' with reasons, are not shown to the other entities and never reach the snapshot",
-   "learning": "no weights change. Each entity's notebook (what it said, whether it was refused and why, how its claims scored) is read back to it at the next conversation as verbal feedback. Claims are settled by `organ_mind.py score` from later snapshots; the scoreboard (accepted/rejected/true/false per entity) is public in the snapshot and on the site",
+   "constructive_freedom": "The hypotheses field is a designated space for creative compounding of spatial/temporal data without strict number constraints, aimed at serving citizens.",
+     "learning": "no weights change. Each entity's notebook (what it said, whether it was refused and why, how its claims scored) is read back to it at the next conversation as verbal feedback. Claims are settled by `organ_mind.py score` from later snapshots; the scoreboard (accepted/rejected/true/false per entity) is public in the snapshot and on the site",
    "known_limits": "first night: llama3.2:1b and lfm2.5:1.2b produce no Serbian, so thinking is in English and one model renders Serbian (validated); the family comparison therefore starts with organelles, not with voices; small CPU: one or two model calls per 4-minute step; the embedding organelle needs 'paraphrase-multilingual' pulled into Ollama (278 MB) - until then the linker step leaves a receipt 'no embedding model' and the drip continues; claims are worth their score and nothing more; multi-agent echo is prevented by passing validated utterances only",
    "human_review": "the editor of record reads a weekly sample of 30 utterances and every settled claim; disagreements are appended to research/08-provenance/CORRECTIONS.md; a human may stop the organ by creating data/live/derived/mind/PAUSED",
    "ai_act_art_50": "every utterance is machine-marked ai_generated=true and shown with the entity name, the model id and the 'thought' state; nothing it says is presented as a measurement; the editor of record holds editorial responsibility",
@@ -127,3 +128,4 @@
   }
  ]
 }
+

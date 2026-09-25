@@ -11,6 +11,7 @@ rem Keep temporary collector/build files with the physical project.
 set "TEMP=%BEOPS_ROOT%\runtime\tmp"
 set "TMP=%TEMP%"
 if not exist "%TEMP%" mkdir "%TEMP%"
+if not defined BEOPS_PUBLISH_MIN_FREE_MB set "BEOPS_PUBLISH_MIN_FREE_MB=256"
 if not defined BEOPS_MODEL_BACKEND set "BEOPS_MODEL_BACKEND=cli"
 if not defined BEOPS_PYTHON (
   if exist "C:\Users\treed\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\python.exe" (
@@ -43,3 +44,4 @@ if not exist "%BEOPS_ROOT%" (
   exit /b 9
 )
 exit /b 0
+

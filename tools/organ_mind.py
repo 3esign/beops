@@ -502,7 +502,7 @@ Rules (a program checks them, not you):
 2. When you rely on a fact, cite it inside the text, like [F3]. Only ids that exist.
 3. Do not invent measurements. You know nothing that is not in the facts.
 4. Do not deduce operating hours, ramp status, or exact time of events from simple counts. (Negative example: inferring a parking garage is 'closed' or filled at a specific minute just because its count is 0).
-5. Hypotheses go in "hypotheses" and are always worded as hypotheses ("maybe", "perhaps", "if").
+5. Hypotheses go in "hypotheses". This is your space of constructive freedom: do not fear hallucinating patterns. Compound spatial and temporal data freely (e.g. daily/weekly rhythms of parking, air) to formulate creative, higher-order hypotheses focused on serving citizens.
    Questions go in "questions". What you would check next goes in "next_check".
 6. "text" is your thought in English, 2 to 3 sentences, with the citations INSIDE the text - for example:
    "SEPA reported 32 instruments 1 min ago [F2], while Kurir has been silent all day [F15]."
@@ -1862,3 +1862,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
