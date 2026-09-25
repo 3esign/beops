@@ -69,14 +69,23 @@ class LiveDir(unittest.TestCase):
 
 
 class RegisterContractTests(unittest.TestCase):
-    def test_skeptic_keeps_the_reviewed_codex_family_as_fallbacks(self):
+    def test_every_entity_leads_with_the_rotating_tier_and_ends_on_a_local_floor(self):
+        """2026-09-25, at the editor of record's direction: the three commentators run on the
+        cheaper rotating tier and observation on the best one, both served by the workshop CLI.
+        Pinning three model names at the head stopped being a guard the day none of them were
+        runnable - measured that morning, four of six names in each chain did not exist at the
+        gate, and the chain silently fell through. What is worth pinning is the SHAPE: an
+        automatic tier first, so a model that is down is simply not chosen, and a model that is
+        small enough to load on this body last, so an entity can always speak."""
         reg = json.loads((ROOT / "research" / "ORGANS.json").read_text(encoding="utf-8"))
         mind = next(o for o in reg["organs"] if o["id"] == "mind")
         self.assertTrue(mind.get("allow_cloud"))
-        self.assertEqual(
-            mind["models_by_entity"]["skeptic"][:3],
-            ["gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.6-sol"],
-        )
+        for entity in ("observer", "skeptic", "connector"):
+            chain = mind["models_by_entity"][entity]
+            self.assertEqual(chain[0], "cli-auto-brzi", entity)
+            self.assertEqual(chain[-1], "qwen2.5-1.5b", entity)
+            self.assertIn("cli-auto", chain, entity)
+        self.assertEqual(mind["models_preferred"][0], "cli-auto-vrh")
 
 
 class DigestTests(unittest.TestCase):

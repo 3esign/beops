@@ -11,7 +11,7 @@
    "inputs": "complete retained headline, link, publication time; seven-day processing window, all ages retained in the archive; never the article body (07-legal)",
    "outputs": "data/live/derived/news/<YYYY-MM>.jsonl - rows of state 'estimated' with category, belgrade, zones[], event_time_text, model, prompt_sha256",
    "runs_where": "on the PC body only (local model daemon at 127.0.0.1:11434); no headline leaves the machine",
-   "models_preferred": ["Qwen2.5-7B-Instruct-Q4_K_M", "qwen2.5:1.5b", "qwen3.5:0.8b", "qwen3.5:4b", "qwen2.5:3b", "lfm2.5:1.2b", "llama3.2:1b"],
+   "models_preferred": ["qwen2.5:1.5b", "qwen3.5:0.8b", "qwen3.5:4b", "qwen2.5:3b", "lfm2.5:1.2b", "llama3.2:1b"],
    "model_role": "classifier with constrained JSON output, temperature 0; no free text is produced for the public",
    "known_limits": "Serbian tabloid headlines are ambiguous; the gazetteer is coarse by rule (zones, not streets); a place the model names outside the gazetteer is recorded as a rejection, never as a zone; the organ is silent when the daemon is down and says so in a receipt",
    "human_review": "a weekly sample of 30 derived rows is read by the editor of record and disagreements are appended to research/08-provenance/CORRECTIONS.md",
@@ -33,16 +33,11 @@
    "runs_where": "on the PC body; reviewed ChatGPT models run through the signed-in Codex CLI in tool-free read-only mode, with local GGUF fallbacks; only the public frozen fact digest is submitted",
    "window_hours": 6,
    "cadence_minutes": 4,
-   "models_preferred": [
-    "cli-auto",
-    "pc-claude-opus",
-    "pc-claude-sonnet",
-    "pc-antigravity-gemini-3-1-pro-high"
-   ],
+   "models_preferred": ["cli-auto-vrh", "pc-antigravity-claude-opus-4-6-thinking", "pc-claude-opus", "pc-claude-fable", "pc-antigravity-claude-sonnet-4-6", "pc-antigravity-gemini-3-1-pro-high", "pc-antigravity-gemini-3-8-flash-high", "pc-antigravity-gpt-oss-120b-medium", "cli-auto"],
    "models_by_entity": {
-    "observer": ["pc-antigravity-gemini-3-1-pro-low","pc-claude-haiku","gpt-5.6-terra","gpt-5.6-luna","gpt-5.6-sol","cli-auto"],
-    "skeptic": ["gpt-5.6-terra","gpt-5.6-luna","gpt-5.6-sol","pc-antigravity-gemini-3-1-pro-low","pc-claude-haiku","cli-auto"],
-    "connector": ["pc-antigravity-gemini-3-1-pro-low","pc-claude-haiku","gpt-5.6-terra","gpt-5.6-luna","gpt-5.6-sol","cli-auto"]
+    "observer": ["cli-auto-brzi", "pc-claude-haiku", "pc-antigravity-gemini-3-1-pro-low", "pc-antigravity-gemini-3-8-flash-medium", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.6-sol", "cli-auto", "qwen2.5-1.5b"],
+    "skeptic": ["cli-auto-brzi", "pc-claude-haiku", "pc-antigravity-gemini-3-1-pro-low", "pc-antigravity-gemini-3-8-flash-medium", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.6-sol", "cli-auto", "qwen2.5-1.5b"],
+    "connector": ["cli-auto-brzi", "pc-claude-haiku", "pc-antigravity-gemini-3-1-pro-low", "pc-antigravity-gemini-3-8-flash-medium", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.6-sol", "cli-auto", "qwen2.5-1.5b"]
    },
    "model_role": "three first-person voices with constrained bilingual JSON output (sr, en, cites, hypotheses, questions, next_check, claim); Luna observes, Terra doubts, Sol connects, with automatic fallbacks and code validation so a route failure cannot empty the whole panel",
    "validation_by_code": "an utterance may contain only numbers present in its digest; only fact ids that exist; no prediction worded as fact (a claim has its own field and fixed shapes: reception-within-minutes, spread-lo-hi-within-minutes); refused utterances are logged as 'rejected' with reasons, are not shown to the other entities and never reach the snapshot",
