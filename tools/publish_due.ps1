@@ -10,6 +10,9 @@ param(
   [double]$FailureCooldownMinutes = 120
 )
 $ErrorActionPreference = 'Stop'
+$nextDueAt = $null
+$cadenceBasis = $null
+$postSuccessRestMinutes = 5.0
 
 if (-not $ReceiptPath) {
   $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
@@ -44,6 +47,9 @@ function Write-PublishDueStatus {
     exit_code = $ExitCode
     reason = $Reason
     minimum_minutes = $MinimumMinutes
+    post_success_rest_minutes = $postSuccessRestMinutes
+    cadence_basis = $cadenceBasis
+    next_due_at = if ($null -ne $nextDueAt) { $nextDueAt.ToString('o') } else { $null }
     failure_cooldown_minutes = $FailureCooldownMinutes
     age_minutes = if ($AgeMinutes -ne $null) { [Math]::Round([double]$AgeMinutes, 3) } else { $null }
     receipt_path = $ReceiptPath
@@ -108,10 +114,26 @@ try {
     exit 9
   }
   $finishedAt = [DateTimeOffset]::Parse([string]$receipt.at).ToUniversalTime()
-  # A release can take longer than the cadence itself on the observatory disk. The
-  # quiet window begins only after the verified release finishes; measuring from
-  # cycle_started_at otherwise creates an almost continuous publish loop.
+  # Preserve a rest after completion even when a slow release exceeds its interval.
+  # Ordinary releases must still be eligible at the next 30-minute scheduler tick.
+  # A missing, malformed or inverted cycle time cannot shorten the legacy rest.
   $publishedAt = $finishedAt
+  $nextDueAt = $finishedAt.AddMinutes($MinimumMinutes)
+  $cadenceBasis = 'completion_fallback'
+  # Legacy local-time strings are ambiguous across bodies and DST boundaries.
+  if ([string]$receipt.cycle_started_at -match '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$') {
+    try {
+      $cycleStarted = [DateTimeOffset]::Parse([string]$receipt.cycle_started_at).ToUniversalTime()
+      if ($cycleStarted -le $finishedAt) {
+        $cycleDue = $cycleStarted.AddMinutes($MinimumMinutes)
+        $restDue = $finishedAt.AddMinutes($postSuccessRestMinutes)
+        $nextDueAt = if ($cycleDue -gt $restDue) { $cycleDue } else { $restDue }
+        $cadenceBasis = 'cycle_start_with_completion_rest'
+      }
+    } catch {
+      # An invalid optional cycle time falls back to the verified completion time.
+    }
+  }
 } catch {
   if (Test-RecentFailedAttempt) { exit 75 }
   Write-PublishDueStatus -Decision 'error' -ExitCode 9 -Reason 'successful_receipt_unreadable'
@@ -123,7 +145,7 @@ $ageMinutes = ($NowUtc.ToUniversalTime() - $publishedAt).TotalMinutes
 if ($ageMinutes -lt 0) {
   Stop-InvalidCadenceState -Reason 'successful_receipt_from_future' -Message 'successful receipt is dated in the future'
 }
-if ($ageMinutes -ge 0 -and $ageMinutes -lt $MinimumMinutes) {
+if ($NowUtc.ToUniversalTime() -lt $nextDueAt) {
   Write-PublishDueStatus -Decision 'quiet' -ExitCode 75 -Reason 'recent_success' -Receipt $receipt -AgeMinutes $ageMinutes
   Write-Output ('publish quiet: last success was {0:N1} minutes ago' -f $ageMinutes)
   exit 75

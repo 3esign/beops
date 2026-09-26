@@ -6,9 +6,11 @@ const {selectModel,classifyFailure}=require('./ai_feed_catalogue');
 const {qualify}=require('./ai_feed_codex_qualification');
 function monologueSchema(factIds) {
   const cite={type:'string'};if(Array.isArray(factIds))cite.enum=factIds;
-  return {type:'object',additionalProperties:false,required:['title','paragraphs','question','limitations'],properties:{
+  // Strict Structured Outputs requires every property; null means no spatial claim.
+  return {type:'object',additionalProperties:false,required:['title','paragraphs','question','limitations','geo'],properties:{
     title:{type:'string'},paragraphs:{type:'array',minItems:1,maxItems:3,items:{type:'object',additionalProperties:false,required:['text','cites'],properties:{text:{type:'string'},cites:{type:'array',minItems:1,maxItems:4,items:cite}}}},
     question:{type:'string'},limitations:{type:'string'},geo:{anyOf:[
+      {type:'null'},
       {type:'object',additionalProperties:false,required:['lat','lon'],properties:{lat:{type:'number',minimum:-90,maximum:90},lon:{type:'number',minimum:-180,maximum:180}}},
       {type:'object',additionalProperties:false,required:['layer','id'],properties:{layer:{type:'string'},id:{type:'string'}}}
     ]}}};

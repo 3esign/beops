@@ -97,10 +97,10 @@ const v = C.validateOutput(nightText, { facts: night.facts });
 assert.equal(v.version, 'citizen-v3');
 assert.ok(!v.ok);
 
-// Prompt v4 keeps v3 relation limits and adds only an optional grounded geo field.
+// Prompt v5 keeps the relation limits and uses null for an absent grounded geo field.
 const config = JSON.parse(fs.readFileSync(path.join(root, 'research/AI_FEED.json'), 'utf8'));
-assert.equal(config.prompt_version, 4);
-const activePrompt = fs.readFileSync(path.join(root, 'research/03-models/AI_FEED_SYSTEM_PROMPT_v4.txt'), 'utf8');
+assert.equal(config.prompt_version, 5);
+const activePrompt = fs.readFileSync(path.join(root, 'research/03-models/AI_FEED_SYSTEM_PROMPT_v5.txt'), 'utf8');
 assert.ok(activePrompt.includes('relations') && !activePrompt.includes('MORA biti iz domena'));
 assert.ok(activePrompt.includes('PROSTORNO SIDRO'));
 const src = fs.readFileSync(path.join(root, 'tools/ai_feed_context.js'), 'utf8');

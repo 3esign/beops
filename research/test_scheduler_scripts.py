@@ -279,7 +279,7 @@ class RegisterTasks(unittest.TestCase):
         cases = (
             ({"published": True, "at": "2026-09-12T06:20:00Z"}, 75),
             ({"published": True, "cycle_started_at": "2026-09-12T05:40:00Z",
-              "at": "2026-09-12T06:20:00Z"}, 75),
+              "at": "2026-09-12T06:20:00Z"}, 0),
             ({"published": True, "at": "2026-09-12T05:59:00Z"}, 0),
             ({"published": False, "at": "2026-09-12T06:29:00Z"}, 9),
         )

@@ -285,7 +285,7 @@ function validLocation(location) {
     location[0]>=-180 && location[0]<=180 && location[1]>=-90 && location[1]<=90;
 }
 function geoReasons(value,packet) {
-  if(!Object.prototype.hasOwnProperty.call(value,'geo'))return [];
+  if(!Object.prototype.hasOwnProperty.call(value,'geo')||value.geo===null)return [];
   const geo=value.geo;
   if(!geo||typeof geo!=='object'||Array.isArray(geo))return ['geo_shape'];
   const keys=Object.keys(geo).sort().join(',');

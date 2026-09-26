@@ -54,7 +54,7 @@ CATEGORIES = {
     ]
 }
 
-OFFICIAL_SOURCES = {"S208", "S206", "S12", "S01"}
+OFFICIAL_SOURCES = {"S208", "S206", "S15", "S12", "S01"}
 
 REPERTOIRE_URL = "https://www.kolarac.rs/koncerti/"
 REPERTOIRE_SID = "S225"

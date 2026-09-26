@@ -26,18 +26,35 @@ for(const geo of [{lat:44.8,lon:20.4},{layer:'instruments',id:'S146:Test:44.8:20
  const shown=anchoredAI([{id:'test',model:'fixture-model',content:value}], [{layer:'instruments',id:'S146:Test:44.8:20.4',lat:44.8,lon:20.4}]);
  assert.equal(shown.length,1);assert.equal(shown[0].lat,44.8);assert.equal(shown[0].data.model,'fixture-model');
 }
-for(const geo of [null,{},[],{lat:44.8},{lat:'44.8',lon:20.4},{lat:NaN,lon:20.4},{lat:100,lon:20.4},{lat:44.8,lon:20.4,extra:true},{lat:44.9,lon:20.5},{lat:44.80001,lon:20.4},{layer:'instruments',id:'S146:Other:44.9:20.5'},{layer:'materija',id:'invented'}]) {
+assert.equal(validateOutput({...base,geo:null},packet).ok,true);
+assert.deepEqual(anchoredAI([{id:'no-location',model:'fixture-model',content:{...base,geo:null}}], []),[]);
+for(const geo of [false,'',undefined,{},[],{lat:44.8},{lat:'44.8',lon:20.4},{lat:NaN,lon:20.4},{lat:100,lon:20.4},{lat:44.8,lon:20.4,extra:true},{lat:44.9,lon:20.5},{lat:44.80001,lon:20.4},{layer:'instruments',id:'S146:Other:44.9:20.5'},{layer:'materija',id:'invented'}]) {
  assert.equal(validateOutput({...base,geo},packet).ok,false,'accepted ungrounded '+JSON.stringify(geo));
 }
 assert.deepEqual(geoReasons({...base,geo:{lat:44.8,lon:20.4}},{facts:[]}),['geo_not_cited']);
 assert.deepEqual(geoReasons(base,{facts:[]}),[]);
+assert.deepEqual(geoReasons({...base,geo:null},{facts:[]}),[]);
 const schema=monologueSchema(['F1']);
-assert.equal(schema.required.includes('geo'),false);
-assert.equal(schema.properties.geo.anyOf.length,2);
+// Exercise the exact exported schema's strict-object rule at every nesting level.
+function strictObjects(node) {
+ if(!node||typeof node!=='object')return;
+ if(node.type==='object') {
+  assert.equal(node.additionalProperties,false);
+  assert.deepEqual([...node.required].sort(),Object.keys(node.properties).sort());
+ }
+ for(const value of Object.values(node)) {
+  if(Array.isArray(value))value.forEach(strictObjects);else strictObjects(value);
+ }
+}
+strictObjects(schema);
+assert.equal(schema.required.includes('geo'),true);
+assert.equal(schema.properties.geo.anyOf.length,3);
+assert.ok(schema.properties.geo.anyOf.some(choice=>choice.type==='null'));
 assert.deepEqual(schema.properties.paragraphs.items.properties.cites.items.enum,['F1']);
 const config=JSON.parse(fs.readFileSync('research/AI_FEED.json','utf8'));
-assert.equal(config.prompt_version,4);
-assert.match(fs.readFileSync('research/03-models/AI_FEED_SYSTEM_PROMPT_v4.txt','utf8'),/PROSTORNO SIDRO/);
+assert.equal(config.prompt_version,5);
+assert.match(fs.readFileSync('research/03-models/AI_FEED_SYSTEM_PROMPT_v5.txt','utf8'),/PROSTORNO SIDRO/);
+assert.match(fs.readFileSync('research/03-models/AI_FEED_SYSTEM_PROMPT_v5.txt','utf8'),/geo:null/);
 console.log('Grounded optional geo contract passed');
 """
         result = subprocess.run(['node', '-'], input=script, text=True, encoding='utf-8', cwd=ROOT, capture_output=True, timeout=30)

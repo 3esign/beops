@@ -65,7 +65,7 @@ class Storage(unittest.TestCase):
             self.assertTrue(all((f/'sentinel').exists() for f in folders[1:]))
 
     @unittest.skipUnless(sys.platform=='win32','Windows scheduler')
-    def test_half_hour_tick_stays_quiet_after_a_slow_success(self):
+    def test_half_hour_tick_runs_after_normal_success_but_slow_success_still_rests(self):
         with tempfile.TemporaryDirectory() as tmp:
             receipt=pathlib.Path(tmp)/'receipt.json'
             attempt=pathlib.Path(tmp)/'attempt.json'
@@ -74,5 +74,8 @@ class Storage(unittest.TestCase):
             def call(at):
                 return subprocess.run(['powershell','-NoProfile','-File',str(ROOT/'tools/publish_due.ps1'),'-ReceiptPath',str(receipt),'-AttemptReceiptPath',str(attempt),'-StatusPath',str(status),'-NowUtc',at],capture_output=True,timeout=20).returncode
             self.assertEqual(call('2026-09-14T00:10:00Z'),75)
-            self.assertEqual(call('2026-09-14T00:30:00Z'),75)
-            self.assertEqual(call('2026-09-14T00:36:00Z'),0)
+            self.assertEqual(call('2026-09-14T00:30:00Z'),0)
+            receipt.write_text(json.dumps({'published':True,'cycle_started_at':'2026-09-14T00:00:00Z','at':'2026-09-14T00:40:00Z'}))
+            self.assertEqual(call('2026-09-14T00:40:00Z'),75)
+            self.assertEqual(call('2026-09-14T00:44:59Z'),75)
+            self.assertEqual(call('2026-09-14T00:45:00Z'),0)
