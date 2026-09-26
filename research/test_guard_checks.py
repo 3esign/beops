@@ -246,22 +246,20 @@ class PublishGate(unittest.TestCase):
         self.assertEqual(c["state"], g.OK, "a BOM made the guard blind to a good receipt again")
 
     def test_a_publish_holding_the_lock_longer_than_the_interval_is_said_out_loud(self):
-        """A publisher that STOPPED is caught by the age of its receipt. One that is STUCK was
-        invisible: on 2026-09-10 a publish held the lock for more than thirteen minutes - longer than
-        the gap between publishes - and nothing anywhere reported it."""
+        """A release exceeding the current 30-minute schedule deserves a measured warning."""
         import os
         import time
         with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "pushed": True, "site_verified": True, "published": True, "tests": "OK"}) as root:
             lock = root / "runtime" / "publish.lock"
             lock.write_text("held by a publish", encoding="utf-8")
-            old = time.time() - 14 * 60
+            old = time.time() - 34 * 60
             os.utime(lock, (old, old))
             c = by(g.publish_gate(), "a publish is not stuck")
         self.assertEqual(c["state"], g.WARN)
-        self.assertIn("queueing", c["why"])
-        self.assertIn("14", c["why"].split(" min")[0])
+        self.assertIn("overlapping ticks are skipped", c["why"])
+        self.assertIn("34", c["why"].split(" min")[0])
 
-    def test_a_lock_older_than_the_takeover_says_the_next_publish_will_step_over_it(self):
+    def test_an_old_lock_does_not_claim_a_live_owner_will_be_displaced(self):
         import os
         import time
         with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "pushed": True, "site_verified": True, "published": True, "tests": "OK"}) as root:
@@ -271,7 +269,22 @@ class PublishGate(unittest.TestCase):
             os.utime(lock, (old, old))
             c = by(g.publish_gate(), "a publish is not stuck")
         self.assertEqual(c["state"], g.WARN)
-        self.assertIn("take the lock over", c["why"])
+        self.assertIn("a live owner's lock is preserved", c["why"])
+        self.assertIn("lock age alone does not prove the job is stuck", c["why"])
+        self.assertNotIn("take the lock over", c["why"])
+        self.assertNotIn("queueing", c["why"])
+
+    def test_a_twenty_minute_release_is_within_the_current_schedule(self):
+        """The obsolete ten-minute threshold reported ordinary releases as stuck."""
+        import os
+        import time
+        with world(receipt={"at": g.iso(g.now()), "tests_ok": True, "pushed": True, "site_verified": True, "published": True, "tests": "OK"}) as root:
+            lock = root / "runtime" / "publish.lock"
+            lock.write_text("held", encoding="utf-8")
+            old = time.time() - 20 * 60
+            os.utime(lock, (old, old))
+            names = [c["check"] for c in g.publish_gate()]
+        self.assertNotIn("a publish is not stuck", names)
 
     def test_a_publish_that_is_simply_running_is_not_reported(self):
         """A lock a minute old is a publish doing its job. A check that mentions it every quarter of
@@ -293,6 +306,13 @@ class PublishGate(unittest.TestCase):
 
 
 class ScheduledTasks(unittest.TestCase):
+    def test_guard_publish_interval_matches_the_canonical_schedule(self):
+        import re
+        registry = (ROOT/'tools/beops_tasks.ps1').read_text(encoding='utf-8')
+        minutes = re.search(r"Name='Beops_Publish';[^\n]*?Minutes=(\d+)", registry)
+        self.assertIsNotNone(minutes, 'canonical publish schedule must be declared')
+        self.assertEqual(g.PUBLISH_EVERY_MIN, float(minutes.group(1)))
+
     def test_guard_tracks_all_registered_beops_clocks(self):
         import re
         expected = re.findall(r"Name='(Beops_[A-Za-z]+)'", (ROOT/'tools/beops_tasks.ps1').read_text(encoding='utf-8'))

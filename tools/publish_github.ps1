@@ -374,7 +374,8 @@ Invoke-BeopsNative 'build frozen watch view' $py @('-X', 'utf8', '-B', 'tools\wa
 # tools/build_site.py from the registry, the provenance index, the corrections and the last export,
 # so the public page cannot state a number the files do not support.
   Invoke-BeopsNative 'build_site.py' $py @('-X', 'utf8', '-B', 'tools\build_site.py')
-  Invoke-BeopsNative 'build_public_page.py' $py @('-X', 'utf8', '-B', 'tools\build_public_page.py')
+  # build_site renders the citizen page after its overview, then pins every HTML entry.
+  # Running the citizen builder again here would erase that generation binding.
   Invoke-BeopsNative 'export frozen experimental AI feed' 'node' @('tools\ai_feed.js', 'export')
 # the three maps of the document, regenerated from the snapshot the site is about to serve
 Invoke-BeopsNative 'make_maps.py' $py @('-X', 'utf8', '-B', 'tools\make_maps.py', '--out', 'docs') -Quiet

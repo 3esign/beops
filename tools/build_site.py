@@ -981,8 +981,6 @@ def main() -> int:
     (DOCS / "instrument.html").write_text(html, encoding="utf-8")
     import collect_events
     collect_events.main()   # događaji se izvlače iz lokalnog headlines.json pre građanske strane
-    import build_public_page
-    build_public_page.main()
     for src, dst in [("research/05-design/studies/accessibility.css", "accessibility.css"),
                      ("research/05-design/studies/observation-clocks.js", "observation-clocks.js"),
                      ("research/05-design/studies/beops-view.js", "beops-view.js"),
@@ -1019,17 +1017,22 @@ def main() -> int:
         if p.exists():
             shutil.copy(p, DOCS / dst)
     from build_city_view import build as build_city_view
+    generation = None
     if (DOCS / 'live-snapshot.json').exists():
         build_city_view(DOCS)
         view = json.loads((DOCS/'city-overview.json').read_text(encoding='utf-8'))
         generation = view['edition']['input_generation']
-        if generation:
-            # Every standalone entry identifies the same cut; the browser refuses
-            # a stale HTML shell paired with another generation's JSON.
-            for page in DOCS.glob('*.html'):
-                content = page.read_text(encoding='utf-8')
-                content = pin_entry(content, generation['id'])
-                page.write_text(content, encoding='utf-8')
+    # Render from this build's overview, not a previous docs generation. Pin only
+    # after the final HTML producer has run; publishing must not overwrite it.
+    import build_public_page
+    build_public_page.main()
+    if generation:
+        # Every standalone entry identifies the same cut; the browser refuses
+        # a stale HTML shell paired with another generation's JSON.
+        for page in DOCS.glob('*.html'):
+            content = page.read_text(encoding='utf-8')
+            content = pin_entry(content, generation['id'])
+            page.write_text(content, encoding='utf-8')
     context_tables = ROOT / 'public/context-tables'
     if context_tables.exists():
         shutil.copytree(context_tables, DOCS / 'context-tables', dirs_exist_ok=True)

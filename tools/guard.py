@@ -64,11 +64,10 @@ ORGANS = {
 OK, WARN, STOP, UNKNOWN = "ok", "warn", "STOP", "unknown"
 REPAIRABLE = {"disabled", "not running"}
 
-# What the scheduled publish is set to, and how long publish_github.ps1 waits before taking a lock
-# over. A publish that runs longer than the first is queueing; longer than the second and the next
-# publish will step over it.
-PUBLISH_EVERY_MIN = 10.0
-LOCK_TAKEOVER_MIN = 15.0
+# Match Beops_Publish in tools/beops_tasks.ps1; the regression checks this contract.
+# IgnoreNew skips overlapping ticks, and publish_safety.ps1 preserves a live owner's
+# lock regardless of age. Age alone is a duration warning, not proof of a stuck job.
+PUBLISH_EVERY_MIN = 30.0
 
 
 def now() -> datetime:
@@ -447,13 +446,13 @@ def publish_gate() -> list[dict]:
     """Did the last publish run the tests, and did they pass.
 
     Until 2026-09-10 the scheduled publish rebuilt the site and pushed it without running a single
-    test: the gate protected the manual path and not the one that fires every ten minutes. The gate
+    test: the gate protected the manual path and not the scheduled one. The gate
     now lives inside the publisher, and this check reads the receipt it leaves - because a gate that
     stops the site silently has only exchanged one failure for a quieter one. That is the lesson
     C-036 bought for the organs, applied to the publisher.
 
-    A suite that has just failed is a WARN: one flake should not scream. Half an hour of it - three
-    ticks - is a STOP, because by then the public page is being kept deliberately stale and somebody
+    A suite that has just failed is a WARN: one flake should not scream. Half an hour of it
+    is a STOP, because by then the public page is being kept deliberately stale and somebody
     has to know."""
     p = LIVE / "publish-receipt.json"
     if not p.exists():
@@ -493,12 +492,9 @@ def publish_gate() -> list[dict]:
                     "why": "the last publish receipt is %.1f h old; the site may be frozen for a reason "
                            "this check cannot see" % age_h})
 
-    # A publisher that has STOPPED is caught above, by the age of its receipt. A publisher that is
-    # STUCK is a different thing and was invisible: on 2026-09-10 one held the lock for more than
-    # thirteen minutes, longer than the interval between publishes, and nothing anywhere said so. The
-    # lock is taken over after a quarter of an hour, so this never stops the record - but a publish
-    # taking longer than the gap between publishes means they are queueing, and a queue nobody
-    # mentions is how "it publishes every ten minutes" quietly stops being true.
+    # A lock held beyond the schedule interval can explain a skipped publish tick.
+    # Report its measured duration without inferring owner liveness or a queue:
+    # IgnoreNew skips overlap, and only an abandoned lock can be reclaimed.
     lock = ROOT / "runtime" / "publish.lock"
     if lock.exists():
         try:
@@ -511,10 +507,9 @@ def publish_gate() -> list[dict]:
         elif held_m > PUBLISH_EVERY_MIN:
             out.append({"check": "a publish is not stuck", "state": WARN,
                         "why": "a publish has held the lock for %.1f min, longer than the %.0f min "
-                               "between publishes, so publishes are queueing behind it%s"
-                               % (held_m, PUBLISH_EVERY_MIN,
-                                  "; the next one will take the lock over" if held_m > LOCK_TAKEOVER_MIN
-                                  else "")})
+                               "schedule interval; overlapping ticks are skipped, and a live owner's "
+                               "lock is preserved; lock age alone does not prove the job is stuck"
+                               % (held_m, PUBLISH_EVERY_MIN)})
     return out
 
 

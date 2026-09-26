@@ -819,3 +819,18 @@ Greske: The full gate passed while the actual export producer wrote files[].SHA2
 Iskustva: The integration fixture initially forgot to stage its root source.js while its real manifest included it; the unchanged byte verifier correctly rejected that omission. Remedy: stage both the source fixture and generated docs before asserting a complete producer-to-consumer flow.
 Izvori: runtime/release-diagnostics/beops-release-fd09fe7aff6a40809dc7b2c1a5155a48.json; research/test_export_manifest_contract.py; 30 targeted tests passed in 2.063s. G-3069 stored in the Svemir canon through tools/g.js write.
 Odluke: Preserve strict SHA256/length verification of actual staged blobs. The new regression proves worktree-only edits do not alter staged evidence and same-size staged edits fail. Full publication remains a separate measured step.
+
+### 2026-09-26 - G-3071: guard cadence and live lock ownership
+Greske: Guard retained a 10-minute publish threshold and promised takeover after 15 minutes, while the actual canonical task repeats every 30 minutes with IgnoreNew and publish_safety refuses takeover of a live owner's lock. Cause: old descriptive constants survived scheduler and lock changes. Remedy: match the established 30-minute cadence, enforce agreement with the canonical task registry in regression, and report measured duration without inventing a queue or owner failure.
+Iskustva: A 20-minute release was previously warned as stuck although it fits the schedule; a 34-minute hold should remain visible, but age alone does not prove process failure. Scheduled skips and lock refusal are distinct from publication success.
+Izvori: tools/beops_tasks.ps1; actual Get-ScheduledTask Beops_Publish (PT30M, IgnoreNew); tools/publish_safety.ps1 live-owner branch; research/test_guard_checks.py.
+Odluke: Minimal reporting-only correction; scheduler, publisher, live-owner protection and explicit organ pauses remain unchanged. Regression prepared; test lane belongs to release repair until handed over.
+
+### 2026-09-26 - G-3072: later HTML producer erased the checked generation
+Greske: build_site generated the citizen page before the current city overview, then pinned all HTML; publish_github ran the citizen builder again to pick up that overview and erased the pin. Cause: two owners of the same final HTML with generation binding between them. Remedy: build the current overview first, render citizen HTML once inside build_site, then pin every entry; remove the duplicate publisher call. The staged-byte gate now also rejects missing, mismatched or duplicate HTML generation pins before push.
+Iskustva: Exact remote/local byte equality cannot prove semantic input binding when both copies share the same producer defect. A regression must execute actual publisher build calls and real builders, including a pre-existing stale overview, and check generated HTML against the manifest before staging.
+Izvori: public6fe51032 export source f1f7fbd; all204 route bytes matched while index lacked beops-input-generation. Bounded regression is being added; no successful release claimed.
+Odluke: Keep the strict public generation verifier unchanged. Local pre-push semantic checks complement byte checks.
+G-3071 validation: guard checks/verdict/organs passed 62/62 in 1.232 s with temporary files under the C session; cadence agreement and 20/34/40 minute boundaries are verified. No scheduler or publication side effect was run.
+
+G-3072 validation: actual builder/manifest/staged-byte tests plus guard/mirror tests pass 66/66. Initial ad-hoc command named two nonexistent test modules; cause was guessed filenames, remedy was discovery with rg before invocation. This invocation failure is separate from the passing source regressions.
