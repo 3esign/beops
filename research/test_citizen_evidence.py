@@ -3,13 +3,21 @@ import pathlib
 import sys
 import unittest
 from datetime import datetime, timezone
+from unittest.mock import patch
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / 'tools'))
-from build_public_page import recent_air, safe_url, render_events
+from build_public_page import recent_air, safe_url, render_events, format_citizen_page
 from collect_events import extract_events_from_headlines, parse_repertoire, scheduled_events
 
 
 class CitizenEvidence(unittest.TestCase):
+    def citizen_page(self, snapshot=None, events=None, headlines=None):
+        inputs = {'city-overview.json': {'snapshot': snapshot or {}},
+                  'events.json': {'events': events or []},
+                  'headlines.json': {'rows': headlines or []}}
+        with patch('build_public_page.read_json', side_effect=lambda path, default=None: inputs.get(path.name, default)):
+            return format_citizen_page()
+
     def repertoire(self, label):
         html = f'<h3 class="entry-title"><a href="https://www.kolarac.rs/koncerti/test/">{label}</a></h3>'
         return parse_repertoire(html.encode(), '2026-09-26T12:00:00Z', 'a' * 64)
@@ -89,6 +97,68 @@ class CitizenEvidence(unittest.TestCase):
     def test_source_url_cannot_execute_script_or_break_an_attribute(self):
         self.assertEqual(safe_url('javascript:alert(1)'), 'instrument.html')
         self.assertNotIn('"', safe_url('https://example.org/" onclick="x'))
+
+    def test_traffic_card_links_to_every_counted_notice_even_after_general_list_limit(self):
+        events = [{'title': f'Radovi {n}', 'category': 'saobracaj_radovi', 'state': 'untimed',
+                   'verified': False, 'source': 'Gradske najave', 'published': f'2026-09-{n + 10:02d}',
+                   'url': f'https://example.org/radovi/{n}'} for n in range(8)]
+        html = self.citizen_page(events=events)
+        card = html.split('<div class="action-name">Kretanje kroz grad</div>', 1)[1].split('</div>\n        </div>', 1)[0]
+        self.assertIn('8 naslova', card)
+        self.assertIn('href="#saobracaj-dokazi"', card)
+        proof = html.split('id="saobracaj-dokazi"', 1)[1].split('</section>', 1)[0]
+        self.assertEqual(proof.count('<li>'), 8)
+        for event in events:
+            self.assertIn(f'href="{event["url"]}"', proof)
+            self.assertIn(f'Objava: {event["published"]}', proof)
+        self.assertIn('datum objave nije datum događaja', proof)
+        self.assertIn('Prijem: nije poznat', proof)
+
+    def test_comparison_preserves_original_url_publication_and_reception(self):
+        headline = {'title': 'Kvalitet vazduha <provera>', 'source': 'Primer & izvor',
+                    'link': 'https://example.org/vest?x=1&y=2', 'published': '2026-09-20T10:00:00Z',
+                    'received': '2026-09-26T11:00:00Z'}
+        html = self.citizen_page(headlines=[headline])
+        comparison = html.split('<!-- BLOK 4:', 1)[1].split('id="pm25-dokazi"', 1)[0]
+        self.assertIn('href="https://example.org/vest?x=1&amp;y=2"', comparison)
+        self.assertIn('Kvalitet vazduha &lt;provera&gt;', comparison)
+        self.assertIn('Primer &amp; izvor', comparison)
+        self.assertIn('Objava: 2026-09-20T10:00:00Z', comparison)
+        self.assertIn('Prijem: 2026-09-26T11:00:00Z', comparison)
+        self.assertIn('vreme objave nije vreme događaja', comparison)
+        self.assertIn('href="#pm25-dokazi"', comparison)
+        self.assertNotIn('href="obrasci.html"', comparison)
+
+    def test_pm_proof_is_exact_membership_of_displayed_average_with_inherited_clocks(self):
+        source = {'sid': 'S146', 'name': 'Merna mreža',
+                  'point_defaults': {'t': '2026-09-26T11:00:00Z', 'rx': '2026-09-26T11:30:00Z', 'q': 'preliminary'},
+                  'datastreams': [
+                      {'station': 'A', 'datastream': 'a|PM2.5', 'parameter': 'PM2.5', 'unit': 'ug.m-3',
+                       'points': [{'t': '2026-09-26T10:00:00Z', 'v': 100}, {'v': 10}]},
+                      {'station': 'B', 'datastream': 'b|PM2.5', 'parameter': 'PM2.5', 'unit': 'µg/m³',
+                       'points': [{'t': '2026-09-26T13:00:00Z', 'tc': '2026-09-26T11:15:00Z', 'v': 30}]},
+                      {'station': 'OLD', 'parameter': 'PM2.5', 'unit': 'ug.m-3',
+                       'points': [{'t': '2026-09-25T11:00:00Z', 'v': 800}]},
+                      {'station': 'UNTIMED', 'parameter': 'PM2.5', 'unit': 'ug.m-3',
+                       'points': [{'v': 900, 'tu': True}]},
+                      {'station': 'OTHER', 'parameter': 'PM10', 'unit': 'ug.m-3', 'points': [{'v': 50}]}]}
+        html = self.citizen_page(snapshot={'as_of': '2026-09-26T12:00:00Z', 'sources': [source]})
+        self.assertIn('prosek 20.0 µg/m³ iz 2 serije', html)
+        proof = html.split('id="pm25-dokazi"', 1)[1].split('</section>', 1)[0]
+        self.assertEqual(proof.count('<li>'), 2)
+        for text in ('A: 10 µg/m³', 'B: 30 µg/m³', 'S146', 'a|PM2.5', 'b|PM2.5',
+                     'Vreme merenja: 2026-09-26T11:00:00Z', 'Korigovano vreme merenja: 2026-09-26T11:15:00Z',
+                     'Izvorno vreme: 2026-09-26T13:00:00Z', 'Prijem: 2026-09-26T11:30:00Z', 'preliminary'):
+            self.assertIn(text, proof)
+        for text in ('OLD', 'UNTIMED', 'OTHER', '100 µg/m³', '800 µg/m³', '900 µg/m³'):
+            self.assertNotIn(text, proof)
+
+    def test_empty_proofs_and_unknown_publication_do_not_invent_availability_or_dates(self):
+        html = self.citizen_page(headlines=[{'title': 'Smog u gradu', 'received': '2026-09-26T11:00:00Z'}])
+        self.assertIn('Nema upotrebljivih PM2.5 vrednosti', html)
+        self.assertIn('prosek nije izračunat', html)
+        self.assertIn('To nije potvrda da radova ili zastoja nema', html)
+        self.assertIn('Objava: nije poznata · Prijem: 2026-09-26T11:00:00Z', html)
 
 
 if __name__ == '__main__':

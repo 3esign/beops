@@ -10,7 +10,7 @@ Design principles:
   3. Ritam grada (kultura, sport, saobraćajni radovi iz events.json)
   4. Rečeno / Izmereno (poređenje medijskih naslova i fizičkih senzora)
   5. Zašto verovati (3 ključne metrike i veliko dugme ka instrument.html)
-- Every claim links directly to the underlying measurement in instrument.html.
+- Every summary links to the exact retained measurements or cited notices.
 - If data is missing, it explicitly states "ne znam / još ne merimo", never zero.
 """
 from __future__ import annotations
@@ -166,6 +166,11 @@ header {
 .compare-row { display: grid; grid-template-columns: 1fr 1fr; padding: calc(var(--u)*3) calc(var(--u)*4); border-top: 1px solid var(--ink12); gap: calc(var(--u)*4); font-size: 13px; }
 .compare-side b { display: block; font-size: 14px; margin-bottom: 2px; }
 .compare-side span { color: var(--ink55); font-size: 12px; }
+.claim-evidence { margin-top: calc(var(--u)*6); scroll-margin-top: 80px; }
+.claim-evidence h3 { font-size: 16px; }
+.claim-evidence ol { padding-left: 24px; }
+.claim-evidence li { margin: 10px 0; font-size: 13px; overflow-wrap: anywhere; }
+.claim-evidence .evidence-meta { display: block; color: var(--ink55); font-size: 12px; }
 
 /* BLOK 5: Dokazi i instrument */
 .evidence-hero { margin: calc(var(--u)*10) 0 calc(var(--u)*8); padding: calc(var(--u)*6); background: var(--panel); border: 1px solid var(--ink12); border-radius: 6px; text-align: center; }
@@ -200,7 +205,7 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
     <h1 class="hero-headline">__PULSE_SENTENCE__</h1>
     <p style="max-width:680px;color:var(--ink55);font-size:14px;line-height:1.5">Po jedna poslednja vrednost po seriji u okviru tri sata pre preseka. Prosek ne opisuje svaku lokaciju u gradu.</p>
     <div class="hero-sub">
-      <div><b>Vazduh:</b> __AIR_STATUS__ (PM2.5: <span class="mono">__AVG_PM25__ µg/m³</span>)</div>
+      <div><b>Vazduh:</b> __AIR_STATUS__ (PM2.5: <a href="#pm25-dokazi" class="mono">__AVG_PM25__ µg/m³</a>)</div>
       <div><b>Stanica u mreži:</b> <span class="mono">__ACTIVE_STATIONS_COUNT__</span></div>
       <div><b>Presek evidencije:</b> <span class="mono">__AS_OF_LABEL__</span></div>
     </div>
@@ -242,6 +247,8 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
       __COMPARE_ROWS_HTML__
     </div>
   </section>
+
+  __CLAIM_EVIDENCE_HTML__
 
   <!-- BLOK 5: DOKAZI I INSTRUMENT -->
   <section class="evidence-hero">
@@ -291,8 +298,8 @@ def read_json(p: pathlib.Path, default=None):
     except Exception:
         return default
 
-def recent_air(snapshot):
-    """One latest timed reading per station/parameter within a declared 3h window."""
+def recent_air_evidence(snapshot):
+    """Select once: the aggregate and its proof must use exactly the same readings."""
     def stamp(value):
         try:
             return datetime.fromisoformat(value.replace('Z', '+00:00')).astimezone(timezone.utc)
@@ -321,13 +328,62 @@ def recent_air(snapshot):
                         or not -300 <= (at - measured).total_seconds() <= 10800):
                     continue
                 key = (src.get('sid'), ds.get('station') or ds.get('datastream'), parameter)
-                if key not in selected or measured > selected[key][0]:
-                    selected[key] = (measured, value)
+                if key not in selected or measured > selected[key]['measured']:
+                    selected[key] = {'measured': measured, 'value': value, 'point': point,
+                                     'source': src, 'stream': ds}
     return selected
+
+
+def recent_air(snapshot):
+    """One latest timed reading per station/parameter within a declared 3h window."""
+    return {key: (row['measured'], row['value']) for key, row in recent_air_evidence(snapshot).items()}
 
 
 def safe_url(value):
     return escape(value, quote=True) if isinstance(value, str) and value.startswith(('https://', 'http://')) else 'instrument.html'
+
+
+def headline_dates(row):
+    """Keep publication and reception distinct; neither proves the event time."""
+    published = escape(str(row.get('published') or 'nije poznata'))
+    received = escape(str(row.get('received') or 'nije poznat'))
+    return f'Objava: {published} · Prijem: {received}'
+
+
+def render_claim_evidence(air, roadworks):
+    pm25 = [(key, row) for key, row in air.items() if key[2] == 'PM2.5']
+    rows = ['<section class="claim-evidence" id="pm25-dokazi">',
+            '<h3>PM2.5 · vrednosti upotrebljene za prosek</h3>',
+            '<p class="event-src">Po jedna poslednja vremenski određena vrednost po izvoru i stanici, u prozoru od tri sata pre preseka. '
+            'Aritmetički prosek ovih vrednosti nije prostorni prosek grada. '
+            '<a href="live-snapshot.json">Sačuvana merenja i poreklo →</a></p>']
+    if pm25:
+        rows.append('<ol>')
+        for (sid, station, _), row in pm25:
+            point, stream, source = row['point'], row['stream'], row['source']
+            measured = row['measured'].isoformat().replace('+00:00', 'Z')
+            clock_label = 'Korigovano vreme merenja' if point.get('tc') else 'Vreme merenja'
+            original_clock = f" · Izvorno vreme: {escape(str(point.get('t') or 'nije poznato'))}" if point.get('tc') else ''
+            rows.append(f'''<li><b>{escape(str(station or 'Stanica nije navedena'))}: {row['value']} µg/m³</b>
+              <span class="evidence-meta">Izvor: {escape(str(sid))} · {escape(str(source.get('name') or ''))} · Serija: {escape(str(stream.get('datastream') or 'nije navedena'))}</span>
+              <span class="evidence-meta">{clock_label}: {escape(measured)}{original_clock} · Prijem: {escape(str(point.get('rx') or 'nije poznat'))} · Oznaka izvora: {escape(str(point.get('q') or 'nije navedena'))}</span></li>''')
+        rows.append('</ol>')
+    else:
+        rows.append('<p class="event-src">Nema upotrebljivih PM2.5 vrednosti u ovom prozoru; prosek nije izračunat.</p>')
+    rows.extend(['</section>', '<section class="claim-evidence" id="saobracaj-dokazi">',
+                 '<h3>Saobraćaj i radovi · citirani naslovi</h3>',
+                 '<p class="event-src">Svi naslovi koji ulaze u broj na kartici. Klasifikacija po rečima; datum objave nije datum događaja. '
+                 'Trajanje i trenutna prohodnost nisu potvrđeni. <a href="events.json">Sačuvani zapisi →</a></p>'])
+    if roadworks:
+        rows.append('<ol>')
+        for ev in roadworks:
+            rows.append(f'''<li><a href="{safe_url(ev.get('url'))}" target="_blank" rel="noopener">{escape(str(ev.get('title') or 'Naslov nije naveden'))}</a>
+              <span class="evidence-meta">Izvor: {escape(str(ev.get('source') or ev.get('source_id') or 'nije naveden'))} · {headline_dates(ev)}</span></li>''')
+        rows.append('</ol>')
+    else:
+        rows.append('<p class="event-src">U ovom preseku nema izdvojenih saobraćajnih naslova. To nije potvrda da radova ili zastoja nema.</p>')
+    rows.append('</section>')
+    return '\n'.join(rows)
 
 
 def render_events(events_data):
@@ -377,9 +433,10 @@ def format_citizen_page():
     o3_vals = []
     active_stations = set()
 
-    for (sid, station, param), (_, value) in recent_air(snapshot).items():
+    air_evidence = recent_air_evidence(snapshot)
+    for (sid, station, param), row in air_evidence.items():
         active_stations.add((sid, station))
-        {'PM2.5': pm25_vals, 'PM10': pm10_vals, 'O3': o3_vals}[param].append(value)
+        {'PM2.5': pm25_vals, 'PM10': pm10_vals, 'O3': o3_vals}[param].append(row['value'])
 
     avg_pm25 = round(sum(pm25_vals) / len(pm25_vals), 1) if pm25_vals else None
     avg_pm10 = round(sum(pm10_vals) / len(pm10_vals), 1) if pm10_vals else None
@@ -416,13 +473,13 @@ def format_citizen_page():
     cards = [
         {"name": "Vazduh na mernim mestima", "badge": "PODACI" if pm25_vals else "NEMA PODATKA",
          "badge_class": "badge-oprez", "reason": f"{len(pm25_vals)} vremenski određenih PM2.5 serija u prozoru od tri sata. Ovo nije procena uslova na svakoj lokaciji.",
-         "proof": "vremena, izvori i pojedinačne vrednosti"},
+         "proof": "vremena, izvori i pojedinačne vrednosti", "href": "#pm25-dokazi"},
         {"name": "Kretanje kroz grad", "badge": "NASLOVI", "badge_class": "badge-oprez",
          "reason": f"{len(roadwork_events)} naslova označeno je kao saobraćaj/radovi. Trajanje i trenutna prohodnost nisu potvrđeni.",
-         "proof": "izvorne najave — datum objave nije datum događaja"},
+         "proof": "izvorne najave — datum objave nije datum događaja", "href": "#saobracaj-dokazi"},
         {"name": "Boravak i aktivnosti napolju", "badge": "BEZ PROCENE", "badge_class": "badge-oprez",
          "reason": "Zapisi nisu dovoljni za ličnu preporuku o deci, rekreaciji ili provetravanju.",
-         "proof": "obim i ograničenja merenja"}
+         "proof": "obim i ograničenja merenja", "href": "#pm25-dokazi"}
     ]
 
     cards_html = []
@@ -434,7 +491,7 @@ def format_citizen_page():
             <span class="badge {c['badge_class']}">{c['badge']}</span>
           </div>
           <div class="action-reason">{c['reason']}</div>
-          <div class="action-proof"><a href="sada.html">Dokaz: {c['proof']} →</a></div>
+          <div class="action-proof"><a href="{c['href']}">Dokaz: {c['proof']} →</a></div>
         </div>
         """)
     action_cards_html = "\n".join(cards_html)
@@ -457,7 +514,8 @@ def format_citizen_page():
         measured_txt = "PM2.5 očitavanja trenutno nisu u zapisu."
 
     compare_rows = [
-        {"headline": f"„{r.get('title', '')}”", "source": r.get("source", ""), "measured": measured_txt}
+        {"headline": f"„{r.get('title', '')}”", "source": r.get("source", ""), "measured": measured_txt,
+         "url": safe_url(r.get('link')), "dates": headline_dates(r)}
         for r in air_rows[:2]
     ]
     compare_html = []
@@ -465,12 +523,12 @@ def format_citizen_page():
         compare_html.append(f"""
         <div class="compare-row">
           <div class="compare-side">
-            <b>{escape(str(cr['headline']))}</b>
-            <span>Izvor: {escape(str(cr['source']))} (sačuvan naslov, vreme objave nije vreme događaja)</span>
+            <b><a href="{cr['url']}" target="_blank" rel="noopener">{escape(str(cr['headline']))}</a></b>
+            <span>Izvor: {escape(str(cr['source']))} · {cr['dates']} (sačuvan naslov, vreme objave nije vreme događaja)</span>
           </div>
           <div class="compare-side">
             <b>{cr['measured']}</b>
-            <span>Status: <a href="obrasci.html">bez presude — uporedi sam u instrumentu →</a></span>
+            <span>Status: bez presude. <a href="#pm25-dokazi">Vrednosti i vremena upotrebljeni za ovaj prosek →</a></span>
           </div>
         </div>
         """)
@@ -505,6 +563,7 @@ def format_citizen_page():
     html = html.replace("__ACTION_CARDS_HTML__", action_cards_html)
     html = html.replace("__EVENTS_LIST_HTML__", events_list_html)
     html = html.replace("__COMPARE_ROWS_HTML__", compare_rows_html)
+    html = html.replace("__CLAIM_EVIDENCE_HTML__", render_claim_evidence(air_evidence, roadwork_events))
     html = html.replace("__HOURS_OF_HISTORY__", f"{hours_of_history}+" if isinstance(hours_of_history, (int, float)) else "—")
     html = html.replace("__SOURCES_COUNT__", str(sources_count))
     return html

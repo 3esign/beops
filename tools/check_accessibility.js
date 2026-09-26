@@ -15,18 +15,23 @@ async function main(){
   const base='http://127.0.0.1:'+server.address().port;
   const browser=await chromium.launch({channel:'msedge',headless:true,args:['--disable-background-networking']});
   const results=[], functional=[];
+  let completed=false,fatal=null;
+  function checkpoint(){fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({at:new Date().toISOString(),root,completed,fatal,results,functional,scope:'DOM, Chromium accessibility tree, keyboard scenarios, flat-color computed contrast, recorded widths/themes, reduced motion. Not a screen-reader certification; complex backgrounds and canvas pixels require visual/manual review.'},null,2));}
   try{
     for(const theme of (process.env.BEOPS_A11Y_THEMES||'light').split(','))for(const width of (process.env.BEOPS_A11Y_WIDTHS||'390,1440').split(',').map(Number))for(const route of (process.env.BEOPS_A11Y_ROUTES||'index.html,naslovi.html,podaci.html,monolog.html,sada.html,traka.html,svedoci.html').split(',')){
       const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce',colorScheme:theme});
       await context.route('**/*',r=>r.request().url().startsWith(base+'/')?r.continue():r.abort());
       const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+      page.on('response',r=>{if(r.status()>=400)errors.push('HTTP '+r.status()+' '+r.url().replace(base,''));});
       if(route==='traka.html')await page.addInitScript(()=>{
         const proto=CanvasRenderingContext2D.prototype,clear=proto.clearRect,fill=proto.fillText;
         proto.clearRect=function(...args){if(this.canvas.closest?.('.axis'))this.canvas.__beopsAxisLabels=[];return clear.apply(this,args);};
         proto.fillText=function(s,x,y,...rest){if(this.canvas.closest?.('.axis'))(this.canvas.__beopsAxisLabels ||= []).push({text:s,left:x,right:x+this.measureText(s).width});return fill.call(this,s,x,y,...rest);};
       });
+      const loadStarted=Date.now();
       await page.goto(base+'/'+route,{waitUntil:'networkidle'});
       if(route==='naslovi.html')await page.waitForFunction(()=>document.getElementById('items').getAttribute('aria-busy')==='false');
+      const loadMs=Date.now()-loadStarted;
       const dom=await page.evaluate(()=>{
         function rgba(s){if(s.startsWith('color(srgb')){const n=s.match(/[\d.]+/g).map(Number);return [n[0]*255,n[1]*255,n[2]*255,n[3]??1];}const a=s.match(/[\d.]+/g)?.map(Number)||[0,0,0,0];return [a[0],a[1],a[2],a[3]??1];}
         function over(a,b){return a.slice(0,3).map((v,i)=>v*a[3]+b[i]*(1-a[3])).concat(1);}
@@ -60,9 +65,14 @@ async function main(){
       await page.keyboard.press('Tab');const firstFocus=await page.locator(':focus').textContent().catch(()=>null);
       await page.locator(':focus').evaluate(e=>e.blur()).catch(()=>{});
       await page.screenshot({path:path.join(out,route.replace('.html','')+'-'+width+'-'+theme+'.png')});
-      results.push({route,width,theme,...dom,unnamedControls:unnamed,firstFocus,errors});
+      results.push({route,width,theme,loadMs,...dom,unnamedControls:unnamed,firstFocus,errors});
       if(route==='naslovi.html'&&width===390){
         const all=await page.locator('#items article').count();
+        const first=await page.locator('#items article').first().getAttribute('data-id');
+        await page.locator('#next').click();await page.waitForFunction(id=>document.querySelector('#items article')?.dataset.id!==id,first);
+        const second=await page.locator('#items article').first().getAttribute('data-id');
+        functional.push({check:'archive bounded pages',width,theme,count:await page.locator('#items article').count(),bounded:all<=100&&await page.locator('#items article').count()<=100,pageChanged:first!==second});
+        await page.locator('#previous').click();await page.waitForFunction(id=>document.querySelector('#items article')?.dataset.id===id,first);
         await page.locator('#query').fill('beops-no-such-headline-912387');
         await page.waitForFunction(()=>document.querySelectorAll('#items article').length===0);
         await page.locator('#reset').click();await page.waitForFunction(n=>document.querySelectorAll('#items article').length===n,all);
@@ -77,13 +87,15 @@ async function main(){
         await page.locator('#grip').focus();const before=Number(await page.locator('#grip').getAttribute('aria-valuenow'));await page.keyboard.press('ArrowDown');
         functional.push({check:'keyboard separator resize',before,after:Number(await page.locator('#grip').getAttribute('aria-valuenow'))});
       }
+      if(route==='obrasci.html')functional.push({check:'analysis data is visible',width,theme,analysisVisible:await page.locator('#analysis').isVisible(),rows:await page.locator('#values tr').count()});
+      if(await page.locator('#beops-edition[data-state="unknown"],#beops-edition[data-state="clock_error"]').count())errors.push('Published edition identity is unconfirmed');
+      checkpoint();console.log(JSON.stringify({checked:route,width,theme,pages:results.length}));
       await context.close();
     }
-  }finally{await browser.close();server.close();}
-  const report={at:new Date().toISOString(),root,results,functional,scope:'DOM, Chromium accessibility tree, keyboard scenarios, flat-color computed contrast, recorded widths/themes, reduced motion. Not a screen-reader certification; complex backgrounds and canvas pixels require visual/manual review.'};
-  fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2));
+    completed=true;
+  }catch(e){fatal=String(e);throw e;}finally{checkpoint();await browser.close();server.close();}
   const hasIssue=r=>r.errors.length||r.overflow||r.unnamedControls.length||r.lowContrast.length||!r.main||!r.lang||r.tablesWithoutCaption||r.unnamedCanvas;
   console.log(JSON.stringify({pages:results.length,issues:results.filter(hasIssue),functional}));
-  if(results.some(hasIssue)||functional.some(r=>r.focusRetained===false||r.openRetained===false||r.scrollDelta>2||r.axisAvailable===false||r.axisOverlap||r.axisOutOfBounds))process.exitCode=1;
+  if(results.some(hasIssue)||functional.some(r=>r.focusRetained===false||r.openRetained===false||r.scrollDelta>2||r.axisAvailable===false||r.axisOverlap||r.axisOutOfBounds||r.bounded===false||r.pageChanged===false||r.analysisVisible===false))process.exitCode=1;
 }
 main().catch(e=>{console.error(e);server.close();process.exitCode=1;});

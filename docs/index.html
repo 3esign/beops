@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="sr">
-<head><meta name="beops-input-generation" content="8cd25943692ed8c626784667adc707f9ff71c6a206b1478c6f44dcd6dacfaee2"><script src="observation-clocks.js"></script><script src="beops-view.js"></script>
+<head><meta name="beops-input-generation" content="51fb5ca0b56f2595e879ccb0757110e73e27994570ebb0bd039a549d249f2fa6"><script src="observation-clocks.js"></script><script src="beops-view.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Beograd danas — BEOPS</title>
@@ -136,6 +136,11 @@ header {
 .compare-row { display: grid; grid-template-columns: 1fr 1fr; padding: calc(var(--u)*3) calc(var(--u)*4); border-top: 1px solid var(--ink12); gap: calc(var(--u)*4); font-size: 13px; }
 .compare-side b { display: block; font-size: 14px; margin-bottom: 2px; }
 .compare-side span { color: var(--ink55); font-size: 12px; }
+.claim-evidence { margin-top: calc(var(--u)*6); scroll-margin-top: 80px; }
+.claim-evidence h3 { font-size: 16px; }
+.claim-evidence ol { padding-left: 24px; }
+.claim-evidence li { margin: 10px 0; font-size: 13px; overflow-wrap: anywhere; }
+.claim-evidence .evidence-meta { display: block; color: var(--ink55); font-size: 12px; }
 
 /* BLOK 5: Dokazi i instrument */
 .evidence-hero { margin: calc(var(--u)*10) 0 calc(var(--u)*8); padding: calc(var(--u)*6); background: var(--panel); border: 1px solid var(--ink12); border-radius: 6px; text-align: center; }
@@ -166,13 +171,13 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
 
   <!-- BLOK 1: PULS SADA -->
   <section class="hero">
-    <div class="hero-tag">Puls Beograda · 22:18</div>
+    <div class="hero-tag">Puls Beograda · 23:03</div>
     <h1 class="hero-headline">Poslednji PM2.5 zapisi: prosek 31.0 µg/m³ iz 31 serije.</h1>
     <p style="max-width:680px;color:var(--ink55);font-size:14px;line-height:1.5">Po jedna poslednja vrednost po seriji u okviru tri sata pre preseka. Prosek ne opisuje svaku lokaciju u gradu.</p>
     <div class="hero-sub">
-      <div><b>Vazduh:</b> Merenja u evidenciji (PM2.5: <span class="mono">31.0 µg/m³</span>)</div>
+      <div><b>Vazduh:</b> Merenja u evidenciji (PM2.5: <a href="#pm25-dokazi" class="mono">31.0 µg/m³</a>)</div>
       <div><b>Stanica u mreži:</b> <span class="mono">32</span></div>
-      <div><b>Presek evidencije:</b> <span class="mono">26.09. u 22:18 UTC</span></div>
+      <div><b>Presek evidencije:</b> <span class="mono">26.09. u 23:03 UTC</span></div>
     </div>
   </section>
 
@@ -190,7 +195,7 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
             <span class="badge badge-oprez">PODACI</span>
           </div>
           <div class="action-reason">31 vremenski određenih PM2.5 serija u prozoru od tri sata. Ovo nije procena uslova na svakoj lokaciji.</div>
-          <div class="action-proof"><a href="sada.html">Dokaz: vremena, izvori i pojedinačne vrednosti →</a></div>
+          <div class="action-proof"><a href="#pm25-dokazi">Dokaz: vremena, izvori i pojedinačne vrednosti →</a></div>
         </div>
         
 
@@ -200,7 +205,7 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
             <span class="badge badge-oprez">NASLOVI</span>
           </div>
           <div class="action-reason">19 naslova označeno je kao saobraćaj/radovi. Trajanje i trenutna prohodnost nisu potvrđeni.</div>
-          <div class="action-proof"><a href="sada.html">Dokaz: izvorne najave — datum objave nije datum događaja →</a></div>
+          <div class="action-proof"><a href="#saobracaj-dokazi">Dokaz: izvorne najave — datum objave nije datum događaja →</a></div>
         </div>
         
 
@@ -210,7 +215,7 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
             <span class="badge badge-oprez">BEZ PROCENE</span>
           </div>
           <div class="action-reason">Zapisi nisu dovoljni za ličnu preporuku o deci, rekreaciji ili provetravanju.</div>
-          <div class="action-proof"><a href="sada.html">Dokaz: obim i ograničenja merenja →</a></div>
+          <div class="action-proof"><a href="#pm25-dokazi">Dokaz: obim i ograničenja merenja →</a></div>
         </div>
         
     </div>
@@ -305,35 +310,179 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
       
         <div class="compare-row">
           <div class="compare-side">
-            <b>„Ministarstvo demantovalo navode o zagađenju Velikog Rzava: Voda je potpuno bistra”</b>
-            <span>Izvor: Euronews Srbija - Srbija RSS (sačuvan naslov, vreme objave nije vreme događaja)</span>
+            <b><a href="https://www.euronews.rs/srbija/aktuelno/244642/veliki-rzav-kod-brane-svrackovo-bez-znakova-zagadenja/vest" target="_blank" rel="noopener">„Ministarstvo demantovalo navode o zagađenju Velikog Rzava: Voda je potpuno bistra”</a></b>
+            <span>Izvor: Euronews Srbija - Srbija RSS · Objava: 2026-09-26T16:44:00Z · Prijem: 2026-09-26T17:03:10.584534Z (sačuvan naslov, vreme objave nije vreme događaja)</span>
           </div>
           <div class="compare-side">
-            <b>Merne stanice u zapisu beleže srednji PM2.5 od 31.0 µg/m³ (26.09. u 22:18 UTC).</b>
-            <span>Status: <a href="obrasci.html">bez presude — uporedi sam u instrumentu →</a></span>
+            <b>Merne stanice u zapisu beleže srednji PM2.5 od 31.0 µg/m³ (26.09. u 23:03 UTC).</b>
+            <span>Status: bez presude. <a href="#pm25-dokazi">Vrednosti i vremena upotrebljeni za ovaj prosek →</a></span>
           </div>
         </div>
         
 
         <div class="compare-row">
           <div class="compare-side">
-            <b>„Mislili smo da su ekološki, a stvarnost je drugačija: Veliko istraživanje otkrilo koliko plug-in hibridi zaista zagađuju”</b>
-            <span>Izvor: Danas RSS (sačuvan naslov, vreme objave nije vreme događaja)</span>
+            <b><a href="https://www.danas.rs/zivot/koliko-plug-in-hibridi-zaista-zagadjuju/" target="_blank" rel="noopener">„Mislili smo da su ekološki, a stvarnost je drugačija: Veliko istraživanje otkrilo koliko plug-in hibridi zaista zagađuju”</a></b>
+            <span>Izvor: Danas RSS · Objava: 2026-09-24T15:02:49Z · Prijem: 2026-09-24T15:03:09.123536Z (sačuvan naslov, vreme objave nije vreme događaja)</span>
           </div>
           <div class="compare-side">
-            <b>Merne stanice u zapisu beleže srednji PM2.5 od 31.0 µg/m³ (26.09. u 22:18 UTC).</b>
-            <span>Status: <a href="obrasci.html">bez presude — uporedi sam u instrumentu →</a></span>
+            <b>Merne stanice u zapisu beleže srednji PM2.5 od 31.0 µg/m³ (26.09. u 23:03 UTC).</b>
+            <span>Status: bez presude. <a href="#pm25-dokazi">Vrednosti i vremena upotrebljeni za ovaj prosek →</a></span>
           </div>
         </div>
         
     </div>
   </section>
 
+  <section class="claim-evidence" id="pm25-dokazi">
+<h3>PM2.5 · vrednosti upotrebljene za prosek</h3>
+<p class="event-src">Po jedna poslednja vremenski određena vrednost po izvoru i stanici, u prozoru od tri sata pre preseka. Aritmetički prosek ovih vrednosti nije prostorni prosek grada. <a href="live-snapshot.json">Sačuvana merenja i poreklo →</a></p>
+<ol>
+<li><b>Ada Ciganlija: 23.715 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 92|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Ada petlja: 24.513333333333 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 84|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Banovo brdo: 31.319482758621 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 83|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Beograd na vodi: 36.972 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 97|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Bežanijska kosa: 34.954528301887 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 82|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Borča: 32.684166666667 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 87|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Bulevar despota Stefana: 42.912142857143 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 50|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Danijelova: 29.132833333333 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 98|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Dragiša Mišović: 26.511428571429 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 61|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Franše d’Epere: 34.367166666667 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 88|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Jajinci: 28.906964285714 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 64|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Krnjača: 26.105666666667 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 48|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Leštane: 24.9865 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 89|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Mirijevo: 23.9535 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 96|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Mostar: 37.183666666667 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 10|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Novi Beograd: 23.889649122807 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 9|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Obrenovac Centar: 46.426666666667 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 16|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Omladinskih brigada: 29.989833333333 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 51|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Pančevo Sodara: 20.100333333333 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 6|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Pančevo Vatrogasni dom: 19.417833333333 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 57|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Rakovica: 21.165333333333 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 95|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Stari grad: 23.2915 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 7|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Stojčino brdo: 19.563833333333 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 90|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Surčin: 79.574333333333 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 85|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Topčiderska zvezda: 14.867333333333 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 80|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Vinča: 24.157666666667 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 60|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Vračar: 32.538833333333 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 11|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Vračar Dom zdravlja: 29.424833333333 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 81|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Zeleno brdo: 24.133 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 12|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Zemun TB: 43.641666666667 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 49|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Zemun Ugrinovačka: 50.841333333333 µg/m³</b>
+              <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 86|PM2.5</span>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-09-26T21:00:00Z · Izvorno vreme: 2026-09-26T23:00:00Z · Prijem: 2026-09-26T22:38:02.424631Z · Oznaka izvora: source-preliminary</span></li>
+</ol>
+</section>
+<section class="claim-evidence" id="saobracaj-dokazi">
+<h3>Saobraćaj i radovi · citirani naslovi</h3>
+<p class="event-src">Svi naslovi koji ulaze u broj na kartici. Klasifikacija po rečima; datum objave nije datum događaja. Trajanje i trenutna prohodnost nisu potvrđeni. <a href="events.json">Sačuvani zapisi →</a></p>
+<ol>
+<li><a href="https://www.beograd.rs/lat/beoinfo-vesti/a115853/Planirani-radovi-na-opstini-Vracar-u-utorak.html" target="_blank" rel="noopener">Planirani radovi na opštini Vračar u utorak</a>
+              <span class="evidence-meta">Izvor: Beoinfo vesti - the City&#x27;s news listing · Objava: 2026-09-25 · Prijem: nije poznat</span></li>
+<li><a href="https://www.beograd.rs/lat/servisne-informacije/saobracaj-i-prevoz/a115823/Promena-rada-linija-javnog-prevoza-broj-76-i-77.html" target="_blank" rel="noopener">SAOBRAĆAJ I PREVOZ: Radovi u ulici Dr Žorža Matea, Auto-put za Zagreb i Marije Bursać</a>
+              <span class="evidence-meta">Izvor: City of Belgrade - transport service notices (listing) · Objava: 2026-09-24 · Prijem: nije poznat</span></li>
+<li><a href="https://www.beograd.rs/lat/beoinfo-vesti/a115795/Radovi-na-vodovodnoj-mrezi-na-opstinama-Barajevo-i-Zvezdara.html" target="_blank" rel="noopener">Radovi na vodovodnoj mreži na opštinama Barajevo i Zvezdara</a>
+              <span class="evidence-meta">Izvor: Beoinfo vesti - the City&#x27;s news listing · Objava: 2026-09-23 · Prijem: nije poznat</span></li>
+<li><a href="https://www.beograd.rs/lat/servisne-informacije/saobracaj-i-prevoz/a115771/Izmene-na-linijama-7L-9L-13-i-EKO1.html" target="_blank" rel="noopener">SAOBRAĆAJ I PREVOZ: Izgradnja kompleksa stanice Novi Beograd sa rekonstrukcijom mostovske konstrukcije - faza 2</a>
+              <span class="evidence-meta">Izvor: City of Belgrade - transport service notices (listing) · Objava: 2026-09-22 · Prijem: nije poznat</span></li>
+<li><a href="https://www.beograd.rs/lat/beoinfo-vesti/a115761/Izmena-linija-javnog-prevoza-tokom-radova-na-drzavnom-putu-u-Mladenovcu.html" target="_blank" rel="noopener">Izmena linija javnog prevoza tokom radova na državnom putu u Mladenovcu</a>
+              <span class="evidence-meta">Izvor: Beoinfo vesti - the City&#x27;s news listing · Objava: 2026-09-21 · Prijem: nije poznat</span></li>
+<li><a href="https://www.beograd.rs/lat/beoinfo-vesti/a115721/Radovi-na-vodovodnoj-mrezi-na-Zvezdari-i-Savskom-vencu.html" target="_blank" rel="noopener">Radovi na vodovodnoj mreži na Zvezdari i Savskom vencu</a>
+              <span class="evidence-meta">Izvor: Beoinfo vesti - the City&#x27;s news listing · Objava: 2026-09-18 · Prijem: nije poznat</span></li>
+<li><a href="https://www.beograd.rs/lat/beoinfo-vesti/a115692/Radovi-u-Egipatskoj-ulici-faza-2-menjaju-rezim-rada-javnog-prevoza.html" target="_blank" rel="noopener">Radovi u Egipatskoj ulici – faza 2 menjaju režim rada javnog prevoza</a>
+              <span class="evidence-meta">Izvor: Beoinfo vesti - the City&#x27;s news listing · Objava: 2026-09-16 · Prijem: nije poznat</span></li>
+<li><a href="https://www.beograd.rs/lat/beoinfo-vesti/a115681/Radovi-na-vodovodnoj-mrezi.html" target="_blank" rel="noopener">Radovi na vodovodnoj mreži</a>
+              <span class="evidence-meta">Izvor: Beoinfo vesti - the City&#x27;s news listing · Objava: 2026-09-15 · Prijem: nije poznat</span></li>
+<li><a href="https://www.beograd.rs/lat/beoinfo-vesti/a115663/Radovi-na-vodovodnoj-mrezi-na-Cukarici.html" target="_blank" rel="noopener">Radovi na vodovodnoj mreži na Čukarici</a>
+              <span class="evidence-meta">Izvor: Beoinfo vesti - the City&#x27;s news listing · Objava: 2026-09-15 · Prijem: nije poznat</span></li>
+<li><a href="https://www.beograd.rs/lat/servisne-informacije/saobracaj-i-prevoz/a115667/Asfaltiranje-i-uredjenje-Vojvodjanske-deonica-3.html" target="_blank" rel="noopener">SAOBRAĆAJ I PREVOZ: Informacija o radovima u ulici Vojvođanska /deonica 3/ – faza 1</a>
+              <span class="evidence-meta">Izvor: City of Belgrade - transport service notices (listing) · Objava: 2026-09-15 · Prijem: nije poznat</span></li>
+<li><a href="https://www.beograd.rs/lat/servisne-informacije/saobracaj-i-prevoz/a115628/Rezim-rada-linije-broj-82.html" target="_blank" rel="noopener">SAOBRAĆAJ I PREVOZ: Produženi radovi na redovnom održavanju u ulici Jurija Gagarina</a>
+              <span class="evidence-meta">Izvor: City of Belgrade - transport service notices (listing) · Objava: 2026-09-11 · Prijem: nije poznat</span></li>
+<li><a href="https://www.beograd.rs/lat/servisne-informacije/saobracaj-i-prevoz/a115545/Izmene-na-linijama-broj-32-66-i-EKO1.html" target="_blank" rel="noopener">SAOBRAĆAJ I PREVOZ: Radovi na redovnom održavanju u ulici Kraljice Marije</a>
+              <span class="evidence-meta">Izvor: City of Belgrade - transport service notices (listing) · Objava: 2026-09-07 · Prijem: nije poznat</span></li>
+<li><a href="https://www.beograd.rs/lat/servisne-informacije/saobracaj-i-prevoz/a115364/Radovi-u-Gospodara-Vucica.html" target="_blank" rel="noopener">SAOBRAĆAJ I PREVOZ: Radovi u okretnici „Zvezdara“ u Gospodara Vučića</a>
+              <span class="evidence-meta">Izvor: City of Belgrade - transport service notices (listing) · Objava: 2026-08-25 · Prijem: nije poznat</span></li>
+<li><a href="https://www.beograd.rs/lat/servisne-informacije/saobracaj-i-prevoz/a115291/Izmene-rezima-rada-linija-javnog-prevoza-broj-89-i-9A.html" target="_blank" rel="noopener">SAOBRAĆAJ I PREVOZ: Radovi na produženju ulice Jurija Gagarina prema autoputu Miloš Veliki</a>
+              <span class="evidence-meta">Izvor: City of Belgrade - transport service notices (listing) · Objava: 2026-08-21 · Prijem: nije poznat</span></li>
+<li><a href="https://www.b92.net/sport/kosarka/vesti/271080/obradovic-posle-poraza-nedostaju-nam-treninzi-koncentracija/vest" target="_blank" rel="noopener">Obradović posle poraza: &amp;quot;Nedostaju nam treninzi, koncentracija...&amp;quot;</a>
+              <span class="evidence-meta">Izvor: B92 - najnovije RSS · Objava: 2026-09-26T21:25:00Z · Prijem: nije poznat</span></li>
+<li><a href="https://www.b92.net/sport/kosarka/vesti/271071/panatinaikos-porazen-od-paok-u-polufinalu-superkupa-grcke/vest" target="_blank" rel="noopener">Prvi poraz Željka Obradovića u sezoni – Osman presudio bivšem klubu VIDEO</a>
+              <span class="evidence-meta">Izvor: B92 - najnovije RSS · Objava: 2026-09-26T20:15:00Z · Prijem: nije poznat</span></li>
+<li><a href="https://www.b92.net/sport/kosarka/vesti/271071/panatinaikos-porazen-od-paok-u-polufinalu-superkupa-grcke/vest" target="_blank" rel="noopener">Prvi poraz Željka Obradovića u sezoni – Osman presudio bivšem klubu</a>
+              <span class="evidence-meta">Izvor: B92 - najnovije RSS · Objava: 2026-09-26T20:15:00Z · Prijem: nije poznat</span></li>
+<li><a href="https://studiob.rs/obradovic-i-radonjic-u-oslu-optuzuju-srbiju-pred-stranim-institucijama/" target="_blank" rel="noopener">OBRADOVIĆ I RADONJIĆ U OSLU OPTUŽUJU SRBIJU PRED STRANIM INSTITUCIJAMA</a>
+              <span class="evidence-meta">Izvor: Studio B RSS · Objava: 2026-09-26T12:51:45Z · Prijem: nije poznat</span></li>
+<li><a href="https://www.b92.net/sport/kosarka/euroleague/270955/utakmica-panatinaikosa-najposecenija-u-1-kolu-evrolige/vest" target="_blank" rel="noopener">Evroliga objavila presek: Željko Obradović prvi</a>
+              <span class="evidence-meta">Izvor: B92 - najnovije RSS · Objava: 2026-09-26T11:25:00Z · Prijem: nije poznat</span></li>
+</ol>
+</section>
+
   <!-- BLOK 5: DOKAZI I INSTRUMENT -->
   <section class="evidence-hero">
     <div class="metrics-row">
       <div class="metric-box">
-        <div class="metric-num">436+</div>
+        <div class="metric-num">437+</div>
         <div class="metric-lbl">Vremenski raspon arhive u satima</div>
       </div>
       <div class="metric-box">

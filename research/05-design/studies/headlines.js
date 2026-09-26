@@ -1,5 +1,6 @@
 'use strict';
-let en=false, data=null, generation=0;
+let en=false, data=null, generation=0, pageIndex=0;
+const PAGE_SIZE=100;
 const $=id=>document.getElementById(id), say=(sr,eng)=>en?eng:sr;
 function safeURL(value){try{const u=new URL(value);return ['http:','https:'].includes(u.protocol)&&!u.username&&!u.password?u.href:null;}catch{return null;}}
 function stamp(value){return value?value.replace('T',' ').replace(/(?:\.\d+)?(?:Z|\+00:00)$/,' UTC'):say('nepoznato','unknown');}
@@ -13,7 +14,8 @@ function labels(){
   for(const [id,sr,eng] of [
     ['search-label','Pretraga','Search'],['source-label','Izvor','Source'],
     ['from-label','Od datuma (UTC)','From date (UTC)'],['to-label','Do datuma (UTC)','To date (UTC)'],
-    ['reset','Prikaži sve','Show all']]) $(id).textContent=say(sr,eng);
+    ['reset','Prikaži sve','Show all'],['previous','Prethodna','Previous'],['next','Sledeća','Next']]) $(id).textContent=say(sr,eng);
+  $('pages').setAttribute('aria-label',say('Stranice arhive','Archive pages'));
   $('source').options[0].textContent=say('Svi izvori','All sources');
 }
 function readingPosition(){
@@ -47,10 +49,16 @@ async function render(options={}){
     const day=(r.published||r.received||'').slice(0,10);
     return (!sid||r.sid===sid)&&(!q||(r.title+' '+r.source).toLocaleLowerCase().includes(q))&&(!from||day>=from)&&(!to||day<=to);
   });
+  // Keep the complete archive searchable while bounding the rendered document.
+  // A refresh follows the current record even when new rows shift page boundaries.
+  const anchorIndex=position?.id?rows.findIndex(r=>r.id===position.id):-1;
+  if(anchorIndex>=0)pageIndex=Math.floor(anchorIndex/PAGE_SIZE);
+  pageIndex=Math.max(0,Math.min(pageIndex,Math.ceil(rows.length/PAGE_SIZE)-1));
+  const start=pageIndex*PAGE_SIZE,visible=rows.slice(start,start+PAGE_SIZE);
   const fragment=document.createDocumentFragment();$('items').setAttribute('aria-busy','true');
-  for(let start=0;start<rows.length;start+=200){
+  for(let offset=0;offset<visible.length;offset+=200){
     if(token!==generation)return;
-    for(const r of rows.slice(start,start+200))fragment.append(articleFor(r,position?.open||new Set()));
+    for(const r of visible.slice(offset,offset+200))fragment.append(articleFor(r,position?.open||new Set()));
     await new Promise(requestAnimationFrame);
   }
   if(token!==generation)return;
@@ -59,7 +67,10 @@ async function render(options={}){
     const anchor=[...$('items').children].find(e=>e.dataset.id===position.id);
     if(anchor){if(position.focused)anchor.querySelector(position.focused)?.focus({preventScroll:true});window.scrollBy(0,anchor.getBoundingClientRect().top-position.top);}
   }
-  $('status').textContent=say('Prikazano','Showing')+' '+rows.length+' / '+data.count+' · '+say('arhiva ažurirana','archive updated')+' '+stamp(data.as_of);
+  $('pages').hidden=rows.length<=PAGE_SIZE;
+  $('previous').disabled=pageIndex===0;$('next').disabled=start+PAGE_SIZE>=rows.length;
+  $('page-count').textContent=say('Stranica ','Page ')+(pageIndex+1)+' / '+Math.max(1,Math.ceil(rows.length/PAGE_SIZE));
+  $('status').textContent=say('Prikazano','Showing')+' '+(rows.length?start+1:0)+'–'+(start+visible.length)+' / '+rows.length+' · '+say('cela arhiva','complete archive')+' '+data.count+' · '+say('arhiva ažurirana','archive updated')+' '+stamp(data.as_of);
 }
 async function load(){
   try{
@@ -75,7 +86,8 @@ async function load(){
     $('source').value=old;await render({preserve:true});
   }catch(e){$('status').textContent=say('Arhiva trenutno nije učitana: ','Archive could not be loaded: ')+e.message;$('items').setAttribute('aria-busy','false');}
 }
-for(const id of ['query','source','from','to'])$(id).addEventListener('input',()=>render());
-$('reset').onclick=()=>{for(const id of ['query','source','from','to'])$(id).value='';render();};
+for(const id of ['query','source','from','to'])$(id).addEventListener('input',()=>{pageIndex=0;render();});
+$('reset').onclick=()=>{for(const id of ['query','source','from','to'])$(id).value='';pageIndex=0;render();};
+for(const [id,delta] of [['previous',-1],['next',1]])$(id).onclick=async()=>{pageIndex+=delta;await render();$('items').firstElementChild?.scrollIntoView({block:'start'});};
 $('lang').onclick=()=>{en=!en;render({preserve:true});};
 labels();load();setInterval(()=>{if(!document.hidden)load();},60000);
