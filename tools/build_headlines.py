@@ -15,9 +15,18 @@ def build(root=ROOT):
     root = pathlib.Path(root)
     cfg = json.loads((root / 'research/COLLECTORS.json').read_text(encoding='utf-8'))
     names = {s['sid']: s['name'] for s in cfg['sources']}
+    sensor_sids = {'S01', 'S03', 'S04', 'S10', 'S12', 'S52', 'S54', 'S146', 'S219', 'S220', 'S221', 'S223'}
+    headline_sids = {s['sid'] for s in cfg['sources'] if s['sid'] not in sensor_sids}
     grouped = {}
-    with exclusive(root / 'data/live/.write.lock'):
-        for path in sorted((root / 'data/live/rows').glob('*/*.jsonl')):
+    with exclusive(root / 'data/live/.write.lock', timeout=60):
+        paths = []
+        for sid in sorted(headline_sids):
+            s_dir = root / 'data/live/rows' / sid
+            if s_dir.exists():
+                paths.extend(sorted(s_dir.glob('*.jsonl')))
+        if not paths:
+            paths = sorted((root / 'data/live/rows').glob('*/*.jsonl'))
+        for path in paths:
             for row in observation_rows(path):
                 if row.get('parameter') != 'headline' or not row.get('result') or row.get('redacted'):
                     continue

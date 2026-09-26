@@ -4,6 +4,15 @@ const {spawn}=require('node:child_process');
 const crypto=require('node:crypto');
 const {selectModel,classifyFailure}=require('./ai_feed_catalogue');
 const {qualify}=require('./ai_feed_codex_qualification');
+function monologueSchema(factIds) {
+  const cite={type:'string'};if(Array.isArray(factIds))cite.enum=factIds;
+  return {type:'object',additionalProperties:false,required:['title','paragraphs','question','limitations'],properties:{
+    title:{type:'string'},paragraphs:{type:'array',minItems:1,maxItems:3,items:{type:'object',additionalProperties:false,required:['text','cites'],properties:{text:{type:'string'},cites:{type:'array',minItems:1,maxItems:4,items:cite}}}},
+    question:{type:'string'},limitations:{type:'string'},geo:{anyOf:[
+      {type:'object',additionalProperties:false,required:['lat','lon'],properties:{lat:{type:'number',minimum:-90,maximum:90},lon:{type:'number',minimum:-180,maximum:180}}},
+      {type:'object',additionalProperties:false,required:['layer','id'],properties:{layer:{type:'string'},id:{type:'string'}}}
+    ]}}};
+}
 const svemirRoot=()=>process.env.BEOPS_SVEMIR_ROOT||'C:/Svemir';
 function persona(url){return require(path.join(svemirRoot(),'lib/incognito.js')).headers(url);}
 async function request(url,body,headers={},timeout=110000){
@@ -173,7 +182,7 @@ async function codex(prompt,system,model,cwd,timeout,outputSchema,qualificationD
   const instructions=path.join(cwd,'codex-system-'+nonce+'.txt');
   const schemaFile=path.join(cwd,'codex-schema-'+nonce+'.json');
   fs.writeFileSync(instructions,system||'Follow the user prompt and return only JSON matching the supplied schema. Do not use tools.');
-  const schema=outputSchema||{type:'object',additionalProperties:false,required:['title','paragraphs','question','limitations'],properties:{title:{type:'string'},paragraphs:{type:'array',items:{type:'object',additionalProperties:false,required:['text','cites'],properties:{text:{type:'string'},cites:{type:'array',items:{type:'string'}}}}},question:{type:'string'},limitations:{type:'string'}}};
+  const schema=outputSchema||monologueSchema();
   fs.writeFileSync(schemaFile,JSON.stringify(schema));
   return new Promise((resolve,reject)=>{
     const base=[...q.args],slot=base.indexOf('--model');if(slot<0)throw Error('qualification_missing_model_argument');base[slot+1]=model;
@@ -216,10 +225,10 @@ function antigravityArgs(model,schemaFile,cwd,timeout){
   // gemini-3.8-flash-high). Combining one with --effort is rejected by the CLI.
   return ['--input-format','stream-json','--output-format','stream-json','--model',model,'--sandbox','--mode','plan','--disable-slash-commands','--json-schema',schemaFile,'--print-timeout',Math.max(1,Math.floor(timeout/1000))+'s','--log-file',path.join(cwd,'agy.log')];
 }
-function antigravity(prompt,system,model,cwd,timeout){
+function antigravity(prompt,system,model,cwd,timeout,outputSchema){
   const executable=path.join(os.homedir(),'AppData/Local/agy/bin/agy.exe');
   return new Promise((resolve,reject)=>{
-    const schema={type:'object',additionalProperties:false,required:['title','paragraphs','question','limitations'],properties:{title:{type:'string'},paragraphs:{type:'array',items:{type:'object',additionalProperties:false,required:['text','cites'],properties:{text:{type:'string'},cites:{type:'array',items:{type:'string'}}}}},question:{type:'string'},limitations:{type:'string'}}};
+    const schema=outputSchema||monologueSchema();
     const schemaFile=path.join(cwd,'observer-schema.json');fs.writeFileSync(schemaFile,JSON.stringify(schema));
     const args=antigravityArgs(model,schemaFile,cwd,timeout);
     const child=spawn(executable,args,{cwd,windowsHide:true,stdio:['pipe','pipe','pipe']});
@@ -253,16 +262,16 @@ function antigravity(prompt,system,model,cwd,timeout){
 async function generate(provider,model,packet,system,cwd,timeout=110000){
   const deadline=Date.now()+timeout;
   const prompt='Write your monologue about this frozen situation. Data packet:\n'+JSON.stringify(packet);
-  if(provider.adapter==='codex-cli')return codex(prompt,system,model,cwd,timeout,undefined,aiFeedQualificationRoot(cwd));
-  if(provider.adapter==='antigravity-cli')return antigravity(prompt,system,model,cwd,timeout);
+  const outputSchema=monologueSchema(packet.facts.map(f=>f.id));
+  if(provider.adapter==='codex-cli')return codex(prompt,system,model,cwd,timeout,outputSchema,aiFeedQualificationRoot(cwd));
+  if(provider.adapter==='antigravity-cli')return antigravity(prompt,system,model,cwd,timeout,outputSchema);
   if(provider.adapter==='ollama'){
     const mutex=require(path.join(svemirRoot(),'lib/mind_lock.js'));
     return mutex.withLock('ollama',async()=>{
       const meta=await request(ollamaBase()+'/api/show',{model},{},Math.min(timeout,10000));
       const remote=Boolean(meta.remote_host||meta.remote_model||meta.remote_url||model.includes('cloud'));
       if(remote&&!provider.allow_remote) throw Error('remote_model_not_allowed');
-      const schema={type:'object',additionalProperties:false,required:['title','paragraphs','question','limitations'],properties:{
-        title:{type:'string'},paragraphs:{type:'array',minItems:1,maxItems:3,items:{type:'object',additionalProperties:false,required:['text','cites'],properties:{text:{type:'string'},cites:{type:'array',minItems:1,maxItems:4,items:{type:'string',enum:packet.facts.map(f=>f.id)}}}}},question:{type:'string'},limitations:{type:'string'}}};
+      const schema=outputSchema;
       const d=await request(ollamaBase()+'/api/chat',{model,stream:false,think:false,format:schema,
         messages:[{role:'system',content:system},{role:'user',content:prompt}],
         options:{temperature:0.6,num_predict:800,num_ctx:4096},keep_alive:remote?undefined:'0s'}, {},Math.max(1,deadline-Date.now()));
@@ -291,4 +300,4 @@ async function generate(provider,model,packet,system,cwd,timeout=110000){
   }
   throw Error('unsupported_adapter');
 }
-module.exports={availability,generate,codex,aiFeedQualificationRoot,parseObject,parseAntigravity,antigravityFinal,request,ollamaBase,ollamaCatalogueRows,antigravityArgs};
+module.exports={availability,generate,codex,aiFeedQualificationRoot,parseObject,parseAntigravity,antigravityFinal,request,ollamaBase,ollamaCatalogueRows,antigravityArgs,monologueSchema};

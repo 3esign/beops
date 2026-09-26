@@ -61,21 +61,34 @@ class RegisterTasks(unittest.TestCase):
         self.assertIn("AddMinutes($t.OffsetMinutes)", self.s)
         self.assertNotIn("AddMinutes(1)", self.s)
 
-    def test_publish_entry_enforces_the_cadence_before_expensive_setup(self):
+    def test_publish_entry_loads_cadence_configuration_before_release_setup(self):
         gate = 'powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0publish_due.ps1"'
         self.assertIn(gate, self.publish_tick)
-        self.assertLess(self.publish_tick.index(gate), self.publish_tick.index("beops_env.bat"))
+        self.assertGreater(self.publish_tick.index(gate), self.publish_tick.index("beops_env.bat"))
+        self.assertLess(self.publish_tick.index(gate), self.publish_tick.index('-File tools\\publish_github.ps1'))
 
     def test_publish_entry_checks_capacity_before_expensive_setup(self):
         cadence = 'powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0publish_due.ps1"'
         capacity = 'powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0publish_capacity.ps1"'
         self.assertIn(capacity, self.publish_tick)
         self.assertGreater(self.publish_tick.index(capacity), self.publish_tick.index(cadence))
-        self.assertLess(self.publish_tick.index(capacity), self.publish_tick.index("beops_env.bat"))
+        self.assertGreater(self.publish_tick.index(capacity), self.publish_tick.index("beops_env.bat"))
+        self.assertLess(self.publish_tick.index(capacity), self.publish_tick.index('-File tools\\publish_github.ps1'))
         direct = "Join-Path $PSScriptRoot 'publish_capacity.ps1'"
         self.assertIn(direct, self.publisher)
         self.assertLess(self.publisher.index(direct),
                         self.publisher.index("$preparationLock = Enter-BeopsPublishLock"))
+
+    def test_watch_persistence_budget_leaves_scheduler_grace_before_next_cadence(self):
+        import re
+        watch = (ROOT / 'tools/watchman.py').read_text(encoding='utf-8')
+        spec = re.search(r"Name='Beops_Watch'.*?Minutes=(\d+);.*?Limit=(\d+);", self.specs)
+        cadence, limit = map(int, spec.groups())
+        persistence = int(re.search(r'^PERSIST_BUDGET_SECONDS = (\d+)', watch, re.M).group(1))
+        lock_wait = int(re.search(r'^LOCK_WAIT_SECONDS = (\d+)', watch, re.M).group(1))
+        self.assertLess(lock_wait, persistence)
+        self.assertGreaterEqual(limit * 60 - persistence, 60)
+        self.assertLess(limit, cadence)
 
     def test_low_memory_publish_is_quiet_before_release_setup(self):
         with tempfile.TemporaryDirectory() as td:

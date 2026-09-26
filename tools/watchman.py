@@ -48,6 +48,8 @@ LEDGER = LIVE / "watch-ledger.jsonl"
 PUBLIC = ROOT / "public" / "watch.json"
 ROW_INDEX_SCHEMA = "beops-watch-row-index/v1"
 CADENCE_MIN = 10                      # the watchman's own schedule, for judging its own gaps
+LOCK_WAIT_SECONDS = 120
+PERSIST_BUDGET_SECONDS = 480          # leave 60 s before Beops_Watch's 9 min task limit
 
 OK, LATE, STALLED, UNKNOWN = "ok", "late", "stalled", "unknown"
 BLOCKED, PAUSED = 'blocked', 'paused'
@@ -486,6 +488,25 @@ def mind(now: datetime) -> dict:
     d = LIVE / "derived" / "mind"
     if not d.is_dir():
         return check("mind", UNKNOWN, "the mind's directory is not there")
+    pause_requested = (d/'PAUSED').exists()
+    if pause_requested:
+        try:
+            reason = ((d/'PAUSED').read_text(encoding='utf-8')[:200] or 'PAUSED file present').strip()
+            latest = max((d/'receipts').glob('*.json'), key=lambda p: p.name, default=None)
+            receipt = json.loads(latest.read_text(encoding='utf-8-sig')) if latest else {}
+            at = parse(receipt.get('at'))
+            age = (now - at).total_seconds() / 60 if at else None
+            if (receipt.get('schema') == 'beops-organ-receipt/v1' and receipt.get('organ') == 'mind'
+                    and receipt.get('state') == 'paused' and type(receipt.get('calls')) is int
+                    and receipt['calls'] == 0 and reason
+                    and str(receipt.get('reason') or '').strip() == reason
+                    and age is not None and 0 <= age <= 30):
+                return check('mind', PAUSED,
+                    'operator pause confirmed by a recent zero-call receipt: ' + reason
+                    + '; no current model output is claimed', receipt_at=receipt['at'],
+                    receipt_age_min=round(age, 1), calls=0)
+        except (OSError, ValueError, TypeError, AttributeError):
+            pass  # A marker without current execution evidence cannot hide a stalled organ.
     newest = None
     try:
         for f in sorted(d.glob("*.jsonl")):
@@ -499,7 +520,10 @@ def mind(now: datetime) -> dict:
         return check("mind", UNKNOWN, "no dated drop")
     age = mins(now, newest)
     state = OK if age <= 30 else (LATE if age <= 120 else STALLED)
-    return check("mind", state, f"newest drop {age:.0f} min ago", age_min=age)
+    said = f"newest drop {age:.0f} min ago"
+    if pause_requested:
+        said += '; pause requested, but a recent matching zero-call receipt is not confirmed'
+    return check("mind", state, said, age_min=age)
 
 
 def ai_feed(now: datetime) -> dict:
@@ -646,16 +670,33 @@ def main() -> int:
     started = datetime.now(timezone.utc)
     r = run(persist_index=not a.dry and not a.export)
     r["elapsed_seconds"] = round((datetime.now(timezone.utc) - started).total_seconds(), 1)
-    print(json.dumps(r, ensure_ascii=False, indent=1) if a.json else report(r) + f"\n  took {r['elapsed_seconds']} s")
     if not a.dry:
         LEDGER.parent.mkdir(parents=True, exist_ok=True)
         if not a.export:
-            with exclusive(LIVE/'.write.lock'):
-                with open(LEDGER, "a", encoding="utf-8") as f:
-                    f.write(json.dumps({k: r[k] for k in ("schema", "at", "verdict", "counts", "figures", "not_current")},
-                                       ensure_ascii=False) + "\n")
+            # Keep the ledger in the release capture's consistency boundary.
+            # A busy input lock must not consume the scheduler's entire budget
+            # or prevent the latest monitoring view from reporting that gap.
+            remaining = max(0, PERSIST_BUDGET_SECONDS - r['elapsed_seconds'])
+            wait = min(LOCK_WAIT_SECONDS, remaining)
+            try:
+                with exclusive(LIVE/'.write.lock', timeout=wait):
+                    with open(LEDGER, "a", encoding="utf-8") as f:
+                        f.write(json.dumps({k: r[k] for k in ("schema", "at", "verdict", "counts", "figures", "not_current")},
+                                           ensure_ascii=False) + "\n")
+                r['persistence'] = {'ledger_written': True}
+            except TimeoutError:
+                r['checks'].append(check('ledger persistence', LATE,
+                    'Shared input lock remained busy; this reading was not appended to the monitoring ledger.'))
+                if r['verdict'] != STALLED:
+                    r['verdict'] = LATE
+                r['counts'] = {s: sum(1 for c in r['checks'] if c['state'] == s) for s in RANK}
+                r['not_current'] = sorted(c['check'] for c in r['checks'] if c['state'] != OK)
+                r['persistence'] = {'ledger_written': False, 'reason': 'live_input_lock_busy',
+                                    'wait_budget_seconds': wait}
         PUBLIC.parent.mkdir(parents=True, exist_ok=True)
+        r['elapsed_seconds'] = round((datetime.now(timezone.utc) - started).total_seconds(), 1)
         atomic_json(PUBLIC, r)
+    print(json.dumps(r, ensure_ascii=False, indent=1) if a.json else report(r) + f"\n  took {r['elapsed_seconds']} s")
     return exit_code(r, a.export)
 
 

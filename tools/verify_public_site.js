@@ -25,8 +25,12 @@ const RUN_DEADLINE = Math.min(Date.now() + Math.max(10, WAIT_SECONDS + 30) * 100
   process.env.BEOPS_CYCLE_DEADLINE ? Date.parse(process.env.BEOPS_CYCLE_DEADLINE) : Infinity);
 const CHECK_RAW = process.env.BEOPS_CHECK_RAW === '1';
 const MAX_AGE_MINUTES = Number(process.env.BEOPS_SITE_MAX_AGE_MINUTES || '60');
+const MAX_MARKUP_BYTES = 2 * 1024 * 1024;
+const GENERATION_ROUTES = new Set(['live-snapshot.json', 'history.json', 'city-overview.json', 'city-analysis.json']);
 
 const CORE_ROUTES = [
+  'instrument.html', 'events.json',
+  'mapa.html', 'mapa.js', 'MAP_LAYERS.json', 'materija.json',
   'ai-feed.html', 'ai-feed/latest.json', 'kontekst.html', 'context-catalog.json',
   'podaci.html',
   'monolog.html',
@@ -37,6 +41,12 @@ const CORE_ROUTES = [
   'live-snapshot.json', 'history.json', 'watch.json', 'latency.json', 'agreement.json',
   'basemap-belgrade.json',
   'export-manifest.json'
+];
+
+const CITIZEN_REQUIRED_MARKERS = [
+  'Beograd danas',
+  'BEOPS',
+  'local AI infrastructure'
 ];
 
 const REQUIRED_MARKERS = [
@@ -115,18 +125,34 @@ function tryIncognitoHeaders(url) {
   throw new Error('incognito header provider unavailable');
 }
 
-async function fetchText(url) {
+async function fetchText(url, options = {}) {
   const asked = cacheBusted(url);
-  const timeoutMs = Math.max(1, Math.min(10000, RUN_DEADLINE - Date.now()));
+  const deadline = Math.min(options.deadline ?? RUN_DEADLINE, RUN_DEADLINE);
+  const maxBytes = options.maxBytes ?? 64 * 1024 * 1024;
+  const keepBody = options.keepBody !== false;
   async function requestText(currentUrl, redirectsLeft) {
+    if (Date.now() >= deadline) throw new Error('Public verification total deadline reached');
+    const timeoutMs = Math.max(1, Math.min(10000, deadline - Date.now()));
     const parsed = new URL(currentUrl);
     const headers = tryIncognitoHeaders(parsed.toString());
     const client = parsed.protocol === 'http:' ? http : https;
     return await new Promise((resolve, reject) => {
+      let timer;
+      const fail = error => { clearTimeout(timer); reject(error); };
+      let responseStream;
+      const abort = error => {
+        fail(error);
+        // Destroy without forwarding the error onto a keep-alive socket whose
+        // request listeners may already have detached after the final chunk.
+        responseStream?.destroy();
+        req.destroy();
+      };
       const req = client.request(parsed, {method: 'GET', headers}, response => {
+        responseStream = response;
         const status = response.statusCode || 0;
         const location = response.headers.location || '';
         if (status >= 300 && status < 400 && location) {
+          clearTimeout(timer);
           response.resume();
           if (redirectsLeft <= 0) {
             reject(new Error(`Public response redirected too many times from ${currentUrl}`));
@@ -143,17 +169,22 @@ async function fetchText(url) {
           return;
         }
         const chunks = [];
+        const digest = crypto.createHash('sha256');
         let size = 0;
         response.on('data', chunk => {
           size += chunk.length;
-          if (size > 64 * 1024 * 1024) {
-            req.destroy(new Error('Public response exceeds byte limit'));
+          if (size > maxBytes) {
+            abort(new Error('Public response exceeds byte limit'));
             return;
           }
-          chunks.push(Buffer.from(chunk));
+          digest.update(chunk);
+          if (keepBody) chunks.push(chunk);
         });
+        response.on('error', fail);
+        response.on('aborted', () => fail(new Error('Public response ended before completion')));
         response.on('end', () => {
-          const bytes = Buffer.concat(chunks);
+          clearTimeout(timer);
+          const body = keepBody ? Buffer.concat(chunks) : null;
           resolve({
             url,
             asked: currentUrl,
@@ -162,17 +193,128 @@ async function fetchText(url) {
             etag: response.headers.etag || '',
             lastModified: response.headers['last-modified'] || '',
             cacheControl: response.headers['cache-control'] || '',
-            text: bytes.toString('utf8'),
-            bytes
+            hash: digest.digest('hex'),
+            byteLength: size,
+            ...(keepBody ? {text: body.toString('utf8'), bytes: body} : {})
           });
         });
       });
-      req.setTimeout(timeoutMs, () => req.destroy(new Error(`Public fetch timed out after ${timeoutMs}ms`)));
-      req.on('error', reject);
+      timer = setTimeout(() => abort(new Error('Public verification total deadline reached')),
+        Math.max(1, deadline - Date.now()));
+      req.setTimeout(timeoutMs, () => abort(new Error(`Public fetch timed out after ${timeoutMs}ms`)));
+      req.on('error', fail);
       req.end();
     });
   }
   return await requestText(asked, 5);
+}
+
+function fetchDigest(url, maxBytes, deadline = RUN_DEADLINE) {
+  return fetchText(url, {keepBody: false, maxBytes, deadline});
+}
+
+/* Select only root metadata while hashing the complete local file. This is not
+ * a replacement for the offline JSON validity gate: skipped payloads are never
+ * reconstructed. Root keys, quoted strings, escapes and container boundaries
+ * are tracked so a nested or quoted "as_of" cannot become publication metadata.
+ */
+function metadataReader() {
+  const wanted = new Set(['as_of', 'input_generation', 'edition']);
+  const result = Object.create(null), seen = new Set();
+  let phase = 'start', token = '', key = '', quoted = false, escaped = false;
+  let depth = 0, primitive = false, capture = false;
+  const append = ch => {
+    if (!capture && phase !== 'key') return;
+    token += ch;
+    if (token.length > 256 * 1024) throw new Error('Publication metadata exceeds bounded size');
+  };
+  const finishValue = () => {
+    if (capture) result[key] = JSON.parse(token);
+    token = ''; phase = 'separator'; primitive = false;
+  };
+  function write(text) {
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (phase === 'start') {
+        if (/\s|\uFEFF/.test(ch)) continue;
+        if (ch !== '{') throw new Error('Publication metadata requires a JSON object');
+        phase = 'keyStart'; continue;
+      }
+      if (phase === 'done') {
+        if (!/\s/.test(ch)) throw new Error('Unexpected bytes after publication JSON');
+        continue;
+      }
+      if (phase === 'keyStart' || phase === 'nextKey') {
+        if (/\s/.test(ch)) continue;
+        if (ch === '}' && phase === 'keyStart') { phase = 'done'; continue; }
+        if (ch !== '"') throw new Error('Invalid publication metadata key');
+        phase = 'key'; token = '"'; quoted = true; escaped = false; continue;
+      }
+      if (phase === 'key') {
+        append(ch);
+        if (escaped) { escaped = false; continue; }
+        if (ch === '\\') { escaped = true; continue; }
+        if (ch !== '"') continue;
+        key = JSON.parse(token); token = ''; quoted = false;
+        if (wanted.has(key) && seen.has(key)) throw new Error('Duplicate publication metadata key: ' + key);
+        if (wanted.has(key)) seen.add(key);
+        phase = 'colon'; continue;
+      }
+      if (phase === 'colon') {
+        if (/\s/.test(ch)) continue;
+        if (ch !== ':') throw new Error('Invalid publication metadata separator');
+        phase = 'valueStart'; continue;
+      }
+      if (phase === 'separator') {
+        if (/\s/.test(ch)) continue;
+        if (ch === ',') { phase = 'nextKey'; continue; }
+        if (ch === '}') { phase = 'done'; continue; }
+        throw new Error('Invalid publication metadata boundary');
+      }
+      if (phase === 'valueStart') {
+        if (/\s/.test(ch)) continue;
+        if (ch === '}' || ch === ',' || ch === ']') throw new Error('Missing publication metadata value');
+        capture = wanted.has(key); token = ''; depth = 0; quoted = false; escaped = false;
+        primitive = ch !== '{' && ch !== '[' && ch !== '"'; phase = 'value';
+      }
+      if (primitive && !quoted && depth === 0 && /[\s,}]/.test(ch)) {
+        finishValue(); i--; continue;
+      }
+      append(ch);
+      if (quoted) {
+        if (escaped) { escaped = false; continue; }
+        if (ch === '\\') { escaped = true; continue; }
+        if (ch === '"') { quoted = false; if (!depth) finishValue(); }
+      } else if (ch === '"') quoted = true;
+      else if (ch === '{' || ch === '[') depth++;
+      else if (ch === '}' || ch === ']') { if (--depth === 0) finishValue(); }
+    }
+  }
+  return {write, finish() {
+    if (phase !== 'done') throw new Error('Incomplete publication metadata JSON');
+    return result;
+  }};
+}
+
+async function inspectLocalRoute(file, rel) {
+  const before = await fs.promises.stat(file);
+  const markup = rel.endsWith('.html') && !rel.includes('/');
+  if (markup && before.size > MAX_MARKUP_BYTES) throw new Error('Public markup exceeds byte limit');
+  const metadata = GENERATION_ROUTES.has(rel) ? metadataReader() : null;
+  const decoder = metadata ? new (require('node:string_decoder').StringDecoder)('utf8') : null;
+  const digest = crypto.createHash('sha256'), chunks = [];
+  let bytes = 0;
+  for await (const chunk of fs.createReadStream(file)) {
+    bytes += chunk.length; digest.update(chunk);
+    if (metadata) metadata.write(decoder.write(chunk));
+    if (markup) chunks.push(chunk);
+  }
+  const after = await fs.promises.stat(file);
+  if (bytes !== before.size || before.size !== after.size || before.mtimeMs !== after.mtimeMs ||
+      before.ino !== after.ino || before.dev !== after.dev) throw new Error('Local publication changed during verification');
+  if (metadata) metadata.write(decoder.end());
+  return {hash: digest.digest('hex'), bytes, metadata: metadata?.finish(),
+    text: markup ? Buffer.concat(chunks).toString('utf8') : undefined};
 }
 
 async function fetchMatchingRoute(url, expectedHash, deadline, options = {}) {
@@ -184,7 +326,7 @@ async function fetchMatchingRoute(url, expectedHash, deadline, options = {}) {
   let item;
   do {
     item = await get(url);
-    const hash = crypto.createHash('sha256').update(item.bytes).digest('hex');
+    const hash = item.hash || crypto.createHash('sha256').update(item.bytes).digest('hex');
     const match = item.ok && (!expectedHash || hash === expectedHash);
     verification_attempts.push({status: item.status, hash, match});
     if (match || now() >= deadline) break;
@@ -223,6 +365,7 @@ async function main() {
 
   let localText = '';
   if (localIndex) {
+    if (fs.statSync(localIndex).size > MAX_MARKUP_BYTES) throw new Error('Public markup exceeds byte limit');
     localText = fs.readFileSync(localIndex, 'utf8');
   }
 
@@ -230,7 +373,7 @@ async function main() {
   const localHash = localText ? sha256(localText) : '';
   const deadline = Date.now() + Math.max(0, WAIT_SECONDS) * 1000;
   do {
-    live = await fetchText(SITE_URL);
+    live = await fetchText(SITE_URL, {maxBytes: MAX_MARKUP_BYTES});
     const liveHash = sha256(live.text);
     attempts.push({ status: live.status, hash: liveHash, match: localHash ? liveHash === localHash : false });
     if (live.ok && (!localHash || liveHash === localHash)) break;
@@ -246,7 +389,7 @@ async function main() {
   }
 
   const foldedLive = asciiFold(live.text);
-  for (const marker of REQUIRED_MARKERS) {
+  for (const marker of CITIZEN_REQUIRED_MARKERS) {
     if (!foldedLive.includes(asciiFold(marker))) {
       errors.push(`public site is missing required marker: ${marker}`);
     }
@@ -265,20 +408,29 @@ async function main() {
   for(const item of manifest.files||[]){if(item.path.startsWith('docs/'))required.add(item.path.slice(5));}
   const expectedRoutes = [...required].map(rel => {
     const localRoute = localRouteFile(rel);
-    const localRouteHash = localRoute
-      ? crypto.createHash('sha256').update(fs.readFileSync(localRoute)).digest('hex') : '';
-    return {rel, localRoute, localRouteHash};
+    return {rel, localRoute};
   });
   const checked = await mapBounded(expectedRoutes, 6, async expected => {
     try {
       if(Date.now()>=RUN_DEADLINE)throw new Error('Public verification total deadline reached');
-      const item = await fetchMatchingRoute(new URL(expected.rel, SITE_URL).toString(), expected.localRouteHash, RUN_DEADLINE);
-      return {...expected, item};
+      if (!expected.localRoute) throw new Error('no local public mirror file for ' + expected.rel);
+      const local = await inspectLocalRoute(expected.localRoute, expected.rel);
+      const item = await fetchMatchingRoute(new URL(expected.rel, SITE_URL).toString(), local.hash, RUN_DEADLINE, {
+        // The local export supplies the bound. A growing history is not limited
+        // by an unrelated fixed 64 MiB cap, and no remote route body is retained.
+        get: url => fetchDigest(url, local.bytes + 1024 * 1024, RUN_DEADLINE)
+      });
+      const htmlGeneration = local.text === undefined || local.text.includes(
+        '<meta name="beops-input-generation" content="' + manifest.inputs_manifest_sha256 + '">');
+      const missingMarkers = expected.rel === 'instrument.html'
+        ? REQUIRED_MARKERS.filter(marker => !asciiFold(local.text).includes(asciiFold(marker))) : [];
+      return {...expected, localRouteHash: local.hash, localMetadata: local.metadata,
+        htmlGeneration, missingMarkers, item};
     } catch(error) {
       return {...expected, error: error.message};
     }
   });
-  for (const {rel, localRoute, localRouteHash, item, error} of checked) {
+  for (const {rel, localRoute, localRouteHash, localMetadata, htmlGeneration, missingMarkers, item, error} of checked) {
     if (error) {
       errors.push(`${rel} verification failed: ${error}`);
       routes.push({route: rel, ok: false, error});
@@ -289,14 +441,20 @@ async function main() {
     if (!item.ok) {
       errors.push(`${rel} returned HTTP ${item.status}`);
     }
-    if(item.ok&&['live-snapshot.json','history.json','city-overview.json','city-analysis.json'].includes(rel)){
-      try{route.input_generation=validateGeneration(rel,JSON.parse(normalizeText(item.text)),manifest.inputs_manifest_sha256,manifest.generated_as_of);}
+    const matchesLocal = item.ok && item.hash === localRouteHash;
+    // Metadata came from the same local stream as localRouteHash. It describes
+    // the public bytes only after the complete remote digest matches that hash.
+    if(matchesLocal&&GENERATION_ROUTES.has(rel)){
+      try{route.input_generation=validateGeneration(rel,localMetadata,manifest.inputs_manifest_sha256,manifest.generated_as_of);}
       catch(error){errors.push(`${rel} generation is invalid: ${error.message}`);}
     }
-    if(item.ok&&rel.endsWith('.html')&&!rel.includes('/')&&!item.text.includes('<meta name="beops-input-generation" content="'+manifest.inputs_manifest_sha256+'">'))errors.push(`${rel} HTML generation differs from export manifest`);
-    if (rel === 'live-snapshot.json' && item.ok) {
+    if(matchesLocal&&!htmlGeneration)errors.push(`${rel} HTML generation differs from export manifest`);
+    if (rel === 'instrument.html' && matchesLocal) {
+      for (const marker of missingMarkers) errors.push(`instrument.html is missing required marker: ${marker}`);
+    }
+    if (rel === 'live-snapshot.json' && matchesLocal) {
       try {
-        const snapshot = JSON.parse(normalizeText(item.text));
+        const snapshot = localMetadata;
         const asOfMs = Date.parse(snapshot.as_of);
         if (!Number.isFinite(asOfMs)) throw new Error('missing or invalid as_of');
         const ageMinutes = (Date.now() - asOfMs) / 60000;
@@ -309,9 +467,10 @@ async function main() {
       }
     }
     if (localRoute) {
-      const liveRouteHash = crypto.createHash('sha256').update(item.bytes).digest('hex');
+      const liveRouteHash = item.hash;
       route.live_hash = liveRouteHash;
       route.local_hash = localRouteHash;
+      route.bytes = item.byteLength;
       route.match = liveRouteHash === localRouteHash;
       if (item.ok && !route.match) {
         errors.push(`${rel} hash ${liveRouteHash} does not match ${localRoute} hash ${localRouteHash}`);
@@ -332,7 +491,7 @@ async function main() {
   }
 
   if (CHECK_RAW) {
-    const raw = await fetchText(RAW_INDEX_URL);
+    const raw = await fetchText(RAW_INDEX_URL, {maxBytes: MAX_MARKUP_BYTES});
     if (!raw.ok) {
       warnings.push(`raw GitHub index returned HTTP ${raw.status}`);
     } else if (sha256(raw.text) !== sha256(live.text)) {
@@ -362,7 +521,7 @@ async function main() {
   if (errors.length) process.exit(1);
 }
 
-module.exports = {fetchMatchingRoute, mapBounded, validateGeneration};
+module.exports = {fetchMatchingRoute, fetchDigest, inspectLocalRoute, metadataReader, mapBounded, validateGeneration};
 if (require.main === module) main().catch(err => {
   console.error(err && err.stack ? err.stack : String(err));
   process.exit(1);

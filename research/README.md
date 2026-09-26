@@ -4,6 +4,7 @@ Status: current
 Date: 2026-09-14
 Author: claude-cowork, Codex, Svemir
 
+- **_trail/SERVIS_2026-09-25.md (private working record)** — dated service pass: publish cycles verified on the live artefact, AI-feed claude provider restored, watchman lock-timeout defect described with a proposed fix; read-only in the tree, no repairs applied.
 - **_trail/AUDIT_SYSTEM_2026-09-19.md (private working record)** — dated internal audit of the public UI, observations, local CLI models and operations, with ordered remediation and explicit verification limits. Findings are not implemented repairs. Compact evidence: `_trail/audit-20260919/evidence-summary.json`.
 - **_trail/A19_REMEDIATION_2026-09-19.md (private working record)** — current A19 repair record: local execution-contract fixes, full gate result, live-site freshness failure, model timeout evidence, and remaining public/stability proof.
 - **_trail/CIST_BEOPS_PROMPT_2026-09-19.md (private working record)** — current work order for the clean Beops pass: baseline requirements, no-fake-green closure criteria, P0/P1 remediation scope and explicit limits. A prompt, not a completion record.
@@ -198,7 +199,10 @@ benchmarks tied to a named experiment* go in the narrow one. Do not merge them.
 
 ## 05-design
 
+- **[MAPA_INTERAKTIVNA_PLAN_2026-09-26.md](05-design/MAPA_INTERAKTIVNA_PLAN_2026-09-26.md)** - interactive map plan before implementation.
 - **[UI_CONCEPTS_AND_COMPOSITION.md](05-design/UI_CONCEPTS_AND_COMPOSITION.md)** — the state alphabet, the quorum bar, three compositions, the chosen direction and its named contradiction, and the systems specified to implementable values.
+- **[PLAN_GRADJANSKA_STRANA.md](05-design/PLAN_GRADJANSKA_STRANA.md)** — the citizen-facing layer plan: routing `/` to "Beograd danas" while keeping the instrument at `/instrument.html`, legal sourcing of events, and citizen-first UX hierarchy.
+- **[PLAN_GRADJANSKA_I_OPTIMIZACIJA.md](05-design/PLAN_GRADJANSKA_I_OPTIMIZACIJA.md)** — combined implementation plan: citizen portal with verified events, pipeline optimization (S-filter row scanning), and fast publish test gating.
 - **[studies/state-alphabet.html](05-design/studies/state-alphabet.html)** — the study that tests it against real samples. One file, no build, no network. **Known bug, kept on purpose:** its vertical scale was fixed at 3 900 from two samples and the real total has since passed it — a live demonstration of the failure mode the study is about.
 
 ## 08-provenance — the proof, not the claim
@@ -417,3 +421,4 @@ The historical manuscript is intentionally unchanged. No manuscript, conference 
 - _trail/repair-20260911/status.json (private working record): machine-readable per-finding recovery status.
 - _trail/DOCUMENT_STATUS_2026-09-11.md (private working record): explicit historical/undesignated-document exceptions and inventory.
 - _trail/repair-20260911/operations/human-review/SUPERSEDED.md (private working record): preserved notice that routes reviewers to the corrected `human-review-v2` packet.
+- evidence/S195/S195_ZZSKGB_CentralnaZona.md - Stub za elaborat Centralne zone (ZZSKGB, 404)

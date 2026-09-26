@@ -73,15 +73,17 @@ class Study(unittest.TestCase):
 
 class Published(unittest.TestCase):
     def setUp(self):
-        if not (DOCS / "index.html").exists():
+        target = DOCS / "instrument.html" if (DOCS / "instrument.html").exists() else DOCS / "index.html"
+        if not target.exists():
             self.skipTest("no built site on this machine")
+        self.target = target
 
     def test_the_frame_and_its_data_are_mirrored_into_the_public_directory(self):
         for f in ("svedoci.html", "latency.json", "agreement.json"):
             self.assertTrue((DOCS / f).exists(), f"{f} is not published, so the layer exists for nobody")
 
     def test_the_page_carries_the_frame_and_the_caveat_in_four_languages(self):
-        idx = (DOCS / "index.html").read_text(encoding="utf-8")
+        idx = self.target.read_text(encoding="utf-8")
         self.assertIn('src="svedoci.html', idx, "the page does not embed the frame")
         self.assertIn("not an error bar, because the sources stand in different places", idx)
         for cls in ("sr-only i18n", "en-only i18n", "zh-only", "de-only"):

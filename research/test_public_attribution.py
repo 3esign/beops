@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """The public signature names the durable contributor, not a transient model/provider."""
 import pathlib
+import ast
 import re
 import unittest
 
@@ -24,6 +25,18 @@ def author_blocks(text: str):
 
 
 class PublicAttributionTests(unittest.TestCase):
+    def test_rendered_template_describes_recorded_headers_in_all_four_languages(self):
+        source = ast.parse((ROOT / 'tools/build_site.py').read_text(encoding='utf-8'))
+        template = next(ast.literal_eval(node.value) for node in source.body
+                        if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == 'TEMPLATE' for target in node.targets))
+        for obsolete in ('Beops-Research-Collect', 'Predstavljamo se pod svojim imenom',
+                         'We identify ourselves by name', 'We identify honestly as',
+                         '以自己的名义表明身份', 'Wir nennen in jeder Anfrage unseren Namen'):
+            self.assertNotIn(obsolete, template)
+        for current in ('Stvarno poslata zaglavlja', 'request headers actually sent',
+                        '实际发送的请求头', 'tatsächlich gesendeten Anfrage-Header'):
+            self.assertIn(current, template)
+
     def test_public_author_blocks_do_not_name_transient_provider(self):
         for path in PUBLIC_HTML:
             blocks = author_blocks(path.read_text(encoding="utf-8"))

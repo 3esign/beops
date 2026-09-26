@@ -97,11 +97,12 @@ const v = C.validateOutput(nightText, { facts: night.facts });
 assert.equal(v.version, 'citizen-v3');
 assert.ok(!v.ok);
 
-// The live prompt is v3 and it no longer forces cross-domain links.
+// Prompt v4 keeps v3 relation limits and adds only an optional grounded geo field.
 const config = JSON.parse(fs.readFileSync(path.join(root, 'research/AI_FEED.json'), 'utf8'));
-assert.equal(config.prompt_version, 3);
-const v3 = fs.readFileSync(path.join(root, 'research/03-models/AI_FEED_SYSTEM_PROMPT_v3.txt'), 'utf8');
-assert.ok(v3.includes('relations') && !v3.includes('MORA biti iz domena'));
+assert.equal(config.prompt_version, 4);
+const activePrompt = fs.readFileSync(path.join(root, 'research/03-models/AI_FEED_SYSTEM_PROMPT_v4.txt'), 'utf8');
+assert.ok(activePrompt.includes('relations') && !activePrompt.includes('MORA biti iz domena'));
+assert.ok(activePrompt.includes('PROSTORNO SIDRO'));
 const src = fs.readFileSync(path.join(root, 'tools/ai_feed_context.js'), 'utf8');
 assert.ok(!src.includes('nula slobodnih mesta je redovna'), 'the context no longer asserts a parking norm');
 

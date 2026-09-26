@@ -2,6 +2,8 @@
 
 *Where every number came from, and the stored proof that we were allowed to have it.*
 
+**Current transport policy, 2026-09-26:** the explicit Svemir workspace instruction now requires the shared `lib/incognito.js` boundary. This supersedes the historical fixed observatory identity described below. `tools/network_identity.js` supplies the actual outgoing headers, and receipts preserve the persona actually sent. Old manifests are not rewritten. Permission, robots, opt-out, TLS and evidence checks still apply; this change grants no new access rights.
+
 This folder answers one question, and it must be able to answer it a year from
 now, to someone who is not friendly: **on what basis did you collect this?**
 

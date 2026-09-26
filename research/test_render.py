@@ -16,7 +16,8 @@ from collections import Counter
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
-INDEX = DOCS / "index.html"
+INDEX = DOCS / "instrument.html"
+CITIZEN = DOCS / "index.html"
 
 
 def read(p):
@@ -91,10 +92,18 @@ class BuiltSiteTests(unittest.TestCase):
         cls.tpl = re.sub(r'<script id="data".*?</script>', "", cls.s, flags=re.S)
 
     def test_the_page_was_actually_built(self):
-        self.assertTrue(INDEX.exists(), "docs/index.html is missing")
+        self.assertTrue(INDEX.exists(), "docs/instrument.html is missing")
         self.assertGreater(len(self.s), 100_000, "the page is too small to be a complete build")
         self.assertTrue(self.s.lstrip().lower().startswith("<!doctype html>"))
         self.assertIn('lang="sr"', self.s[:400])
+
+    def test_citizen_page_is_built(self):
+        self.assertTrue(CITIZEN.exists(), "docs/index.html is missing")
+        text = read(CITIZEN)
+        self.assertTrue(text.lstrip().lower().startswith("<!doctype html>"))
+        self.assertIn('lang="sr"', text[:400])
+        self.assertIn("Beograd danas", text)
+        self.assertIn("BEOPS", text)
 
     def test_no_placeholder_survived_into_the_artefact(self):
         """C-021. The first version of this searched for the markers as bare substrings, which is

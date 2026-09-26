@@ -15,7 +15,12 @@
 param([switch]$DryRun, [switch]$Isolated, [switch]$PrepareOnly, [string]$SourceOid, [string]$StateRoot, [string]$CycleStartedAt, [string]$PriorPublicOid)
 $ErrorActionPreference = 'Stop'
 if (-not $CycleStartedAt) { $CycleStartedAt = [DateTimeOffset]::UtcNow.ToString('o') }
-$env:BEOPS_CYCLE_DEADLINE = ([DateTimeOffset]::Parse($CycleStartedAt).AddMinutes(45)).ToString('o')
+# Measured 2026-09-25: a full cycle on this body needs ~55 min (32 min isolated copy of
+# 49k files + ~13 min build + export), so the fixed 45 min killed every publication.
+# The cadence keeps its 45 min default; a manual catch-up tick may declare a longer one.
+$cycleMinutes = if ($env:BEOPS_CYCLE_MINUTES) { [double]$env:BEOPS_CYCLE_MINUTES } else { 45 }
+if ($cycleMinutes -le 0 -or $cycleMinutes -gt 180) { throw 'BEOPS_CYCLE_MINUTES out of range (0, 180]' }
+$env:BEOPS_CYCLE_DEADLINE = ([DateTimeOffset]::Parse($CycleStartedAt).AddMinutes($cycleMinutes)).ToString('o')
 . (Join-Path $PSScriptRoot 'publish_safety.ps1')
 function Get-BeopsJsonHeadValue {
   # A top-level scalar out of a large compact JSON, without ever parsing the file.
@@ -229,6 +234,8 @@ $receipt = [ordered]@{
   built             = $false
   tests_ok          = $false
   tests             = ''
+  gate_mode         = 'full'
+  last_full_gate_at  = ''
   export_manifest   = 'docs/export-manifest.json'
   export_changed    = $false
   committed         = $false
@@ -367,6 +374,7 @@ Invoke-BeopsNative 'build frozen watch view' $py @('-X', 'utf8', '-B', 'tools\wa
 # tools/build_site.py from the registry, the provenance index, the corrections and the last export,
 # so the public page cannot state a number the files do not support.
   Invoke-BeopsNative 'build_site.py' $py @('-X', 'utf8', '-B', 'tools\build_site.py')
+  Invoke-BeopsNative 'build_public_page.py' $py @('-X', 'utf8', '-B', 'tools\build_public_page.py')
   Invoke-BeopsNative 'export frozen experimental AI feed' 'node' @('tools\ai_feed.js', 'export')
 # the three maps of the document, regenerated from the snapshot the site is about to serve
 Invoke-BeopsNative 'make_maps.py' $py @('-X', 'utf8', '-B', 'tools\make_maps.py', '--out', 'docs') -Quiet
@@ -397,9 +405,38 @@ $gateClock = [Diagnostics.Stopwatch]::StartNew()
 try {
   $ErrorActionPreference = 'Continue'
   $env:BEOPS_PYTHON = $gatePy
-  # Same complete suite as local verification, with 120 s per discovery group.
-  & node tools\test-research.js *> $script:publishTestsOutRun
-  $testsRc = $LASTEXITCODE
+  $lastSuccessFile = Join-Path $StateRoot 'data\live\publish-last-success.json'
+  $canFastGate = $false
+  $gateNow = [DateTimeOffset]::UtcNow
+  if (Test-Path -LiteralPath $lastSuccessFile) {
+    try {
+      $lastSuccess = Get-Content -LiteralPath $lastSuccessFile -Raw | ConvertFrom-Json
+      if ($lastSuccess.tests_ok -and $lastSuccess.published -and $lastSuccess.site_verified -and
+          $lastSuccess.source_head -and ($lastSuccess.source_head -eq $head) -and $lastSuccess.last_full_gate_at) {
+        $fullGateAt = [DateTimeOffset]::Parse([string]$lastSuccess.last_full_gate_at).ToUniversalTime()
+        $fullGateAge = ($gateNow - $fullGateAt).TotalHours
+        if ($fullGateAge -ge 0 -and $fullGateAge -lt 24) {
+          $canFastGate = $true
+          # Data-only publications cannot extend the full-gate validity window.
+          $receipt.last_full_gate_at = $fullGateAt.ToString('o')
+        }
+      }
+    } catch {}
+  }
+  if ($canFastGate) {
+    $receipt.gate_mode = 'fast'
+    Write-Output "fast data gate: source $head unchanged; complete gate less than 24 h old"
+    & $gatePy -X utf8 -B (Join-Path $src 'tools\test_data_integrity.py') *> $script:publishTestsOutRun
+    $testsRc = $LASTEXITCODE
+  } else {
+    Write-Output "complete research gate: running full suite"
+    # Same complete suite as local verification, with 120 s per discovery group.
+    & node tools\test-research.js *> $script:publishTestsOutRun
+    $testsRc = $LASTEXITCODE
+    if ($testsRc -eq 0) {
+      $receipt.last_full_gate_at = [DateTimeOffset]::UtcNow.ToString('o')
+    }
+  }
 } finally {
   Write-BeopsPhase -Name 'complete research gate' -Clock $gateClock -ExitCode $testsRc
   $ErrorActionPreference = $prevEAP
@@ -458,11 +495,21 @@ function New-BeopsTrackedHeadArchive {
   }
   Invoke-BeopsNative 'git archive source HEAD' 'git' (@('-C', $src, 'archive', '--format=tar', '-o', $script:sourceArchivePath, $head, '--') + $Paths)
 }
+function Get-BeopsTarPath {
+  # Measured 2026-09-26: when the publisher is started from a shell whose PATH carries Git for
+  # Windows' /usr/bin first, bare 'tar' resolves to MSYS GNU tar, which reads the Windows path
+  # 'C:\...' in -f as a remote host and dies with "Cannot connect to C: resolve failed" - exit 128,
+  # publish stopped before confirmation. Windows ships bsdtar in System32 and it takes native paths,
+  # so the extractor is named, not looked up.
+  $system32 = Join-Path ([Environment]::GetFolderPath('System')) 'tar.exe'
+  if (Test-Path -LiteralPath $system32) { return $system32 }
+  return 'tar'
+}
 function Expand-BeopsTrackedHeadArchive {
   if (-not $script:sourceArchivePath -or -not (Test-Path -LiteralPath $script:sourceArchivePath)) {
     throw 'source archive was not created'
   }
-  Invoke-BeopsNative 'extract source HEAD archive' 'tar' @('-xf', $script:sourceArchivePath, '-C', $pub)
+  Invoke-BeopsNative 'extract source HEAD archive' (Get-BeopsTarPath) @('-xf', $script:sourceArchivePath, '-C', $pub)
 }
 New-BeopsTrackedHeadArchive $keep
 # Build the complete export beside the live mirror. No public file is cleared.
@@ -507,7 +554,7 @@ if (Test-Path (Join-Path $src 'docs')) { Copy-Item -LiteralPath (Join-Path $src 
 $note = @'
 # research/evidence
 
-The captured pages, headers, robots.txt files and hashes (585 MB) that prove each permission live on the authors' own machine and are not republished: they are third-party content kept as evidence, not as publication. Every capture is listed with its SHA-256 in `research/08-provenance/INDEX.md` and `LEDGER.jsonl`; a reviewer may request any capture by id.
+The captured pages, headers, robots.txt files and hashes (585 MB) that prove each permission live on the authors' own machine and are not republished: they are third-party content kept as evidence, not as publication. Every capture is listed with its SHA-50 in `research/08-provenance/INDEX.md` and `LEDGER.jsonl`; a reviewer may request any capture by id.
 '@
 New-Item -ItemType Directory -Path (Join-Path $pub 'research/evidence') -Force | Out-Null
 Set-Content -Path (Join-Path $pub 'research/evidence/README.md') -Value $note -Encoding UTF8
@@ -608,6 +655,8 @@ if (-not (Test-Path -LiteralPath (Join-Path $pub '.git'))) {
   Register-BeopsPublicOwnership -PublicRoot $pub
 }
 Invoke-BeopsNative 'git config core.autocrlf false' 'git' @('-C', $pub, 'config', 'core.autocrlf', 'false')
+Invoke-BeopsNative 'git config pack.windowMemory 128m' 'git' @('-C', $pub, 'config', 'pack.windowMemory', '128m')
+Invoke-BeopsNative 'git config pack.threads 2' 'git' @('-C', $pub, 'config', 'pack.threads', '2')
 # Validate every existing physical target before the first mutation.
 $existing = @(Get-ChildItem -LiteralPath $pub -File -Recurse -Force | Where-Object { $_.FullName -notlike ((Join-Path $pub '.git') + '\*') })
 foreach ($item in $existing) { $null = Assert-BeopsDeletionTarget -PublicRoot $pub -Target $item.FullName }
@@ -728,6 +777,7 @@ if ($remoteHead -ne $publicHead) {
 Invoke-BeopsSiteCheck
 $receipt.published = $true
 $receipt.why = $msg
+& git -C $pub gc --auto --quiet
 Write-BeopsPublishReceipt
 Write-Output "published: $msg"
 

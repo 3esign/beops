@@ -1,4 +1,4 @@
-"""C-069: every request BEOPS sends to a source names the observatory; no browser persona."""
+"""Current workspace rule: shared incognito boundary, actual sent persona in receipts."""
 import json
 import pathlib
 import subprocess
@@ -9,26 +9,30 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 import collect_daemon as cd
 
-TOKEN = 'Beops-Research-Collect/1.0'
+FORBIDDEN = ('beops', 'svemir', 'poturak', 'scumutator', '3esign', '@gmail', 'mailto:')
 
 
 class HonestIdentity(unittest.TestCase):
-    def test_the_transport_names_the_observatory(self):
+    def test_the_transport_uses_a_persona_without_a_personal_signature(self):
         p = subprocess.run(['node', str(ROOT / 'tools' / 'net_fetch.js')],
                            input=json.dumps({'url': 'https://example.org/feed', 'headers_only': True}),
                            capture_output=True, text=True, encoding='utf-8', timeout=30, check=True)
-        ua = json.loads(p.stdout)['user_agent']
-        self.assertTrue(ua.startswith(TOKEN), ua)
-        self.assertNotIn('Mozilla', ua)
+        result = json.loads(p.stdout)
+        self.assertTrue(result['user_agent'])
+        rendered = json.dumps(result['headers']).lower()
+        for forbidden in FORBIDDEN:
+            self.assertNotIn(forbidden, rendered)
+        self.assertNotIn('from', {k.lower() for k in result['headers']})
 
-    def test_no_source_transport_borrows_a_persona(self):
+    def test_both_source_transports_use_the_same_header_boundary(self):
         for rel in ('tools/net_fetch.js', 'src/store.js'):
             text = (ROOT / rel).read_text(encoding='utf-8').lower()
-            self.assertNotIn('incognito.js', text, rel)
-            self.assertIn(TOKEN.lower(), text, rel)
+            self.assertIn('network_identity', text, rel)
+            self.assertNotIn('poturak', text, rel)
+        self.assertIn('incognito.js', (ROOT / 'tools/network_identity.js').read_text(encoding='utf-8'))
 
-    def test_the_daemon_label_and_the_sent_identity_agree(self):
-        self.assertTrue(cd.UA.startswith(TOKEN))
+    def test_daemon_records_actual_sent_identity_instead_of_a_fixed_label(self):
+        self.assertIn('request_user_agent', (ROOT / 'tools/collect_daemon.py').read_text(encoding='utf-8'))
 
     def test_a_receipt_records_the_identity_that_was_sent(self):
         src = (ROOT / 'tools' / 'collect_daemon.py').read_text(encoding='utf-8')
@@ -47,8 +51,10 @@ class HonestIdentity(unittest.TestCase):
         err = json.loads(p.stdout)['error']
         self.assertTrue(err.startswith('fetch failed'), err)
         self.assertIn('ECONNREFUSED', err)
-        self.assertTrue(json.loads(p.stdout)['request_user_agent'].startswith(TOKEN),
-                        'a request that failed on the network was still sent under our name')
+        actual = json.loads(p.stdout)['request_user_agent']
+        self.assertTrue(actual, 'a network failure still records the identity actually sent')
+        for forbidden in FORBIDDEN:
+            self.assertNotIn(forbidden, actual.lower())
 
     def test_a_request_that_was_never_sent_claims_no_identity(self):
         p = subprocess.run(['node', str(ROOT / 'tools' / 'net_fetch.js')],

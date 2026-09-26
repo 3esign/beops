@@ -15,7 +15,9 @@ function Get-BeopsTaskSpecs {
     [pscustomobject]@{ Name='Beops_Collect';  Bat='tools\collect_tick.bat';  Minutes=5;     OffsetMinutes=2;  Limit=10; Priority=4; Desc='BEOPS: one bounded pass over permitted sources' },
     [pscustomobject]@{ Name='Beops_Mind';     Bat='tools\mind_tick.bat';     Minutes=4;     OffsetMinutes=3;  Limit=12; Desc='BEOPS: one drop of the mind - one step with automatically selected reviewed models' },
     [pscustomobject]@{ Name='Beops_Organ';    Bat='tools\organ_tick.bat';    Minutes=10;    OffsetMinutes=4;  Limit=9;  Desc='BEOPS: one bounded pass of the news-sorter organ on a local model' },
-    [pscustomobject]@{ Name='Beops_Watch';    Bat='tools\watch_tick.bat';    Minutes=10;    OffsetMinutes=8;  Limit=5;  Desc='BEOPS: the watchman - reads artefacts, never task status as truth' },
+    # Watch persistence stops waiting at its 8 min budget, leaving 1 min to
+    # publish a truthful degraded view before the 9 min outer task deadline.
+    [pscustomobject]@{ Name='Beops_Watch';    Bat='tools\watch_tick.bat';    Minutes=10;    OffsetMinutes=8;  Limit=9;  Desc='BEOPS: the watchman - reads artefacts, never task status as truth' },
     # The publisher's internal cycle budget is 45 minutes. A shorter scheduler
     # limit can kill the wrapper before it writes a truthful final receipt.
     [pscustomobject]@{ Name='Beops_Publish';  Bat='tools\publish_tick.bat';  Minutes=30;    OffsetMinutes=10; Limit=45; Priority=4; Desc='BEOPS: export and push the public site (github.com/3esign/beops)' },

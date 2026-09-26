@@ -25,10 +25,12 @@ class FailedPublish(unittest.TestCase):
             base=pathlib.Path(folder);source=base/'source';mirror=base/'Beops-public'
             (source/'tools').mkdir(parents=True);(source/'research').mkdir()
             (source/'runtime').mkdir();(source/'data/live').mkdir(parents=True)
+            if (ROOT/'runtime'/'test-python.json').exists():
+                shutil.copyfile(ROOT/'runtime'/'test-python.json', source/'runtime'/'test-python.json')
             for name in ('publish_github.ps1','publish_safety.ps1','test-research.js','incognito_user_agent.js','mirror_transaction.py','published_editions.py'):
                 shutil.copyfile(ROOT/'tools'/name,source/'tools'/name)
             for name in ('baseline','latency','agreement','export_permission_dataset','collect_daemon',
-                         'build_history','watchman','build_site','make_maps'):
+                         'build_history','watchman','build_site','make_maps','build_public_page'):
                 (source/'tools'/f'{name}.py').write_text('print("fixture build completed")\n')
             (source/'tools/ai_feed.js').write_text('process.exit(0);\n')
             (source/'tools/validate_public_tree.py').write_text('print("minimal fixture export")\n')
@@ -53,6 +55,7 @@ class FailedPublish(unittest.TestCase):
             (source/'runtime/release-inputs.json').write_text(json.dumps({
                 'schema':'beops-release-inputs/v1','source_oid':source_oid,'files':[]}))
             env=dict(os.environ,BEOPS_PYTHON=sys.executable,BEOPS_TEST_PYTHON=sys.executable,
+                     BEOPS_TEST_PYTHONPATH=json.loads((ROOT/'runtime'/'test-python.json').read_text(encoding='utf-8-sig')).get('pythonpath', '') if (ROOT/'runtime'/'test-python.json').exists() else '',
                      BEOPS_PUBLIC_ROOT=str(mirror),PSModulePath=str(pathlib.Path(os.environ['SystemRoot'])/'System32/WindowsPowerShell/v1.0/Modules'))
             for key in ('BEOPS_PHASE_TRACE','BEOPS_FROZEN_ROOT','BEOPS_FROZEN_MANIFEST_SHA256','BEOPS_FROZEN_SOURCE_OID'):
                 env.pop(key,None)

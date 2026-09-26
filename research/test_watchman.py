@@ -4,6 +4,7 @@ ways a monitor lies: calling silence a failure, calling blindness success, and v
 it slept through."""
 import hashlib
 import json
+import os
 import pathlib
 import shutil
 import sys
@@ -16,6 +17,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
 import watchman as W  # noqa: E402
+import contracts  # noqa: E402
 
 NOW = datetime(2026, 9, 10, 12, 0, tzinfo=timezone.utc)
 
@@ -79,6 +81,116 @@ class WatchmanTests(unittest.TestCase):
 
     def states(self, r):
         return {c["check"]: c["state"] for c in r["checks"]}
+
+    def paused_mind(self):
+        directory = W.LIVE/'derived/mind'
+        receipts = directory/'receipts'
+        receipts.mkdir(parents=True)
+        (directory/'2026-09.jsonl').write_text(json.dumps({'at': iso(NOW - timedelta(days=1))})+'\n', encoding='utf-8')
+        (directory/'PAUSED').write_text('quiet mode for PC RAM preservation\n', encoding='utf-8')
+        receipt = {'schema': 'beops-organ-receipt/v1', 'organ': 'mind', 'state': 'paused',
+                   'at': iso(NOW - timedelta(minutes=4)), 'calls': 0,
+                   'reason': 'quiet mode for PC RAM preservation\n'}
+        target = receipts/'20260910T115600Z-observer.json'
+        target.write_text(json.dumps(receipt), encoding='utf-8')
+        return directory, target, receipt
+
+    def test_operator_pause_needs_a_current_matching_zero_call_mind_receipt(self):
+        directory, target, receipt = self.paused_mind()
+        before = {p: p.read_bytes() for p in directory.rglob('*') if p.is_file()}
+        finding = W.mind(NOW)
+        self.assertEqual(finding['state'], W.PAUSED)
+        self.assertEqual(finding['receipt_age_min'], 4)
+        self.assertEqual(finding['calls'], 0)
+        self.assertIn('no current model output is claimed', finding['said'])
+        self.assertEqual(W.exit_code({'verdict': W.PAUSED, 'checks': [finding]}), 0)
+        self.assertEqual({p: p.read_bytes() for p in directory.rglob('*') if p.is_file()}, before)
+
+    def test_old_or_contradictory_pause_evidence_cannot_hide_stalled_output(self):
+        directory, target, receipt = self.paused_mind()
+        mutations = [
+            {'at': iso(NOW - timedelta(minutes=31))}, {'at': iso(NOW + timedelta(minutes=1))},
+            {'at': 'not-a-clock'}, {'state': 'organ_failed'}, {'calls': 1}, {'calls': False},
+            {'reason': 'different pause'}, {'organ': 'news-sorter'}, {'schema': 'unrelated/v1'},
+        ]
+        for changes in mutations:
+            with self.subTest(changes=changes):
+                target.write_text(json.dumps(receipt | changes), encoding='utf-8')
+                finding = W.mind(NOW)
+                self.assertEqual(finding['state'], W.STALLED)
+                self.assertIn('not confirmed', finding['said'])
+        target.write_text('{broken', encoding='utf-8')
+        self.assertEqual(W.mind(NOW)['state'], W.STALLED)
+        target.unlink()
+        self.assertEqual(W.mind(NOW)['state'], W.STALLED)
+
+    def test_removing_pause_marker_restores_output_age_monitoring(self):
+        directory, target, receipt = self.paused_mind()
+        (directory/'PAUSED').unlink()
+        self.assertEqual(W.mind(NOW)['state'], W.STALLED)
+
+    def test_newer_failure_receipt_prevents_older_pause_receipt_from_masking_it(self):
+        directory, target, receipt = self.paused_mind()
+        (target.parent/'20260910T115900Z-observer.json').write_text(
+            json.dumps(receipt | {'at': iso(NOW-timedelta(minutes=1)), 'state': 'organ_failed'}), encoding='utf-8')
+        self.assertEqual(W.mind(NOW)['state'], W.STALLED)
+
+    def test_a_release_lock_held_longer_than_thirty_seconds_does_not_lose_the_run(self):
+        """Exercise the real lock retry after a simulated 31 s contention."""
+        lock_call = 'msvcrt.locking' if os.name == 'nt' else 'fcntl.flock'
+        reading = {'schema': 'beops-watch/v1', 'at': iso(NOW), 'verdict': W.OK,
+                   'counts': {}, 'figures': {}, 'not_current': []}
+        with patch.object(W, 'run', return_value=reading), \
+                patch.object(sys, 'argv', ['watchman.py', '--json']), \
+                patch(lock_call, side_effect=[OSError('release capture busy'), None]) as lock, \
+                patch.object(contracts.time, 'monotonic', side_effect=[0, 31]), \
+                patch.object(contracts.time, 'sleep'), patch('builtins.print'):
+            self.assertEqual(W.main(), 0)
+        self.assertEqual(lock.call_count, 2)
+        ledger = [json.loads(line) for line in W.LEDGER.read_text(encoding='utf-8').splitlines()]
+        self.assertEqual(len(ledger), 1)
+        self.assertEqual(ledger[0]['at'], iso(NOW))
+        self.assertEqual(json.loads(W.PUBLIC.read_text(encoding='utf-8'))['at'], iso(NOW))
+
+    def test_an_exhausted_input_lock_keeps_the_ledger_and_publishes_a_truthful_late_view(self):
+        lock_call = 'msvcrt.locking' if os.name == 'nt' else 'fcntl.flock'
+        W.LEDGER.parent.mkdir(parents=True, exist_ok=True)
+        prior = json.dumps({'at': iso(NOW - timedelta(minutes=10))}) + '\n'
+        W.LEDGER.write_text(prior, encoding='utf-8')
+        reading = {'schema': 'beops-watch/v1', 'at': iso(NOW), 'verdict': W.OK,
+                   'counts': {}, 'figures': {}, 'not_current': [], 'checks': []}
+        with patch.object(W, 'run', return_value=reading), \
+                patch.object(sys, 'argv', ['watchman.py', '--json']), \
+                patch(lock_call, side_effect=OSError('release capture still busy')), \
+                patch.object(contracts.time, 'monotonic', side_effect=[0, 121]), \
+                patch('builtins.print') as printed:
+            self.assertEqual(W.main(), 1)
+        self.assertEqual(W.LEDGER.read_text(encoding='utf-8'), prior)
+        view = json.loads(W.PUBLIC.read_text(encoding='utf-8'))
+        self.assertEqual(view['verdict'], W.LATE)
+        self.assertEqual(view['at'], iso(NOW))
+        self.assertFalse(view['persistence']['ledger_written'])
+        self.assertIn('ledger persistence', view['not_current'])
+        self.assertEqual(json.loads(printed.call_args.args[0])['persistence'], view['persistence'])
+
+    def test_persistence_wait_shrinks_to_leave_scheduler_grace(self):
+        class BusyLock:
+            def __enter__(self):
+                raise TimeoutError('input busy')
+            def __exit__(self, *args):
+                return False
+        reading = {'schema': 'beops-watch/v1', 'at': iso(NOW), 'verdict': W.STALLED,
+                   'counts': {}, 'figures': {}, 'not_current': [],
+                   'checks': [W.check('fixture source', W.STALLED, 'already stalled')]}
+        with patch.object(W, 'run', return_value=reading), \
+                patch.object(sys, 'argv', ['watchman.py', '--json']), \
+                patch.object(W, 'datetime') as dates, \
+                patch.object(W, 'exclusive', return_value=BusyLock()) as lock, \
+                patch('builtins.print'):
+            dates.now.side_effect = [NOW, NOW + timedelta(seconds=470), NOW + timedelta(seconds=480)]
+            self.assertEqual(W.main(), 2)
+        self.assertEqual(lock.call_args.kwargs['timeout'], 10)
+        self.assertEqual(json.loads(W.PUBLIC.read_text(encoding='utf-8'))['verdict'], W.STALLED)
 
     def test_a_silent_source_we_are_still_asking_is_not_a_fault(self):
         """The publisher has nothing to say. We asked four minutes ago. That is an observation."""

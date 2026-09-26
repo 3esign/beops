@@ -1,6 +1,7 @@
 # Beops — Knowledge Base
 
 # Greske
+- [2026-09-26T20:55Z] Calendar parser initially used scheduled as epistemic state, creating an undeclared sixth state. Cause: event lifecycle was mixed with evidence certainty. Remedy: state=forecast for future official announcements and event_status=scheduled separately; seven cache rows reparsed from hash-verified original HTML without changing received_at or raw provenance. — research/test_citizen_evidence.py
 - [2026-09-20T07:56] Beops publish handoff: na PC-u sa ~278 MB slobodne memorije sledeci publish ne sme ni da udje u release pripremu; prethodni pokusaji su vec potrosili 45 min ili naleteli na `.write.lock`. Lek: cadence gate nije dovoljan; publish_tick dobija poseban capacity gate pre `beops_env.bat` i `publish_github.ps1`. — izvor: /api/operational-snapshot; runtime/release-diagnostics; tools/publish_capacity.ps1
 - [2026-09-19T12:55] P0 scheduler status: prvi puni gate posle dodavanja `publish-scheduler-status.json` pao je u `test_record_shape.py` jer svaki novi top-level fajl u `data/live` mora biti deklarisan u `research/RECORD_SHAPE.json`. Lek: operativni status nije "sporedan" ako sedi uz živi zapis; deklaracija oblika mora nastati u istom potezu kao fajl. — izvor: research/test_record_shape.py; research/RECORD_SHAPE.json
 - [2026-09-19T12:45] Clean Beops P0: `Beops_Publish` je imao scheduler limit 30 min dok `publish_github.ps1` ciklusu daje 45 min; uspešan ciklus od 41 min zato može biti ubijen spolja pre poštenog završnog traga. Lek: task spec i interni budžet moraju biti isti ugovor, a cadence/lock/active/success/failure moraju imati zaseban mašinski status koji ne podmlađuje `publish-last-success`. — izvor: research/_trail/clean-beops-baseline-20260919T124035Z; tools/beops_tasks.ps1; tools/publish_due.ps1; tools/publish_github.ps1
@@ -106,6 +107,7 @@
 - [2026-09-25T12:26Z] Uzrok: publish_capacity.ps1 je podrazumevano trazio 1024 MB slobodnog RAM-a, dok je beops_env.bat definisao 256 MB. Pošto publish_tick.bat proverava kapacitet pre pozivanja beops_env.bat, prag od 1024 MB je na 8 GB mašini redovno blokirao zakazano objavljivanje (exit 75) pri slobodnoj memoriji 400-900 MB, a svaki izlaz iz kapije je aktivirao i cooldown od 120 min. Lek: postavljen default MinimumFreeMB na 256 MB direktno u publish_capacity.ps1, uskladjen beops_env.bat sa promenljivom BEOPS_PUBLISH_FAILURE_COOLDOWN_MINUTES=30, i omogucen publish_now.bat za rucni tick bez kadence. — izvor: tools/publish_capacity.ps1; tools/publish_due.ps1; tools/beops_env.bat; tools/publish_now.bat
 
 # Iskustva
+- [2026-09-26T20:51Z] Kolarac repertoire cards contain explicit full dates, hours and venue labels in rendered entry-title anchors, while publication data-date is a different clock. The 27.09 card has an empty title; skip it instead of deriving a fact from its URL. Seven complete upcoming schedules were captured with raw SHA-256 and permission evidence. Single official source is not independent corroboration; end time, neighborhood, attendance and occurrence remain unknown. — tools/collect_events.py; data/live/derived/events/repertoire.json; research/evidence/legal/S225/20260926T204040Z
 - [2026-09-25T12:26] Publish release ciklus legitimno traje 20-25 minuta: generisanje 62 MB istorije za 401 sat sa 1098 serija i pokretanje 90 offline testova zahtevaju nekoliko stotina sekundi CPU i diskovnog rada, nakon cega slede export, remote git push i mrezna verifikacija 178 ruta sajta na GitHub Pages. Zato zakazani limit od 45 minuta u beops_tasks.ps1 odgovara stvarnoj prirodi ovog naucnog instrumenta.
 - [2026-09-20T11:59] test_source_clock.py must not scan monthly live row JSONL files in the normal gate; the public 24h snapshot already carries source labels, corrected times and clock notes, while the full row corpus stays static evidence.
 - [2026-09-20T11:42] test_refusal_route.py was spending minutes scanning data/live/rows for an assertion that was always true; the refuser-name contract is static and should be checked from REFUSER_NAMES.json plus the legal rule, while snapshot behavior remains covered separately.
@@ -212,6 +214,7 @@
 # Vestine
 
 # Odluke
+- [2026-09-26T20:51Z] Current Svemir workspace instruction supersedes historical C-069/C-070 fixed personal transport headers: net_fetch and src/store now use the shared incognito boundary and fail closed when unavailable. Historical manifests retain the actual headers sent at that time; robots checks still compare stored and current identities. Calendar builds are offline, refresh every 6h, suppress unavailable or >24h-old schedules, and never merge keyword headline signals into verified schedules. — tools/network_identity.js; research/test_honest_identity.py; research/test_citizen_evidence.py
 - [2026-09-14T12:57] R03: LF-zavrsen prefiks observation stream-a odredjuje presek; originalni bajtovi ostaju na mestu, manifest cuva izvorni hash/duzinu i izostavljeni rep. Snapshot/history/analysis nose isti identitet manifesta i sat preseka. Pregled bez tog dokaza je unverified_legacy, ne novo provereno izdanje. Browser razlikuje staro izdanje, stari presek, sat u buducnosti, prijem i neuspeo/pauziran kolektor; svaka HTML ulazna stranica vezuje ocekivanu generaciju. — izvor: tools/release_observation.py
 - [2026-09-14T10:13] Plan prepravke od 14.09. daje jedan red za svih 66 nalaza: 20 paketa, prvo pouzdana osnovna objava sa ispravnom semantikom i tekstom, zatim jedinstven UI i red dokumentacije. Empirijska AI procena i sazrela istorija imaju poseban ishod; plan ne menja D-001 ni odobrenu retenciju. — izvor: research/01-programme/REMEDIATION_PLAN_2026-09-14.md
 - [2026-09-13T17:01] Semir izricito odobrava D i trazi slobodan C. F1 radni artefakti prelaze na D uz C junction radi starih linkova; redovne release kopije prate fizicki projektni disk, sa eksplicitnim BEOPS_RELEASE_ROOT override-om. — izvor: tools/publish_github.ps1
@@ -755,3 +758,64 @@ Prompt v2 required a cross-domain link and urban relief; the model obliged every
 - Greske: `news-sorter` correctly rolled back headline quality attempts after `CLI returned no output` and `[stopped after timeout]`, but the final receipt still became `organ_failed` when no derived rows existed. Uzrok: final state used `errors` alone, not whether every error was a local transport failure. Lek: pure local transport failures are `waiting_model`; parser/semantic model errors remain `organ_failed`.
 - Izvori: `data/live/derived/news/receipts/20260921T064502Z.json`, `tools/organ_news.py`, `research/test_organ_news.py`.
 - Odluke: Keep `news-sorter.allow_cloud=false`; do not send headlines to Codex just to make the receipt green. A green state means local route capacity is honestly represented.
+
+## Objava koja stoji jer je `tar` drugi `tar` — 2026-09-26
+
+**Greska.** Od 25.09. 22:50Z nijedan ciklus nije objavio, a sajt je zaostao 9 h. Receipt je
+rekao `tests_ok:false` i pokazao na `test_publish_failure.py`, sto je izgledalo kao pad
+testa. Nije bio test: `publish_github.ps1` je HEAD arhivu vadio pozivom golog `tar`. Kad
+objavljivac krene iz ljuske ciji PATH nosi `/usr/bin` Git-a za Windows, to je MSYS GNU tar,
+koji putanju `C:\...` u `-f` cita kao `host:path` i pokusava mrezu:
+`Cannot connect to C: resolve failed`, exit 128. *Uzrok:* ime programa preuzeto iz PATH-a u
+okruzenju koje nije garantovano. *Lek:* ekstraktor se imenuje — `System32\tar.exe` (bsdtar)
+prima native putanje — a ne trazi po PATH-u.
+
+**Iskustvo.** Isti kod, isti commit, isti test — prolazi ili pada prema tome ko ga je
+pokrenuo. Windows ima dva `tar`-a sa istim imenom i razlicitim ugovorom o putanji. Svaki
+native poziv u objavljivacu koji se oslanja na PATH je ista mina; `git` je siguran jer ga
+oba sveta zovu isto, `tar`, `find`, `sort`, `date` nisu.
+
+**Iskustvo.** Drugi zid iza prvog: `publish_now.bat` je ostao na podrazumevanih 45 min
+ciklusa iako je izmereno da pun ciklus trazi ~55 min, pa je rucni tik — bas onaj koji
+nadoknadjuje zaostatak — umirao u fazi objave. Kad se kadenca i rucna nadoknada dele istim
+budzetom, nadoknada nikad ne stigne.
+
+**Odluka.** Kad receipt kaze „test pao", prvo se procita *sta* je test video. Ovde je
+poruka testa sadrzala celu recenicu greske (`Cannot connect to C:`) i bila je dovoljna;
+sat vremena sumnje u test se usteđuje jednim `tail` preko receipt.why.
+
+**Greska.** Objava pala na `prepare_release.py` sa timeout-om od 120s zbog `git ls-tree -r -l <oid>`. *Uzrok:* `-l` (long format) stat-uje svaki blob, a kad su fajlovi pod junction-om na drugi disk, to traje dugo (37s u normali), a pod i/o opterecenjem (`npm test`) probije hardkodiranih 120s budzeta iz ranih dana. *Lek:* Limit za pretragu velicine povecan na 600s.
+
+### 2026-09-26 — publication recovery
+Greske: A tracked root scratch generator broke the structure gate; preserve it in ignored research/_scratch. Map source files existed but build_site did not export them; copy all declared map routes and verify them live. The registry and material provenance defects are being repaired separately with regression coverage.
+Iskustva: This run's C: storage boundary requires a physical session clone because !Projekti resolves to D:. Original collection processes remain separate.
+`n**Greska (2026-09-26, map audit).** E3 used S195 for ZZSKGB despite SOURCE_REGISTRY already assigning S195 to RTS, and assigned A/B grades to three rough centroids behind a 404 source. Cause: stub was treated as evidence. Remedy: preserve original outside public export, publish unavailable with zero records until unique source, field evidence, coordinates and reuse terms are verified. MAP_LAYERS also contained nested layer objects in dossier_fields; reject these structurally. Artifact: a spatial view that draws only registered sourced layers; unsupported material points will not appear.
+2026-09-26T20:09:34.3098059Z · G-3057: citizen reader must merge compact source.point_defaults; regression proves measured zero remains zero and inherited untimed stays unknown. Headline classification does not verify event timing. No visual QA available through mounted CUA browser.
+Greska (2026-09-26 E4): provider schemas admitted geo while validateOutput rejected every additional field and prompt v3 forbade it. Cause: only UI/schema were changed, not the acceptance path. Remedy: one provider schema and validator allow optional coordinates only when exactly matched to cited fact.location, or exact grounded map_anchor; v4 prompt leaves geo absent without evidence. No historical entry is rewritten.
+
+### 2026-09-26 - Release metadata work
+Iskustva: git ls-tree -r -l previously measured evidence and scratch blobs excluded from the actual fixed-source archive; using the same archive path list avoids duplicate evidence accounting and blob-size work. The post-hash source stat also supplies inode/device for os.path.samestat, so the hard-link guard needs only one additional target stat.
+Odluke: Keep every input resolve, unsafe-path check and before/after size/mtime check; do not infer a sub-90-second release from fewer metadata operations. Verified 37 focused tests; full-cycle duration is pending.
+
+### 2026-09-26 — durable recovery and scheduler continuity
+Greske: A conversational child process can vanish before release preparation finishes and leave an owned lock behind. A repaired clone alone also leaves regular tasks on old code. Lek: run recovery through Task Scheduler with XML backups, switch every action while tasks are disabled, and resume publication only after tests_ok/published/site_verified for current HEAD. Finalization lives in the durable wrapper, so bridge exit cannot leave cadence disabled.
+Iskustva: The original Guard respects disabled task state despite an obsolete comment saying otherwise; executable behavior must decide the handoff.
+Odluke: All writable runtime and release artifacts now remain under the physical C session root. Original D project stays preserved. MaterialPassport contains only three acknowledged stub records, so material layer remains unavailable; no 102-building inventory is claimed.
+
+Greska (2026-09-26 map UI): Canvas hit-test opened the correct dossier but left the dropdown pointing to the previously selected instrument. Cause: showDossier updated selected point and panel only. Remedy: synchronize picker.value to points.indexOf(p) in the shared selection path; browser regression compares selected point source/station with dossier after mouse and touch hits. Visual review exposed a disagreement that a successful click alone did not detect.
+2026-09-26T21:08:24.4726710+00:00 · Greske: first full frozen gate exposed legacy citizen tests requiring old badge text and a reassuring citywide claim from untimed fixtures. Remedy: deterministic observed/unit/time fixtures, explicit negative stale/future/forecast checks and retain the no-advice invariant. Related 17 tests pass; public source was not published on failure.
+
+### 2026-09-26 - Public history exceeds a fixed response cap
+Greske: Real history.json grew to 67,363,195 bytes, beyond the verifier's 64 MiB response cap; retaining every route as Buffer plus string and parsing all history also conflicts with the scheduler's 128 MiB Node heap. Remedy: stream both SHA256 digests, derive the remote response bound from the measured local export size, and read only bounded top-level metadata from that same local stream; use metadata only after full remote-byte equality.
+Iskustva: A Node 24 keep-alive response at its size boundary can detach the request's socket listeners before req.destroy(error), emitting an unhandled socket error. The negative transport regression exposed this; explicitly reject, then destroy response/request without injecting an error into the socket.
+Izvori: research/test_public_site_stream.py serves a 70 MiB fixture through real local HTTP and runs the complete CLI under node128; regressions cover nested/quoted/duplicate metadata keys, redirects, truncation, byte limits and absolute deadlines. 18 targeted tests and generation_contract.test.cjs pass.
+Odluke: The selective root reader is not a replacement for the offline JSON validity gate. A hash mismatch never obtains a generation/freshness success from local metadata. No sub-90-second full-release claim follows from this correction.
+
+Greska G-3068 (2026-09-26): watchman.mind treated the age of generated rows as the whole operational state, so quiet-mode PAUSED plus a fresh zero-call pause receipt still appeared STALLED. Remedy: emit existing PAUSED only when marker and newest correctly typed mind receipt agree on reason, state, zero calls and a non-future age no greater than30min; stale/missing/conflicting confirmation leaves ordinary output-age monitoring active. Guard independently reads row/receipt ages and already explains silence as WARN with the pause reason; no model is started and no scheduler health is inferred from an exit code. Regression prepared; pass pending test lane.
+G-3068 validation: research/test_watchman.py33/33passed; all9 contradictory receipt variants, malformed/missing/newer-failure receipt and removed marker preserve normal stalled detection. Existing Watch fallback, shared-lock budget and file preservation regressions remain passing.
+
+### 2026-09-26 - G-3069: JSON key case crosses language boundaries
+Greske: The full gate passed while the actual export producer wrote files[].SHA256 and inputs_manifest_SHA256; Python required sha256 and the next JavaScript check required inputs_manifest_sha256. Cause: PowerShell's case-insensitive property access hid a case-sensitive JSON contract defect. Remedy: canonical lowercase producer keys and an integration regression executing the real PowerShell function, not a handwritten replacement manifest.
+Iskustva: The integration fixture initially forgot to stage its root source.js while its real manifest included it; the unchanged byte verifier correctly rejected that omission. Remedy: stage both the source fixture and generated docs before asserting a complete producer-to-consumer flow.
+Izvori: runtime/release-diagnostics/beops-release-fd09fe7aff6a40809dc7b2c1a5155a48.json; research/test_export_manifest_contract.py; 30 targeted tests passed in 2.063s. G-3069 stored in the Svemir canon through tools/g.js write.
+Odluke: Preserve strict SHA256/length verification of actual staged blobs. The new regression proves worktree-only edits do not alter staged evidence and same-size staged edits fail. Full publication remains a separate measured step.

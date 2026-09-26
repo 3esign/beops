@@ -12,4 +12,8 @@ if not exist runtime mkdir runtime
 for /f "usebackq tokens=*" %%i in (`powershell -NoProfile -Command "(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')"`) do set NOWUTC=%%i
 echo ---- %NOWUTC% >> runtime\collect-tick.log
 call "%BEOPS_PYTHON%" -X utf8 -B tools\collect_daemon.py tick >> runtime\collect-tick.log 2>&1
-exit /b %ERRORLEVEL%
+set COLLECT_RC=%ERRORLEVEL%
+rem Official repertoire has its own six-hour cache and receipt. Its failure must
+rem stay visible in the events log without changing the sensor collector result.
+call "%BEOPS_PYTHON%" -X utf8 -B tools\collect_events.py --refresh >> runtime\events-tick.log 2>&1
+exit /b %COLLECT_RC%

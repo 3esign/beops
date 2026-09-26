@@ -2,8 +2,7 @@
 const fs=require('node:fs/promises'), path=require('node:path');
 const {sources,hash,normalize,viewRecord}=require('./evidence');
 async function boundedJSON(url, options={}) {
-  // C-069: the observatory names itself to every source; no browser persona.
-  const headers={'User-Agent':'Beops-Research-Collect/1.0 (+https://3esign.github.io/beops/; poturaksemir@gmail.com)','From':'poturaksemir@gmail.com','Accept':'application/json'};
+  const headers=require('../tools/network_identity').identityHeaders(url, {vrsta:'json'});
   const response=await fetch(url,{...options,headers,redirect:'error',signal:options.signal||AbortSignal.timeout(12000)});
   if (!response.ok) throw new Error(`Source HTTP ${response.status}`);
   const reader=response.body.getReader(), chunks=[]; let count=0;

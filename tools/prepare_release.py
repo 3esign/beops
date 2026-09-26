@@ -85,12 +85,12 @@ def trace_phase(name, event, seconds=None, **details):
         stream.write(json.dumps(row, separators=(',', ':'))+'\n')
 
 
-def git(root, *args):
+def git(root, *args, timeout_sec=120):
     env = os.environ.copy()
     for name in ('GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_COMMON_DIR'):
         env.pop(name, None)
     result = subprocess.run(['git', '-C', str(root), *args], env=env,
-        capture_output=True, text=True, encoding='utf-8', timeout=120)
+        capture_output=True, text=True, encoding='utf-8', timeout=timeout_sec)
     if result.returncode:
         raise RuntimeError(f'git {args[0]} failed ({result.returncode}): {result.stderr.strip()}')
     return result.stdout.strip()
@@ -191,6 +191,19 @@ def archive_paths(source, oid):
     return paths
 
 
+def archive_source_bytes(source, oid, paths):
+    """Measure only fixed-OID files actually extracted into the release.
+
+    Evidence is captured separately, so asking Git for its blob sizes repeats
+    work over thousands of inputs and counts those bytes in both allocations.
+    """
+    if not paths:
+        return 0
+    rows = git(source, 'ls-tree', '-r', '-l', oid, '--', *paths, timeout_sec=600)
+    return sum(int(fields[3]) for line in rows.splitlines()
+               if len(fields := line.split()) >= 4 and fields[3].isdigit())
+
+
 def estimate_release_input_bytes(source):
     """Avoid a duplicate deep stat walk when the last release manifest exists."""
     manifest = source / 'runtime/release-inputs-last.json'
@@ -237,13 +250,13 @@ def _capture_inputs(source, dest, metrics=None):
         if (path.is_symlink() or not path.resolve().is_relative_to(source)
                 or any(x.lower().startswith(('.env', 'secrets.', 'kaggle.')) for x in rel.parts)):
             raise ValueError('unsafe release input path')
-        st = path.stat()
-        return rel, (st.st_size, st.st_mtime_ns)
+        return rel, path.stat()
 
     def verify(path, expected):
         rel, before = identity(path)
-        if before != expected:
+        if (before.st_size, before.st_mtime_ns) != expected:
             raise RuntimeError('input changed after capture: ' + rel.as_posix())
+        return before
 
     def collect(path, frozen_bytes):
         nonlocal total
@@ -254,7 +267,8 @@ def _capture_inputs(source, dest, metrics=None):
         if path.suffix.lower() == '.claim' and path.relative_to(source).parts[:3] == ('data','live','receipts'):
             return
         captured.add(path)
-        rel, stat = identity(path)
+        rel, observed = identity(path)
+        stat = (observed.st_size, observed.st_mtime_ns)
         if frozen_bytes:
             total += stat[0]
             if total > cap:
@@ -492,8 +506,11 @@ def _capture_inputs(source, dest, metrics=None):
                 pass                      # another volume or no link support: copy as before
             else:
                 digest = hashes.sha(path, rel, stat)
-                verify(path, stat)
-                if not os.path.samefile(path, target):
+                verified = verify(path, stat)
+                # The source stat just used for the post-hash mutation check
+                # already supplies the file identity. Only the target needs a
+                # new stat; samefile would query the source a second time.
+                if not os.path.samestat(verified, target.stat()):
                     raise RuntimeError('linked input is not the captured file: ' + posix)
                 linked.append(stat[0])
                 return {'path': posix, 'bytes': stat[0], 'sha256': digest}
@@ -541,8 +558,8 @@ def prepare(source, destination, oid=None, owner_pid=None, retained=False):
     # operating system's last free bytes. The last manifest avoids a duplicate
     # deep stat walk over immutable evidence and receipts on normal cadence.
     input_bytes, input_bytes_from = estimate_release_input_bytes(source)
-    source_bytes = sum(int(line.split()[3]) for line in git(source, 'ls-tree', '-r', '-l', oid).splitlines()
-                       if len(line.split()) >= 4 and line.split()[3].isdigit())
+    paths = archive_paths(source, oid)
+    source_bytes = archive_source_bytes(source, oid, paths)
     capacity = require_release_capacity(dest.parent, input_bytes, source_bytes)
     timings['capacity_and_inventory_seconds'] = round(time.monotonic()-phase_started, 3)
     timings['capacity_input_bytes_from'] = input_bytes_from
@@ -564,7 +581,7 @@ def prepare(source, destination, oid=None, owner_pid=None, retained=False):
     git(dest, 'symbolic-ref', 'HEAD', 'refs/heads/release')
     git(dest, 'read-tree', oid)
     archive = dest / 'release-source.tar'
-    git(source, 'archive', '--format=tar', '-o', str(archive), oid, '--', *archive_paths(source, oid))
+    git(source, 'archive', '--format=tar', '-o', str(archive), oid, '--', *paths)
     with tarfile.open(archive) as tar:
         for member in tar.getmembers():
             path = (dest / member.name).resolve()

@@ -29,7 +29,7 @@ Rules this file enforces (from CONTRIBUTING.md and 08-provenance/README.md):
     by hard link (same pattern as research/observe_10k.py). A crash between
     the two leaves a visible claim and a gap, never a retry of the same slot.
   * 403 or 429 pauses the source until a person clears the pause file.
-  * Transport uses verified TLS and one honest identity, Beops-Research-Collect/1.0 (C-069).
+  * Transport uses verified TLS and the shared header boundary; receipts preserve the actual request identity.
     Redirects require their own permission route; response bodies are bounded.
   * Byte caps per source. The SEPA observations endpoint returns the whole
     30-day bundle (140 MB) when asked without ``from``; the collector always
@@ -69,7 +69,6 @@ RESEARCH = ROOT / "research"
 LEDGER = RESEARCH / "08-provenance" / "LEDGER.jsonl"
 CONFIG = RESEARCH / "COLLECTORS.json"
 LIVE = ROOT / "data" / "live"
-UA = "Beops-Research-Collect/1.0 (urban observatory research; identifies honestly)"
 SCHEMA_RECEIPT = "beops-live-receipt/v1"
 SCHEMA_ROW = "beops-observation-row/v1"
 ROW_INDEX_SCHEMA = "beops-watch-row-index/v1"

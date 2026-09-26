@@ -1,18 +1,8 @@
 'use strict';
-// BEOPS requests identify the observatory honestly (C-069). A disguised browser persona would let a
-// publisher neither recognise nor refuse us by name, and the permission record would describe a
-// visitor that does not exist. The same identity is what robots.txt is evaluated against.
+// The current workspace boundary supplies every outgoing header; receipts record the actual persona.
 const fs = require('node:fs');
 const input = JSON.parse(fs.readFileSync(0, 'utf8'));
-const USER_AGENT = 'Beops-Research-Collect/1.0 (+https://3esign.github.io/beops/; poturaksemir@gmail.com)';
-function identityHeaders(url) {
-  return {
-    'User-Agent': USER_AGENT,
-    'From': 'poturaksemir@gmail.com',
-    'Accept': '*/*',
-    'Accept-Language': 'sr-RS,sr;q=0.9,en;q=0.8'
-  };
-}
+const {identityHeaders} = require('./network_identity');
 // C-084: a request that failed on the network was still sent under this identity, and its receipt says so.
 let sentIdentity = null;
 async function main() {
@@ -20,12 +10,12 @@ async function main() {
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) throw new Error('Unsupported URL');
   const headers = identityHeaders(url.href);
   sentIdentity = headers['User-Agent'] || headers['user-agent'];
-  if (input.headers_only) { process.stdout.write(JSON.stringify({user_agent: headers['User-Agent'] || headers['user-agent']})); return; }
+  if (input.headers_only) { process.stdout.write(JSON.stringify({user_agent: headers['User-Agent'] || headers['user-agent'], headers})); return; }
   const timeout = Math.max(100, Math.min(120000, input.timeout_ms || 30000));
   const limit = Math.max(1, Math.min(262144000, input.max_bytes || 2097152));
   const response = await fetch(url, {headers, redirect: 'manual', signal: AbortSignal.timeout(timeout)});
   const out = {status: response.status, headers: Object.fromEntries(response.headers), body: null,
-    request_user_agent: headers['User-Agent'] || headers['user-agent'], transport: 'node/verified TLS; honest identity', error: null};
+    request_user_agent: headers['User-Agent'] || headers['user-agent'], transport: 'node/verified TLS; incognito boundary', error: null};
   const h=out.headers;
   const refusal=/\b(?:ai-input|search)\s*=\s*no\b/i.test(h['content-signal']||'') || /\bno(?:image)?ai\b/i.test(h['x-robots-tag']||'') || /^1$/.test((h['tdm-reservation']||'').trim()) || /\b(?:ai|tdm)\s*=\s*n(?:o)?\b/i.test(h['content-usage']||'');
   if (refusal) {
@@ -61,4 +51,4 @@ function describe(error) {
 }
 main().catch(error => { process.stdout.write(JSON.stringify({status:null, headers:{}, body:null,
   error: describe(error), request_user_agent: input.headers_only ? null : sentIdentity,
-  transport:'node/verified TLS; honest identity'})); process.exitCode=1; });
+  transport:'node/verified TLS; incognito boundary'})); process.exitCode=1; });

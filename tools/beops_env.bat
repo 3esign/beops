@@ -3,6 +3,10 @@ rem Shared environment for BEOPS scheduled ticks. The batch lives in tools/,
 rem so its parent is the project root no matter whether the tree is entered
 rem through C:\Svemir or D:\Svemir.
 set "BEOPS_ROOT=%~dp0.."
+rem Keep Python caches out of interpreter/support directories on other volumes.
+set "PYTHONDONTWRITEBYTECODE=1"
+if not defined SVEMIR_ROOT set "SVEMIR_ROOT=C:\Svemir"
+if not defined BEOPS_SVEMIR_ROOT set "BEOPS_SVEMIR_ROOT=%SVEMIR_ROOT%"
 if exist "%BEOPS_ROOT%\runtime\MAINTENANCE" (
   echo BEOPS is paused for maintenance. No job was started.
   exit /b 75
@@ -44,5 +48,7 @@ if not exist "%BEOPS_ROOT%" (
   echo BEOPS_ROOT does not exist: %BEOPS_ROOT%
   exit /b 9
 )
+if not defined NODE_OPTIONS set "NODE_OPTIONS=--max-old-space-size=128"
 exit /b 0
+
 

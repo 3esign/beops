@@ -217,6 +217,11 @@ class Gate(unittest.TestCase):
         for label in ("export frozen rows", "report frozen rows", "build frozen history"):
             self.assertIn("Invoke-BeopsNative '" + label + "'", self.s)
 
+    def test_scheduler_loads_configured_cooldown_before_the_due_check(self):
+        tick = TICK.read_text(encoding='utf-8')
+        self.assertLess(tick.index('call "%~dp0beops_env.bat"'), tick.index('-File "%~dp0publish_due.ps1"'))
+        self.assertEqual(tick.count('call "%~dp0beops_env.bat"'), 1)
+
 
 class Receipt(unittest.TestCase):
     def test_nothing_reads_the_receipt_as_plain_utf8(self):

@@ -2,10 +2,23 @@
 import pathlib
 import sys
 import unittest
+from unittest.mock import patch
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 import round_check as rc  # noqa: E402
+
+
+class LiveTransport(unittest.TestCase):
+    def test_live_check_uses_shared_bounded_transport(self):
+        with patch('transport.fetch', return_value={'status': 200, 'body': b'<html>proof</html>', 'error': None}) as fetch:
+            self.assertEqual(rc.live_page('https://example.org/'), '<html>proof</html>')
+            fetch.assert_called_once_with('https://example.org/', timeout_s=30, max_bytes=2 * 1024 * 1024)
+
+    def test_failed_live_response_never_becomes_page_evidence(self):
+        with patch('transport.fetch', return_value={'status': 403, 'body': b'forbidden', 'error': None}):
+            with self.assertRaises(RuntimeError):
+                rc.live_page('https://example.org/')
 
 
 def task(i, status, commit="abc", ev=("x",), closed="2026-09-14T10:00:00Z", deps=()):

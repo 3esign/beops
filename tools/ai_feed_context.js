@@ -74,7 +74,10 @@ function buildContext(root, now = new Date(), config = {}, permittedOverride) {
         age_minutes:namedClocks.measurement_time===null?null:ageMinutes,
         reception_age_minutes:Math.round((asof-stamp(last.rx))/60000),
         clocks:namedClocks,clock_explanation:observationClocks.describe(last,'sr',source.clock_rules)};
-      if (Number.isFinite(stream.lat) && Number.isFinite(stream.lon)) fact.location = [stream.lon,stream.lat];
+      if (validLocation([stream.lon,stream.lat])) {
+        fact.location = [stream.lon,stream.lat];
+        fact.map_anchor = {layer:'instruments',id:source.sid+':'+(stream.station||stream.datastream)+':'+stream.lat+':'+stream.lon};
+      }
       if (previous) fact.comparison = {kind:'same_stream_change',from_value:previous.v,from_time:sampleTime(previous),
         delta:Math.round((last.v-previous.v)*1e6)/1e6,limitation:'Two observations on the same clock, not a causal explanation or a long-term trend.'};
       candidates.push(fact);
@@ -277,10 +280,32 @@ function reasoningReasons(value, packet){
   }
   return [...new Set(reasons)];
 }
+function validLocation(location) {
+  return Array.isArray(location) && location.length===2 && location.every(Number.isFinite) &&
+    location[0]>=-180 && location[0]<=180 && location[1]>=-90 && location[1]<=90;
+}
+function geoReasons(value,packet) {
+  if(!Object.prototype.hasOwnProperty.call(value,'geo'))return [];
+  const geo=value.geo;
+  if(!geo||typeof geo!=='object'||Array.isArray(geo))return ['geo_shape'];
+  const keys=Object.keys(geo).sort().join(',');
+  const cited=new Set((Array.isArray(value.paragraphs)?value.paragraphs:[]).flatMap(p=>Array.isArray(p?.cites)?p.cites:[]));
+  const facts=(packet.facts||[]).filter(f=>cited.has(f.id)&&validLocation(f.location));
+  if(keys==='lat,lon') {
+    if(!validLocation([geo.lon,geo.lat]))return ['geo_shape'];
+    return facts.some(f=>f.location[0]===geo.lon&&f.location[1]===geo.lat)?[]:['geo_not_cited'];
+  }
+  if(keys==='id,layer') {
+    if(typeof geo.layer!=='string'||typeof geo.id!=='string'||!geo.layer||!geo.id)return ['geo_shape'];
+    return facts.some(f=>f.map_anchor?.layer===geo.layer&&f.map_anchor?.id===geo.id)?[]:['geo_not_cited'];
+  }
+  return ['geo_shape'];
+}
 function validateOutput(value, packet, cap=5000) {
   const reasons=[], keys=['title','paragraphs','question','limitations'];
   if (!value || typeof value!=='object' || Array.isArray(value)) return {ok:false,reasons:['not_an_object']};
-  if (Object.keys(value).some(k=>!keys.includes(k)) || keys.some(k=>!(k in value))) reasons.push('fields');
+  if (Object.keys(value).some(k=>!keys.includes(k)&&k!=='geo') || keys.some(k=>!(k in value))) reasons.push('fields');
+  reasons.push(...geoReasons(value,packet));
   for (const k of ['title','question','limitations']) if (typeof value[k]!=='string' || !value[k].trim() || value[k].length>(k==='title'?140:900)) reasons.push(k);
   const facts=new Map(packet.facts.map(f=>[f.id,f]));
   const paragraphs=Array.isArray(value.paragraphs)?value.paragraphs:[];
@@ -302,4 +327,4 @@ function validateOutput(value, packet, cap=5000) {
   reasons.push(...reasoningReasons(value,packet));
   return {ok:!reasons.length,reasons:[...new Set(reasons)],version:'citizen-v3',scope:'Structure, template, cited numeric membership, explicit UTC times, allowed relations between cited facts, simultaneity, invented terrain, unsupported norms and premature patterns; not proof of claim-to-fact mapping or interpretation accuracy.'};
 }
-module.exports={buildContext,validateOutput,numericReasons,reasoningReasons,readJSON,hash,stamp,allowedSources};
+module.exports={buildContext,validateOutput,geoReasons,validLocation,numericReasons,reasoningReasons,readJSON,hash,stamp,allowedSources};

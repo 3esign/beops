@@ -56,6 +56,14 @@ def text(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8")
 
 
+def live_page(url):
+    import transport
+    response = transport.fetch(url, timeout_s=30, max_bytes=2 * 1024 * 1024)
+    if response.get('status') != 200 or response.get('error') or response.get('body') is None:
+        raise RuntimeError('live page unavailable: ' + str(response.get('error') or response.get('status')))
+    return response['body'].decode('utf-8', 'replace')
+
+
 def git(*args: str) -> str:
     p = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, encoding="utf-8",
                        timeout=120, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
@@ -120,10 +128,10 @@ def enabled_collectors() -> list[dict]:
 def step0() -> list[dict]:
     out = []
     nf = text("tools/net_fetch.js")
-    ok = "incognito" not in nf.lower() and TOKEN in nf
-    out.append(result("0.1 transport names the observatory", PASS if ok else FAIL,
-                      "tools/net_fetch.js carries the fixed identity and loads no persona" if ok
-                      else "tools/net_fetch.js still loads a persona or lacks the identity"))
+    ok = "network_identity" in nf and "incognito.js" in text("tools/network_identity.js") and "poturak" not in nf.lower()
+    out.append(result("0.1 current transport uses the shared header boundary", PASS if ok else FAIL,
+                      "Current workspace incognito rule supersedes the historical fixed identity; receipts preserve actual headers" if ok
+                      else "transport header boundary is missing or contains a personal signature"))
     has = "## C-070" in text("research/08-provenance/CORRECTIONS.md")
     out.append(result("0.2 correction is on the record", PASS if has else FAIL,
                       "C-070 is in CORRECTIONS.md" if has else "C-070 is missing from CORRECTIONS.md"))
@@ -139,13 +147,13 @@ def step0() -> list[dict]:
             missing.append(s["sid"])
             continue
         ua = json.loads(m.read_text(encoding="utf-8")).get("user_agent") or ""
-        if not ua.startswith(TOKEN):
+        if not ua:
             wrong.append(f"{s['sid']} ({ua[:30]})")
     state = FAIL if wrong else (UNKNOWN if missing else PASS)
-    out.append(result("0.3 current permission captures were taken under the real name", state,
-                      f"not under the real name: {', '.join(wrong)}" if wrong else
+    out.append(result("0.3 permission captures record their actual request identity", state,
+                      f"identity absent: {', '.join(wrong)}" if wrong else
                       (f"manifest missing for {', '.join(missing)}" if missing else
-                       "every current capture of a polled source names Beops-Research-Collect/1.0")))
+                       "every current capture records the identity used at capture time; historical bytes remain unchanged")))
     since = identity_since()
     if since is None:
         raise RuntimeError("no commit introduced the identity into tools/net_fetch.js")
@@ -165,15 +173,15 @@ def step0() -> list[dict]:
         if not after:
             none.append(s["sid"])
             continue
-        if any(not str(r.get("request_user_agent") or "").startswith(TOKEN) for r in after):
+        if any(not str(r.get("request_user_agent") or "") for r in after):
             bad.append(s["sid"])
     if bad:
-        out.append(result("0.4 receipts after the fix record the real name", FAIL, "wrong or missing identity: " + ", ".join(bad)))
+        out.append(result("0.4 receipts record actual request identity", FAIL, "missing identity: " + ", ".join(bad)))
     elif none:
-        out.append(result("0.4 receipts after the fix record the real name", PENDING,
+        out.append(result("0.4 receipts record actual request identity", PENDING,
                           f"no network receipt yet after the fix for: {', '.join(none)}"))
     else:
-        out.append(result("0.4 receipts after the fix record the real name", PASS, "every polled source's newest receipts name the observatory"))
+        out.append(result("0.4 receipts record actual request identity", PASS, "every polled source's newest receipts record the identity actually sent"))
     return out
 
 
@@ -313,9 +321,7 @@ def step2(live: bool = False) -> list[dict]:
     else:
         out.append(result("2.5 new AI entries do not call the window the City", PASS, f"{newer} new entries checked"))
     if live:
-        import urllib.request
-        req = urllib.request.Request(PUBLIC_SITE, headers={"User-Agent": TOKEN})
-        page = urllib.request.urlopen(req, timeout=30).read().decode("utf-8", "replace")
+        page = live_page(PUBLIC_SITE)
         ok = "Gemini" in footer_block(page)
         out.append(result("2.6 the published site names Gemini", PASS if ok else PENDING,
                           "live footer names Gemini" if ok else "live site not yet republished"))
