@@ -1,6 +1,7 @@
 """Official programme facts, clocks, routing and independent source freshness."""
 import json
 import pathlib
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -146,6 +147,52 @@ class IndependentSourceCache(unittest.TestCase):
             self.assertEqual(result['received_at'], old['received_at'])
             self.assertEqual(collect_events.scheduled_events(result, NOW), [])
             fetch.assert_not_called()
+
+    def test_transport_timeout_diagnostic_stays_private_in_source_projection(self):
+        import transport, permission_policy
+        for script in (r'C:\Svemir\private\tools\net_fetch.js', '/home/private/tools/net_fetch.js'):
+            with self.subTest(script=script):
+                diagnostic = str(subprocess.TimeoutExpired(['node', script, 'PRIVATE_PAYLOAD'], 20))
+                old = {**self.cache(), 'attempted_at': '2026-09-25T08:00:00Z'}
+                with patch.object(permission_policy, 'latest', return_value={}), \
+                     patch.object(permission_policy, 'authorize', return_value=(True, '20260927T070000Z')), \
+                     patch.object(transport, 'fetch', return_value={'status': None, 'body': None, 'error': diagnostic}):
+                    private = collect_events.refresh_source(DOM, old, NOW)
+                self.assertEqual(private['error'], ('fetch: ' + diagnostic)[:240])
+                public = collect_events.public_source_status(private, NOW)
+                self.assertEqual(public['error'], 'Official programme could not be retrieved.')
+                exported = json.dumps(public)
+                for fragment in ('PRIVATE_PAYLOAD', 'net_fetch.js', 'C:', '/home/private', 'timed out'):
+                    self.assertNotIn(fragment, exported)
+                self.assertIn('PRIVATE_PAYLOAD', private['error'])
+
+    def test_public_dataset_normalizes_top_and_nested_errors_without_mutating_cache(self):
+        root = ROOT / 'runtime'
+        root.mkdir(exist_ok=True)
+        for path in (r'C:\Svemir\private\capture.json', '/home/private/capture.json'):
+            source = {**self.cache('S225'), 'state': 'unavailable',
+                      'error': 'permission: cannot read ' + path + ' PRIVATE_PAYLOAD'}
+            for cache in (source, {'schema': 'beops-repertoire-cache/v2', 'state': 'unavailable',
+                                  'error': 'unknown private failure: ' + path + ' PRIVATE_PAYLOAD',
+                                  'sources': [{**source, 'error': 'fetch: timeout ' + path + ' PRIVATE_PAYLOAD'}],
+                                  'events': []}):
+                with self.subTest(path=path, schema=cache.get('schema', 'legacy')):
+                    before = json.dumps(cache, sort_keys=True)
+                    with tempfile.TemporaryDirectory(prefix='event-error-public-', dir=root) as folder, \
+                         patch.object(collect_events, 'PUBLIC', pathlib.Path(folder)), \
+                         patch.object(collect_events, 'read_cache', return_value=cache):
+                        dataset = collect_events.build_events_dataset()
+                    exported = json.dumps(dataset)
+                    for fragment in ('PRIVATE_PAYLOAD', 'capture.json', 'C:', '/home/private', 'timeout'):
+                        self.assertNotIn(fragment, exported)
+                    self.assertIn(dataset['repertoire']['error'], (
+                        'Source access evidence is unavailable or does not permit collection.',
+                        'Official programme is unavailable.'))
+                    self.assertIn(dataset['repertoire']['sources'][0]['error'], (
+                        'Source access evidence is unavailable or does not permit collection.',
+                        'Official programme could not be retrieved.'))
+                    self.assertEqual(json.dumps(cache, sort_keys=True), before)
+        self.assertIsNone(collect_events.public_source_status(self.cache(), NOW)['error'])
 
     def test_calendar_sources_have_captured_permission_and_registry_entries(self):
         import permission_policy

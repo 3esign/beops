@@ -235,10 +235,27 @@ def scheduled_events(cache, now=None):
     return sorted(result, key=lambda event: event['event_start'])
 
 
+def public_error(error):
+    """Only fixed public reasons leave the private collector diagnostic cache."""
+    if error is None or error == '':
+        return None
+    message = error if isinstance(error, str) else ''
+    if message.startswith('permission:'):
+        return 'Source access evidence is unavailable or does not permit collection.'
+    if message.startswith('fetch:'):
+        return 'Official programme could not be retrieved.'
+    if message == 'source returned no parseable dated repertoire entries':
+        return 'Official programme contains no supported explicit start times.'
+    if message == 'existing raw evidence hash mismatch':
+        return 'Stored source evidence could not be verified.'
+    return 'Official programme is unavailable.'
+
+
 def public_source_status(source, now):
     """Project cache age without changing the source's original receipt or health."""
     summary = {k: source.get(k) for k in ('source_id', 'name', 'url', 'state', 'received_at',
-               'attempted_at', 'error', 'raw_sha256', 'permission_capture', 'parser_audit')}
+               'attempted_at', 'raw_sha256', 'permission_capture', 'parser_audit')}
+    summary['error'] = public_error(source.get('error'))
     if not summary['name']:
         summary['name'] = next((spec['name'] for spec in SOURCES if spec['source_id'] == source.get('source_id')), source.get('source_id'))
     summary['collection_state'] = source.get('state')
@@ -341,7 +358,8 @@ def build_events_dataset() -> dict:
         "count": len(scheduled) + len(extracted),
         "scheduled_count": len(scheduled),
         "headline_count": len(extracted),
-        "repertoire": {**{k: repertoire.get(k) for k in ("source_id", "url", "state", "received_at", "attempted_at", "error", "raw_sha256", "permission_capture")},
+        "repertoire": {**{k: repertoire.get(k) for k in ("source_id", "url", "state", "received_at", "attempted_at", "raw_sha256", "permission_capture")},
+                       'error': public_error(repertoire.get('error')),
                        'state': repertoire_state, 'collection_state': repertoire.get('state'),
                        'sources': source_statuses},
         "note": "Each scheduled item is an explicit fact from one named official repertoire (maximum per-source receipt age 24h). Headline signals remain unverified and untimed. Multiple repertoires are not independent corroboration of the same event; no citywide coverage claim.",
