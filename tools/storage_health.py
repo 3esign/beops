@@ -9,6 +9,10 @@ GIB = 1024 ** 3
 RESERVE_BYTES = 2 * GIB
 
 
+class ReleaseCapacityError(RuntimeError):
+    """The measured free space cannot satisfy the release allocation and reserve."""
+
+
 def nearest_existing(path):
     path = pathlib.Path(path).resolve()
     while not path.exists():
@@ -48,7 +52,7 @@ def require_release_capacity(parent, input_bytes, source_bytes=0, disk_usage=Non
     required = 4 * input_bytes + 3 * source_bytes + RESERVE_BYTES
     available = disk_usage(nearest_existing(parent)).free
     if available < required:
-        raise RuntimeError(f'release disk space insufficient: {available} free bytes, {required} required including 2 GiB reserve')
+        raise ReleaseCapacityError(f'release disk space insufficient: {available} free bytes, {required} required including 2 GiB reserve')
     return {'free_bytes': available, 'required_bytes': required, 'reserve_bytes': RESERVE_BYTES}
 
 

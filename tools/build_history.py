@@ -34,7 +34,10 @@ import json
 import math
 from contracts import row_clock, finite, observation_identity, utc, parameter_semantics, direction_summary, PARAMETER_SEMANTICS
 import pathlib
+import sqlite3
 import sys
+import tempfile
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -97,6 +100,7 @@ def narrowed_series(data: dict, days: int, now: datetime):
     for s in data["series"]:
         buckets = {hk: row for hk, row in s["buckets"].items() if hk >= floor}
         if not buckets:
+            del buckets, s
             continue
         hours = sorted(buckets)
         first = datetime.strptime(hours[0], "%Y-%m-%dT%H").replace(tzinfo=timezone.utc)
@@ -108,7 +112,7 @@ def narrowed_series(data: dict, days: int, now: datetime):
         narrowed["hours_present"] = len(buckets)
         narrowed["hours_expected"] = int((last - first).total_seconds() // 3600) + 1
         yield narrowed
-        del narrowed
+        del narrowed, buckets, s, hours
 
 
 def window_header(data: dict, days: int, earliest, latest) -> dict:
@@ -156,6 +160,7 @@ def write_window(data: dict, days: int, now: datetime, handle) -> dict:
             if hk >= floor:
                 earliest = hk if earliest is None or hk < earliest else earliest
                 latest = hk if latest is None or hk > latest else latest
+        del s
     header = window_header(data, days, earliest, latest)
     encoder = json.JSONEncoder(ensure_ascii=False, separators=(",", ":"))
     # Metadata is small; only series/buckets require bounded serialization.
@@ -204,9 +209,8 @@ def load_config() -> dict:
     return {s["sid"]: s for s in cfg.get("sources", [])}
 
 
-def _fold_source_series(series: dict) -> dict:
-    """Finish one source before reading another; preserve original series keys."""
-    out_series = {}
+def _iter_fold_source_series(series: dict):
+    """Finish and release one series at a time, preserving its original key."""
     for key, s in sorted(series.items()):
         buckets = {}
         grouped = {}
@@ -255,7 +259,7 @@ def _fold_source_series(series: dict) -> dict:
         last = datetime.strptime(hours[-1], "%Y-%m-%dT%H").replace(tzinfo=timezone.utc)
         expected = int((last - first).total_seconds() // 3600) + 1
         numeric = kind in ('scalar','interval_average','count','circular_degrees')
-        out_series[key] = {
+        yield key, {
             **{k: s[k] for k in ("sid", "datastream", "station", "parameter", "unit",
                                  "time_basis", "cadence_seconds", "value_type", "interval_seconds")},
             "kind": "numeric" if numeric else "count" if kind == 'text' else 'unclassified',
@@ -263,10 +267,125 @@ def _fold_source_series(series: dict) -> dict:
             "hours_present": len(buckets), "hours_expected": expected,
             "buckets": buckets,
         }
-    return out_series
 
 
-def fold(now: datetime | None = None, rows=None) -> dict:
+def _fold_source_series(series: dict) -> dict:
+    """Materialized compatibility path for existing fold() callers."""
+    return dict(_iter_fold_source_series(series))
+
+
+class _DiskSeries:
+    """Private, replayable series stream; SQLite holds the ordering index on disk.
+
+    JSON series keys are ASCII-escaped, so BINARY collation matches Python's
+    original sorted(keys), even where filesystem source order differs. Only a
+    small page cache and one decoded series are retained during each replay.
+    """
+
+    def __init__(self, path):
+        self._db = sqlite3.connect(path)
+        self._closed = False
+        self._finished = False
+        self._count = 0
+        self.earliest = self.latest = None
+        try:
+            self._db.execute('PRAGMA cache_size = -2048')
+            self._db.execute('PRAGMA temp_store = FILE')
+            self._db.execute('CREATE TABLE series ('
+                             'series_key TEXT PRIMARY KEY COLLATE BINARY, '
+                             'payload TEXT NOT NULL) WITHOUT ROWID')
+        except BaseException:
+            self.close()
+            raise
+
+    def add(self, key, series):
+        if self._closed or self._finished:
+            raise ValueError('history spool is not writable')
+        self._db.execute('INSERT INTO series VALUES (?, ?)',
+                         (key, json.dumps(series, ensure_ascii=False, separators=(',', ':'))))
+        self._count += 1
+        first, last = series['first_hour'], series['last_hour']
+        self.earliest = first if self.earliest is None or first < self.earliest else self.earliest
+        self.latest = last if self.latest is None or last > self.latest else self.latest
+
+    def finish(self):
+        self._db.commit()
+        self._finished = True
+        self._db.execute('PRAGMA query_only = ON')
+
+    def __len__(self):
+        return self._count
+
+    def __iter__(self):
+        if self._closed or not self._finished:
+            raise ValueError('history spool is not readable')
+        cursor = self._db.execute('SELECT payload FROM series ORDER BY series_key COLLATE BINARY')
+        count = 0
+        try:
+            for (payload,) in cursor:
+                series = json.loads(payload)
+                del payload
+                count += 1
+                yield series
+                del series
+            if count != self._count:
+                raise ValueError('history spool series count changed')
+        finally:
+            if not self._closed:
+                cursor.close()
+
+    def close(self):
+        if not self._closed:
+            self._closed = True
+            self._db.close()
+
+
+@contextmanager
+def spooled_fold(now: datetime | None = None, rows=None, spool_root=None):
+    """Fold with disk-backed series, valid only inside this context.
+
+    The ordinary fold() API still returns lists. Production publication uses
+    this form so completed sources never accumulate in memory. Per-source
+    revisions/events remain bounded by the largest source, not the whole corpus.
+    Every spool belongs to this call and is removed on success or failure.
+    """
+    parent = pathlib.Path(spool_root) if spool_root is not None else ROOT / 'runtime'
+    parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='history-spool-', dir=parent) as temporary:
+        series = _DiskSeries(pathlib.Path(temporary) / 'series.sqlite')
+        try:
+            yield fold(now, rows, _series_store=series)
+        finally:
+            series.close()
+
+
+def write_full(data: dict, handle) -> dict:
+    """Stream full history without moving series past appended generation fields."""
+    encoder = json.JSONEncoder(ensure_ascii=False, separators=(',', ':'))
+    handle.write('{')
+    count = 0
+    for index, (key, value) in enumerate(data.items()):
+        if index:
+            handle.write(',')
+        handle.write(encoder.encode(key))
+        handle.write(':')
+        if key != 'series':
+            handle.write(encoder.encode(value))
+            continue
+        handle.write('[')
+        for series in value:
+            if count:
+                handle.write(',')
+            for chunk in encoder.iterencode(series):
+                handle.write(chunk)
+            count += 1
+            del series
+        handle.write(']')
+    handle.write('}')
+    return {'series_count': count, 'hours_of_history': data['hours_of_history']}
+
+
+def fold(now: datetime | None = None, rows=None, *, _series_store=None) -> dict:
     """One pass; choose revisions in the bounded reception window before grouping.
 
     A newer unusable clock invalidates that observation's older version. It is
@@ -337,14 +456,23 @@ def fold(now: datetime | None = None, rows=None) -> dict:
         revisions = None
         # Event tuples have served their purpose once this source is bucketed.
         # Only completed buckets cross the source boundary, not its raw events.
-        out_by_key.update(_fold_source_series(series))
+        if _series_store is None:
+            out_by_key.update(_fold_source_series(series))
+        else:
+            for key, completed in _iter_fold_source_series(series):
+                _series_store.add(key, completed)
+                del completed
         series.clear()
 
-    out_series = [out_by_key[key] for key in sorted(out_by_key)]
-
-    covered = [s for s in out_series if s["hours_present"]]
-    earliest = min((s["first_hour"] for s in covered), default=None)
-    latest = max((s["last_hour"] for s in covered), default=None)
+    if _series_store is None:
+        out_series = [out_by_key[key] for key in sorted(out_by_key)]
+        covered = [s for s in out_series if s["hours_present"]]
+        earliest = min((s["first_hour"] for s in covered), default=None)
+        latest = max((s["last_hour"] for s in covered), default=None)
+    else:
+        _series_store.finish()
+        out_series = _series_store
+        earliest, latest = _series_store.earliest, _series_store.latest
     return {
         "schema": SCHEMA,
         "parameter_semantics": PARAMETER_SEMANTICS,
@@ -369,26 +497,37 @@ def main() -> int:
     from release_observation import input_generation, generation_time
     from live_view import observation_view
     generation = input_generation(ROWS.parent)
-    with observation_view(ROWS.parent) as inputs:
-        data = fold(generation_time(generation) if generation else None, inputs/'rows')
-    if generation:
-        data['input_generation'] = generation
-        data['as_of'] = iso(generation_time(generation))
-        data['built'] = iso(datetime.now(timezone.utc))
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    # Streamed: json.dumps held the whole output as one str and write_text its utf-8
-    # bytes beside it, both alive while data still was. The file is byte-identical.
-    with OUT.open("w", encoding="utf-8") as handle:
-        json.dump(data, handle, ensure_ascii=False, separators=(",", ":"))
-    print(f"wrote {OUT} ({OUT.stat().st_size} bytes; {len(data['series'])} series, "
-          f"{data['hours_of_history']} h of history from {data['history_starts']})")
-    basis = generation_time(generation) if generation else datetime.now(timezone.utc)
-    for days in window_days():
-        path = OUT.parent / f"history-{days}d.json"
-        with path.open("w", encoding="utf-8") as handle:
-            window = write_window(data, days, basis, handle)
-        print(f"wrote {path} ({path.stat().st_size} bytes; {window['series_count']} series, "
-              f"{days}-day window, {window['hours_of_history']} h)")
+    with observation_view(ROWS.parent) as inputs, \
+         spooled_fold(generation_time(generation) if generation else None, inputs/'rows') as data:
+        if generation:
+            data['input_generation'] = generation
+            data['as_of'] = iso(generation_time(generation))
+            data['built'] = iso(datetime.now(timezone.utc))
+        # Complete every output before replacing a public file. A bad input,
+        # spool read, or serialization failure leaves the old output untouched.
+        # Replacement is atomic per file; the publisher gates the complete set.
+        with tempfile.TemporaryDirectory(prefix='.history-output-', dir=OUT.parent) as temporary:
+            staging = pathlib.Path(temporary)
+            pending = []
+            target = staging / OUT.name
+            with target.open('w', encoding='utf-8') as handle:
+                summary = write_full(data, handle)
+            pending.append((target, OUT,
+                            f"{summary['series_count']} series, {data['hours_of_history']} h "
+                            f"of history from {data['history_starts']}"))
+            basis = generation_time(generation) if generation else datetime.now(timezone.utc)
+            for days in window_days():
+                path = OUT.parent / f"history-{days}d.json"
+                target = staging / path.name
+                with target.open('w', encoding='utf-8') as handle:
+                    window = write_window(data, days, basis, handle)
+                pending.append((target, path,
+                                f"{window['series_count']} series, {days}-day window, "
+                                f"{window['hours_of_history']} h"))
+            for target, path, detail in pending:
+                target.replace(path)
+                print(f"wrote {path} ({path.stat().st_size} bytes; {detail})")
     return 0
 
 

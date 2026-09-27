@@ -17,7 +17,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from contracts import atomic_json, exclusive
-from storage_health import require_release_capacity
+from storage_health import ReleaseCapacityError, require_release_capacity
 from release_observation import is_observation_path
 
 STATE_KEY_PATTERN = re.compile(
@@ -131,6 +131,7 @@ def linkable(posix):
 HASH_CACHE_NAME = '.beops-evidence-sha-cache.json'
 HASH_CACHE_MAX_AGE_SECONDS = 24 * 3600
 CAPACITY_ESTIMATE_MARGIN_BYTES = 512 * 1024 * 1024
+CAPACITY_CACHED_ORIGIN = 'runtime/release-inputs-last.json+512MiB'
 
 
 def link_enabled():
@@ -204,21 +205,45 @@ def archive_source_bytes(source, oid, paths):
                if len(fields := line.split()) >= 4 and fields[3].isdigit())
 
 
-def estimate_release_input_bytes(source):
-    """Avoid a duplicate deep stat walk when the last release manifest exists."""
+def estimate_release_input_bytes(source, *, use_cached=True):
+    """Avoid a duplicate deep stat walk, or explicitly recount current inputs."""
     manifest = source / 'runtime/release-inputs-last.json'
-    if manifest.is_file():
+    if use_cached and manifest.is_file():
         try:
             previous = json.loads(manifest.read_text(encoding='utf-8-sig'))
             captured = int(previous.get('timings', {}).get('captured_bytes') or 0)
             if captured > 0:
-                return captured + CAPACITY_ESTIMATE_MARGIN_BYTES, 'runtime/release-inputs-last.json+512MiB'
+                return captured + CAPACITY_ESTIMATE_MARGIN_BYTES, CAPACITY_CACHED_ORIGIN
         except (OSError, ValueError, TypeError):
             pass
     input_bytes = sum(p.stat().st_size for folder in ('data/live', 'research/evidence', 'research/observations',
                                                     'runtime/ai-feed', 'runtime/resources/receipts')
                       for p in (source/folder).rglob('*') if p.is_file() and p.suffix not in ('.lock', '.tmp'))
     return input_bytes, 'live_stat_scan'
+
+
+def release_capacity(source, parent, input_bytes, input_bytes_from, source_bytes):
+    """Recount only a refused cached estimate; never relax the allocation guard.
+
+    The cached manifest adds a growth allowance to avoid routine deep scans.
+    Near the capacity boundary that allowance can reject a release which the
+    current input inventory can fit. A fresh stat walk supplies a new estimate
+    to the same guard. Scan/storage errors and an exact refusal still fail.
+    """
+    try:
+        capacity = require_release_capacity(parent, input_bytes, source_bytes)
+    except ReleaseCapacityError:
+        if input_bytes_from != CAPACITY_CACHED_ORIGIN:
+            raise
+        started = time.monotonic()
+        trace_phase('capacity recount', 'start', cached_input_bytes=input_bytes,
+                    source_bytes=source_bytes)
+        input_bytes, input_bytes_from = estimate_release_input_bytes(source, use_cached=False)
+        capacity = require_release_capacity(parent, input_bytes, source_bytes)
+        trace_phase('capacity recount', 'end', round(time.monotonic()-started, 3),
+                    input_bytes=input_bytes, input_bytes_from=input_bytes_from,
+                    source_bytes=source_bytes)
+    return capacity, input_bytes, input_bytes_from
 
 
 def _capture_inputs(source, dest, metrics=None):
@@ -572,7 +597,8 @@ def prepare(source, destination, oid=None, owner_pid=None, retained=False):
     input_bytes, input_bytes_from = estimate_release_input_bytes(source)
     paths = archive_paths(source, oid)
     source_bytes = archive_source_bytes(source, oid, paths)
-    capacity = require_release_capacity(dest.parent, input_bytes, source_bytes)
+    capacity, input_bytes, input_bytes_from = release_capacity(
+        source, dest.parent, input_bytes, input_bytes_from, source_bytes)
     timings['capacity_and_inventory_seconds'] = round(time.monotonic()-phase_started, 3)
     timings['capacity_input_bytes_from'] = input_bytes_from
     trace_phase('capacity and inventory', 'end', timings['capacity_and_inventory_seconds'],
