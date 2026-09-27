@@ -34,6 +34,7 @@ const generation = {id, schema:'beops-input-generation/v1', observation_prefix:'
 const html = '<meta name="beops-input-generation" content="'+id+'">Beograd danas BEOPS local AI infrastructure '+
   'Ovo je ono sto nam je Beograd rekao <a href="#izvori">sources</a><a href="#greske">corrections</a>';
 const routes = ['index.html','instrument.html','events.json','mapa.html','mapa.js','MAP_LAYERS.json',
+  'impulsi.html','impulsi.js','impulse-codec.js','impulse-data/view-data.json','impulse-data/impulses.json','impulse-data/resources.json',
   'materija.json','ai-feed.html','ai-feed/latest.json','kontekst.html','context-catalog.json','podaci.html',
   'monolog.html','sada.html','traka.html','svedoci.html','obrasci.html','city-overview.json','city-analysis.json',
   'beops-view.js','live-snapshot.json','history.json','watch.json','latency.json','agreement.json','basemap-belgrade.json'];
@@ -75,6 +76,10 @@ const server=http.createServer((req,res)=>{
   const code=await new Promise((resolve,reject)=>{child.on('error',reject);child.on('close',resolve)});
   assert.equal(code,0,err+'\n'+out);
   const summary=JSON.parse(out);assert.equal(summary.operational_verdict,'CURRENT_AND_VERIFIED');
+  for(const name of ['impulse-data/view-data.json','impulse-data/impulses.json','impulse-data/resources.json']){
+    const projection=summary.routes.find(route=>route.route===name);
+    assert.equal(projection.match,true);assert.equal(projection.input_generation,id);
+  }
   const route=summary.routes.find(r=>r.route==='history.json');
   assert.equal(route.match,true);assert.equal(route.input_generation,id);assert.equal(route.bytes,local.bytes);
   const memory=JSON.parse(fs.readFileSync(memoryFile));assert.ok(memory.peak<96*1024*1024,JSON.stringify(memory));

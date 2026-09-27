@@ -26,10 +26,12 @@ const RUN_DEADLINE = Math.min(Date.now() + Math.max(10, WAIT_SECONDS + 30) * 100
 const CHECK_RAW = process.env.BEOPS_CHECK_RAW === '1';
 const MAX_AGE_MINUTES = Number(process.env.BEOPS_SITE_MAX_AGE_MINUTES || '60');
 const MAX_MARKUP_BYTES = 2 * 1024 * 1024;
-const GENERATION_ROUTES = new Set(['live-snapshot.json', 'history.json', 'city-overview.json', 'city-analysis.json']);
+const GENERATION_ROUTES = new Set(['live-snapshot.json', 'history.json', 'city-overview.json', 'city-analysis.json',
+  'impulse-data/view-data.json', 'impulse-data/impulses.json', 'impulse-data/resources.json']);
 
 const CORE_ROUTES = [
   'instrument.html', 'events.json',
+  'impulsi.html', 'impulsi.js', 'impulse-codec.js', 'impulse-data/view-data.json', 'impulse-data/impulses.json', 'impulse-data/resources.json',
   'mapa.html', 'mapa.js', 'MAP_LAYERS.json', 'materija.json',
   'ai-feed.html', 'ai-feed/latest.json', 'kontekst.html', 'context-catalog.json',
   'podaci.html',

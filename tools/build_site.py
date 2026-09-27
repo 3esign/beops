@@ -26,6 +26,7 @@ import sys
 import pathlib
 import re
 import shutil
+import subprocess
 import prose
 from datetime import datetime, timezone
 
@@ -1026,6 +1027,12 @@ def main() -> int:
     # after the final HTML producer has run; publishing must not overwrite it.
     import build_public_page
     build_public_page.main()
+    # Spatial estimates and measured resource totals belong to this same frozen
+    # edition. Build before the common HTML generation pin, never from wall time.
+    if data['live'].get('as_of'):
+        subprocess.run(['node', str(ROOT / 'tools/build_impulse_page.js'),
+                        '--root', str(ROOT), '--as-of', data['live']['as_of']],
+                       check=True, timeout=120)
     if generation:
         # Every standalone entry identifies the same cut; the browser refuses
         # a stale HTML shell paired with another generation's JSON.

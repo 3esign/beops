@@ -29,8 +29,18 @@ class SiteGenerationOrder(unittest.TestCase):
                 shutil.copyfile(ROOT / 'tools' / (name + '.py'), base / 'tools' / (name + '.py'))
             # The actual citizen builder imports the shared offline geography
             # adapter. Keep its complete runtime closure inside this fixture.
-            for name in ('headline_geo.js', 'headline_places.json'):
+            for name in ('headline_geo.js', 'headline_places.json', 'build_impulse_page.js',
+                         'build_impulses.js', 'impulse_model.js', 'resource_summary.js',
+                         'resource_meter.js', 'ai_feed_context.js', 'ai_feed_relations.js'):
                 shutil.copyfile(ROOT / 'tools' / name, base / 'tools' / name)
+            studies = base / 'research/05-design/studies'
+            studies.mkdir(parents=True)
+            shutil.copyfile(ROOT / 'research/05-design/studies/observation-clocks.js',
+                            studies / 'observation-clocks.js')
+            for name in ('impulsi.html', 'impulsi.js', 'impulse-codec.js'):
+                shutil.copyfile(ROOT / 'public' / name, base / 'public' / name)
+            (base / 'public/basemap-belgrade.json').write_text('{"features":[]}', encoding='utf-8')
+            (base / 'research/AI_FEED.json').write_text('{"public_enabled":false}', encoding='utf-8')
             (base / 'research/COLLECTORS.json').write_text('{"sources":[]}', encoding='utf-8')
             captured = b'{"schema":"fixture-release-inputs"}\n'
             (base / 'runtime/release-inputs.json').write_bytes(captured)
@@ -90,12 +100,16 @@ Write-BeopsExportManifest $AsOf
                                  env=env, capture_output=True, text=True, timeout=60)
             self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
             tag = '<meta name="beops-input-generation" content="' + generation_id + '">'
-            for name in ('index.html', 'instrument.html'):
+            for name in ('index.html', 'instrument.html', 'impulsi.html'):
                 html = (base / 'docs' / name).read_text(encoding='utf-8')
                 self.assertEqual(html.count(tag), 1, name)
             citizen = (base / 'docs/index.html').read_text(encoding='utf-8')
             self.assertIn('prosek 17.0', citizen)
             self.assertNotIn('prosek 999.0', citizen)
+            for name in ('view-data', 'impulses', 'resources'):
+                projection = json.loads((base / 'docs/impulse-data' / (name + '.json')).read_text(encoding='utf-8'))
+                self.assertEqual(projection['input_generation'], generation)
+                self.assertEqual(projection['as_of'], asof)
             M.git(base, 'init', '-q')
             # The real manifest lists every fixture file; stage that exact inventory.
             M.git(base, 'add', '--', '.')

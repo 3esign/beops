@@ -119,6 +119,7 @@ header {
 }
 .hbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: calc(var(--u)*4);
@@ -191,10 +192,11 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
 <header>
   <div class="hbar">
     <div class="brand">BEOPS <span>Beograd danas</span></div>
-    <div style="display:flex; gap:10px; align-items:center;">
+    <nav aria-label="Glavna navigacija" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
       <a href="mapa.html" class="nav-link">Mapa →</a>
+      <a href="impulsi.html" class="nav-link">Impulsi i resursi →</a>
       <a href="instrument.html" class="nav-link">Naučni instrument →</a>
-    </div>
+    </nav>
   </div>
 </header>
 

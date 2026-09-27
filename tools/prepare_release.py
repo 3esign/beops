@@ -215,7 +215,8 @@ def estimate_release_input_bytes(source):
                 return captured + CAPACITY_ESTIMATE_MARGIN_BYTES, 'runtime/release-inputs-last.json+512MiB'
         except (OSError, ValueError, TypeError):
             pass
-    input_bytes = sum(p.stat().st_size for folder in ('data/live', 'research/evidence', 'research/observations', 'runtime/ai-feed')
+    input_bytes = sum(p.stat().st_size for folder in ('data/live', 'research/evidence', 'research/observations',
+                                                    'runtime/ai-feed', 'runtime/resources/receipts')
                       for p in (source/folder).rglob('*') if p.is_file() and p.suffix not in ('.lock', '.tmp'))
     return input_bytes, 'live_stat_scan'
 
@@ -289,6 +290,17 @@ def _capture_inputs(source, dest, metrics=None):
         directory = source / folder
         for path in sorted(directory.rglob('*')) if directory.exists() else []:
             if path.is_file():
+                collect(path, False)
+    # Resource summaries need their own start/finish receipts and the independent
+    # AI attempt/response ledger. Their producers publish complete JSON once by
+    # linking a fsynced temporary file. Inventory durable JSON only; do not copy
+    # transient writers or the surrounding private runtime. Keep ordinary copies
+    # (not hardlinks) so these accounting inputs remain isolated in the release.
+    for folder in ('runtime/resources/receipts', 'runtime/ai-feed/receipts',
+                   'runtime/ai-feed/responses'):
+        directory = source / folder
+        for path in sorted(directory.glob('*.json')) if directory.exists() else []:
+            if path.is_file() and not path.name.startswith('.'):
                 collect(path, False)
     # Timestamped model receipts and digests are immutable inputs too.
     # Reading thousands of them under the live lock exceeded other writers'

@@ -8,6 +8,8 @@ The current version connects parking, public events/service changes, environment
 
 Scope: Beograd only. Urban Intelligence / Living City Brain is the collection, not an expansion to other cities. Pazarac and Novi Pazar are not part of Beops.
 
+The [impulse map and resource account](https://3esign.github.io/beops/impulsi.html) are rebuilt with each public edition. Trailing day/week/month views separate Belgrade headlines, broader Serbia, foreign and unknown locations. Circles show approximate headline place scope with source evidence, not confirmed events or statistical confidence. The wider filters disclose the reach of collected news; they do not extend the Belgrade instrument network. The account shows observed process time, requests, response bytes and provider-reported tokens, with missing coverage. Historical token receipts overlap the cycle ledger and are not added to it. Electricity and money remain unknown without measured energy and billing data.
+
 
 ## Authors · Autori
 
