@@ -42,11 +42,24 @@ async function main(){
     assert.equal(invalid.state,'unavailable');
   }
   const result=await withMeter(root,'ai_feed',async meter=>{
-    const call=meter.providerAttempt();meter.providerResponse(call,{usage:{input_tokens:7,output_tokens:3}});
-    meter.providerAttempt(); // a timeout can cost tokens without returning usage
+    const call=meter.providerAttempt({id:'a'.repeat(32),provider:'fixture',model:'test-model',prompt:'not retained'});
+    meter.providerResponse(call,{usage:{input_tokens:7,output_tokens:3}});
+    meter.providerOutcome(call,{state:'failed',failure_kind:'invalid-output',reason:'private diagnostic'});
+    const timeout=meter.providerAttempt({id:'b'.repeat(32),provider:'fixture',model:'test-model'}); // timeout may cost tokens without usage
+    meter.providerOutcome(timeout,{state:'failed',failure_kind:'timeout'});
     httpBody(httpAttempt(),32);httpAttempt();
     return {state:'failed'};
   });assert.equal(result.state,'failed');
+  const traced=fs.readdirSync(path.join(root,'runtime/resources/receipts')).filter(n=>n.endsWith('-finish.json'))
+    .map(n=>JSON.parse(fs.readFileSync(path.join(root,'runtime/resources/receipts',n),'utf8')))[0];
+  assert.equal(traced.provider_calls.length,2);
+  assert.deepEqual(traced.provider_calls.map(x=>[x.attempt_id,x.response_received,x.attempt_state,x.failure_kind,x.usage.state]),[
+    ['a'.repeat(32),true,'failed','invalid-output','provider_reported'],
+    ['b'.repeat(32),false,'failed','timeout','unavailable']]);
+  assert.equal(traced.provider_calls[0].usage.input_tokens,7);
+  assert.equal(traced.provider_calls[1].usage.input_tokens,null);
+  assert.equal(JSON.stringify(traced).includes('private diagnostic'),false);
+  assert.equal(JSON.stringify(traced).includes('not retained'),false);
   const unfinished=new Meter(root,'collection');
   const report=buildSummary(root);
   assert.equal(report.windows.day.started_cycles,2);assert.equal(report.windows.day.finished_cycles,1);

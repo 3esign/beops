@@ -395,7 +395,7 @@ def render_events(events_data):
     scheduled = [ev for ev in events if ev.get('state') == 'forecast' and ev.get('event_status') == 'scheduled' and ev.get('verified') is True and ev.get('event_start')]
     signals = [ev for ev in events if ev.get('state') == 'untimed' and ev.get('verified') is False]
     rows = ['<h3>Najavljeni termini · zvanični programi</h3><p class="event-src"><a href="impulsi.html?layer=venues&amp;window=month">Programi na mapi · narednih 30 dana →</a></p>',
-            '<p class="event-src">Termini iz programa ustanova. Održavanje, dostupnost mesta i kraj nisu potvrđeni. Svaki izvor ima zasebnu svežinu; ovo nije potpun kalendar grada.</p>']
+            '<p class="event-src">Termini iz programa ustanova. Održavanje i kraj nisu potvrđeni. Rasprodati termini su označeni prema izvoru; dostupnost ostalih nije poznata. Svaki izvor ima zasebnu svežinu; ovo nije potpun kalendar grada.</p>']
     repertoire = events_data.get('repertoire') or {}
     received = repertoire.get('received_at')
     sources = repertoire.get('sources') or []
@@ -415,9 +415,11 @@ def render_events(events_data):
             label = start.strftime('%d.%m.%Y. u %H:%M') + ' · Beograd'
         except (KeyError, ValueError, TypeError):
             label = str(ev['event_start'])
+        availability = '<span class="event-zone" title="Prema pročitanom zvaničnom programu">Rasprodato</span>' if ev.get('ticket_availability') == 'sold_out' else ''
         rows.append(f'''<div class="event-row">
           <time class="event-zone" datetime="{escape(str(ev['event_start']), quote=True)}">{escape(label)}</time>
           <a href="{safe_url(ev.get('url'))}" target="_blank" rel="noopener" class="event-title">{escape(str(ev.get('title', '')))}</a>
+          {availability}
           <span class="event-src">{escape(str(ev.get('location') or 'Sala nije navedena'))} · {escape(str(ev.get('source', '')))}</span>
         </div>''')
     if not scheduled:

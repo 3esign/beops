@@ -26,6 +26,7 @@ function estimate(value){if(!value)return null;return {...pick(value,['place_id'
 function publicItem(item){
  const out=pick(item,['id','kind','title','source_id','source','clock','event_time','first_received','last_received','latest_revision_published','revisions','state','schedule_age_hours','schedule_fresh','geo_status','limitation']);
  out.source_url=model.safeURL(item.source_url);out.evidence=evidence(item.evidence);
+ if(item.kind==='scheduled_event')out.ticket_availability=item.ticket_availability==='sold_out'?'sold_out':'unknown';
  out.places=(item.places||[]).map(p=>pick(p,['name','kind','method','confidence','limitation','coordinates']));
  out.point=item.point?{...pick(item.point,['lon','lat','place','source_id','fact_id','context_hash','method']),source_url:model.safeURL(item.point.source_url)}:null;
  out.location_estimate=estimate(item.location_estimate);

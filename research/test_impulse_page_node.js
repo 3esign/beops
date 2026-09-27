@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const {buildPage,encode}=require('../tools/build_impulse_page'),{hash}=require('../tools/ai_feed_context');
+const {buildPage,encode,publicItem}=require('../tools/build_impulse_page'),{hash}=require('../tools/ai_feed_context');
 const {packItems,unpackItems,decodeImpulses}=require('../public/impulse-codec');
 const source=path.resolve(__dirname,'..'),base=path.resolve(process.env.BEOPS_TEST_TEMP||path.join(source,'runtime/impulse-page-tests'));
 const at='2026-09-27T12:00:00.123456Z',id='a'.repeat(32),cycle='b'.repeat(32),future='c'.repeat(32);
@@ -81,6 +81,17 @@ test('official venue export preserves address and coordinate evidence without be
   const view=read(root,'docs/impulse-data/view-data.json');assert.equal(view.calendar_sources[0].source_id,'S225');
   assert.equal(view.view.day.counts.headline_mentions,4);
  }finally{cleanup(root)}
+});
+
+test('public calendar allowlist carries only the sold-out enum without arbitrary availability text',()=>{
+ const event={id:'calendar',kind:'scheduled_event',ticket_availability:'sold_out'};
+ assert.equal(publicItem(event).ticket_availability,'sold_out');
+ for(const value of [undefined,null,'unknown','available',true,{status:'sold_out'},'PRIVATE C:\\route']){
+  const projected=publicItem({...event,ticket_availability:value,ticket_url:'https://example.test/buy'});
+  assert.equal(projected.ticket_availability,'unknown');assert.equal(projected.ticket_url,undefined);
+  assert.ok(!JSON.stringify(projected).includes('PRIVATE'));
+ }
+ assert.equal(publicItem({...event,kind:'headline_mention'}).ticket_availability,undefined);
 });
 test('AI proof contains cited facts and review flags but no raw packet, prompt, route, unused fact or reasoning',async()=>{
  const root=fixture();try{

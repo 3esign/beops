@@ -3,7 +3,7 @@
 // an editorial place-scale buffer, never a confidence interval or a boundary.
 const fs=require('node:fs');
 const gazetteer=require('./headline_places.json');
-const VERSION='headline-place-rules/2';
+const VERSION='headline-place-rules/3';
 const CYR='абвгдђежзијклљмнњопрстћуфхцчџш';
 const LAT=['a','b','v','g','d','dj','e','z','z','i','j','k','l','lj','m','n','nj','o','p','r','s','t','c','u','f','h','c','c','dz','s'];
 function normalize(text){return String(text||'').toLowerCase().replace(/[а-яђјљњћџ]/g,c=>LAT[CYR.indexOf(c)]||c).replace(/đ/g,'dj').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();}
@@ -94,9 +94,13 @@ function locateHeadline(input){
   const contextualLocation=c=>{
     const prefix=text.slice(0,c.normalized_span[0]);
     const direct=/(?:^| )(?:u|na|kod|oko|blizu)(?: (?:centralnoj|severnoj|juznoj|istocnoj|zapadnoj|celoj|jugoistocnoj|severozapadnoj))? $/.test(prefix);
+    // Distributed programmes and roundups do not fit one local circle:
+    // "u Beogradu ... sirom Srbije" contains two spatial scales. Genitives
+    // naming an institution or visitors' origin remain non-spatial.
+    const distributed=/(?:^| )(?:sirom|diljem)(?: (?:cele|celog|citave|citavog))? $/.test(prefix)||/(?:^| )(?:na|u)(?: (?:celoj|citavoj))? (?:teritoriji|podrucju) $/.test(prefix);
     // A second place inherits the spatial role in "u Beograd i Sarajevo".
     const linked=candidates.some(p=>p.eligible&&p.normalized_span[1]<c.normalized_span[0]&&/^(?: | (?:i|ili|kao i)(?: (?:u|na))?(?: (?:centralnoj|severnoj|juznoj|istocnoj|zapadnoj|celoj|jugoistocnoj|severozapadnoj))? )$/.test(text.slice(p.normalized_span[1],c.normalized_span[0])));
-    return direct||linked;
+    return direct||distributed||linked;
   };
   const externalLocation=contexts.some(c=>c.scope==='outside'&&contextualLocation(c));
   const broadLocation=contexts.some(contextualLocation);

@@ -38,6 +38,15 @@ can recover fields from retained responses, but does not backfill or add them to
 Timeout logs can contain intermediate usage without a completed provider response; such
 logs are not treated as a complete bill or silently merged into measured cycles.
 
+From the 2026-09-27 thorough audit, new private cycle receipts also retain `provider_calls`:
+the immutable AI attempt id, provider/model labels, whether a response returned, terminal
+attempt state, a bounded failure classification and the normalized per-call usage. These
+identify missing usage without reconstructing a link from timestamps. Rejected output can
+have reported usage; a timeout or rate limit without a returned response stays unavailable.
+No prompt, answer or free-form diagnostic is copied into this linkage. Existing receipts
+remain unchanged, and the public summary still derives its totals from the original aggregate
+fields: adding a trace never adds tokens a second time.
+
 Electricity and money are `null`. CPU time is not energy; elapsed time is not energy.
 Physical energy readings and a declared allocation of shared host/idle work are required
 before reporting Wh. Tariff and provider billing evidence are required before reporting money.

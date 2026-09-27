@@ -72,6 +72,17 @@ class CitizenEvidence(unittest.TestCase):
         self.assertIn('&lt;Untrusted&gt;', html)
         self.assertNotIn('javascript:', html)
 
+    def test_calendar_displays_only_explicit_sold_out_status(self):
+        event = self.repertoire('Концерт 11. 10. 2026. у 16')[0]
+        html = render_events({'events': [{**event, 'ticket_availability': 'sold_out'}]})
+        self.assertIn('>Rasprodato</span>', html)
+        self.assertIn('Prema pročitanom zvaničnom programu', html)
+        for value in (None, 'unknown', 'available', 'Sold_out', True, {'status': 'sold_out'}, '<b>PRIVATE</b>'):
+            html = render_events({'events': [{**event, 'ticket_availability': value,
+                                             'ticket_url': 'https://example.test/buy'}]})
+            self.assertNotIn('>Rasprodato</span>', html)
+            self.assertNotIn('PRIVATE', html)
+
     def test_one_latest_timed_point_per_station_and_parameter(self):
         stream = {'station': 'A', 'parameter': 'PM2.5', 'unit': 'µg.m-3', 'points': [
             {'t': '2026-09-26T10:00:00Z', 'v': 10},

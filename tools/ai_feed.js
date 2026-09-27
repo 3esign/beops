@@ -201,11 +201,11 @@ async function tickMeasured(root=ROOT, options={}){
     // Persist interruption accounting BEFORE invoking a provider; recovery honours this attempt's cooldown.
     let finish={...start,at:now.toISOString(),state:'interrupted',failure_count:state.providers[provider.id]?.failure_count||0,next_at:new Date(+now+provider.interval_minutes*60000).toISOString()};
     immutable(path.join(receipts,prefix+'-intent.json'),finish);
-    let response;
+    let response,usageIndex;
     const cwd=path.resolve(path.join(dir,'work',id));fs.mkdirSync(cwd,{recursive:true});
     try{
       const remaining=deadline-Date.now();if(remaining<1000)throw Error('job_deadline');
-      const usageIndex=options.resourceMeter.providerAttempt();
+      usageIndex=options.resourceMeter.providerAttempt({id,provider:provider.id,model:provider.model});
       response=await (options.generate||providers.generate)(provider,provider.model,packet,system,cwd,remaining);
       options.resourceMeter.providerResponse(usageIndex,response);
       // Save exact final response before parsing or validating it, including rejected attempts.
@@ -231,6 +231,7 @@ async function tickMeasured(root=ROOT, options={}){
       finish.next_at=new Date(+now+retryMinutes*60000).toISOString();
     }
     immutable(path.join(receipts,prefix+'-finish.json'),finish);append(path.join(dir,'events.jsonl'),finish);
+    options.resourceMeter.providerOutcome(usageIndex,finish);
     status.state=finish.state;status.providers.find(p=>p.id===provider.id).last_at=finish.at;
     status.providers.find(p=>p.id===provider.id).next_at=finish.next_at;
     status.last_attempt=attemptStatus(finish);

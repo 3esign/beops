@@ -42,6 +42,13 @@ test('official schedules stay separate from occurrence and require explicit sour
  const snapshot=m.buildSnapshot(items,now);assert.equal(snapshot.upcoming.counts.scheduled_events,1);assert.equal(snapshot.windows.month.counts.scheduled_events,0);
 });
 const officialEvent=(extra={})=>({id:'venue-e',title:'Official concert',verified:true,classification:'official-repertoire',event_start:'2026-09-28T14:00:00Z',source_id:'S226',source:'Dom omladine',url:'https://domomladine.org/koncerti/example/',location:'DOB//Amerikana',venue_id:'dom-omladine',provenance:{received_at:'2026-09-27T10:00:00Z',url:'https://domomladine.org/',raw_sha256:'a'.repeat(64),source_label:'Official concert 28.9.2026 DOB//Amerikana'},...extra});
+test('calendar availability is an exact source fact, never inferred from a ticket link',()=>{
+ assert.equal(m.calendarItems([officialEvent({ticket_availability:'sold_out'})],now)[0].ticket_availability,'sold_out');
+ for(const value of [undefined,null,'unknown','available','Sold_out',true,{status:'sold_out'},'PRIVATE C:\\secret']){
+  const item=m.calendarItems([officialEvent({ticket_availability:value,ticket_url:'https://example.test/buy'})],now)[0];
+  assert.equal(item.ticket_availability,'unknown');assert.equal(item.ticket_url,undefined);
+ }
+});
 test('explicit official venue binding stays separate from headline estimates and AI anchors',()=>{
  const item=m.calendarItems([officialEvent()],now)[0];
  assert.equal(item.geo.scope,'belgrade');assert.equal(item.point,null);assert.equal(item.location_estimate,undefined);

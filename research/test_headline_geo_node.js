@@ -37,6 +37,22 @@ test('coordinated foreign cities and country scopes inherit a spatial cue',()=>{
   const institutional=locate('Institut za transfuziju krvi Srbije organizuje akciju u Zemunu');assert.equal(institutional.estimate.name,'Zemun');
   assert.equal(locate('Muškarac iz Beograda povređen u Nišu').scope,'serbia');
 });
+
+test('distributed programmes and nationwide roundups never shrink to one city',()=>{
+  for(const h of [
+    'Evropska noć istraživača otvorena u Beogradu: Besplatni naučni programi u 25 gradova širom Srbije',
+    'U Ustaničkoj u Beogradu red za potpis studentima nekoliko stotina metara, redovi širom Srbije',
+    'Концерти у Београду и широм целе Србије',
+    'Festival u Zemunu, programi diljem Hrvatske',
+    'Akcija u Beogradu i na celoj teritoriji Srbije',
+    'Akcija u Beogradu i na području Vojvodine'
+  ]){const r=locate(h);assert.equal(r.estimate,null,h);assert.equal(r.status,'ambiguous',h);assert.equal(r.method,'headline-place-rules/3');}
+  for(const h of [
+    'U kasarni u Pančevu promovisana nova generacija podoficira Vojske Srbije',
+    'U Beogradu festival gostiju iz cele Srbije',
+    'Institut za transfuziju krvi Srbije organizuje akciju u Zemunu'
+  ])assert.ok(locate(h).estimate,h);
+});
 test('origin, metonymy, organizations and clubs are mentions only',()=>{
   for(const h of ['Beograd poručuje Prištini da nastavi dijalog','Pobeda Novog Beograda u finalu','Novi Beograd pobedio Partizan','Saopštenje FK Zemun','U NIS-u otkazi','Igrač iz Zemuna dobio nagradu','Nesreća u ulici Novi Beograd'])assert.equal(locate(h).estimate,null,h);
 });

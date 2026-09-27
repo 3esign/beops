@@ -92,6 +92,12 @@ async function main(){
  let calls=0;const opts={now,clock:()=>now,availability:async()=>({ready:true,model:'fake'}),buildContext:()=>packet,
    generate:async()=>{calls++;return {text:JSON.stringify(good),model:'fake',identity:'fixture',transport:'fake',tools:[]};}};
  const first=await F.tick(tmp,opts);assert.equal(first.state,'accepted');assert.equal(calls,1);
+ const resourceCalls=()=>fs.readdirSync(path.join(tmp,'runtime/resources/receipts')).filter(n=>n.endsWith('-finish.json'))
+   .flatMap(n=>JSON.parse(fs.readFileSync(path.join(tmp,'runtime/resources/receipts',n),'utf8')).provider_calls||[]);
+ const firstResource=resourceCalls().find(x=>x.attempt_id===first.id);
+ assert.equal(firstResource.provider,'test');assert.equal(firstResource.model,'fake');
+ assert.equal(firstResource.response_received,true);assert.equal(firstResource.attempt_state,'accepted');
+ assert.equal(firstResource.usage.state,'unavailable','returned response with no usage is not zero tokens');
  const acceptedStatus=JSON.parse(fs.readFileSync(path.join(tmp,'runtime/ai-feed/status.json'),'utf8'));
  assert.equal(acceptedStatus.health_state,'current');
  assert.equal(acceptedStatus.last_success_age_minutes,0);
@@ -116,8 +122,11 @@ async function main(){
  const finishFile=fs.readdirSync(path.join(tmp,'runtime/ai-feed/receipts')).find(n=>n.endsWith('-finish.json'));
  fs.unlinkSync(path.join(tmp,'runtime/ai-feed/receipts',finishFile)); // Simulate crash after immutable entry, before finish receipt.
  await F.tick(tmp,opts);assert.equal(calls,1);assert.equal(F.allEntries(path.join(tmp,'runtime/ai-feed')).length,1);
- const second=await F.tick(tmp,{...opts,now:new Date(+now+38*60000),generate:async()=>({text:'bad JSON',model:'fake'})});
+ const second=await F.tick(tmp,{...opts,now:new Date(+now+38*60000),generate:async()=>({text:'bad JSON',model:'fake',usage:{input_tokens:21,output_tokens:4}})});
  assert.equal(second.state,'failed');assert.ok(fs.existsSync(path.join(tmp,'runtime/ai-feed/responses',second.id+'.json')),'rejected response must remain saved');
+ const rejectedResource=resourceCalls().find(x=>x.attempt_id===second.id);
+ assert.equal(rejectedResource.response_received,true);assert.equal(rejectedResource.attempt_state,'failed');
+ assert.equal(rejectedResource.usage.input_tokens,21);assert.equal(rejectedResource.usage.output_tokens,4);
  assert.equal(F.allEntries(path.join(tmp,'runtime/ai-feed')).length,1,'failed attempt cannot enter public history');
  const fair={...config,max_attempts_per_provider_per_day:1,providers:[{id:'bad',label:'Bad',interval_minutes:35,offset_minutes:0},{id:'healthy',label:'Healthy',interval_minutes:45,offset_minutes:1}]};
  write('research/AI_FEED.json',fair);
@@ -134,6 +143,12 @@ async function main(){
    availability:async()=>({ready:true,model:'fake'})});
  assert.equal(deadlineHeld.state,'job_deadline','tick must stop before context/projection when no internal budget remains');
  assert.equal(contextCalls,0,'permission/context work must not start after the job budget is gone');
+ write('research/AI_FEED.json',{...fair,providers:[{id:'timeout-fixture',label:'Timeout',interval_minutes:35,offset_minutes:0}]});
+ const timeoutAttempt=await F.tick(tmp,{...opts,generate:async()=>{throw Object.assign(Error('fixture timeout'),{failureKind:'timeout'});}});
+ const timeoutResource=resourceCalls().find(x=>x.attempt_id===timeoutAttempt.id);
+ assert.equal(timeoutResource.response_received,false);assert.equal(timeoutResource.attempt_state,'failed');
+ assert.equal(timeoutResource.failure_kind,'timeout');assert.equal(timeoutResource.usage.input_tokens,null);
+ assert.equal(timeoutResource.usage.output_tokens,null);
  write('research/AI_FEED.json',fair);
  const immutablePath=path.join(tmp,'immutable.json');F.immutable(immutablePath,{value:1});
  assert.throws(()=>F.immutable(immutablePath,{value:2}),/immutable_conflict/);

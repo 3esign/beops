@@ -20,6 +20,8 @@ SOURCES = (
      'url': 'https://domomladine.org/', 'parser': 'dom-omladine-schedule-card/v1'},
     {'source_id': 'S227', 'name': 'Kulturni centar Beograda — zvanični program',
      'url': 'https://www.kcb.org.rs/', 'parser': 'kcb-schedule-card/v1'},
+    {'source_id': 'S228', 'name': 'Jugoslovensko dramsko pozorište — zvanični repertoar',
+     'url': 'https://www.jdp.rs/repertoire-feed/', 'parser': 'jdp-current-month-card/v1'},
 )
 
 
@@ -86,14 +88,16 @@ MONTHS = {name: number for number, names in enumerate((
 WEEKDAYS = {name: n for n, name in enumerate(('ponedeljak', 'utorak', 'sreda', 'četvrtak', 'petak', 'subota', 'nedelja'))}
 DOM_CLOCK = re.compile(r'(?:(ponedeljak|utorak|sreda|četvrtak|petak|subota|nedelja),\s*)?(\d{1,2})\.\s*([a-zčćžšđ]+)\s+(20\d{2})\.\s*(?:u|od)\s+(\d{1,2})[:.](\d{2})\.?', re.I)
 KCB_CLOCK = re.compile(r'(\d{1,2})\.(\d{1,2})\.(20\d{2}),\s*(\d{1,2}):(\d{2})\.?')
+JDP_CLOCK = re.compile(r'(ponedeljak|utorak|sreda|četvrtak|petak|subota|nedelja),\s*(\d{1,2})\.\s*([a-zčćžšđ]+)\s+(20\d{2})\.\s*\|\s*(\d{1,2}):(\d{2})h', re.I)
 
 
 def explicit_clock(label, sid):
-    match = (DOM_CLOCK if sid == 'S226' else KCB_CLOCK).fullmatch(label.strip())
+    pattern = {'S226': DOM_CLOCK, 'S227': KCB_CLOCK, 'S228': JDP_CLOCK}.get(sid)
+    match = pattern.fullmatch(label.strip()) if pattern else None
     if not match:
         return None, 'missing_or_non_single_explicit_clock'
     try:
-        if sid == 'S226':
+        if sid in {'S226', 'S228'}:
             weekday, day, month, year, hour, minute = match.groups()
             local = datetime(int(year), MONTHS[month.casefold()], int(day), int(hour), int(minute))
             if weekday and WEEKDAYS[weekday.casefold()] != local.weekday():
@@ -116,6 +120,8 @@ def safe_event_url(value, sid):
             return False
         if sid == 'S226':
             return route.netloc == 'domomladine.org' and bool(re.fullmatch(r'/(?:koncerti|filmovi|debate|izlozbe|predstave|radionice|vesti)/[^/]+/', route.path))
+        if sid == 'S228':
+            return route.netloc == 'www.jdp.rs' and bool(re.fullmatch(r'/(?:rs/)?performance/[^/]+/', route.path))
         return route.netloc == 'www.kcb.org.rs' and bool(re.fullmatch(r'/20\d{2}/\d{2}/[^/]+/', route.path))
     except (TypeError, ValueError):
         return False
@@ -130,8 +136,8 @@ def schedule_cards(root, sid):
             clock = first(card, lambda n: n.tag == 'p' and n.has('ev-date'))
             venue = first(card, lambda n: n.tag == 'p' and n.has('ev-loc'))
             if link and clock:
-                yield link.attrs.get('href', ''), title.text(), clock.text(), venue.text() if venue else None
-    else:
+                yield link.attrs.get('href', ''), title.text(), clock.text(), venue.text() if venue else None, []
+    elif sid == 'S227':
         for section in root.find(lambda n: n.tag == 'div' and n.has('events')):
             for card in section.find(lambda n: n.tag == 'div' and n.has('text-content')):
                 title = first(card, lambda n: n.tag == 'h4')
@@ -139,18 +145,38 @@ def schedule_cards(root, sid):
                 venue = first(card, lambda n: n.tag == 'div' and n.has('location'))
                 link = title.parent if title and title.parent.tag == 'a' else None
                 if link and clock:
-                    yield link.attrs.get('href', ''), title.text(), clock.text(), venue.text() if venue else None
+                    yield link.attrs.get('href', ''), title.text(), clock.text(), venue.text() if venue else None, []
+    elif sid == 'S228':
+        for section in root.find(lambda n: n.tag == 'div' and n.attrs.get('id') == 'repertoire-api-list'):
+            for day in (child for child in section.children if isinstance(child, Element) and child.tag == 'div'):
+                headings = list(day.find(lambda n: n.tag == 'h3'))
+                date_label = headings[0].text() if len(headings) == 1 else ''
+                for card in day.find(lambda n: n.tag == 'article'):
+                    titles = list(card.find(lambda n: n.tag == 'h4'))
+                    links = list(titles[0].find(lambda n: n.tag == 'a')) if len(titles) == 1 else []
+                    venues = list(card.find(lambda n: n.tag == 'span' and n.has('text-gray-600') and n.has('font-semibold')))
+                    clocks = list(card.find(lambda n: n.tag == 'span' and n.has('font-bold') and n.parent.has('items-end') and n.parent.has('text-right')))
+                    statuses = [n.text() for n in card.find(lambda n: n.tag == 'div' and n.has('text-gray-500')) if n.text()]
+                    yield (links[0].attrs.get('href', '') if len(links) == 1 else '',
+                           titles[0].text() if len(titles) == 1 else '',
+                           date_label + ' | ' + (clocks[0].text() if len(clocks) == 1 else ''),
+                           venues[0].text() if len(venues) == 1 else None, statuses)
 
 
 def parse_official_programme(body, source, received_at, raw_sha256):
     sid = source['source_id']
-    if sid not in {'S226', 'S227'}:
+    if sid not in {'S226', 'S227', 'S228'}:
         raise ValueError('unknown official programme parser')
     tree = ScheduleHTML()
     tree.feed(body.decode('utf-8'))
     events, rejected, seen = [], [], set()
-    for url, title, label, venue in schedule_cards(tree.root, sid):
+    for url, title, label, venue, statuses in schedule_cards(tree.root, sid):
         clock, error = explicit_clock(label, sid)
+        normalized_statuses = {status.casefold().strip(' .!') for status in statuses}
+        if len(normalized_statuses) > 1:
+            error = 'ambiguous_source_status'
+        if normalized_statuses.intersection({'otkazano', 'otkazana', 'odloženo', 'odložena', 'отказано', 'отказана', 'одложено', 'одложена'}):
+            error = 'source_cancelled_or_postponed'
         if not safe_event_url(url, sid) or not title or not venue:
             error = 'missing_title_venue_or_disallowed_event_url'
         if error:
@@ -167,16 +193,19 @@ def parse_official_programme(body, source, received_at, raw_sha256):
             'venue_id': ('dom-omladine' if sid == 'S226' and venue in (
                 'DOB//Amerikana', 'DOB//Tribinska sala', 'DOB//Klub', 'DOB//Velika sala',
                 'DOB//Galerija', 'Dom omladine Beograda') else
-                'kcb-artget' if sid == 'S227' and venue == 'Galerija ARTGET' else None),
+                'kcb-artget' if sid == 'S227' and venue == 'Galerija ARTGET' else
+                'jdp-ljuba-tadic' if sid == 'S228' and venue == 'SCENA `LJUBA TADIĆ`' else None),
             'source': source['name'], 'source_id': sid, 'url': url,
             'is_official': True, 'verified': True,
             'verification_scope': 'explicit schedule facts in one official source; not independent corroboration or occurrence verification',
             'classification': 'official-repertoire', 'state': 'forecast', 'event_status': 'scheduled',
+            'ticket_availability': 'sold_out' if normalized_statuses.intersection({'rasprodato', 'распродато'}) else 'unknown',
+            'source_availability': statuses[0] if statuses else None,
             'event_start': start.isoformat().replace('+00:00', 'Z'),
             'event_start_local': local.isoformat(timespec='minutes') + f'{offset:+03d}:00',
             'event_timezone': 'Europe/Belgrade', 'event_end': None, 'published': None,
             'provenance': {'url': source['url'], 'received_at': received_at, 'raw_sha256': raw_sha256,
                            'source_label': ' | '.join((title, label, venue)), 'parser': source['parser']},
-            'limitation': 'One official schedule; end time, availability, cancellation and actual occurrence are unknown.'
+            'limitation': 'One official schedule; end time, later availability changes, cancellation and actual occurrence are unknown. Any ticket availability label is source-stated at receipt time.'
         })
     return {'events': sorted(events, key=lambda e: e['event_start']), 'rejected': rejected}

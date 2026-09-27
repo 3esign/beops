@@ -346,7 +346,9 @@ def build_events_dataset() -> dict:
     now = datetime.now(timezone.utc)
     now_utc = now.isoformat()
     repertoire = read_cache()
-    scheduled = scheduled_events(repertoire, now)
+    scheduled = [{**{key: value for key, value in event.items() if key != 'source_availability'},
+                  'ticket_availability': 'sold_out' if event.get('ticket_availability') == 'sold_out' else 'unknown'}
+                 for event in scheduled_events(repertoire, now)]
     source_statuses = [public_source_status(source, now) for source in source_caches(repertoire)]
     healthy = sum(source['state'] == 'available' for source in source_statuses)
     repertoire_state = ('available' if source_statuses and healthy == len(source_statuses)

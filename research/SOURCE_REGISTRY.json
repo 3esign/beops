@@ -3450,6 +3450,30 @@
    "access": "Public homepage programme cards; explicit title, single full date, start time and venue label only",
    "reuse": "Bibliographic schedule facts only, attributed and linked; descriptions and images are not republished. No open-licence claim. Robots and HTTP opt-out evidence captured 2026-09-27 before collection.",
    "next": "Parser kcb-schedule-card/v1: excludes sliders and date ranges; event link must use the official same-origin dated article route. Exact Galerija ARTGET only may bind to the separately evidenced venue registry. Homepage selection is incomplete."
+  },
+  {
+   "id": "S228",
+   "theme": "culture",
+   "name": "Jugoslovensko dramsko pozoriste - official repertoire",
+   "url": "https://www.jdp.rs/repertoire-feed/",
+   "status": "collected",
+   "kind": "official_event_schedule",
+   "rhythm": "6-hour bounded refresh; failed-source retry after 30 minutes; 24-hour per-source cache validity",
+   "access": "Server-rendered current-month programme; explicit title, full day heading, start clock and stage label only. No event measurement time: a published future schedule, not an occurrence observation.",
+   "reuse": "Bibliographic schedule facts only, attributed and linked; descriptions, images, cast and ticket operations are not collected for publication. No open-licence claim. Robots and HTTP opt-out evidence captured 2026-09-27 before collection.",
+   "next": "Parser jdp-current-month-card/v1: validates date against weekday, refuses ambiguous date/clock/stage/title fields and explicit cancelled/postponed badges. Exact SCENA `LJUBA TADIC` (accented source spelling retained) binds only to independent theatre venue evidence. Current-month coverage only; dynamic future-month and ticket APIs are outside collection."
+  },
+  {
+   "id": "S229",
+   "theme": "culture",
+   "name": "Atelje 212 - official ticket repertoire candidate",
+   "url": "https://bilet.atelje212.rs/repertoar.php",
+   "status": "lead",
+   "kind": "official_event_schedule_candidate",
+   "rhythm": "not collected; one bounded candidate inspection on 2026-09-27",
+   "access": "Official atelje212.rs/repertoar/ redirects to this public ticket application. Initial HTML contains no explicit schedule records; programme is loaded by a dynamic ticket API. No dates, starts or event counts were inferred.",
+   "reuse": "Robots and exact route HTTP access signals captured 2026-09-27; these are not an open licence or permission for ticket operations. Linked ticket terms PDF and dynamic query endpoints have not been reviewed.",
+   "next": "No collector added. A separate read-only query and ticket-terms review are required before candidate promotion; no session, cart, purchase or reservation action is authorized by calendar collection."
   }
  ]
 }

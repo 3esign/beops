@@ -32,11 +32,24 @@ class Meter{
     this.record={schema:'beops-resource-cycle/v1',id:crypto.randomBytes(16).toString('hex'),activity,
       started_at:new Date().toISOString(),phase:'start',pid:process.pid,runtime:'node'};
     this.http={request_attempts:0,response_body_bytes:0,body_reports:0,unreported_bodies:0};
-    this.calls=[];
+    this.calls=[];this.attempts=[];
     immutable(path.join(this.directory,this.record.id+'-start.json'),this.record);
   }
-  providerAttempt(){this.calls.push(null);return this.calls.length-1;}
-  providerResponse(index,response){this.calls[index]=tokenUsage(response?.usage);}
+  providerAttempt(details={}){
+    this.calls.push(null);
+    // Only explicit identifiers enter the private receipt: no prompt, response text or error message.
+    const label=value=>typeof value==='string'&&/^[a-zA-Z0-9_.:/-]{1,160}$/.test(value)?value:null;
+    this.attempts.push({attempt_id:/^[a-f0-9]{32}$/.test(details.id||'')?details.id:null,
+      provider:label(details.provider),model:label(details.model),response_received:false,
+      attempt_state:'pending',failure_kind:null});
+    return this.calls.length-1;
+  }
+  providerResponse(index,response){this.calls[index]=tokenUsage(response?.usage);this.attempts[index].response_received=true;}
+  providerOutcome(index,outcome){
+    if(!this.attempts[index])return;
+    this.attempts[index].attempt_state=['accepted','failed','deferred_capacity','interrupted'].includes(outcome?.state)?outcome.state:'unknown';
+    this.attempts[index].failure_kind=['rate-limit','auth','unsupported-model','timeout','invalid-output','runtime','capacity'].includes(outcome?.failure_kind)?outcome.failure_kind:null;
+  }
   finish(outcome='completed'){
     const delta=process.cpuUsage(this.cpu),tokens={input_tokens:null,output_tokens:null,cached_input_tokens:null,
       reasoning_tokens:null,cache_creation_input_tokens:null,provider_total_tokens:null,
@@ -49,7 +62,9 @@ class Meter{
     }
     const record={...this.record,phase:'finish',finished_at:new Date().toISOString(),outcome,
       wall_seconds:Number(process.hrtime.bigint()-this.started)/1e9,cpu_seconds:(delta.user+delta.system)/1e6,
-      peak_rss_bytes:process.resourceUsage().maxRSS*1024,http:this.http,tokens,electricity_wh:null,money:null,
+      peak_rss_bytes:process.resourceUsage().maxRSS*1024,http:this.http,tokens,
+      provider_calls:this.attempts.map((attempt,index)=>({...attempt,usage:this.calls[index]||tokenUsage(null)})),
+      electricity_wh:null,money:null,
       scope:{cpu:'current Node process only; excludes CLI children, model servers and remote inference',
         memory:'current process lifetime peak RSS; not cycle-only or additive',
         http:'instrumented provider request() attempts; decoded response body bytes; excludes opaque CLI traffic, headers and TLS',
@@ -64,7 +79,7 @@ async function withMeter(root,activity,fn){
   try{meter=new Meter(root,activity);}catch(error){
     if(!error.code)throw error;
     console.error('resource_meter_unavailable:'+error.code);
-    return fn({providerAttempt:()=>null,providerResponse:()=>{}});
+    return fn({providerAttempt:()=>null,providerResponse:()=>{},providerOutcome:()=>{}});
   }
   let outcome='failed';
   try{return await active.run(meter,async()=>{const result=await fn(meter);outcome=result?.state||'completed';return result;});}

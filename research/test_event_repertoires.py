@@ -17,6 +17,7 @@ AT = '2026-09-27T08:00:00+00:00'
 NOW = datetime.fromisoformat(AT)
 DOM = SOURCES[1]
 KCB = SOURCES[2]
+JDP = SOURCES[3]
 
 
 def dom_card(clock='Ponedeljak, 28. septembar 2026. u 19.00', venue='DOB//Tribinska sala',
@@ -32,7 +33,84 @@ def parsed(html, source=DOM):
     return parse_official_programme(html.encode('utf8'), source, AT, 'a' * 64)
 
 
+def jdp_card(date='NEDELJA, 27. SEPTEMBAR 2026.', clock='20:00h',
+             venue='SCENA `LJUBA TADIĆ`', url='https://www.jdp.rs/performance/ricard-drugi/',
+             status='Rasprodato'):
+    # Minimal structural fixture transcribed from the retained official feed 2026-09-27.
+    return f'''<div id="repertoire-api-list"><div><div><h3>{date}</h3></div>
+    <article><div><span class="text-gray-600 font-semibold text-base">{venue}</span>
+    <h4><a href="{url}">Ričard Drugi</a></h4></div>
+    <div class="flex items-end text-right"><span class="text-base font-bold text-gray-900">{clock}</span>
+    <div class="text-xs text-gray-500">{status}</div></div></article></div></div>'''
+
+
 class OfficialProgrammes(unittest.TestCase):
+    def test_jdp_day_heading_clock_stage_and_sold_out_schedule(self):
+        event = parsed(jdp_card(), JDP)['events'][0]
+        self.assertEqual(event['event_start'], '2026-09-27T18:00:00Z')
+        self.assertEqual(event['event_start_local'], '2026-09-27T20:00+02:00')
+        self.assertEqual(event['location'], 'SCENA `LJUBA TADIĆ`')
+        self.assertEqual(event['venue_id'], 'jdp-ljuba-tadic')
+        self.assertEqual(event['title'], 'Ričard Drugi')
+        self.assertEqual(event['ticket_availability'], 'sold_out')
+        self.assertEqual(event['source_availability'], 'Rasprodato')
+        self.assertIn('NEDELJA, 27. SEPTEMBAR 2026. | 20:00h', event['provenance']['source_label'])
+        self.assertIsNone(event['published'])
+        self.assertIsNone(event['event_end'])
+
+    def test_jdp_full_day_and_single_time_required_without_publication_fallback(self):
+        for date in ('UTORAK, 27. SEPTEMBAR 2026.', '27. SEPTEMBAR',
+                     'NEDELJA, 27. SEPTEMBAR', 'NEDELJA, 31. SEPTEMBAR 2026.',
+                     '27–30. SEPTEMBAR 2026.'):
+            self.assertEqual(parsed(jdp_card(date=date), JDP)['events'], [], date)
+        for clock in ('20h', '20:00–22:00h', '', '02:30h'):
+            date = 'NEDELJA, 25. OKTOBAR 2026.' if clock == '02:30h' else 'NEDELJA, 27. SEPTEMBAR 2026.'
+            self.assertEqual(parsed(jdp_card(date=date, clock=clock), JDP)['events'], [], clock)
+
+    def test_jdp_dates_are_scoped_to_their_own_group(self):
+        body = jdp_card() + jdp_card('UTORAK, 29. SEPTEMBAR 2026.')
+        self.assertEqual([e['event_start'] for e in parsed(body, JDP)['events']],
+                         ['2026-09-27T18:00:00Z', '2026-09-29T18:00:00Z'])
+        self.assertEqual(len(parsed(body + jdp_card(), JDP)['events']), 2)
+        self.assertEqual(parsed(jdp_card().replace('<h3>', '<p>').replace('</h3>', '</p>'), JDP)['events'], [])
+
+    def test_jdp_ambiguous_date_time_venue_and_title_links_fail_closed(self):
+        body = jdp_card()
+        for malformed in (
+            body.replace('</h3>', '</h3><h3>UTORAK, 29. SEPTEMBAR 2026.</h3>'),
+            body.replace('20:00h</span>', '20:00h</span><span class="font-bold">21:00h</span>'),
+            body.replace('</h4>', '<a href="https://www.jdp.rs/performance/drugo/">Drugo</a></h4>'),
+            body.replace('<h4>', '<span class="text-gray-600 font-semibold">DRUGA SCENA</span><h4>')):
+            self.assertEqual(parsed(malformed, JDP)['events'], [])
+
+    def test_jdp_cancellation_or_postponement_is_not_a_schedule(self):
+        for status in ('OTKAZANO', 'ODLOŽENO', 'Отказана', 'Одложена'):
+            result = parsed(jdp_card(status=status), JDP)
+            self.assertEqual(result['events'], [], status)
+            self.assertEqual(result['rejected'][0]['reason'], 'source_cancelled_or_postponed')
+
+    def test_jdp_availability_is_only_the_current_articles_explicit_badge(self):
+        for status in ('', 'Kupi kartu', 'Nepoznata oznaka'):
+            event = parsed(jdp_card(status=status), JDP)['events'][0]
+            self.assertEqual(event['ticket_availability'], 'unknown')
+            self.assertEqual(event['source_availability'], status or None)
+        body = jdp_card() + jdp_card('UTORAK, 29. SEPTEMBAR 2026.', status='')
+        self.assertEqual([e['ticket_availability'] for e in parsed(body, JDP)['events']], ['sold_out', 'unknown'])
+        ambiguous = jdp_card().replace('Rasprodato</div>', 'Rasprodato</div><div class="text-gray-500">Dostupno</div>')
+        result = parsed(ambiguous, JDP)
+        self.assertEqual(result['events'], [])
+        self.assertEqual(result['rejected'][0]['reason'], 'ambiguous_source_status')
+
+    def test_jdp_no_publisher_location_inference_and_no_foreign_ticket_link(self):
+        event = parsed(jdp_card(venue='Gostovanje u drugom gradu'), JDP)['events'][0]
+        self.assertIsNone(event['venue_id'])
+        self.assertEqual(len(parsed(jdp_card(url='https://www.jdp.rs/rs/performance/sirano/'), JDP)['events']), 1)
+        for url in ('https://blagajna.jdp.rs/scena.php?prostorterminid=1184',
+                    'https://www.jdp.rs.evil.example/performance/ricard/',
+                    'https://www.jdp.rs/repertoire-feed/', 'https://www.jdp.rs/performance/ricard/#x'):
+            self.assertEqual(parsed(jdp_card(url=url), JDP)['events'], [], url)
+        self.assertEqual(parsed('<script>' + jdp_card() + '</script>', JDP)['events'], [])
+
     def test_dom_explicit_local_clock_and_verbatim_venue(self):
         event = parsed(dom_card())['events'][0]
         self.assertEqual(event['event_start'], '2026-09-28T17:00:00Z')
@@ -101,6 +179,19 @@ class IndependentSourceCache(unittest.TestCase):
         event = parsed(dom_card())['events'][0]
         return {'source_id': sid, 'state': 'available', 'attempted_at': AT,
                 'received_at': AT, 'events': [{**event, 'source_id': sid}]}
+
+    def test_public_schedule_exports_only_fixed_ticket_availability(self):
+        cache = self.cache()
+        for status, expected in (('sold_out', 'sold_out'), ('UNTRUSTED_STATUS', 'unknown')):
+            cache['events'][0].update(ticket_availability=status, source_availability='PRIVATE_SOURCE_BADGE')
+            with patch.object(collect_events, 'read_cache', return_value=cache), \
+                 patch.object(collect_events, 'scheduled_events', return_value=cache['events']):
+                dataset = collect_events.build_events_dataset()
+            event = next(e for e in dataset['events'] if e['classification'] == 'official-repertoire')
+            self.assertEqual(event['ticket_availability'], expected)
+            self.assertNotIn('source_availability', event)
+            self.assertNotIn('PRIVATE_SOURCE_BADGE', json.dumps(dataset))
+            self.assertEqual(cache['events'][0]['source_availability'], 'PRIVATE_SOURCE_BADGE')
 
     def test_failed_stale_future_sources_cannot_borrow_healthy_receipt(self):
         healthy = self.cache()
