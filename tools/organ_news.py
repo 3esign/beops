@@ -578,4 +578,7 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "run":
+        from resource_meter import run_main
+        sys.exit(run_main(ROOT, "news", main))
     sys.exit(main())

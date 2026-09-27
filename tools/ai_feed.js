@@ -119,6 +119,9 @@ function exportFeed(root=ROOT, now=new Date()){
   return {total:entries.length,status:status.state};
 }
 async function tick(root=ROOT, options={}){
+  return require('./resource_meter').withMeter(root,'ai_feed',meter=>tickMeasured(root,{...options,resourceMeter:meter}));
+}
+async function tickMeasured(root=ROOT, options={}){
   const now=options.now||new Date(), config=readJSON(path.join(root,'research/AI_FEED.json'));
   const deadline=Date.now()+Math.min(180,config.job_timeout_seconds||180)*1000;
   const dir=path.join(root,'runtime/ai-feed');
@@ -202,7 +205,9 @@ async function tick(root=ROOT, options={}){
     const cwd=path.resolve(path.join(dir,'work',id));fs.mkdirSync(cwd,{recursive:true});
     try{
       const remaining=deadline-Date.now();if(remaining<1000)throw Error('job_deadline');
+      const usageIndex=options.resourceMeter.providerAttempt();
       response=await (options.generate||providers.generate)(provider,provider.model,packet,system,cwd,remaining);
+      options.resourceMeter.providerResponse(usageIndex,response);
       // Save exact final response before parsing or validating it, including rejected attempts.
       immutable(path.join(dir,'responses',id+'.json'),response);
       let value;try{value=provider.adapter==='antigravity-cli'?providers.parseAntigravity(response.text):providers.parseObject(response.text);}catch{throw Error('response_not_json');}

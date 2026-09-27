@@ -45,7 +45,7 @@ def snapshot(extra_hour: bool = False) -> dict:
             "status": {"sources": [{"sid": "S146", "captured": 4, "expected_slots": 24}, {"sid": "S10", "captured": 13, "expected_slots": 96},
                                    {"sid": "S69", "captured": 6, "expected_slots": 48}, {"sid": "S68", "captured": 6, "expected_slots": 48},
                                    {"sid": "S70", "captured": 0, "expected_slots": 48}]},
-            "derived": [{"t": "2026-09-08T23:35:00Z", "organ": "news-sorter", "category": "iskljucenja", "belgrade": True, "zones": [{"name": "Zemun", "score": 0.9}]}],
+            "derived": [{"t": "2026-09-08T23:35:00Z", "organ": "news-sorter", "category": "iskljucenja", "headline": "Prekid vodosnabdevanja u Zemunu", "belgrade": True, "zones": [{"name": "Zemun", "score": 0.9}]}],
             "organ_runs": []}
 
 

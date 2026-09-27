@@ -38,6 +38,7 @@ from release_observation import frozen_manifest
 import pathlib
 import stat as statmod
 import subprocess
+import sys
 import permission_policy
 import source_policy
 from datetime import datetime, timedelta, timezone
@@ -701,4 +702,7 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        from resource_meter import run_main
+        raise SystemExit(run_main(ROOT, "watch", main))
     raise SystemExit(main())

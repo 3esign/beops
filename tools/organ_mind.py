@@ -70,6 +70,7 @@ import local_models
 from model_capacity import receipt_scope
 from contracts import serialized, organ_pause_reason
 import claim_evidence
+from headline_geo import locate_headlines, local_estimate
 import json
 import math
 import os
@@ -302,8 +303,8 @@ def digest(snap: dict, hours: int = 6, now: datetime | None = None, context: dic
                 kind="silence", sid=sid)
         if ev:
             latest = max(ev, key=lambda e: e.get("t") or "")
-            add(f"{lab_sr}: {len(ev)} naslova; poslednji: „{(latest.get('title') or '')[:120]}\".",
-                f"{lab_en}: {len(ev)} headlines; latest: \"{(latest.get('title') or '')[:120]}\".",
+            add(f"{lab_sr}: {len(ev)} naslova; poslednji: „{(latest.get('title') or '')[:120]}\". Prostorni obuhvat ovih naslova nije potvrđen; ne vezivati za lokalna merenja bez provere mesta i vremena događaja.",
+                f"{lab_en}: {len(ev)} headlines; latest: \"{(latest.get('title') or '')[:120]}\". Their geographic scope is unconfirmed; do not connect them with local instruments without event-location and event-time checks.",
                 kind="headlines", sid=sid, n=len(ev))
             for e in ev:
                 if e.get("title"):
@@ -312,10 +313,15 @@ def digest(snap: dict, hours: int = 6, now: datetime | None = None, context: dic
     if der:
         cats: dict = {}
         zones: dict = {}
-        for d in der:
+        for d, location in zip(der, locate_headlines(der)):
             cats[d["category"]] = cats.get(d["category"], 0) + 1
+            # A model's gazetteer choice is not evidence that this headline is
+            # about Belgrade or that a same-named district is the local one.
+            if d.get('belgrade') is not True or not local_estimate(location):
+                continue
+            supported_name = str(location['estimate'].get('name') or '').casefold()
             for z in d.get("zones") or []:
-                if z.get("name"):
+                if z.get("name") and str(z['name']).casefold() == supported_name:
                     zones[z["name"]] = zones.get(z["name"], 0) + 1
         top = ", ".join(f"{k} {v}" for k, v in sorted(cats.items(), key=lambda x: -x[1])[:4])
         bg = sum(1 for d in der if d.get("belgrade"))
@@ -327,8 +333,8 @@ def digest(snap: dict, hours: int = 6, now: datetime | None = None, context: dic
         for zname, n in sorted(zones.items(), key=lambda x: -x[1])[:5]:
             hit = [s for s in station_names if zname.lower() in (s or "").lower()]
             if hit:
-                add(f"Veza: organ vesti je {n} naslova vezao za zonu {zname}, a u istoj zoni je stanica {hit[0]} koja je u ovom satu na jednom kraju raspona.",
-                    f"Connection: the news organ tied {n} headlines to the zone {zname}, and the station {hit[0]} in that zone sits at one end of this hour's spread.",
+                add(f"Prostorni kontekst: {n} naslova ima procenjenu lokaciju {zname}; naziv odgovara stanici {hit[0]} na jednom kraju raspona u ovom satu. Mesto i vreme događaja nisu provereni prema stanici; ovo nije korelacija ni uzročna veza.",
+                    f"Spatial context: {n} headlines have an estimated location {zname}; the name matches station {hit[0]} at one end of this hour's spread. Event location and time are not matched to that station; this is not correlation or causation.",
                     kind="connection", zone=zname, station=hit[0], n=n)
     # L0 connection: people near the extreme stations (Kontur context, when captured)
     ctx = context if context is not None else (json.loads(CONTEXT_POP.read_text(encoding="utf-8")) if CONTEXT_POP.exists() else None)
@@ -1861,5 +1867,7 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] in ("run", "step"):
+        from resource_meter import run_main
+        raise SystemExit(run_main(ROOT, "mind", main))
     raise SystemExit(main())
-

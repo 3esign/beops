@@ -608,4 +608,7 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if "--recheck-collectors" in sys.argv:
+        from resource_meter import run_main
+        raise SystemExit(run_main(ROOT, "legal", main))
     raise SystemExit(main())

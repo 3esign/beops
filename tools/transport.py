@@ -31,6 +31,10 @@ def fetch(url, timeout_s=60, max_bytes=2 * 1024 * 1024):
         res = json.loads(p.stdout)
         if res.get("body") is not None:
             res["body"] = base64.b64decode(res["body"], validate=True)
+        from resource_meter import observe_http
+        observe_http(res.get("body_bytes"))
         return res
     except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
+        from resource_meter import observe_http
+        observe_http(None)
         return {"status": None, "headers": {}, "body": None, "error": str(exc)[:240], "transport": "incognito/failed"}

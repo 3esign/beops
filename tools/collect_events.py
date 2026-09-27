@@ -337,4 +337,7 @@ def main():
     return 0
 
 if __name__ == "__main__":
+    if "--refresh" in sys.argv:
+        from resource_meter import run_main
+        sys.exit(run_main(ROOT, "calendar", main))
     sys.exit(main())

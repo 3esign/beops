@@ -25,8 +25,12 @@ class SiteGenerationOrder(unittest.TestCase):
             for directory in ('tools', 'research', 'docs', 'public', 'runtime'):
                 (base / directory).mkdir()
             for name in ('build_site', 'build_public_page', 'build_city_view', 'build_headlines',
-                         'collect_events', 'contracts', 'prose'):
+                         'collect_events', 'contracts', 'prose', 'headline_geo'):
                 shutil.copyfile(ROOT / 'tools' / (name + '.py'), base / 'tools' / (name + '.py'))
+            # The actual citizen builder imports the shared offline geography
+            # adapter. Keep its complete runtime closure inside this fixture.
+            for name in ('headline_geo.js', 'headline_places.json'):
+                shutil.copyfile(ROOT / 'tools' / name, base / 'tools' / name)
             (base / 'research/COLLECTORS.json').write_text('{"sources":[]}', encoding='utf-8')
             captured = b'{"schema":"fixture-release-inputs"}\n'
             (base / 'runtime/release-inputs.json').write_bytes(captured)

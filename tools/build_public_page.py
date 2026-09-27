@@ -8,7 +8,7 @@ Design principles:
   1. Puls sada (rečenica stanja, vreme, vazduh, kiša, starost podatka)
   2. Šta znamo danas... (deca, trčanje, provetravanje, bicikl, veš: DA / OPREZ / NE)
   3. Ritam grada (kultura, sport, saobraćajni radovi iz events.json)
-  4. Rečeno / Izmereno (poređenje medijskih naslova i fizičkih senzora)
+  4. Naslovi i lokalni kontekst (odvojeni izvori sa prostornim i vremenskim ograničenjima)
   5. Zašto verovati (3 ključne metrike i veliko dugme ka instrument.html)
 - Every summary links to the exact retained measurements or cited notices.
 - If data is missing, it explicitly states "ne znam / još ne merimo", never zero.
@@ -22,6 +22,7 @@ import re
 import sys
 from html import escape
 from datetime import datetime, timezone
+from headline_geo import locate_headlines, local_estimate
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs"
@@ -34,7 +35,7 @@ HTML_TEMPLATE = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Beograd danas — BEOPS</title>
-<meta name="description" content="Puls Beograda za građane: vazduh, mikroklima, dešavanja, radovi i provera medijskih tvrdnji na osnovu objektivnih merenja.">
+<meta name="description" content="Puls Beograda za građane: vazduh, mikroklima, dešavanja, radovi i sačuvani naslovi sa procenom lokacije i poreklom podataka.">
 <style>
 :root {
   --u: 4px;
@@ -236,13 +237,13 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
   <!-- BLOK 4: RECENO / IZMERENO -->
   <section>
     <div class="section-title">
-      Rečeno naspram Izmerenog
-      <span>šta mediji tvrde u odnosu na stvarne senzore</span>
+      Naslovi i lokalni kontekst
+      <span>procenjena lokacija nije potvrda tvrdnje; vreme događaja nije poznato</span>
     </div>
     <div class="compare-box">
       <div class="compare-header">
-        <div>Objavljena tvrdnja u medijima</div>
-        <div>Fizičko merenje stanica BEOPS-a</div>
+        <div>Naslov sa procenjenom lokacijom u Beogradu</div>
+        <div>Odvojeni kontekst mernih stanica</div>
       </div>
       __COMPARE_ROWS_HTML__
     </div>
@@ -422,6 +423,87 @@ def render_events(events_data):
     return '\n'.join(rows)
 
 
+def headline_air_context(rows, as_of):
+    """Partition headlines before they can be placed beside local instruments."""
+    def air_topic(title):
+        title = str(title or '').casefold()
+        # 'smog' inside Kosmogenit, or water pollution without air, is unrelated.
+        direct = re.search(r'\b(?:pm\s*(?:2[.,]5|10)|smog(?:a|u|om)?|смог(?:а|у|ом)?|aerozaga[đd]\w*|аерозагађ\w*)\b', title)
+        air = re.search(r'\b(?:vazduh\w*|ваздух\w*)\b', title)
+        quality = re.search(r'\b(?:zaga[đd]\w*|загађ\w*|kvalitet\w*|квалитет\w*)\b', title)
+        return bool(direct or air and quality)
+    air = [r for r in rows if isinstance(r, dict) and
+           air_topic(r.get('title'))]
+    air.sort(key=lambda row: str(row.get('received') or row.get('published') or ''), reverse=True)
+
+    def stamp(value):
+        try:
+            point = datetime.fromisoformat(str(value).replace('Z', '+00:00'))
+            return point.timestamp() if point.tzinfo else None
+        except (ValueError, TypeError, OverflowError):
+            return None
+
+    cutoff = stamp(as_of)
+    local, excluded = [], []
+    for row, geo in zip(air, locate_headlines(air)):
+        reason = None
+        if not local_estimate(geo):
+            reason = {'serbia': 'šira Srbija ili drugo mesto u Srbiji',
+                      'outside': 'lokacija van Srbije',
+                      'unknown': 'lokacija nije dovoljno određena'}.get(geo.get('scope'),
+                                                                         'lokacija nije dovoljno određena')
+            if geo.get('status') == 'ambiguous':
+                reason = 'više mogućih lokacija'
+        else:
+            # Recency is of the publication/receipt, never of the event itself.
+            published = stamp(row.get('published'))
+            received = stamp(row.get('received'))
+            clock = published if row.get('published') else received
+            if cutoff is None or clock is None or (received is not None and received > cutoff):
+                reason = 'vreme naslova nije potvrđeno u ovom preseku'
+            elif not 0 <= cutoff - clock <= 24 * 3600:
+                reason = 'objava/prijem van poslednja 24 sata ovog preseka'
+        item = {'row': row, 'geo': geo, 'reason': reason}
+        (excluded if reason else local).append(item)
+    return local, excluded
+
+
+def render_air_context(rows, as_of, measured_txt):
+    local, excluded = headline_air_context(rows, as_of)
+    html = []
+    for item in local[:2]:
+        row, geo = item['row'], item['geo']['estimate']
+        radius = geo.get('radius_m')
+        radius_text = f" · okvirni poluprečnik {radius / 1000:g} km" if isinstance(radius, (int, float)) and math.isfinite(radius) else ''
+        html.append(f'''<div class="compare-row">
+          <div class="compare-side">
+            <b><a href="{safe_url(row.get('link'))}" target="_blank" rel="noopener">{escape(str(row.get('title') or ''))}</a></b>
+            <span>Izvor: {escape(str(row.get('source') or ''))} · {headline_dates(row)} (sačuvan naslov, vreme objave nije vreme događaja)</span>
+            <span>Procenjena lokacija: {escape(str(geo.get('name') or 'Beograd'))}{radius_text}. Procena iz naslova.</span>
+          </div>
+          <div class="compare-side">
+            <b>{measured_txt}</b>
+            <span>Odvojeni lokalni kontekst. Ista lokacija i vreme događaja nisu potvrđeni; merenje ne potvrđuje niti opovrgava naslov. <a href="#pm25-dokazi">Vrednosti i vremena upotrebljeni za ovaj prosek →</a></span>
+          </div>
+        </div>''')
+    if not local:
+        html.append('''<div class="compare-row"><div class="compare-side">
+          <b>Nema naslova o vazduhu iz poslednja 24 sata sa dovoljno određenom lokacijom u Beogradu.</b>
+          <span>To nije potvrda da događaja nema.</span></div><div class="compare-side">
+          <b>Merenja ostaju zaseban zapis.</b><span><a href="#pm25-dokazi">Vrednosti i vremena merenja →</a></span>
+          </div></div>''')
+    html.append(f'<p class="event-src">Prostorni i vremenski obuhvat: {len(local)} lokalnih naslova; {len(excluded)} izdvojeno bez poređenja sa beogradskim stanicama. Vreme objave/prijema služi izboru naslova, ne utvrđivanju vremena događaja.</p>')
+    if excluded:
+        html.append('<details><summary>Naslovi izvan lokalnog poređenja · najviše pet poslednjih</summary><ul>')
+        for item in excluded[:5]:
+            row = item['row']
+            html.append(f'''<li><a href="{safe_url(row.get('link'))}" target="_blank" rel="noopener">{escape(str(row.get('title') or ''))}</a>
+              <span class="evidence-meta">Izvor: {escape(str(row.get('source') or ''))} · {headline_dates(row)}; vreme objave nije vreme događaja.
+              Razlog izdvajanja: {escape(item['reason'])}.</span></li>''')
+        html.append('</ul><p><a href="naslovi.html">Cela arhiva naslova →</a></p></details>')
+    return '\n'.join(html)
+
+
 def format_citizen_page():
     city_overview = read_json(DOCS / "city-overview.json") or read_json(PUBLIC / "city-overview.json") or {}
     snapshot = city_overview.get("snapshot", {})
@@ -498,54 +580,15 @@ def format_citizen_page():
 
     events_list_html = render_events(events_data)
 
-    # Blok 4: Rečeno / Izmereno — stvarni sačuvani naslovi pored stvarnog merenja.
-    # Strana ne presuđuje: pokazuje obe strane i vodi na instrument. Presuda bez analize bila bi izmišljanje.
+    # Headlines enter local context only through the same geography used by the map.
     headlines_data = read_json(PUBLIC / "headlines.json") or {}
-    # "vazduh" sam po sebi hvata avijaciju ("u vazduhu"); traže se reči kvaliteta vazduha
-    air_words = ("zagađ", "zagadj", "smog", "pm2", "pm10", "aerozagađ", "aerozagadj",
-                 "kvalitet vazduha", "kvalitetu vazduha", "kvaliteta vazduha")
-    air_rows = [r for r in headlines_data.get("rows", [])
-                if any(w in (r.get("title") or "").lower() for w in air_words)]
-    air_rows.sort(key=lambda r: r.get("received") or "", reverse=True)
 
     if avg_pm25 is not None:
         measured_txt = f"Merne stanice u zapisu beleže srednji PM2.5 od {avg_pm25} µg/m³ ({as_of_label})."
     else:
         measured_txt = "PM2.5 očitavanja trenutno nisu u zapisu."
 
-    compare_rows = [
-        {"headline": f"„{r.get('title', '')}”", "source": r.get("source", ""), "measured": measured_txt,
-         "url": safe_url(r.get('link')), "dates": headline_dates(r)}
-        for r in air_rows[:2]
-    ]
-    compare_html = []
-    for cr in compare_rows:
-        compare_html.append(f"""
-        <div class="compare-row">
-          <div class="compare-side">
-            <b><a href="{cr['url']}" target="_blank" rel="noopener">{escape(str(cr['headline']))}</a></b>
-            <span>Izvor: {escape(str(cr['source']))} · {cr['dates']} (sačuvan naslov, vreme objave nije vreme događaja)</span>
-          </div>
-          <div class="compare-side">
-            <b>{cr['measured']}</b>
-            <span>Status: bez presude. <a href="#pm25-dokazi">Vrednosti i vremena upotrebljeni za ovaj prosek →</a></span>
-          </div>
-        </div>
-        """)
-    if not compare_html:
-        compare_html.append("""
-        <div class="compare-row">
-          <div class="compare-side">
-            <b>U evidenciji nema svežih naslova o vazduhu za poređenje.</b>
-            <span>Ćutanje izvora je zapis, ne kvar.</span>
-          </div>
-          <div class="compare-side">
-            <b>Sva sačuvana merenja i naslovi stoje u instrumentu.</b>
-            <span><a href="obrasci.html">Otvori poređenje →</a></span>
-          </div>
-        </div>
-        """)
-    compare_rows_html = "\n".join(compare_html)
+    compare_rows_html = render_air_context(headlines_data.get('rows', []), as_of, measured_txt)
 
     # Blok 5 metrike — izmereno, ne ukucano: sati iz watch.json, izvori iz registra
     registry = read_json(RESEARCH / "SOURCE_REGISTRY.json") or {}

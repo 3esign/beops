@@ -103,8 +103,38 @@ class BareScreen(unittest.TestCase):
             self.assertNotIn(bad, self.text, "an absent quantity was rendered as zero: %r" % bad)
         self.assertIn("—", self.text, "nothing was marked absent on a page with an empty record")
 
-    def test_the_empty_blocks_say_silence_is_a_record(self):
-        self.assertIn("ćutanje izvora je zapis", self.text.lower())
+    def test_empty_headline_context_discloses_coverage_without_claiming_no_events(self):
+        context = self.html.split('<!-- BLOK 4:', 1)[1].split('id="pm25-dokazi"', 1)[0]
+        text = visible_text(context)
+        self.assertIn('Nema naslova o vazduhu iz poslednja 24 sata sa dovoljno određenom lokacijom u Beogradu', text)
+        self.assertIn('To nije potvrda da događaja nema', text)
+        self.assertIn('Merenja ostaju zaseban zapis', text)
+        self.assertIn('0 lokalnih naslova; 0 izdvojeno', text)
+        self.assertIn('href="#pm25-dokazi"', context)
+        self.assertNotIn('Merne stanice u zapisu beleže', context)
+        self.assertNotIn('Procenjena lokacija:', context)
+
+    def test_unknown_headline_location_remains_excluded_despite_available_local_measurement(self):
+        snapshot = {'snapshot': {'as_of': '2026-09-26T12:00:00Z', 'sources': [
+            {'sid': 'S146', 'datastreams': [{'station': 'A', 'parameter': 'PM2.5', 'unit': 'µg/m³',
+              'points': [{'t': '2026-09-26T11:00:00Z', 'v': 17.0}]}]}]}}
+        headline = {'title': 'Smog u gradu', 'source': 'Beogradska redakcija',
+                    'link': 'https://example.org/smog', 'published': '2026-09-26T11:00:00Z',
+                    'received': '2026-09-26T11:30:00Z'}
+        with tempfile.TemporaryDirectory() as tmp:
+            html = build_against(tmp, docs={'city-overview.json': snapshot},
+                                 public={'headlines.json': {'rows': [headline]}})
+        self.assertIn('prosek 17.0 µg/m³ iz 1 serije', visible_text(html))
+        context = html.split('<!-- BLOK 4:', 1)[1].split('id="pm25-dokazi"', 1)[0]
+        local_context, excluded = context.split('<details>', 1)
+        self.assertNotIn(headline['title'], local_context)
+        self.assertIn('0 lokalnih naslova; 1 izdvojeno', local_context)
+        self.assertIn('To nije potvrda da događaja nema', local_context)
+        self.assertNotIn('Merne stanice u zapisu beleže', context)
+        self.assertNotIn('Procenjena lokacija:', context)
+        self.assertIn(headline['title'], excluded)
+        self.assertIn('href="https://example.org/smog"', excluded)
+        self.assertIn('Razlog izdvajanja: lokacija nije dovoljno određena', excluded)
 
 
 class PartialRecord(unittest.TestCase):

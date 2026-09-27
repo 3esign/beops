@@ -17,6 +17,9 @@ file. The rules for contributing are in [../CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ## Start here
 
+- **[Resource accounting](RESOURCE_ACCOUNTING.md)** — active process/HTTP/provider-token receipts, historical reporting coverage and explicit energy/cost gaps; partial Beops measurement, not whole-host billing.
+- **[Impulse map study](IMPULSE_MAP.md)** — source-identity deduplication, separate clocks, sourced location estimates with radius, geographic scope and exact cited AI anchors; local day/week/month study, not a citywide activity census.
+
 - **Presek za nastavak, 14.09.2026. u 16:03 UTC (private working record)** — Windows repair and full local R02/R03/R04 evidence; R05 candidate9 still running, public activation paused, exact next steps and remaining limits.
 - **R02 measured implementation and current verification (private working record)** — fixed source, hash-verified frozen inputs, independent row counts, phase timings, one Python runtime and processing deadline. Windows publication priority is applied and all nine task settings match. Complete candidate/publication evidence remains explicit; R03 follows the verified R02 deliverable.
 - **Reviewed R02/R03/R04 publication operation (private working record)** — complete local candidate evidence and the concrete public operation awaiting confirmation after automatic review rejection; not a claim of public deployment.

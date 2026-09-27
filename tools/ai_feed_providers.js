@@ -18,12 +18,15 @@ function monologueSchema(factIds) {
 const svemirRoot=()=>process.env.BEOPS_SVEMIR_ROOT||'C:/Svemir';
 function persona(url){return require(path.join(svemirRoot(),'lib/incognito.js')).headers(url);}
 async function request(url,body,headers={},timeout=110000){
+  const resources=require('./resource_meter'),meter=resources.httpAttempt();let size=0;
+  try{
   const r=await fetch(url,{method:body?'POST':'GET',headers:{...persona(url),'Content-Type':'application/json',...headers},
     body:body?JSON.stringify(body):undefined,redirect:'error',signal:AbortSignal.timeout(timeout)});
-  const reader=r.body.getReader();let size=0;const chunks=[];
+  const reader=r.body.getReader();const chunks=[];
   while(true){const x=await reader.read();if(x.done)break;size+=x.value.length;if(size>1024*1024){await reader.cancel();throw Error('provider_response_too_large');}chunks.push(Buffer.from(x.value));}
   if(!r.ok) throw Error('provider_http_'+r.status); // Never log auth headers or full error bodies.
   return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  }finally{resources.httpBody(meter,size);}
 }
 function ollamaBase(){
   const url=new URL(process.env.BEOPS_OLLAMA||'http://127.0.0.1:11434');
