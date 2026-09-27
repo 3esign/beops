@@ -135,6 +135,61 @@ class WatchmanTests(unittest.TestCase):
             json.dumps(receipt | {'at': iso(NOW-timedelta(minutes=1)), 'state': 'organ_failed'}), encoding='utf-8')
         self.assertEqual(W.mind(NOW)['state'], W.STALLED)
 
+    def test_live_run_dates_pause_evidence_after_reading_receipt_from_slow_scan(self):
+        directory, target, receipt = self.paused_mind()
+        newer = target.parent/'20260910T120017Z-observer.json'
+        clock = [NOW]
+        original_read = pathlib.Path.read_text
+
+        def slow_sources(now, persist_index=False):
+            self.assertEqual(now, NOW)
+            clock[0] = NOW + timedelta(seconds=16)
+            newer.write_text(json.dumps(receipt | {'at': iso(NOW+timedelta(seconds=17))}), encoding='utf-8')
+            return []
+
+        def read_during_tick(path, *args, **kwargs):
+            text = original_read(path, *args, **kwargs)
+            if path == newer:
+                clock[0] = NOW + timedelta(seconds=20)
+            return text
+
+        with patch.object(W, 'sources', side_effect=slow_sources), \
+                patch.object(pathlib.Path, 'read_text', new=read_during_tick), \
+                patch.object(W, 'now_utc', side_effect=lambda: clock[0]):
+            result = W.run()
+        finding = next(c for c in result['checks'] if c['check'] == 'mind')
+        self.assertEqual(finding['state'], W.PAUSED)
+        self.assertEqual(W.parse(finding['checked_at']), NOW+timedelta(seconds=20))
+        self.assertEqual(finding['receipt_at'], iso(NOW+timedelta(seconds=17)))
+        self.assertEqual(result['at'], iso(NOW))  # the run still records its start
+
+    def test_explicit_run_time_cannot_accept_a_later_pause_receipt(self):
+        directory, target, receipt = self.paused_mind()
+        newer = target.parent/'20260910T120017Z-observer.json'
+        newer.write_text(json.dumps(receipt | {'at': iso(NOW+timedelta(seconds=17))}), encoding='utf-8')
+        with patch.object(W, 'now_utc', side_effect=AssertionError('explicit time used live clock')):
+            result = W.run(NOW)
+        finding = next(c for c in result['checks'] if c['check'] == 'mind')
+        self.assertEqual(finding['state'], W.STALLED)
+        self.assertEqual(W.parse(finding['checked_at']), NOW)
+
+    def test_live_clock_keeps_strict_future_stale_and_latest_failure_checks(self):
+        directory, target, receipt = self.paused_mind()
+        newer = target.parent/'20260910T120017Z-observer.json'
+        checked = NOW+timedelta(seconds=20)
+        mutations = [
+            {'at': (checked+timedelta(microseconds=1)).isoformat()},
+            {'at': (checked-timedelta(minutes=30,microseconds=1)).isoformat()},
+            {'state': 'organ_failed'}, {'calls': 1}, {'reason': 'different pause'},
+        ]
+        for changes in mutations:
+            with self.subTest(changes=changes):
+                newer.write_text(json.dumps(receipt | {'at': iso(checked)} | changes), encoding='utf-8')
+                with patch.object(W, 'now_utc', return_value=checked):
+                    finding = W.mind()
+                self.assertEqual(finding['state'], W.STALLED)
+                self.assertEqual(W.parse(finding['checked_at']), checked)
+
     def test_a_release_lock_held_longer_than_thirty_seconds_does_not_lose_the_run(self):
         """Exercise the real lock retry after a simulated 31 s contention."""
         lock_call = 'msvcrt.locking' if os.name == 'nt' else 'fcntl.flock'

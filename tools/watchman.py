@@ -485,7 +485,7 @@ def published(now: datetime) -> dict:
                  verified_at=receipt['site_checked_at'])
 
 
-def mind(now: datetime) -> dict:
+def mind(now: datetime | None = None) -> dict:
     d = LIVE / "derived" / "mind"
     if not d.is_dir():
         return check("mind", UNKNOWN, "the mind's directory is not there")
@@ -496,7 +496,10 @@ def mind(now: datetime) -> dict:
             latest = max((d/'receipts').glob('*.json'), key=lambda p: p.name, default=None)
             receipt = json.loads(latest.read_text(encoding='utf-8-sig')) if latest else {}
             at = parse(receipt.get('at'))
-            age = (now - at).total_seconds() / 60 if at else None
+            # Live receipts may arrive during the earlier source scan or this read.
+            # Date the evidence after reading it; an explicit as-of remains strict.
+            checked_at = now if now is not None else now_utc()
+            age = (checked_at - at).total_seconds() / 60 if at else None
             if (receipt.get('schema') == 'beops-organ-receipt/v1' and receipt.get('organ') == 'mind'
                     and receipt.get('state') == 'paused' and type(receipt.get('calls')) is int
                     and receipt['calls'] == 0 and reason
@@ -505,7 +508,8 @@ def mind(now: datetime) -> dict:
                 return check('mind', PAUSED,
                     'operator pause confirmed by a recent zero-call receipt: ' + reason
                     + '; no current model output is claimed', receipt_at=receipt['at'],
-                    receipt_age_min=round(age, 1), calls=0)
+                    receipt_age_min=round(age, 1), calls=0,
+                    checked_at=checked_at.isoformat().replace('+00:00', 'Z'))
         except (OSError, ValueError, TypeError, AttributeError):
             pass  # A marker without current execution evidence cannot hide a stalled organ.
     newest = None
@@ -519,12 +523,14 @@ def mind(now: datetime) -> dict:
         return check("mind", UNKNOWN, f"the drops could not be read ({e})")
     if newest is None:
         return check("mind", UNKNOWN, "no dated drop")
-    age = mins(now, newest)
+    checked_at = now if now is not None else now_utc()
+    age = mins(checked_at, newest)
     state = OK if age <= 30 else (LATE if age <= 120 else STALLED)
     said = f"newest drop {age:.0f} min ago"
     if pause_requested:
         said += '; pause requested, but a recent matching zero-call receipt is not confirmed'
-    return check("mind", state, said, age_min=age)
+    return check("mind", state, said, age_min=age,
+                 checked_at=checked_at.isoformat().replace('+00:00', 'Z'))
 
 
 def ai_feed(now: datetime) -> dict:
@@ -600,11 +606,12 @@ def rows_did_not_shrink(cur: dict, prev: dict | None) -> dict | None:
 
 # ---------------------------------------------------------------- the run
 def run(now: datetime | None = None, persist_index: bool = False) -> dict:
-    now = now or now_utc()
+    explicit_time = now is not None
+    now = now if explicit_time else now_utc()
     cont, prev = continuity(now)
     per_source = sources(now, persist_index=persist_index)
     gated = {c.get("sid") for c in per_source if c.get("state") in (BLOCKED, PAUSED) and c.get("sid")}
-    checks = [cont, published(now), history(now), mind(now), ai_feed(now), coverage(now, gated)]
+    checks = [cont, published(now), history(now), mind(now if explicit_time else None), ai_feed(now), coverage(now, gated)]
     rt = rows_total()
     checks.append(rt)
     kept = rows_did_not_shrink(rt, prev)
