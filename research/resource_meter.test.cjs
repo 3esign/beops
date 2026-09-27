@@ -13,6 +13,31 @@ async function main(){
   assert.equal(gemini.output_tokens,4);assert.equal(gemini.reasoning_tokens,7);assert.equal(gemini.provider_total_tokens,23);
   const claude=tokenUsage({input_tokens:4,output_tokens:5,cache_read_input_tokens:11,cache_creation_input_tokens:3});
   assert.equal(claude.input_tokens,4);assert.equal(claude.cached_input_tokens,11);assert.equal(claude.provider_total_tokens,null);
+  // Actual returned CLI usage shapes (only numerical usage, no prompts or response text).
+  // Antigravity receipt 1e0aeda96b475f99ca6140a2910160e4: cache can exceed input.
+  const agy=tokenUsage({input_tokens:44037,output_tokens:18922,thinking_tokens:17994,cache_read_tokens:63404,total_tokens:62959});
+  assert.equal(agy.input_tokens,44037);assert.equal(agy.output_tokens,18922);
+  assert.equal(agy.cached_input_tokens,63404);assert.equal(agy.reasoning_tokens,17994);
+  assert.equal(agy.provider_total_tokens,62959);assert.equal(agy.cache_creation_input_tokens,null);
+  // Codex receipt 05c1950825bd26c1e7b41d11de1c4881 has no provider total.
+  const codex=tokenUsage({input_tokens:12072,cached_input_tokens:0,cache_write_input_tokens:0,output_tokens:428,reasoning_output_tokens:175});
+  assert.equal(codex.input_tokens,12072);assert.equal(codex.output_tokens,428);
+  assert.equal(codex.reasoning_tokens,175);assert.equal(codex.cache_creation_input_tokens,0);
+  assert.equal(codex.cached_input_tokens,0);assert.equal(codex.provider_total_tokens,null);
+  const cacheWrite=tokenUsage({input_tokens:4,output_tokens:5,cache_write_input_tokens:7});
+  assert.equal(cacheWrite.input_tokens,4);assert.equal(cacheWrite.cache_creation_input_tokens,7);
+  assert.equal(cacheWrite.provider_total_tokens,null);
+  const canonicalZero=tokenUsage({input_tokens:1,output_tokens:1,cached_input_tokens:0,cache_read_tokens:5,
+    output_tokens_details:{reasoning_tokens:0},reasoning_output_tokens:7,thinking_tokens:8,
+    cache_creation_input_tokens:0,cache_write_input_tokens:9});
+  assert.equal(canonicalZero.cached_input_tokens,0);assert.equal(canonicalZero.reasoning_tokens,0);
+  assert.equal(canonicalZero.cache_creation_input_tokens,0);
+  for(const usage of [{thinking_tokens:-1},{reasoning_output_tokens:'7'},{cache_read_tokens:1.5},{cache_write_input_tokens:Infinity}]){
+    const invalid=tokenUsage(usage);
+    assert.equal(invalid.reasoning_tokens,null);assert.equal(invalid.cached_input_tokens,null);
+    assert.equal(invalid.cache_creation_input_tokens,null);assert.equal(invalid.provider_total_tokens,null);
+    assert.equal(invalid.state,'unavailable');
+  }
   const result=await withMeter(root,'ai_feed',async meter=>{
     const call=meter.providerAttempt();meter.providerResponse(call,{usage:{input_tokens:7,output_tokens:3}});
     meter.providerAttempt(); // a timeout can cost tokens without returning usage
@@ -33,12 +58,17 @@ async function main(){
   const id='a'.repeat(32),at=new Date().toISOString();
   write('runtime/ai-feed/receipts/2026-'+id+'-start.json',{id,at,provider:'test',model:'fixture',state:'started'});
   write('runtime/ai-feed/receipts/2026-'+id+'-finish.json',{id,at,provider:'test',model:'fixture',state:'failed'});
-  write('runtime/ai-feed/responses/'+id+'.json',{usage:{input_tokens:100,output_tokens:20}});
+  write('runtime/ai-feed/responses/'+id+'.json',{usage:{input_tokens:100,output_tokens:20,thinking_tokens:12,cache_read_tokens:50}});
   const second=buildSummary(root);
   assert.equal(second.historical_provider_usage.all.attempts,1);
   assert.equal(second.historical_provider_usage.all.input_tokens,100);
+  assert.equal(second.historical_provider_usage.all.output_tokens,20);
+  assert.equal(second.historical_provider_usage.all.reasoning_tokens,12);
+  assert.equal(second.historical_provider_usage.all.cached_input_tokens,50);
+  assert.equal(second.historical_provider_usage.all.provider_total_tokens,null);
   assert.equal(second.historical_provider_usage.all.outcomes.failed,1);
   assert.equal(second.windows.day.tokens.input_tokens,7); // historical does not inflate current metering
+  assert.equal(second.windows.day.tokens.reasoning_tokens,null); // immutable cycle values stay as recorded
   const prior=new Date(Date.now()-8*86400000),third='b'.repeat(32);
   write('runtime/resources/receipts/'+third+'-start.json',{schema:'beops-resource-cycle/v1',id:third,activity:'collection',phase:'start',started_at:prior.toISOString()});
   const last=buildSummary(root);assert.equal(last.windows.month.started_cycles,last.windows.week.started_cycles+1);

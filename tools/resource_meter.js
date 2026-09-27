@@ -9,9 +9,11 @@ function tokenUsage(usage){
   // Keep cache reads separate: provider input counts do not share one universal billing definition.
   const input=count(u.input_tokens??u.prompt_tokens??u.promptTokenCount);
   const output=count(u.output_tokens??u.completion_tokens??u.candidatesTokenCount);
-  const cached=count(u.cached_input_tokens??u.cache_read_input_tokens??u.input_tokens_details?.cached_tokens??u.prompt_tokens_details?.cached_tokens??u.cachedContentTokenCount);
-  const reasoning=count(u.output_tokens_details?.reasoning_tokens??u.thoughtsTokenCount);
-  const cacheCreation=count(u.cache_creation_input_tokens);
+  const cached=count(u.cached_input_tokens??u.cache_read_input_tokens??u.input_tokens_details?.cached_tokens??u.prompt_tokens_details?.cached_tokens??u.cachedContentTokenCount??u.cache_read_tokens);
+  // CLI receipts use their own field names. Preserve these reported subsets separately;
+  // do not add reasoning to output or cache reads/writes to input or provider totals.
+  const reasoning=count(u.output_tokens_details?.reasoning_tokens??u.thoughtsTokenCount??u.reasoning_output_tokens??u.thinking_tokens);
+  const cacheCreation=count(u.cache_creation_input_tokens??u.cache_write_input_tokens);
   return {input_tokens:input,output_tokens:output,cached_input_tokens:cached,
     reasoning_tokens:reasoning,cache_creation_input_tokens:cacheCreation,
     provider_total_tokens:count(u.total_tokens??u.totalTokenCount),

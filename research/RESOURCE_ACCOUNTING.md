@@ -29,6 +29,15 @@ is inferred. The historical ledger covers retained attempts with per-field repor
 it overlaps new cycle totals and must never be added to them. News/mind token counts and
 qualification probes remain unavailable in this first version.
 
+The 2026-09-27 continuation corrects normalization of retained Codex CLI and Antigravity CLI
+usage fields: `reasoning_output_tokens` / `thinking_tokens`, `cache_read_tokens` and
+`cache_write_input_tokens`. These map to their corresponding separate reasoning, cache-read
+and cache-creation fields; they are never added to input or output. Existing immutable cycle
+receipts retain their original recorded amounts. Rebuilding the separate historical ledger
+can recover fields from retained responses, but does not backfill or add them to cycle totals.
+Timeout logs can contain intermediate usage without a completed provider response; such
+logs are not treated as a complete bill or silently merged into measured cycles.
+
 Electricity and money are `null`. CPU time is not energy; elapsed time is not energy.
 Physical energy readings and a declared allocation of shared host/idle work are required
 before reporting Wh. Tariff and provider billing evidence are required before reporting money.
