@@ -57,6 +57,15 @@ class CapacityRecount(unittest.TestCase):
         self.assertEqual(capacity['reserve_bytes'], 2 * 1024 ** 3)
         self.assertEqual(guard.call_args_list, [call(self.root, self.estimate, self.source_bytes),
                                                call(self.root, exact, self.source_bytes)])
+        receipt = json.loads((self.source/'runtime/release-capacity.json').read_text())
+        self.assertEqual(receipt['schema'], S.CAPACITY_SCHEMA)
+        self.assertEqual(receipt['formula'], S.CAPACITY_FORMULA)
+        self.assertEqual(receipt['source'], str(self.source))
+        self.assertEqual(receipt['release_parent'], str(self.root))
+        self.assertTrue(receipt['admitted'])
+        self.assertEqual(receipt['input_bytes'], exact)
+        self.assertEqual(receipt['input_bytes_from'], 'live_stat_scan')
+        self.assertEqual(receipt['required_bytes'], required)
 
     def test_fresh_growth_still_refuses_without_third_attempt(self):
         exact = self.estimate + 1000
@@ -69,6 +78,11 @@ class CapacityRecount(unittest.TestCase):
         scan.assert_called_once_with(self.source, use_cached=False)
         self.assertEqual(guard.call_args_list, [call(self.root, self.estimate, self.source_bytes),
                                                call(self.root, exact, self.source_bytes)])
+        receipt = json.loads((self.source/'runtime/release-capacity.json').read_text())
+        self.assertFalse(receipt['admitted'])
+        self.assertEqual(receipt['input_bytes'], exact)
+        self.assertEqual(receipt['free_bytes'], available)
+        self.assertEqual(receipt['required_bytes'], 4*exact + 3*self.source_bytes + S.RESERVE_BYTES)
 
     def test_exact_or_unknown_origin_does_not_retry_a_refusal(self):
         for origin in ['live_stat_scan', 'unrecognized-estimate']:

@@ -7,10 +7,18 @@ from datetime import datetime, timezone
 
 GIB = 1024 ** 3
 RESERVE_BYTES = 2 * GIB
+CAPACITY_SCHEMA = 'beops-release-capacity/v1'
+CAPACITY_FORMULA = '4*input_bytes+3*source_bytes+reserve_bytes'
+CAPACITY_MAX_AGE_SECONDS = 90 * 60
+CAPACITY_MAX_RECEIPT_BYTES = 16 * 1024
 
 
 class ReleaseCapacityError(RuntimeError):
     """The measured free space cannot satisfy the release allocation and reserve."""
+
+    def __init__(self, message, capacity=None):
+        super().__init__(message)
+        self.capacity = capacity
 
 
 def nearest_existing(path):
@@ -20,8 +28,68 @@ def nearest_existing(path):
     return path
 
 
-def inspect(root, disk_usage=None):
+def release_capacity_check(root, releases, disk_usage, now):
+    """Reuse a recent allocation measurement; never walk the input archive.
+
+    Input sizes describe this source, independent of the previous workspace's
+    parent. Read current free space on the configured release volume, including
+    when an operator's previous retained workspace used another parent.
+    """
+    check = {'name': 'release-capacity', 'path': str(releases), 'state': 'WARN'}
+    receipt = root/'runtime/release-capacity.json'
+    try:
+        with receipt.open('rb') as stream:
+            raw = stream.read(CAPACITY_MAX_RECEIPT_BYTES + 1)
+    except FileNotFoundError:
+        return dict(check, why='release allocation not measured; free-space floor only')
+    except OSError as exc:
+        return dict(check, state='UNKNOWN', why='release capacity receipt unreadable: '+type(exc).__name__)
+    try:
+        if len(raw) > CAPACITY_MAX_RECEIPT_BYTES:
+            raise ValueError('oversized receipt')
+        measured = json.loads(raw)
+        if not isinstance(measured, dict) or measured.get('schema') != CAPACITY_SCHEMA:
+            raise ValueError('unexpected schema')
+        if pathlib.Path(measured['source']).resolve() != root:
+            raise ValueError('source mismatch')
+        if not pathlib.Path(measured['release_parent']).is_absolute():
+            raise ValueError('relative release parent')
+        for name in ('input_bytes', 'source_bytes', 'free_bytes', 'required_bytes', 'reserve_bytes'):
+            if type(measured[name]) is not int or measured[name] < 0:
+                raise ValueError('invalid byte count')
+        if (measured['formula'] != CAPACITY_FORMULA or measured['reserve_bytes'] != RESERVE_BYTES
+                or measured['required_bytes'] != 4*measured['input_bytes'] + 3*measured['source_bytes'] + RESERVE_BYTES):
+            raise ValueError('allocation formula mismatch')
+        if (type(measured['admitted']) is not bool
+                or measured['admitted'] != (measured['free_bytes'] >= measured['required_bytes'])):
+            raise ValueError('admission outcome mismatch')
+        at = datetime.fromisoformat(measured['at'])
+        if at.tzinfo is None:
+            raise ValueError('timestamp has no timezone')
+        age = (now - at).total_seconds()
+        if age < -60:
+            raise ValueError('future measurement')
+        check.update(measured_at=measured['at'], measurement_age_seconds=max(0, round(age)),
+                     measured_release_parent=measured['release_parent'],
+                     measured_admitted=measured['admitted'], required_bytes=measured['required_bytes'],
+                     reserve_bytes=RESERVE_BYTES)
+    except (ValueError, TypeError, KeyError, OverflowError, OSError) as exc:
+        return dict(check, state='UNKNOWN', why='invalid release capacity receipt: '+type(exc).__name__)
+    if age > CAPACITY_MAX_AGE_SECONDS:
+        return dict(check, why='release allocation measurement older than 90 minutes; readiness unknown')
+    try:
+        available = disk_usage(nearest_existing(releases)).free
+    except OSError as exc:
+        return dict(check, state='UNKNOWN', why='release volume unreadable: '+type(exc).__name__)
+    fits = available >= measured['required_bytes']
+    return dict(check, state='OK' if fits else 'WARN', free_bytes=available,
+                why=('current free space fits' if fits else 'current free space below')
+                + ' the recent measured release allocation including 2 GiB reserve')
+
+
+def inspect(root, disk_usage=None, now=None):
     disk_usage = disk_usage or shutil.disk_usage
+    now = now or datetime.now(timezone.utc)
     root = pathlib.Path(root).resolve()
     mirror = pathlib.Path(os.environ.get('BEOPS_PUBLIC_ROOT') or root.parent/'Beops-public').resolve()
     releases = pathlib.Path(os.environ.get('BEOPS_RELEASE_ROOT') or root.parent/'_runtime/beops-releases').resolve()
@@ -31,9 +99,10 @@ def inspect(root, disk_usage=None):
             usage = disk_usage(nearest_existing(target))
             checks.append({'name': name, 'path': str(target), 'free_bytes': usage.free,
                            'state': 'WARN' if usage.free < 5 * GIB else 'OK',
-                           'why': 'less than 5 GiB free; publication must retain 2 GiB' if usage.free < 5 * GIB else 'capacity available'})
+                           'why': 'less than 5 GiB free; publication must retain 2 GiB' if usage.free < 5 * GIB else 'basic free-space floor available'})
         except OSError as exc:
             checks.append({'name': name, 'path': str(target), 'state': 'UNKNOWN', 'why': type(exc).__name__})
+    checks.append(release_capacity_check(root, releases, disk_usage, now))
     for name in ('MAINTENANCE', 'PUBLISH_PAUSED'):
         marker = root/'runtime'/name
         if marker.exists():
@@ -51,9 +120,10 @@ def require_release_capacity(parent, input_bytes, source_bytes=0, disk_usage=Non
     # Reserve remains free after this conservative working allocation.
     required = 4 * input_bytes + 3 * source_bytes + RESERVE_BYTES
     available = disk_usage(nearest_existing(parent)).free
+    capacity = {'free_bytes': available, 'required_bytes': required, 'reserve_bytes': RESERVE_BYTES}
     if available < required:
-        raise ReleaseCapacityError(f'release disk space insufficient: {available} free bytes, {required} required including 2 GiB reserve')
-    return {'free_bytes': available, 'required_bytes': required, 'reserve_bytes': RESERVE_BYTES}
+        raise ReleaseCapacityError(f'release disk space insufficient: {available} free bytes, {required} required including 2 GiB reserve', capacity)
+    return capacity
 
 
 if __name__ == '__main__':

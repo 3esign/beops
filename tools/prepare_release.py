@@ -17,7 +17,8 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from contracts import atomic_json, exclusive
-from storage_health import ReleaseCapacityError, require_release_capacity
+from storage_health import (CAPACITY_FORMULA, CAPACITY_SCHEMA,
+                            ReleaseCapacityError, require_release_capacity)
 from release_observation import is_observation_path
 
 STATE_KEY_PATTERN = re.compile(
@@ -230,19 +231,34 @@ def release_capacity(source, parent, input_bytes, input_bytes_from, source_bytes
     current input inventory can fit. A fresh stat walk supplies a new estimate
     to the same guard. Scan/storage errors and an exact refusal still fail.
     """
+    def record(capacity, admitted):
+        atomic_json(source/'runtime/release-capacity.json', {
+            'schema': CAPACITY_SCHEMA, 'at': datetime.now(timezone.utc).isoformat(),
+            'source': str(pathlib.Path(source).resolve()),
+            'release_parent': str(pathlib.Path(parent).resolve()),
+            'input_bytes': input_bytes, 'input_bytes_from': input_bytes_from,
+            'source_bytes': source_bytes, 'formula': CAPACITY_FORMULA,
+            'admitted': admitted, **capacity})
+
     try:
-        capacity = require_release_capacity(parent, input_bytes, source_bytes)
-    except ReleaseCapacityError:
-        if input_bytes_from != CAPACITY_CACHED_ORIGIN:
-            raise
-        started = time.monotonic()
-        trace_phase('capacity recount', 'start', cached_input_bytes=input_bytes,
-                    source_bytes=source_bytes)
-        input_bytes, input_bytes_from = estimate_release_input_bytes(source, use_cached=False)
-        capacity = require_release_capacity(parent, input_bytes, source_bytes)
-        trace_phase('capacity recount', 'end', round(time.monotonic()-started, 3),
-                    input_bytes=input_bytes, input_bytes_from=input_bytes_from,
-                    source_bytes=source_bytes)
+        try:
+            capacity = require_release_capacity(parent, input_bytes, source_bytes)
+        except ReleaseCapacityError:
+            if input_bytes_from != CAPACITY_CACHED_ORIGIN:
+                raise
+            started = time.monotonic()
+            trace_phase('capacity recount', 'start', cached_input_bytes=input_bytes,
+                        source_bytes=source_bytes)
+            input_bytes, input_bytes_from = estimate_release_input_bytes(source, use_cached=False)
+            capacity = require_release_capacity(parent, input_bytes, source_bytes)
+            trace_phase('capacity recount', 'end', round(time.monotonic()-started, 3),
+                        input_bytes=input_bytes, input_bytes_from=input_bytes_from,
+                        source_bytes=source_bytes)
+    except ReleaseCapacityError as exc:
+        if exc.capacity is not None:
+            record(exc.capacity, False)
+        raise
+    record(capacity, True)
     return capacity, input_bytes, input_bytes_from
 
 
