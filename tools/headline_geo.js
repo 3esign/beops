@@ -3,13 +3,13 @@
 // an editorial place-scale buffer, never a confidence interval or a boundary.
 const fs=require('node:fs');
 const gazetteer=require('./headline_places.json');
-const VERSION='headline-place-rules/1';
+const VERSION='headline-place-rules/2';
 const CYR='абвгдђежзијклљмнњопрстћуфхцчџш';
 const LAT=['a','b','v','g','d','dj','e','z','z','i','j','k','l','lj','m','n','nj','o','p','r','s','t','c','u','f','h','c','c','dz','s'];
 function normalize(text){return String(text||'').toLowerCase().replace(/[а-яђјљњћџ]/g,c=>LAT[CYR.indexOf(c)]||c).replace(/đ/g,'dj').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();}
 const escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const compiled=gazetteer.places.map(p=>({...p,patterns:[...new Set(p.aliases.map(normalize))].sort((a,b)=>b.length-a.length).map(a=>({alias:a,re:new RegExp('(?:^| )('+escape(a)+')(?= |$)','g')}))}));
-const domesticContexts=[['Srbija',['srbija','srbiji','srbije','srbiju']],['Vojvodina',['vojvodina','vojvodini','vojvodine']],['Šumadija',['sumadija','sumadiji','sumadije']]];
+const domesticContexts=[['Srbija',['srbija','srbiji','srbije','srbiju']],['Vojvodina',['vojvodina','vojvodini','vojvodine']],['Šumadija',['sumadija','sumadiji','sumadije']],['Fruška gora',['fruska gora','fruskoj gori','fruske gore']]];
 const foreignContexts=[
  ['Rusija',['rusija','rusiji','rusije','rusiju']],['Ukrajina',['ukrajina','ukrajini','ukrajine','ukrajinu']],
  ['SAD',['sad','amerika','americi','amerike','ameriku','sjedinjene americke drzave','sjedinjenim americkim drzavama']],
@@ -55,7 +55,8 @@ function cueFor(text,match,original){
   if(match.place.id==='nis'&&/\bNIS(?:\b|-)/.test(original)&&!/[Нн][Ии][Шш]|[Nn][Ii][Šš]/.test(original))return {ok:false,reason:'company_acronym_not_city'};
   if(/(?:ulici|ulica|bulevaru|bulevar|trgu|trg) $/.test(before)&&match.place.precision==='city')return {ok:false,reason:'street_name_not_city'};
   if(/(?:fk|kk|ok|rk|ofk|klub|klubu|kluba|ekipa|ekipe|tim|tima|univerzitet|univerziteta|univerzitetu) $/.test(before))return {ok:false,reason:'institution_or_team_name'};
-  if(/(?:^| )(?:fakultet[a-z]*|univerzitet[a-z]*|institut[a-z]*|ambasad[a-z]*|bolnic[a-z]*) u $/.test(before))return {ok:false,reason:'institution_location_not_event_site'};
+  if(/(?:^| )(?:fakultet[a-z]*|univerzitet[a-z]*|institut[a-z]*|ambasad[a-z]*|bolnic[a-z]*|sud[a-z]*|tuzilastv[a-z]*|vjt|vijt|ojt|pmf(?: a)?|dif(?: a)?|ftn(?: a)?) u $/.test(before))return {ok:false,reason:'institution_location_not_event_site'};
+  if(/\b(?:sudjenje|sudjenja|sudjenju|svedok|svedoci)\b/.test(text)&&/\bdoma za stare u $/.test(before))return {ok:false,reason:'institution_location_not_event_site'};
   if(/(?:^| )(?:iz|od|za|protiv) $/.test(before))return {ok:false,reason:'origin_destination_or_entity_not_event_site'};
   const cue=before.match(/(?:^| )(u|na|kod|oko|blizu)(?: (?:centru|okolini|opstini|naselju|delu|podrucju|teritoriji|blizini|gradu|gradskom naselju))?(?: (?:beogradskoj|beogradskom))? $/);
   if(!cue)return {ok:false,reason:'name_mention_without_event_location_cue'};
@@ -78,13 +79,16 @@ function locateHeadline(input){
   const base={scope:'unknown',status:matches.length?'ambiguous':'unknown',estimate:null,candidates:[...candidates,...contexts],method:VERSION,gazetteer_version:gazetteer.version,limitation:'Headline-only inference, not verified event location. Radius is a disclosed place-scale approximation, not a boundary or probability.'};
   const eligible=candidates.filter(c=>c.eligible&&c.coordinates);
   // A route or two distinct places must not silently collapse onto one endpoint.
-  const route=/\b(?:izmedju|deonic[a-z]*|tras[a-z]*|relacij[a-z]*)\b/.test(text)||(/\b(?:put|puta|putu|pruga|pruge|pruzi|autoput[a-z]*)\b/.test(text)&&new Set(candidates.map(c=>c.place_id)).size>1);
+  // A changed transit route within one named district still locates that broad
+  // district. Multiple named endpoints must never collapse onto one of them.
+  const route=/\b(?:izmedju|deonic[a-z]*|relacij[a-z]*)\b/.test(text)||(/\b(?:tras[a-z]*|put|puta|putu|pruga|pruge|pruzi|autoput[a-z]*)\b/.test(text)&&new Set(candidates.map(c=>c.place_id)).size>1);
   const coordinated=candidates.some((c,i)=>i>0&&c.place_id!==candidates[i-1].place_id&&/^(?: i | , |, | i u | i na )$/.test(text.slice(candidates[i-1].normalized_span[1],c.normalized_span[0])));
   if((route||coordinated)&&candidates.length){base.reason='route_or_multiple_locations';return base;}
   const unique=[...new Map(eligible.map(c=>[c.place_id,c])).values()];
   const specific=unique.filter(c=>c.place_id!=='beograd');
   // A citywide incident digest is not wholly situated at the one named detail.
-  const roundup=/\b(?:noc u beogradu|tokom noci u beogradu|nocas u beogradu)\b/.test(text)&&matches.some(m=>m.place.id!=='beograd')&&/[,:;]/.test(original);
+  const cityRoundup=/\b(?:noc u beogradu|tokom noci u beogradu|nocas u beogradu)\b/.test(text)||/\b(?:vise|nekoliko|[0-9]+|dve|tri|cetiri|pet|sest|sedam|osam|devet|deset) opstin[a-z]*\b/.test(text)&&hasBelgrade;
+  const roundup=cityRoundup&&matches.some(m=>m.place.id!=='beograd')&&/[,:;]/.test(original);
   if(roundup){base.status='ambiguous';base.reason='multiple_incidents_in_city_roundup';return base;}
   const choices=unique.some(c=>c.place_id==='beograd')&&specific.length&&specific.every(c=>c.scope==='belgrade')?specific:unique;
   const contextualLocation=c=>{

@@ -68,6 +68,20 @@ test('resource projection preserves missing energy and future finishes without a
   assert.equal(resources.coverage.invalid_receipt_files,undefined);
  }finally{cleanup(root)}
 });
+test('official venue export preserves address and coordinate evidence without becoming a headline or AI anchor',async()=>{
+ const root=fixture();try{
+  const event={id:'show',title:'Official programme',url:'https://www.kolarac.rs/koncerti/test/',source_id:'S225',source:'Kolarac',verified:true,classification:'official-repertoire',event_start:'2026-09-28T16:00:00Z',location:'Velika dvorana',provenance:{received_at:'2026-09-27T11:00:00Z',url:'https://www.kolarac.rs/koncerti/',raw_sha256:'f'.repeat(64),source_label:'Official programme Velika dvorana'}};
+  write(root,'data/live/derived/events/repertoire.json',{state:'available',sources:[{source_id:'S225',name:'Kolarac',state:'available',received_at:event.provenance.received_at,url:'https://www.kolarac.rs/koncerti/'}],events:[event]});
+  await buildPage(root,{asOf:at});const items=readImpulses(root).items,venue=items.find(i=>i.kind==='scheduled_event');
+  assert.equal(venue.geo.scope,'belgrade');assert.equal(venue.point,null);assert.equal(venue.location_estimate,null);
+  assert.equal(venue.venue_location.precision,'venue');assert.equal(venue.venue_location.radius_m,120);
+  assert.match(venue.venue_location.evidence.source_url,/openstreetmap.org/);
+  assert.equal(venue.venue_location.address_evidence.source_url,'https://www.kolarac.rs/kontakt/');
+  assert.match(venue.venue_location.address_evidence.raw_sha256,/^[a-f0-9]{64}$/);
+  const view=read(root,'docs/impulse-data/view-data.json');assert.equal(view.calendar_sources[0].source_id,'S225');
+  assert.equal(view.view.day.counts.headline_mentions,4);
+ }finally{cleanup(root)}
+});
 test('AI proof contains cited facts and review flags but no raw packet, prompt, route, unused fact or reasoning',async()=>{
  const root=fixture();try{
   await buildPage(root,{asOf:at});const proof=read(root,'docs/impulse-data/ai-evidence/'+id+'.json'),text=JSON.stringify(proof);

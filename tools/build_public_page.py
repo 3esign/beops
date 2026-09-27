@@ -390,14 +390,24 @@ def render_claim_evidence(air, roadworks):
 
 
 def render_events(events_data):
-    """A single official schedule never becomes a claim of citywide corroboration."""
+    """Source-specific schedules never become a claim of citywide corroboration."""
     events = events_data.get('events', [])
     scheduled = [ev for ev in events if ev.get('state') == 'forecast' and ev.get('event_status') == 'scheduled' and ev.get('verified') is True and ev.get('event_start')]
     signals = [ev for ev in events if ev.get('state') == 'untimed' and ev.get('verified') is False]
-    rows = ['<h3>Najavljeni termini · Kolarac</h3>',
-            '<p class="event-src">Jedan zvanični repertoar. Termin je preuzet iz izvora; održavanje, dostupnost mesta i kraj nisu potvrđeni. Ovo nije potpun kalendar grada.</p>']
-    received = (events_data.get('repertoire') or {}).get('received_at')
-    if received:
+    rows = ['<h3>Najavljeni termini · zvanični programi</h3><p class="event-src"><a href="impulsi.html?layer=venues&amp;window=month">Programi na mapi · narednih 30 dana →</a></p>',
+            '<p class="event-src">Termini iz programa ustanova. Održavanje, dostupnost mesta i kraj nisu potvrđeni. Svaki izvor ima zasebnu svežinu; ovo nije potpun kalendar grada.</p>']
+    repertoire = events_data.get('repertoire') or {}
+    received = repertoire.get('received_at')
+    sources = repertoire.get('sources') or []
+    if sources:
+        rows.append('<ul class="event-src" aria-label="Izvori programa i poslednji prijem">')
+        for src in sources:
+            status = {'available': 'program pročitan', 'partial': 'delimično dostupan',
+                      'unavailable': 'trenutno nedostupan', 'stale': 'zastareo',
+                      'blocked': 'pristup nije dozvoljen'}.get(src.get('state'), 'stanje nije potvrđeno')
+            rows.append(f'<li><a href="{safe_url(src.get("url"))}" target="_blank" rel="noopener">{escape(str(src.get("name") or src.get("source_id")))}</a> · {status} · prijem: {escape(str(src.get("received_at") or "nepoznat"))}</li>')
+        rows.append('</ul><p class="event-src"><a href="events.json">Svi termini i poreklo →</a></p>')
+    elif received:
         rows.append(f'<p class="event-src">Izvor pročitan: {escape(str(received))}. <a href="events.json">Zapisi i poreklo →</a></p>')
     for ev in scheduled[:6]:
         try:

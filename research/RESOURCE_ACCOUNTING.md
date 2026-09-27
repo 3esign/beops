@@ -42,6 +42,15 @@ Electricity and money are `null`. CPU time is not energy; elapsed time is not en
 Physical energy readings and a declared allocation of shared host/idle work are required
 before reporting Wh. Tariff and provider billing evidence are required before reporting money.
 
+The public account also derives ratios from the same retained window: finished cycles / starts,
+mean CPU and elapsed seconds / finished cycles (all recorded outcomes), reported HTTP bodies /
+attempts, and mean decoded bytes / reported bodies. Token reporting coverage is reported calls /
+counted calls only; cycles whose call count is unknown remain explicitly separate. A missing or
+zero denominator yields `null`, never zero or 100%. These are descriptions of recorded work,
+not efficiency scores, whole-machine coverage, energy estimates or billable totals. Activity
+breakdowns use the same formulas and window, so a calendar refresh is not compared to AI work
+as though the two cycles did the same job.
+
 Measurement sources: [Node process CPU and memory](https://nodejs.org/api/process.html),
 [Python process time](https://docs.python.org/3/library/time.html#time.process_time).
 Recorder overhead includes writing the start receipt, but excludes the finish write and

@@ -57,8 +57,20 @@ class CitizenEvidence(unittest.TestCase):
         self.assertIn('11.10.2026. u 16:00', html)
         self.assertLess(html.index('Концерт'), html.index('Signali iz naslova'))
         self.assertGreater(html.index('Radovi na mostu'), html.index('Signali iz naslova'))
-        self.assertIn('Jedan zvanični repertoar', html)
+        self.assertIn('Svaki izvor ima zasebnu svežinu', html)
         self.assertIn('Nema budućih termina', render_events({}))
+
+    def test_each_calendar_source_discloses_its_own_state_and_receipt(self):
+        html = render_events({'events': [], 'repertoire': {'sources': [
+            {'source_id': 'S225', 'name': 'Kolarac', 'url': 'https://www.kolarac.rs/',
+             'state': 'available', 'received_at': '2026-09-27T07:00:00Z'},
+            {'source_id': 'S226', 'name': '<Untrusted>', 'url': 'javascript:alert(1)',
+             'state': 'unavailable', 'received_at': '2026-09-26T01:00:00Z'}]}})
+        self.assertIn('program pročitan', html)
+        self.assertIn('trenutno nedostupan', html)
+        self.assertIn('2026-09-26T01:00:00Z', html)
+        self.assertIn('&lt;Untrusted&gt;', html)
+        self.assertNotIn('javascript:', html)
 
     def test_one_latest_timed_point_per_station_and_parameter(self):
         stream = {'station': 'A', 'parameter': 'PM2.5', 'unit': 'µg.m-3', 'points': [

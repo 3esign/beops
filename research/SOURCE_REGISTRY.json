@@ -3425,7 +3425,31 @@
    "rhythm": "6-hour bounded refresh; 24-hour cache validity",
    "access": "Public HTML; explicit title, full date, start time and venue label only",
    "reuse": "Bibliographic schedule facts only, attributed and linked; no assertion of an open licence for descriptions or images. Robots and HTTP opt-out evidence captured before collection.",
-   "next": "One official source only, no independent corroboration. Missing titles are skipped; end time and coordinates remain unknown."
+   "next": "One official source per event, no independent corroboration. Missing titles are skipped; end time remains unknown. Shares per-source cache with S226 and S227."
+  },
+  {
+   "id": "S226",
+   "theme": "culture",
+   "name": "Dom omladine Beograda - official programme",
+   "url": "https://domomladine.org/",
+   "status": "collected",
+   "kind": "official_event_schedule",
+   "rhythm": "6-hour bounded refresh; failed-source retry after 30 minutes; 24-hour per-source cache validity",
+   "access": "Public homepage schedule cards; explicit title, full date, start time and venue label only",
+   "reuse": "Bibliographic schedule facts only, attributed and linked; descriptions and images are not republished. No open-licence claim. Robots and HTTP opt-out evidence captured 2026-09-27 before collection.",
+   "next": "Parser dom-omladine-schedule-card/v1: rejects date ranges, absent clocks and weekday/date conflicts; exact named internal venues only may bind to the separately evidenced venue registry. Homepage selection is incomplete."
+  },
+  {
+   "id": "S227",
+   "theme": "culture",
+   "name": "Kulturni centar Beograda - official programme",
+   "url": "https://www.kcb.org.rs/",
+   "status": "collected",
+   "kind": "official_event_schedule",
+   "rhythm": "6-hour bounded refresh; failed-source retry after 30 minutes; 24-hour per-source cache validity",
+   "access": "Public homepage programme cards; explicit title, single full date, start time and venue label only",
+   "reuse": "Bibliographic schedule facts only, attributed and linked; descriptions and images are not republished. No open-licence claim. Robots and HTTP opt-out evidence captured 2026-09-27 before collection.",
+   "next": "Parser kcb-schedule-card/v1: excludes sliders and date ranges; event link must use the official same-origin dated article route. Exact Galerija ARTGET only may bind to the separately evidenced venue registry. Homepage selection is incomplete."
   }
  ]
 }

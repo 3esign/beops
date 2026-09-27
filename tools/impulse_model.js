@@ -3,6 +3,7 @@
 const crypto = require('node:crypto');
 const {geoReasons, validLocation, hash} = require('./ai_feed_context');
 const {locateHeadline} = require('./headline_geo');
+const venueRegister = require('./event_venues.json');
 const TZ = 'Europe/Belgrade';
 const DAY = 86400000;
 const dateFormat = new Intl.DateTimeFormat('en-CA', {timeZone: TZ, year:'numeric', month:'2-digit', day:'2-digit'});
@@ -74,7 +75,29 @@ function collectHeadlines(rows, asof){
   }
   return {items,audit:{raw_headline_rows:raw,unique_headlines:items.length,repeated_or_revised_rows:raw-redacted-after_snapshot-invalid-items.length,redacted_rows:redacted,after_snapshot_rows:after_snapshot,invalid_receipt_rows:invalid}};
 }
-function calendarItems(events,asof){const seen=new Set(),items=[];for(const e of events||[]){const at=stamp(e.event_start),received=stamp(e.provenance?.received_at);if(e.verified!==true||e.classification!=='official-repertoire'||at===null||received===null||received>asof)continue;const key=(safeURL(e.url)||e.id)+'|'+iso(at);if(seen.has(key))continue;seen.add(key);items.push({id:'schedule-'+id(key),kind:'scheduled_event',title:e.title,source_id:e.source_id,source:e.source,source_url:safeURL(e.url),clock:{basis:'scheduled_event_time',at:iso(at),start:iso(at),end:null},event_time:iso(at),first_received:iso(received),places:[{name:e.source_id==='S225'?'Kolarac':e.location||'Unknown venue',kind:'venue',method:'official_repertoire',coordinates:null,confidence:'source_stated'}],point:null,state:at>=asof?'scheduled':'past_schedule_unconfirmed',schedule_age_hours:Math.round((asof-received)/3600000*10)/10, schedule_fresh:asof-received<=DAY,evidence:{raw_sha256:e.provenance.raw_sha256||null,repertoire_url:safeURL(e.provenance.url)},limitation:'Official schedule facts from one source; actual occurrence, cancellation and end time are unknown. Venue coordinates have not been established.'});}return items;}
+function scheduledVenue(event,asof){
+ const received=stamp(event.provenance?.received_at),location=normalize(event.location);
+ if(received===null||received>asof||asof-received>DAY||!location||!/^[a-f0-9]{64}$/.test(event.provenance?.raw_sha256||''))return null;
+ const sourceURL=safeURL(event.url),repertoireURL=safeURL(event.provenance?.url);
+ if(!sourceURL||!repertoireURL)return null;
+ const venue=venueRegister.venues.find(v=>v.source_id===event.source_id&&(!event.venue_id||event.venue_id===v.id)&&
+  v.location_aliases.some(alias=>normalize(alias)===location)&&v.source_hosts.includes(new URL(sourceURL).hostname)&&v.source_hosts.includes(new URL(repertoireURL).hostname));
+ if(!venue||!normalize(event.provenance?.source_label).includes(location)||!validLocation([venue.lon,venue.lat]))return null;
+ return {place_id:venue.id,name:venue.name,lon:venue.lon,lat:venue.lat,radius_m:venue.radius_m,precision:'venue',confidence:'explicit_source_venue',method:'official_schedule_venue_register/1',matched_text:event.location,radius_basis:'editorial_venue_buffer_not_statistical_error',verified:false,evidence:venue.evidence,address_evidence:venue.address_evidence};
+}
+function calendarItems(events,asof,sources=null){
+ const seen=new Set(),items=[],sourceMap=sources===null?null:new Map(sources.map(s=>[s.source_id,s]));
+ for(const e of events||[]){
+  const at=stamp(e.event_start),received=stamp(e.provenance?.received_at),source=sourceMap?.get(e.source_id);
+  if(e.verified!==true||e.classification!=='official-repertoire'||at===null||received===null||received>asof)continue;
+  // V2 source failures cannot borrow the top-level union's timestamp or health.
+  if(sourceMap&&(!source||source.state!=='available'||stamp(source.received_at)!==received||asof-received>DAY))continue;
+  const key=e.source_id+'|'+(safeURL(e.url)||e.id)+'|'+iso(at);if(seen.has(key))continue;seen.add(key);
+  const venue=scheduledVenue(e,asof);
+  items.push({id:'schedule-'+id(key),kind:'scheduled_event',title:e.title,source_id:e.source_id,source:e.source,source_url:safeURL(e.url),clock:{basis:'scheduled_event_time',at:iso(at),start:iso(at),end:null},event_time:iso(at),first_received:iso(received),places:[{name:e.location||'Unknown venue',kind:'venue',method:'official_repertoire',coordinates:null,confidence:'source_stated'}],point:null,venue_location:venue,geo:{scope:venue?'belgrade':'unknown',status:venue?'scheduled_venue':'unresolved_venue',reason:venue?'explicit_source_venue_bound_to_sourced_building':'no_verified_venue_binding'},state:at>=asof?'scheduled':'past_schedule_unconfirmed',schedule_age_hours:Math.round((asof-received)/3600000*10)/10,schedule_fresh:asof-received<=DAY,evidence:{raw_sha256:e.provenance.raw_sha256||null,repertoire_url:safeURL(e.provenance.url)},limitation:'Official schedule facts from one source; actual occurrence, cancellation and end time are unknown. '+(venue?'Venue reference identifies the mapped building or gallery, not an exact event position.':'Venue coordinates have not been established.')});
+ }
+ return items;
+}
 function aiItem(entry,packet,asof){
   const at=stamp(entry.at);if(at===null||at>asof||!entry.id||!entry.content||entry.validation?.ok!==true)return null;
   let point=null,geo_status='no_explicit_anchor';
@@ -83,10 +106,10 @@ function aiItem(entry,packet,asof){
   const cited=new Set((entry.content.paragraphs||[]).flatMap(p=>p.cites||[])),source_urls=bound?[...new Set((packet.facts||[]).filter(f=>cited.has(f.id)).map(f=>safeURL(f.url)).filter(Boolean))]:[];
   return {id:'ai-'+entry.id,kind:'ai_observation',title:entry.content.title,source_id:entry.provider||null,source:entry.model||null,source_url:point?.source_url||source_urls[0]||null,cited_source_urls:source_urls,clock:{basis:'model_output_time',at:iso(at),start:iso(at),end:null},event_time:null,first_received:iso(at),places:[],point,geo_status,evidence:{context_hash:entry.context_hash,context_verified:Boolean(bound),validation:entry.validation?.ok===true},limitation:'A model interpretation at a cited instrument location, not a new measurement or evidence of an event. Source URLs belong to cited facts, not to the model prose.'};
 }
-function counts(items){const headlines=items.filter(i=>i.kind==='headline_mention');return {total:items.length,headline_mentions:headlines.length,scheduled_events:items.filter(i=>i.kind==='scheduled_event').length,ai_observations:items.filter(i=>i.kind==='ai_observation').length,with_coordinates:items.filter(i=>i.point).length,estimated_locations:items.filter(i=>i.location_estimate).length,belgrade_headlines:headlines.filter(i=>i.geo?.scope==='belgrade').length,serbia_headlines:headlines.filter(i=>i.geo?.scope==='serbia').length,outside_headlines:headlines.filter(i=>i.geo?.scope==='outside').length,unknown_geography:headlines.filter(i=>!i.geo||i.geo.scope==='unknown').length,with_name_candidates:items.filter(i=>i.places.length).length,without_location:items.filter(i=>!i.point&&!i.location_estimate&&!i.places.length).length,unknown_clock:items.filter(i=>!i.clock.start).length};}
+function counts(items){const headlines=items.filter(i=>i.kind==='headline_mention');return {total:items.length,headline_mentions:headlines.length,scheduled_events:items.filter(i=>i.kind==='scheduled_event').length,located_scheduled_events:items.filter(i=>i.kind==='scheduled_event'&&i.venue_location).length,ai_observations:items.filter(i=>i.kind==='ai_observation').length,with_coordinates:items.filter(i=>i.point).length,estimated_locations:headlines.filter(i=>i.location_estimate).length,belgrade_headlines:headlines.filter(i=>i.geo?.scope==='belgrade').length,serbia_headlines:headlines.filter(i=>i.geo?.scope==='serbia').length,outside_headlines:headlines.filter(i=>i.geo?.scope==='outside').length,unknown_geography:headlines.filter(i=>!i.geo||i.geo.scope==='unknown').length,with_name_candidates:items.filter(i=>i.places.length).length,without_location:items.filter(i=>!i.point&&!i.location_estimate&&!i.venue_location&&!i.places.length).length,unknown_clock:items.filter(i=>!i.clock.start).length};}
 function inWindow(item,start,end){const a=stamp(item.clock.start),b=stamp(item.clock.end);return a!==null&&(b===null?a>=start&&a<end:a<end&&b>start);}
 function summarize(items){const places=new Map(),daily=new Map();for(const i of items){for(const p of i.places){const key=p.kind+'|'+p.name;const g=places.get(key)||{name:p.name,kind:p.kind,coordinates:null,count:0,headline_mentions:0,scheduled_events:0,examples:[]};g.count++;if(i.kind==='headline_mention')g.headline_mentions++;if(i.kind==='scheduled_event')g.scheduled_events++;if(g.examples.length<3)g.examples.push({id:i.id,title:i.title,source_url:i.source_url,clock:i.clock});places.set(key,g);}const date=i.clock.date||(i.clock.at?localDate(stamp(i.clock.at)):null);if(date){const g=daily.get(date)||{date,headline_mentions:0,scheduled_events:0,ai_observations:0,with_coordinates:0};g[({headline_mention:'headline_mentions',scheduled_event:'scheduled_events',ai_observation:'ai_observations'})[i.kind]]++;if(i.point)g.with_coordinates++;daily.set(date,g);}}
-return {counts:counts(items),points:items.filter(i=>i.point).map(i=>({id:i.id,kind:i.kind,title:i.title,clock:i.clock,...i.point})),estimates:items.filter(i=>i.location_estimate).map(i=>({id:i.id,kind:i.kind,title:i.title,clock:i.clock,source_url:i.source_url,...i.location_estimate,scope:i.geo.scope})),named_places:[...places.values()].sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name)),daily:[...daily.values()].sort((a,b)=>a.date.localeCompare(b.date))};}
+return {counts:counts(items),points:items.filter(i=>i.point).map(i=>({id:i.id,kind:i.kind,title:i.title,clock:i.clock,...i.point})),estimates:items.filter(i=>i.kind==='headline_mention'&&i.location_estimate).map(i=>({id:i.id,kind:i.kind,title:i.title,clock:i.clock,source_url:i.source_url,...i.location_estimate,scope:i.geo.scope})),venues:items.filter(i=>i.kind==='scheduled_event'&&i.venue_location).map(i=>({id:i.id,kind:i.kind,title:i.title,clock:i.clock,source_url:i.source_url,...i.venue_location,scope:i.geo.scope})),named_places:[...places.values()].sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name)),daily:[...daily.values()].sort((a,b)=>a.date.localeCompare(b.date))};}
 function buildSnapshot(items,asof,audit={}){
   if(!Number.isFinite(asof))throw Error('Invalid as_of');
   const windows={};
@@ -103,7 +126,7 @@ function buildSnapshot(items,asof,audit={}){
       headline_mention:'Publication or first receipt, never event time. One source URL counts once across repeated collection and revisions; separate sources are not assumed to describe distinct events.',
       scheduled_event:'Official scheduled start; occurrence not verified.',
       ai_observation:'Time the model produced an interpretation; exact cited context coordinates only.',
-      locations:'Headline-derived location estimates are separate from exact cited AI anchors. Their sourced centers and policy radii disclose spatial resolution, not calibrated probability or verified event coordinates. Names without adequate event-place context stay candidates.',
+      locations:'Headline-derived location estimates are separate from exact cited AI anchors and explicitly stated scheduled venues. Their sourced centers and policy radii disclose spatial resolution, not calibrated probability or verified event coordinates. Names without adequate event-place context stay candidates.',
       geography:'Belgrade, Serbia outside or broader than Belgrade, outside Serbia, and unknown are separate scopes. Unknown or nonlocal titles cannot substantiate a Belgrade instrument comparison.',
       windows:'Trailing 24/168/720 hours ending at as_of (end exclusive); daily buckets use Europe/Belgrade. Day-resolution publication intervals overlap boundaries and may precede the first displayed local date.'
     },coverage:counts(items),audit,windows,upcoming:{counts:counts(future),items:future},items};

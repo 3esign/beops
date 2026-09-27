@@ -12,6 +12,7 @@ import hashlib
 from html.parser import HTMLParser
 from urllib.parse import urlsplit
 from contracts import atomic_json, belgrade_local, exclusive
+from event_repertoires import SOURCES, parse_official_programme
 import pathlib
 import re
 import sys
@@ -142,49 +143,76 @@ def read_cache():
         return {}
 
 
-def refresh_repertoire(now=None):
-    """Bounded collection runs in collect_tick, never implicitly during offline builds."""
+def refresh_source(source, cache, now):
+    """Each official programme retains its own attempt, receipt and failure state."""
     import permission_policy
     import transport
-    now = now or datetime.now(timezone.utc)
-    cache = read_cache()
+    sid, url = source['source_id'], source['url']
     attempted = parse_stamp(cache.get('attempted_at'))
-    if attempted and 0 <= (now - attempted).total_seconds() < 6 * 3600:
+    cooldown = 6 * 3600 if cache.get('state') == 'available' else 1800
+    if attempted and 0 <= (now - attempted).total_seconds() < cooldown:
         return cache
     attempted_at = now.isoformat()
     try:
         ledger = ROOT / 'research/08-provenance/LEDGER.jsonl'
         entries = permission_policy.latest(ledger)
-        allowed, reason = permission_policy.authorize(REPERTOIRE_SID, entries, ROOT, REPERTOIRE_URL, now)
+        allowed, reason = permission_policy.authorize(sid, entries, ROOT, url, now)
         if not allowed and reason == 'permission capture expired or future dated':
             import legal_capture
-            legal_capture.capture(REPERTOIRE_SID, 'Kolarac - zvanicne koncertne najave',
-                                  [REPERTOIRE_URL], [], 'Periodic permission recapture; factual schedule metadata only.', False)
-            allowed, reason = permission_policy.authorize(REPERTOIRE_SID, permission_policy.latest(ledger), ROOT, REPERTOIRE_URL, now)
+            legal_capture.capture(sid, source['name'], [url], [],
+                                  'Periodic permission recapture; factual schedule metadata only.', False)
+            allowed, reason = permission_policy.authorize(sid, permission_policy.latest(ledger), ROOT, url, now)
         if not allowed:
             raise ValueError('permission: ' + reason)
-        result = transport.fetch(REPERTOIRE_URL, timeout_s=20, max_bytes=512 * 1024)
+        result = transport.fetch(url, timeout_s=20, max_bytes=512 * 1024)
         if result.get('status') != 200 or result.get('error') or not result.get('body'):
             raise ValueError('fetch: ' + str(result.get('error') or result.get('status')))
         raw = result['body']
         digest = hashlib.sha256(raw).hexdigest()
-        events = parse_repertoire(raw, attempted_at, digest)
+        parsed = ({'events': parse_repertoire(raw, attempted_at, digest), 'rejected': []}
+                  if sid == REPERTOIRE_SID else parse_official_programme(raw, source, attempted_at, digest))
+        events = parsed['events']
         if not events:
             raise ValueError('source returned no parseable dated repertoire entries')
-        raw_path = ROOT / 'data/live/raw/S225' / (digest + '.html')
+        raw_path = ROOT / 'data/live/raw' / sid / (digest + '.html')
         raw_path.parent.mkdir(parents=True, exist_ok=True)
         if raw_path.exists():
             if hashlib.sha256(raw_path.read_bytes()).hexdigest() != digest:
                 raise ValueError('existing raw evidence hash mismatch')
         else:
             raw_path.write_bytes(raw)
-        cache = {'schema': 'beops-repertoire-cache/v1', 'source_id': REPERTOIRE_SID,
-                 'url': REPERTOIRE_URL, 'attempted_at': attempted_at, 'received_at': attempted_at,
+        cache = {'schema': 'beops-repertoire-source/v1', 'source_id': sid, 'name': source['name'],
+                 'url': url, 'attempted_at': attempted_at, 'received_at': attempted_at,
                  'state': 'available', 'raw_path': raw_path.relative_to(ROOT).as_posix(),
                  'raw_sha256': digest, 'permission_capture': reason,
-                 'request_user_agent': result.get('request_user_agent'), 'events': events}
+                 'request_user_agent': result.get('request_user_agent'), 'events': events,
+                 'parser_audit': {'accepted': len(events), 'rejected': parsed['rejected']}}
     except Exception as exc:
-        cache = {**cache, 'attempted_at': attempted_at, 'state': 'unavailable', 'error': str(exc)[:240]}
+        cache = {**cache, 'source_id': sid, 'name': source['name'], 'url': url,
+                 'attempted_at': attempted_at, 'state': 'unavailable', 'error': str(exc)[:240]}
+    return cache
+
+
+def source_caches(cache):
+    """Backward-compatible migration: legacy S225 receipts keep their original age."""
+    if isinstance(cache.get('sources'), list):
+        return cache['sources']
+    return [cache] if cache.get('source_id') == REPERTOIRE_SID else []
+
+
+def refresh_repertoire(now=None):
+    """Bounded collection runs in collect_tick, never implicitly during offline builds."""
+    now = now or datetime.now(timezone.utc)
+    previous = {entry['source_id']: entry for entry in source_caches(read_cache())}
+    sources = [refresh_source(source, previous.get(source['source_id'], {}), now) for source in SOURCES]
+    available = [source for source in sources if source.get('state') == 'available']
+    cache = {'schema': 'beops-repertoire-cache/v2',
+             'state': 'available' if len(available) == len(sources) else 'partial' if available else 'unavailable',
+             'attempted_at': max((source.get('attempted_at') or '' for source in sources), default=None),
+             'received_at': min((source['received_at'] for source in available), default=None),
+             'sources': sources,
+             'events': sorted([event for source in available for event in source.get('events', [])],
+                              key=lambda event: event['event_start'])}
     with exclusive(ROOT / 'data/live/.write.lock'):
         atomic_json(CACHE, cache)
     return cache
@@ -192,6 +220,10 @@ def refresh_repertoire(now=None):
 
 def scheduled_events(cache, now=None):
     now = now or datetime.now(timezone.utc)
+    if isinstance(cache.get('sources'), list):
+        # A healthy source must never lend its fresh receipt to another failed source.
+        return sorted([event for source in cache['sources'] for event in scheduled_events(source, now)],
+                      key=lambda event: event['event_start'])
     received = parse_stamp(cache.get('received_at'))
     if cache.get('state') != 'available' or received is None or not 0 <= (now - received).total_seconds() <= 86400:
         return []
@@ -201,6 +233,25 @@ def scheduled_events(cache, now=None):
         if event.get('verified') is True and event.get('state') == 'forecast' and event.get('event_status') == 'scheduled' and start and start >= now:
             result.append(event)
     return sorted(result, key=lambda event: event['event_start'])
+
+
+def public_source_status(source, now):
+    """Project cache age without changing the source's original receipt or health."""
+    summary = {k: source.get(k) for k in ('source_id', 'name', 'url', 'state', 'received_at',
+               'attempted_at', 'error', 'raw_sha256', 'permission_capture', 'parser_audit')}
+    if not summary['name']:
+        summary['name'] = next((spec['name'] for spec in SOURCES if spec['source_id'] == source.get('source_id')), source.get('source_id'))
+    summary['collection_state'] = source.get('state')
+    received = parse_stamp(source.get('received_at'))
+    if source.get('state') == 'available':
+        if received is None:
+            summary.update(state='unavailable', error='Schedule receipt timestamp is missing or invalid.')
+        elif received > now:
+            summary.update(state='unavailable', error='Schedule receipt is future-dated.')
+        elif (now - received).total_seconds() > 86400:
+            summary.update(state='unavailable', error='Schedule receipt is older than 24 hours.')
+    summary['scheduled_count'] = len(scheduled_events(source, now))
+    return summary
 
 def detect_zone(text: str) -> str:
     text_lower = text.lower()
@@ -275,9 +326,14 @@ def build_events_dataset() -> dict:
             data = {}
 
     extracted = extract_events_from_headlines(data)
-    now_utc = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(timezone.utc)
+    now_utc = now.isoformat()
     repertoire = read_cache()
-    scheduled = scheduled_events(repertoire)
+    scheduled = scheduled_events(repertoire, now)
+    source_statuses = [public_source_status(source, now) for source in source_caches(repertoire)]
+    healthy = sum(source['state'] == 'available' for source in source_statuses)
+    repertoire_state = ('available' if source_statuses and healthy == len(source_statuses)
+                        else 'partial' if healthy else 'unavailable')
 
     out = {
         "schema": "beops-events/v1",
@@ -285,8 +341,10 @@ def build_events_dataset() -> dict:
         "count": len(scheduled) + len(extracted),
         "scheduled_count": len(scheduled),
         "headline_count": len(extracted),
-        "repertoire": {k: repertoire.get(k) for k in ("source_id", "url", "state", "received_at", "attempted_at", "error", "raw_sha256", "permission_capture")},
-        "note": "Scheduled items are explicit facts from one official repertoire (maximum receipt age 24h). Headline signals remain unverified and untimed. No independent two-source corroboration; no citywide coverage claim.",
+        "repertoire": {**{k: repertoire.get(k) for k in ("source_id", "url", "state", "received_at", "attempted_at", "error", "raw_sha256", "permission_capture")},
+                       'state': repertoire_state, 'collection_state': repertoire.get('state'),
+                       'sources': source_statuses},
+        "note": "Each scheduled item is an explicit fact from one named official repertoire (maximum per-source receipt age 24h). Headline signals remain unverified and untimed. Multiple repertoires are not independent corroboration of the same event; no citywide coverage claim.",
         "events": scheduled + extracted
     }
     return out
@@ -294,7 +352,8 @@ def build_events_dataset() -> dict:
 def main():
     if "--refresh" in sys.argv:
         cache = refresh_repertoire()
-        print(json.dumps({k: cache.get(k) for k in ('state', 'received_at', 'attempted_at', 'error')}, ensure_ascii=False))
+        print(json.dumps({**{k: cache.get(k) for k in ('state', 'received_at', 'attempted_at', 'error')},
+                          'sources': [{k: source.get(k) for k in ('source_id', 'state', 'received_at', 'error', 'parser_audit')} for source in source_caches(cache)]}, ensure_ascii=False))
         return 0 if cache.get('state') == 'available' else 1
     if "--test" in sys.argv:
         # Sanity test

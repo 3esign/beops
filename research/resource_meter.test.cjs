@@ -6,6 +6,9 @@ const ROOT=path.resolve(__dirname,'..');fs.mkdirSync(path.join(ROOT,'runtime'),{
 const root=fs.mkdtempSync(path.join(ROOT,'runtime/resource-test-'));
 function write(relative,value){const p=path.join(root,relative);fs.mkdirSync(path.dirname(p),{recursive:true});fs.writeFileSync(p,JSON.stringify(value));}
 async function main(){
+  const empty=buildSummary(root).windows.day;
+  for(const [key,value] of Object.entries(empty.derived))if(key!=='note'&&key!=='counted_ai_calls')assert.equal(value,null,key);
+  assert.equal(empty.derived.counted_ai_calls,0);
   assert.equal(tokenUsage(null).input_tokens,null);
   assert.equal(tokenUsage({input_tokens:'12'}).input_tokens,null);
   assert.equal(tokenUsage({input_tokens:-1}).input_tokens,null);
@@ -50,6 +53,14 @@ async function main(){
   assert.equal(report.windows.day.unfinished_cycles,1);
   assert.equal(report.windows.day.tokens.input_tokens,7);assert.equal(report.windows.day.tokens.unreported_calls,1);
   assert.equal(report.windows.day.response_body_bytes,32);assert.equal(report.windows.day.unreported_bodies,1);
+  assert.equal(report.windows.day.body_reports,1);
+  const ratios=report.windows.day.derived;
+  assert.equal(ratios.finished_cycle_fraction,0.5);
+  assert.equal(ratios.reported_body_fraction,0.5);
+  assert.equal(ratios.mean_bytes_per_reported_body,32); // failed attempt is not a zero-byte response
+  assert.equal(ratios.token_usage_fraction_of_counted_calls,0.5);
+  assert.equal(ratios.counted_ai_calls,2);
+  assert.equal(ratios.mean_wall_seconds_per_finished_cycle,report.windows.day.wall_seconds);
   assert.equal(report.electricity.wh,null);assert.equal(report.money.amount,null);
   assert.ok(report.windows.day.cpu_seconds>=0);assert.ok(report.windows.day.peak_rss_bytes>0);
   unfinished.finish('failed');
@@ -99,6 +110,12 @@ async function main(){
   assert.equal(mixed.activities.find(x=>x.activity==='collection').tokens.unknown_call_count_cycles,0);
   assert.equal(mixed.activities.find(x=>x.activity==='news').tokens.unknown_call_count_cycles,1);
   assert.equal(mixed.activities.find(x=>x.activity==='mind').tokens.unknown_call_count_cycles,1);
+  assert.equal(mixed.derived.token_usage_fraction_of_counted_calls,0.5); // uncounted news/mind calls never enter denominator
+  const noAI=mixed.activities.find(x=>x.activity==='calendar');
+  assert.equal(noAI.derived.token_usage_fraction_of_counted_calls,null);
+  assert.equal(noAI.derived.mean_bytes_per_reported_body,null);
+  assert.equal(noAI.derived.reported_body_fraction,null);
+  assert.equal(noAI.derived.mean_cpu_seconds_per_finished_cycle,0.1);
   const broken={schema:'beops-resource-cycle/v1',id:'5'.repeat(32),phase:'start',started_at:at,activity:'collection',pid:42,runtime:'python'};
   write('runtime/resources/receipts/'+broken.id+'-start.json',broken);
   write('runtime/resources/receipts/'+broken.id+'-finish.json',{...broken,phase:'finish',finished_at:at,wall_seconds:1,cpu_seconds:0.1});

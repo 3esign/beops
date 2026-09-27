@@ -24,16 +24,32 @@ function tokenTotals(rows){
   for(const row of rows){output.reported_calls+=row.reported_calls||0;if(row.unreported_calls===null&&row.state!=='not_applicable')output.unknown_call_count_cycles++;else output.unreported_calls+=row.unreported_calls||0;}
   return output;
 }
+function ratio(numerator,denominator){return Number.isFinite(numerator)&&Number.isFinite(denominator)&&denominator>0?numerator/denominator:null;}
+function derived(total){
+  const knownCalls=total.tokens.reported_calls+total.tokens.unreported_calls;
+  return {
+    finished_cycle_fraction:ratio(total.finished_cycles,total.started_cycles),
+    mean_wall_seconds_per_finished_cycle:ratio(total.wall_seconds,total.finished_cycles),
+    mean_cpu_seconds_per_finished_cycle:ratio(total.cpu_seconds,total.finished_cycles),
+    reported_body_fraction:ratio(total.body_reports,total.request_attempts),
+    mean_bytes_per_reported_body:ratio(total.response_body_bytes,total.body_reports),
+    token_usage_fraction_of_counted_calls:ratio(total.tokens.reported_calls,knownCalls),
+    counted_ai_calls:knownCalls,
+    note:'Ratios describe retained receipts only. Cycle means include all recorded outcomes. Token coverage excludes cycles with unknown call counts; missing usage is never estimated. Body means divide by reported bodies, not all attempts.'
+  };
+}
 function totals(starts,finishes){
   const done=starts.map(x=>finishes.get(x.id)).filter(Boolean);
-  return {started_cycles:starts.length,finished_cycles:done.length,unfinished_cycles:starts.length-done.length,
+  const total={started_cycles:starts.length,finished_cycles:done.length,unfinished_cycles:starts.length-done.length,
     wall_seconds:sumKnown(done,'wall_seconds'),cpu_seconds:sumKnown(done,'cpu_seconds'),
     peak_rss_bytes:done.some(x=>Number.isFinite(x.peak_rss_bytes))?Math.max(...done.map(x=>x.peak_rss_bytes||0)):null,
     request_attempts:sumKnown(done.map(x=>x.http),'request_attempts'),
     response_body_bytes:sumKnown(done.map(x=>x.http),'response_body_bytes'),
+    body_reports:sumKnown(done.map(x=>x.http),'body_reports'),
     unreported_bodies:sumKnown(done.map(x=>x.http),'unreported_bodies'),
     tokens:tokenTotals(done.map(x=>x.tokens)),outcomes:done.reduce((counts,x)=>{counts[x.outcome]=(counts[x.outcome]||0)+1;return counts;},{}),
     electricity_wh:null,money:null};
+  return {...total,derived:derived(total)};
 }
 function history(root,now,errors){
   const directory=path.join(root,'runtime/ai-feed'),attempts=new Map();
@@ -103,7 +119,7 @@ function buildSummary(root=ROOT,now=new Date()){
     electricity:{state:'unavailable',wh:null,reason:'No physical energy readings supplied; CPU seconds are not watts or Wh.'},
     money:{state:'unavailable',amount:null,currency:null,reason:'No tariff, measured electricity, or provider billing records supplied. Subscription price does not establish marginal request cost.'}};
 }
-module.exports={buildSummary,tokenTotals};
+module.exports={buildSummary,tokenTotals,derived};
 if(require.main===module){
   if(process.argv.length>2){console.error('Usage: node tools/resource_summary.js (read-only JSON on stdout)');process.exitCode=2;}
   else process.stdout.write(JSON.stringify(buildSummary(),null,2)+'\n');

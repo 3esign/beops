@@ -29,6 +29,7 @@ function publicItem(item){
  out.places=(item.places||[]).map(p=>pick(p,['name','kind','method','confidence','limitation','coordinates']));
  out.point=item.point?{...pick(item.point,['lon','lat','place','source_id','fact_id','context_hash','method']),source_url:model.safeURL(item.point.source_url)}:null;
  out.location_estimate=estimate(item.location_estimate);
+ if(item.venue_location)out.venue_location={...estimate(item.venue_location),address_evidence:{...evidence(item.venue_location.address_evidence),...pick(item.venue_location.address_evidence,['address'])}};
  if(item.geo)out.geo={...pick(item.geo,['scope','status','reason','method','gazetteer_version','limitation']),candidates:(item.geo.candidates||[]).map(c=>({...pick(c,['place_id','name','scope','precision','matched_text','reason','location_cue','eligible','nearby','coordinates','radius_m','confidence','method']),evidence:evidence(c.evidence)}))};
  if(item.kind==='ai_observation'){
   out.cited_source_urls=(item.cited_source_urls||[]).map(model.safeURL).filter(Boolean);
@@ -111,6 +112,7 @@ async function buildPage(root=ROOT,options={}){
   basemap:read(path.join(root,'public/basemap-belgrade.json')),
   meter_note:resources.observation_start?'Merenje od '+date(resources.observation_start)+'.':'Prvi ciklus još nije zabeležen.',
   scope_note:'Beleže se sakupljač, kalendar, AI, vesti, mind i zakazani nadzor/guard/legal. Nisu obuhvaćeni objava, izgradnja i testovi, deca procesa, lokalni model serveri/GPU, tokeni news/mind organa, udaljena infrastruktura i osnovna potrošnja računara.',
+  calendar_sources:(local.audit.calendar_sources||[]).map(s=>({...pick(s,['source_id','name','state','received_at','event_count']),url:model.safeURL(s.url)})),
   history_note:`Svi sačuvani AI pokušaji: ${n(history.all.attempts)}. Sa prijavljenim tokenima: ${n(history.all.reported_calls)}; bez: ${n(history.all.unreported_calls)}. Ulaz: ${n(history.all.input_tokens)}; izlaz: ${n(history.all.output_tokens)}. Obuhvata i neuspele/odbijene pokušaje; preklapa se sa novim brojačem i ne dodaje se na njegov zbir.`};
  const generation=hash({as_of:asOf,input_generation:inputGeneration,data,impulses,resources,proofs});
  const envelope=value=>({schema:value.schema,as_of:asOf,input_generation:inputGeneration,generation,...value});

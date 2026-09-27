@@ -41,6 +41,54 @@ test('official schedules stay separate from occurrence and require explicit sour
  const items=m.calendarItems([event,event],now);assert.equal(items.length,1);assert.equal(items[0].point,null);assert.equal(items[0].clock.basis,'scheduled_event_time');
  const snapshot=m.buildSnapshot(items,now);assert.equal(snapshot.upcoming.counts.scheduled_events,1);assert.equal(snapshot.windows.month.counts.scheduled_events,0);
 });
+const officialEvent=(extra={})=>({id:'venue-e',title:'Official concert',verified:true,classification:'official-repertoire',event_start:'2026-09-28T14:00:00Z',source_id:'S226',source:'Dom omladine',url:'https://domomladine.org/koncerti/example/',location:'DOB//Amerikana',venue_id:'dom-omladine',provenance:{received_at:'2026-09-27T10:00:00Z',url:'https://domomladine.org/',raw_sha256:'a'.repeat(64),source_label:'Official concert 28.9.2026 DOB//Amerikana'},...extra});
+test('explicit official venue binding stays separate from headline estimates and AI anchors',()=>{
+ const item=m.calendarItems([officialEvent()],now)[0];
+ assert.equal(item.geo.scope,'belgrade');assert.equal(item.point,null);assert.equal(item.location_estimate,undefined);
+ assert.equal(item.venue_location.place_id,'dom-omladine');assert.equal(item.venue_location.verified,false);
+ assert.equal(item.venue_location.lon,20.4628098);assert.match(item.venue_location.evidence.source_url,/\/way\/41234985$/);
+ assert.match(item.venue_location.address_evidence.address,/Makedonska 22/);
+ assert.equal(item.clock.basis,'scheduled_event_time');assert.equal(item.state,'scheduled');
+ const result=m.buildSnapshot([item],now);
+ assert.equal(result.coverage.estimated_locations,0);assert.equal(result.coverage.with_coordinates,0);assert.equal(result.coverage.located_scheduled_events,1);
+ assert.equal(result.windows.month.counts.scheduled_events,0);assert.equal(result.upcoming.counts.located_scheduled_events,1);
+});
+test('venue binding rejects publisher-only, conflicting, stale and unsourced location data',()=>{
+ const good=officialEvent();
+ for(const event of [
+  officialEvent({location:'Narodno pozorište'}),officialEvent({location:null}),
+  officialEvent({venue_id:'kcb-artget'}),officialEvent({source_id:'S227'}),
+  officialEvent({url:'https://example.test/concert'}),
+  officialEvent({provenance:{...good.provenance,url:'https://example.test/'}}),
+  officialEvent({provenance:{...good.provenance,raw_sha256:null}}),
+  officialEvent({provenance:{...good.provenance,source_label:'Concert without explicit room'}}),
+  officialEvent({provenance:{...good.provenance,received_at:'2026-09-25T10:00:00Z'}})
+ ]){const item=m.calendarItems([event],now)[0];assert.equal(item.venue_location,null,JSON.stringify(event));assert.equal(item.geo.scope,'unknown');}
+ const future=officialEvent({provenance:{...good.provenance,received_at:'2026-09-28T10:00:00Z'}});
+ assert.equal(m.calendarItems([future],now).length,0);
+});
+test('freshness is checked independently for every official source, including legacy Kolarac',()=>{
+ const event=officialEvent(),source={source_id:'S226',state:'available',received_at:event.provenance.received_at};
+ assert.equal(m.calendarItems([event],now,[source]).length,1);
+ for(const sources of [[],[{...source,state:'failed'}],[{...source,received_at:'2026-09-27T11:00:00Z'}],[{...source,source_id:'S227'}]])assert.equal(m.calendarItems([event],now,sources).length,0);
+ const kolarac=officialEvent({source_id:'S225',url:'https://www.kolarac.rs/koncerti/example/',location:'Велика дворана',venue_id:null,provenance:{...event.provenance,url:'https://www.kolarac.rs/koncerti/',source_label:'Концерт 28.9.2026 Велика дворана'}});
+ const item=m.calendarItems([kolarac],now)[0];assert.equal(item.venue_location.place_id,'kolarac');assert.equal(item.venue_location.lon,20.456328);assert.equal(item.places[0].name,'Велика дворана');
+ const artget=officialEvent({source_id:'S227',url:'https://www.kcb.org.rs/2026/09/example/',location:'Galerija ARTGET',venue_id:'kcb-artget',provenance:{...event.provenance,url:'https://www.kcb.org.rs/',source_label:'Concert Galerija ARTGET'}});
+ assert.equal(m.calendarItems([artget],now)[0].venue_location.place_id,'kcb-artget');
+});
+test('frozen impulse builder rejects missing v2 source metadata and exposes per-source stale health',async()=>{
+ const base=path.resolve(process.env.BEOPS_TEST_TEMP||path.resolve(__dirname,'../runtime/impulse-test-work'));fs.mkdirSync(base,{recursive:true});const root=fs.mkdtempSync(path.join(base,'calendar-'));
+ try{
+  fs.mkdirSync(path.join(root,'research'),{recursive:true});fs.mkdirSync(path.join(root,'data/live/derived/events'),{recursive:true});
+  fs.writeFileSync(path.join(root,'research/COLLECTORS.json'),JSON.stringify({sources:[]}));
+  const event=officialEvent(),target=path.join(root,'data/live/derived/events/repertoire.json');
+  fs.writeFileSync(target,JSON.stringify({schema:'beops-repertoire-cache/v2',state:'available',sources:[],events:[event]}));
+  assert.equal((await build(root,now)).coverage.scheduled_events,0);
+  const old=officialEvent({provenance:{...event.provenance,received_at:'2026-09-25T10:00:00Z'}});
+  fs.writeFileSync(target,JSON.stringify({schema:'beops-repertoire-cache/v2',state:'available',sources:[{source_id:'S226',state:'available',received_at:old.provenance.received_at}],events:[old]}));
+  const result=await build(root,now);assert.equal(result.coverage.scheduled_events,0);assert.equal(result.audit.calendar_sources[0].state,'stale');assert.equal(result.audit.calendar_sources[0].event_count,0);
+ }finally{assert.ok(path.resolve(root).startsWith(base+path.sep));fs.rmSync(root,{recursive:true,force:true});}
+});
 test('rolling durations and exclusive end stay explicit, and local-day records overlap honestly',()=>{
  const items=m.collectHeadlines([headline(),headline({sid:'S2',link:'https://example.test/two',resultTime:'2026-09-27',receivedTime:'2026-09-27T11:00:00Z'})],now).items;
  const result=m.buildSnapshot(items,now);assert.equal(result.windows.day.duration_hours,24);assert.equal(result.windows.week.duration_hours,168);assert.equal(result.windows.month.duration_hours,720);

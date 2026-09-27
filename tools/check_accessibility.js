@@ -88,6 +88,15 @@ async function main(){
         functional.push({check:'keyboard separator resize',before,after:Number(await page.locator('#grip').getAttribute('aria-valuenow'))});
       }
       if(route==='obrasci.html')functional.push({check:'analysis data is visible',width,theme,analysisVisible:await page.locator('#analysis').isVisible(),rows:await page.locator('#values tr').count()});
+      if(route==='impulsi.html'){
+        await page.locator('[data-window="month"]').click();
+        await page.locator('#layer').selectOption('venues');
+        const calendarSeparated=!(await page.locator('#headline-breakdown').isVisible())&&!(await page.locator('#recent-section').isVisible())&&/narednih 30 dana/.test(await page.locator('#map-description').textContent());
+        await page.locator('.spatial').scrollIntoViewIfNeeded();
+        await page.screenshot({path:path.join(out,'calendar-'+width+'-'+theme+'.png')});
+        await page.locator('#layer').selectOption('estimates');
+        functional.push({check:'calendar and headline layers stay separate',width,theme,calendarSeparated,headlinesRestored:await page.locator('#headline-breakdown').isVisible()});
+      }
       if(await page.locator('#beops-edition[data-state="unknown"],#beops-edition[data-state="clock_error"]').count())errors.push('Published edition identity is unconfirmed');
       checkpoint();console.log(JSON.stringify({checked:route,width,theme,pages:results.length}));
       await context.close();
@@ -96,6 +105,6 @@ async function main(){
   }catch(e){fatal=String(e);throw e;}finally{checkpoint();await browser.close();server.close();}
   const hasIssue=r=>r.errors.length||r.overflow||r.unnamedControls.length||r.lowContrast.length||!r.main||!r.lang||r.tablesWithoutCaption||r.unnamedCanvas;
   console.log(JSON.stringify({pages:results.length,issues:results.filter(hasIssue),functional}));
-  if(results.some(hasIssue)||functional.some(r=>r.focusRetained===false||r.openRetained===false||r.scrollDelta>2||r.axisAvailable===false||r.axisOverlap||r.axisOutOfBounds||r.bounded===false||r.pageChanged===false||r.analysisVisible===false))process.exitCode=1;
+  if(results.some(hasIssue)||functional.some(r=>r.focusRetained===false||r.openRetained===false||r.scrollDelta>2||r.axisAvailable===false||r.axisOverlap||r.axisOutOfBounds||r.bounded===false||r.pageChanged===false||r.analysisVisible===false||r.calendarSeparated===false||r.headlinesRestored===false))process.exitCode=1;
 }
 main().catch(e=>{console.error(e);server.close();process.exitCode=1;});
