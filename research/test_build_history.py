@@ -5,12 +5,14 @@ not a zero, a source with no measurement time is bucketed by reception and says 
 are counted rather than averaged.
 """
 import importlib.util
+import io
 import json
 import pathlib
 import tempfile
 import unittest
+import weakref
 from unittest.mock import patch
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SPEC = importlib.util.spec_from_file_location("build_history", ROOT / "tools" / "build_history.py")
@@ -134,6 +136,58 @@ class HistoryCase(unittest.TestCase):
                                row(phenomenonTime="2027-01-01T00:00:00Z"),
                                row(phenomenonTime="2020-01-01T00:00:00Z")]})
         self.assertEqual(sorted(d["series"][0]["buckets"]), ["2026-09-09T10"])
+
+    def test_streamed_windows_match_materialized_json_bytes_and_preserve_input(self):
+        data = self.fold({
+            "S01": [row(station_name="Čukarica", result=20.123456),
+                    row(result=None, phenomenonTime="2026-09-09T13:00:00Z"),
+                    row(result=5, phenomenonTime=None, phenomenonTimeUnknown=True)],
+            "S02": [row(sid="S02", parameter="headline", unit=None,
+                        datastream="news", result=None, result_text="Živi grad")],
+            "S03": [row(sid="S03", parameter="wind_direction", unit="deg",
+                        datastream="direction", result=359)],
+        })
+        data["input_generation"] = {"id": "frozen-fixture", "as_of": "2026-09-09T14:30:00Z"}
+        before = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+        for days, now in [(7, NOW), (14, NOW), (30, NOW),
+                          (7, NOW + timedelta(days=7)),
+                          (7, NOW + timedelta(days=20))]:
+            with self.subTest(days=days, now=now):
+                window = bh.narrow(data, days, now)
+                expected = json.dumps(window, ensure_ascii=False, separators=(",", ":"))
+                target = io.StringIO()
+                summary = bh.write_window(data, days, now, target)
+                self.assertEqual(target.getvalue().encode("utf-8"), expected.encode("utf-8"))
+                self.assertEqual(summary["series_count"], len(window["series"]))
+                self.assertEqual(summary["hours_of_history"], window["hours_of_history"])
+        self.assertEqual(json.dumps(data, ensure_ascii=False, separators=(",", ":")), before)
+
+    def test_streamed_window_releases_compact_buckets_before_next_series(self):
+        data = self.fold({"S01": [row()]})
+        template = data["series"][0]
+        bucket = next(iter(template["buckets"].values()))
+        data["series"] = [dict(template, datastream=str(index), buckets={
+            (NOW - timedelta(hours=hour)).strftime("%Y-%m-%dT%H"): bucket
+            for hour in range(40)}) for index in range(8)]
+        alive = weakref.WeakSet()
+        peak = 0
+        compact = bh.compact
+
+        class TrackedBucket(dict):
+            __hash__ = object.__hash__
+
+        def track(bucket):
+            nonlocal peak
+            value = TrackedBucket(compact(bucket))
+            alive.add(value)
+            peak = max(peak, len(alive))
+            return value
+
+        with patch.object(bh, "compact", side_effect=track):
+            summary = bh.write_window(data, 7, NOW, io.StringIO())
+        self.assertEqual(summary["series_count"], 8)
+        self.assertEqual(peak, 40)
+        self.assertEqual(len(alive), 0)
 
 
 if __name__ == "__main__":

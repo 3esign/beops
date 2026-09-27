@@ -91,12 +91,9 @@ def compact(row: dict) -> dict:
     return out
 
 
-def narrow(data: dict, days: int, now: datetime) -> dict:
-    """A window is the same record over a shorter span, never a different record.
-    An hour outside the window is absent exactly as an unreceived hour is absent:
-    no interpolation, no zero, no line drawn across the gap."""
+def narrowed_series(data: dict, days: int, now: datetime):
+    """Yield one compact series, so publication never retains a second whole history."""
     floor = (now - timedelta(days=days)).strftime("%Y-%m-%dT%H")
-    series = []
     for s in data["series"]:
         buckets = {hk: row for hk, row in s["buckets"].items() if hk >= floor}
         if not buckets:
@@ -110,10 +107,12 @@ def narrow(data: dict, days: int, now: datetime) -> dict:
         narrowed["last_hour"] = hours[-1]
         narrowed["hours_present"] = len(buckets)
         narrowed["hours_expected"] = int((last - first).total_seconds() // 3600) + 1
-        series.append(narrowed)
-    covered = [s for s in series if s["hours_present"]]
-    earliest = min((s["first_hour"] for s in covered), default=None)
-    latest = max((s["last_hour"] for s in covered), default=None)
+        yield narrowed
+        del narrowed
+
+
+def window_header(data: dict, days: int, earliest, latest) -> dict:
+    """Shared metadata for materialized and streamed forms of the same window."""
     out = {k: v for k, v in data.items() if k != "series"}
     out["window_days"] = days
     out["history_starts"] = earliest
@@ -127,8 +126,52 @@ def narrow(data: dict, days: int, now: datetime) -> dict:
                           "last_by_measurement's value; a value that differs is always written out. "
                           "value_sum is omitted, and it is recoverable from mean only to the mean's "
                           "own rounding, so the exact sum lives in history.json." % days)
+    return out
+
+
+def narrow(data: dict, days: int, now: datetime) -> dict:
+    """A window is the same record over a shorter span, never a different record.
+    An hour outside the window is absent exactly as an unreceived hour is absent:
+    no interpolation, no zero, no line drawn across the gap."""
+    series = list(narrowed_series(data, days, now))
+    earliest = min((s["first_hour"] for s in series), default=None)
+    latest = max((s["last_hour"] for s in series), default=None)
+    out = window_header(data, days, earliest, latest)
     out["series"] = series
     return out
+
+
+def write_window(data: dict, days: int, now: datetime, handle) -> dict:
+    """Write exactly narrow()'s JSON bytes, retaining only one compact series.
+
+    The span pass examines existing keys without copying bucket dictionaries. The
+    second pass compacts and writes one series at a time; source rows and the full
+    history remain unchanged. The largest series, rather than a whole window,
+    bounds extra compaction memory.
+    """
+    floor = (now - timedelta(days=days)).strftime("%Y-%m-%dT%H")
+    earliest = latest = None
+    for s in data["series"]:
+        for hk in s["buckets"]:
+            if hk >= floor:
+                earliest = hk if earliest is None or hk < earliest else earliest
+                latest = hk if latest is None or hk > latest else latest
+    header = window_header(data, days, earliest, latest)
+    encoder = json.JSONEncoder(ensure_ascii=False, separators=(",", ":"))
+    # Metadata is small; only series/buckets require bounded serialization.
+    handle.write(encoder.encode(header)[:-1])
+    handle.write(',"series":[')
+    count = 0
+    for series in narrowed_series(data, days, now):
+        if count:
+            handle.write(',')
+        for chunk in encoder.iterencode(series):
+            handle.write(chunk)
+        count += 1
+        # Release the previous series before the generator constructs the next.
+        del series
+    handle.write(']}')
+    return {"series_count": count, "hours_of_history": header["hours_of_history"]}
 
 
 def iso(dt: datetime) -> str:
@@ -161,6 +204,68 @@ def load_config() -> dict:
     return {s["sid"]: s for s in cfg.get("sources", [])}
 
 
+def _fold_source_series(series: dict) -> dict:
+    """Finish one source before reading another; preserve original series keys."""
+    out_series = {}
+    for key, s in sorted(series.items()):
+        buckets = {}
+        grouped = {}
+        for event in s.pop('events'):
+            grouped.setdefault(hour_key(datetime.fromtimestamp(event[0], timezone.utc)), []).append(event)
+        kind = s['value_type']
+        def public_point(event):
+            if event is None: return None
+            def stamp(value):
+                return datetime.fromtimestamp(value, timezone.utc).isoformat().replace('+00:00','Z') if value is not None else None
+            return {'v': event[2] if finite(event[2]) else None,
+                    't': stamp(event[0]) if s['time_basis'] != 'received' else None,
+                    'rx': stamp(event[1]), 'time_basis': s['time_basis']}
+        for hk, events in sorted(grouped.items()):
+            numeric = [float(event[2]) for event in events if finite(event[2])]
+            vals = [value for value in numeric if (0 <= value <= 360 if kind == 'circular_degrees'
+                    else value >= 0 and value.is_integer() if kind == 'count' else True)]
+            row = {'n':len(events), 'missing':len(events)-len(numeric), 'invalid':len(numeric)-len(vals)}
+            if kind in ('scalar','interval_average','count') and vals:
+                row["min"] = round(min(vals), 4)
+                row["max"] = round(max(vals), 4)
+                if kind != 'count':
+                    row['value_sum'] = math.fsum(vals)
+                    row['mean'] = round(row['value_sum'] / len(vals), 4)
+            if kind == 'circular_degrees':
+                row.update(direction_count=len(vals),
+                           direction_sum_cos=math.fsum(math.cos(math.radians(v)) for v in vals),
+                           direction_sum_sin=math.fsum(math.sin(math.radians(v)) for v in vals))
+                row.update(direction_summary(row['direction_sum_cos'],row['direction_sum_sin'],len(vals)))
+            if kind != 'text':
+                # Null is retained. A later older observation cannot become the
+                # latest measurement merely because its reception happened later.
+                rx_key=lambda event: event[1] if event[1] is not None else float('-inf')
+                last_measured=max(events,key=lambda event:(event[0],rx_key(event))) if s['time_basis'] != 'received' else None
+                received_events=[event for event in events if event[1] is not None]
+                last_received=max(received_events,key=lambda event:(event[1],event[0])) if received_events else None
+                row['last_by_measurement']=public_point(last_measured)
+                row['last_received']=public_point(last_received)
+                selected=row['last_by_measurement'] if s['time_basis'] != 'received' else row['last_received']
+                row['last']=selected['v'] if selected else None
+            buckets[hk] = row
+        if not buckets:
+            continue
+        hours = sorted(buckets)
+        first = datetime.strptime(hours[0], "%Y-%m-%dT%H").replace(tzinfo=timezone.utc)
+        last = datetime.strptime(hours[-1], "%Y-%m-%dT%H").replace(tzinfo=timezone.utc)
+        expected = int((last - first).total_seconds() // 3600) + 1
+        numeric = kind in ('scalar','interval_average','count','circular_degrees')
+        out_series[key] = {
+            **{k: s[k] for k in ("sid", "datastream", "station", "parameter", "unit",
+                                 "time_basis", "cadence_seconds", "value_type", "interval_seconds")},
+            "kind": "numeric" if numeric else "count" if kind == 'text' else 'unclassified',
+            "first_hour": hours[0], "last_hour": hours[-1],
+            "hours_present": len(buckets), "hours_expected": expected,
+            "buckets": buckets,
+        }
+    return out_series
+
+
 def fold(now: datetime | None = None, rows=None) -> dict:
     """One pass; choose revisions in the bounded reception window before grouping.
 
@@ -172,12 +277,13 @@ def fold(now: datetime | None = None, rows=None) -> dict:
     rows = pathlib.Path(rows) if rows is not None else ROWS
     floor = now - timedelta(days=MAX_DAYS)
     cfg = load_config()
-    series: dict[str, dict] = {}
+    out_by_key: dict[str, dict] = {}
     unparsed: dict[str, int] = {}
     lower, upper = floor.timestamp(), now.timestamp()
 
     for sid_dir in sorted(p for p in rows.iterdir() if p.is_dir()) if rows.exists() else []:
         sid = sid_dir.name
+        series: dict[str, dict] = {}
         # Every event_key and every series key begins with sid, so a revision and a
         # series belong to exactly one source. Holding all sources' revisions at once
         # made the peak the whole record (814 MB of rows on 2026-09-24, two sources
@@ -229,64 +335,12 @@ def fold(now: datetime | None = None, rows=None) -> dict:
             if event[0] is not None and lower <= event[0] <= upper:
                 s['events'].append(event)
         revisions = None
+        # Event tuples have served their purpose once this source is bucketed.
+        # Only completed buckets cross the source boundary, not its raw events.
+        out_by_key.update(_fold_source_series(series))
+        series.clear()
 
-    out_series = []
-    for key, s in sorted(series.items()):
-        buckets = {}
-        grouped = {}
-        for event in s.pop('events'):
-            grouped.setdefault(hour_key(datetime.fromtimestamp(event[0], timezone.utc)), []).append(event)
-        kind = s['value_type']
-        def public_point(event):
-            if event is None: return None
-            def stamp(value):
-                return datetime.fromtimestamp(value, timezone.utc).isoformat().replace('+00:00','Z') if value is not None else None
-            return {'v': event[2] if finite(event[2]) else None,
-                    't': stamp(event[0]) if s['time_basis'] != 'received' else None,
-                    'rx': stamp(event[1]), 'time_basis': s['time_basis']}
-        for hk, events in sorted(grouped.items()):
-            numeric = [float(event[2]) for event in events if finite(event[2])]
-            vals = [value for value in numeric if (0 <= value <= 360 if kind == 'circular_degrees'
-                    else value >= 0 and value.is_integer() if kind == 'count' else True)]
-            row = {'n':len(events), 'missing':len(events)-len(numeric), 'invalid':len(numeric)-len(vals)}
-            if kind in ('scalar','interval_average','count') and vals:
-                row["min"] = round(min(vals), 4)
-                row["max"] = round(max(vals), 4)
-                if kind != 'count':
-                    row['value_sum'] = math.fsum(vals)
-                    row['mean'] = round(row['value_sum'] / len(vals), 4)
-            if kind == 'circular_degrees':
-                row.update(direction_count=len(vals),
-                           direction_sum_cos=math.fsum(math.cos(math.radians(v)) for v in vals),
-                           direction_sum_sin=math.fsum(math.sin(math.radians(v)) for v in vals))
-                row.update(direction_summary(row['direction_sum_cos'],row['direction_sum_sin'],len(vals)))
-            if kind != 'text':
-                # Null is retained. A later older observation cannot become the
-                # latest measurement merely because its reception happened later.
-                rx_key=lambda event: event[1] if event[1] is not None else float('-inf')
-                last_measured=max(events,key=lambda event:(event[0],rx_key(event))) if s['time_basis'] != 'received' else None
-                received_events=[event for event in events if event[1] is not None]
-                last_received=max(received_events,key=lambda event:(event[1],event[0])) if received_events else None
-                row['last_by_measurement']=public_point(last_measured)
-                row['last_received']=public_point(last_received)
-                selected=row['last_by_measurement'] if s['time_basis'] != 'received' else row['last_received']
-                row['last']=selected['v'] if selected else None
-            buckets[hk] = row
-        if not buckets:
-            continue
-        hours = sorted(buckets)
-        first = datetime.strptime(hours[0], "%Y-%m-%dT%H").replace(tzinfo=timezone.utc)
-        last = datetime.strptime(hours[-1], "%Y-%m-%dT%H").replace(tzinfo=timezone.utc)
-        expected = int((last - first).total_seconds() // 3600) + 1
-        numeric = kind in ('scalar','interval_average','count','circular_degrees')
-        out_series.append({
-            **{k: s[k] for k in ("sid", "datastream", "station", "parameter", "unit",
-                                 "time_basis", "cadence_seconds", "value_type", "interval_seconds")},
-            "kind": "numeric" if numeric else "count" if kind == 'text' else 'unclassified',
-            "first_hour": hours[0], "last_hour": hours[-1],
-            "hours_present": len(buckets), "hours_expected": expected,
-            "buckets": buckets,
-        })
+    out_series = [out_by_key[key] for key in sorted(out_by_key)]
 
     covered = [s for s in out_series if s["hours_present"]]
     earliest = min((s["first_hour"] for s in covered), default=None)
@@ -330,13 +384,11 @@ def main() -> int:
           f"{data['hours_of_history']} h of history from {data['history_starts']})")
     basis = generation_time(generation) if generation else datetime.now(timezone.utc)
     for days in window_days():
-        window = narrow(data, days, basis)
         path = OUT.parent / f"history-{days}d.json"
         with path.open("w", encoding="utf-8") as handle:
-            json.dump(window, handle, ensure_ascii=False, separators=(",", ":"))
-        print(f"wrote {path} ({path.stat().st_size} bytes; {len(window['series'])} series, "
+            window = write_window(data, days, basis, handle)
+        print(f"wrote {path} ({path.stat().st_size} bytes; {window['series_count']} series, "
               f"{days}-day window, {window['hours_of_history']} h)")
-        window = None
     return 0
 
 

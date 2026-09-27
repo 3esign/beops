@@ -1,6 +1,7 @@
 """Real Git objects survive working-tree corruption; damaged evidence fails closed."""
 import hashlib
 import json
+import os
 import pathlib
 import subprocess
 import sys
@@ -77,6 +78,26 @@ class PublishedEditions(unittest.TestCase):
         oid = E.git(self.root, 'rev-parse', 'HEAD').decode().strip()
         (self.folder/'sources.csv').write_bytes(b'changed'); self.commit()
         self.assertEqual(E.committed(self.root, oid)[1][self.edition]['sources.csv'], self.payload)
+
+    @unittest.skipUnless(os.name == 'nt', 'Windows Git path-length regression')
+    def test_long_release_path_preserves_bytes_without_config_mutation(self):
+        # Keep the repository itself below MAX_PATH; the dataset member exceeds
+        # it, exactly as in the retained-release failure.
+        root = self.base/('retained-'+'x'*max(1, 205-len(str(self.base))-10))
+        folder = root/E.PREFIX/self.edition
+        folder.mkdir(parents=True)
+        self.assertGreater(len(str(folder/'MANIFEST.json')), 260)
+        (folder/'sources.csv').write_bytes(self.payload)
+        (folder/'MANIFEST.json').write_text(json.dumps(self.manifest), encoding='utf-8')
+        E.git(root, 'init', '-q')
+        E.git(root, 'config', '--local', 'core.longpaths', 'false')
+        E.git(root, 'add', 'public')
+        E.git(root, '-c', 'user.name=Semir Poturak', '-c',
+              'user.email=scumutator@gmail.com', 'commit', '-qm', 'long edition fixture')
+        result = E.export(root, self.base/'long-export')
+        self.assertEqual(result['editions'], 1)
+        self.assertEqual((self.base/'long-export'/self.edition/'sources.csv').read_bytes(), self.payload)
+        self.assertEqual(E.git(root, 'config', '--local', '--get', 'core.longpaths').strip(), b'false')
 
     def test_preflight_precedes_expensive_capture_and_copy_uses_git(self):
         script = (ROOT/'tools/publish_github.ps1').read_text(encoding='utf-8-sig')

@@ -44,7 +44,9 @@ function Get-BeopsJsonHeadValue {
       try {
         $buffer = [char[]]::new($limit)
         $read = $reader.Read($buffer, 0, $limit)
-        if ($read -gt 0) { $head = -join $buffer[0..($read - 1)] }
+        # Construct directly from the bounded character buffer. A PowerShell
+        # range/slice boxes every character and transiently multiplies memory.
+        if ($read -gt 0) { $head = [string]::new($buffer, 0, $read) }
       } finally { $reader.Dispose() }
     } catch { return $null }
     $m = [regex]::Match($head, $pattern)
@@ -450,7 +452,7 @@ if (Test-Path $script:publishTestsOutRun) {
   } catch {
     Write-Output ("note: could not update shared publish test transcript: {0}" -f $_.Exception.Message)
   }
-  $summary = ((Get-Content $script:publishTestsOutRun | Select-String -CaseSensitive -Pattern '^Ran |^OK$|^FAILED') -join ' ').Trim()
+  $summary = ((Get-Content $script:publishTestsOutRun | Select-String -CaseSensitive -Pattern '^Ran |^OK(?:\s|$)|^FAILED|^DATA INTEGRITY GATE (?:OK|FAILED):|^Full research gate passed:') -join ' ').Trim()
   if (-not $summary) {
     $summary = "test runner exited $testsRc without a completion marker"
   }

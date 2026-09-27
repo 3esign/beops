@@ -17,7 +17,9 @@ PREFIX = 'public/dataset/permission-landscape/releases'
 
 
 def git(root, *args, **kw):
-    result = subprocess.run(['git', '-C', str(root), *args], capture_output=True,
+    # Retained releases add several parent directories to temporary Git fixtures.
+    # Enable Windows long paths for this command without changing any config file.
+    result = subprocess.run(['git', '-c', 'core.longpaths=true', '-C', str(root), *args], capture_output=True,
                             timeout=120, **kw)
     if result.returncode:
         raise ValueError('published editions: Git read failed: ' + result.stderr.decode('utf-8', 'replace')[:240])
