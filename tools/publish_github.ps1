@@ -107,6 +107,22 @@ $projectParent = Split-Path $src -Parent
 $pub = if ($env:BEOPS_PUBLIC_ROOT) { $env:BEOPS_PUBLIC_ROOT } else { Join-Path $projectParent 'Beops-public' }
 $pub = Assert-BeopsPublicRootSafe -SourceRoot $src -PublicRoot $pub -ExpectedRemote $remote
 $py = Resolve-BeopsTestPython
+function Add-BeopsChainLink {
+  param([string]$Root, [string]$ReceiptPath)
+  # Confirmation layer, never a gate: the receipt is already the truth on disk,
+  # so a chain problem is reported and must not fail the publish (P2, 2026-09-30).
+  # The live tree's tool runs even from an isolated workspace, so a chain fix
+  # takes effect on the very next cycle instead of waiting to be published.
+  try {
+    $tool = Join-Path $Root 'tools\release_chain.py'
+    if (-not (Test-Path -LiteralPath $tool)) { return }
+    $chainPy = Resolve-BeopsTestPython
+    $out = & $chainPy -X utf8 -B $tool append --root $Root --receipt $ReceiptPath 2>&1
+    if ($LASTEXITCODE -ne 0) { Write-Output ('chain append warning: ' + ($out -join ' ')) }
+  } catch {
+    Write-Output ('chain append warning: ' + $_.Exception.Message)
+  }
+}
 $env:GIT_HTTP_USER_AGENT = (Get-BeopsNativeOutput 'workspace Git transport identity' 'node' @((Join-Path $src 'tools\incognito_user_agent.js'))).Trim()
 if (-not $Isolated -and -not $DryRun) {
   # The export lock below protects the mirror, but taking it only after preparing a
@@ -114,7 +130,18 @@ if (-not $Isolated -and -not $DryRun) {
   # the outer lifecycle before allocating a release; the inner process keeps the
   # separate mirror lock because it may also be invoked directly in tests/review.
   $preparationLockFile = Join-Path $src 'runtime\publish-preparation.lock'
-  $preparationLock = Enter-BeopsPublishLock -Path $preparationLockFile -MaxAgeMinutes 15
+  # Baseline runs hourly at :49 and holds this lock ~20 min, so the :08 publish
+  # tick always lost admission and only :38 ever prepared a release. Publishing
+  # is the critical path: wait out a short-lived holder (bounded, inside our own
+  # cycle budget) instead of surrendering the whole 30-minute cadence slot.
+  $admissionDeadline = (Get-Date).AddMinutes(12)
+  do {
+    $preparationLock = Enter-BeopsPublishLock -Path $preparationLockFile -MaxAgeMinutes 15
+    if ($preparationLock.Acquired) { break }
+    if ((Get-Date) -ge $admissionDeadline) { break }
+    Write-Output ("waiting for publish admission: {0}" -f $preparationLock.Message)
+    Start-Sleep -Seconds 30
+  } while ($true)
   if (-not $preparationLock.Acquired) {
     Write-Output ("STOP: {0}. NO RELEASE WAS PREPARED." -f $preparationLock.Message)
     exit 75
@@ -127,8 +154,22 @@ if (-not $Isolated -and -not $DryRun) {
     # Session overrides remain explicit; regular releases must not fill C:.
     $releaseBase = if ($env:BEOPS_RELEASE_ROOT) { Get-BeopsFullPath $env:BEOPS_RELEASE_ROOT }
       else { Join-Path (Split-Path (Get-BeopsFullPath $src) -Parent) '_runtime\beops-releases' }
-    Clear-BeopsAbandonedReleases -SourceRoot $src -BaseRoot $releaseBase
-    $runRoot = Join-Path $releaseBase ('beops-release-' + [guid]::NewGuid().ToString('N'))
+    Clear-BeopsAbandonedReleases -SourceRoot $src -BaseRoot $releaseBase -ResumeOid $oid
+    # Phase traces are per-run diagnostics with GUID names; nothing ever removed them
+    # (353 had accumulated by 2026-09-30). The publisher rotates its own trace files;
+    # 14 days is longer than any investigation has ever reached back.
+    Get-ChildItem -LiteralPath (Join-Path $src 'runtime') -Filter 'publish-phases-*.jsonl' -File -ErrorAction SilentlyContinue |
+      Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-14) } |
+      Remove-Item -Force -ErrorAction SilentlyContinue
+    # An interrupted preparation at this exact OID is adopted and resumed;
+    # its finished fixed-source phase and hardlinked evidence are kept.
+    $runRoot = Get-BeopsResumableRelease -BaseRoot $releaseBase -SourceRoot $src -SourceOid $oid
+    $resumePreparation = [bool]$runRoot
+    if ($resumePreparation) {
+      Write-Output ('Resuming interrupted release preparation: ' + (Split-Path $runRoot -Leaf))
+    } else {
+      $runRoot = Join-Path $releaseBase ('beops-release-' + [guid]::NewGuid().ToString('N'))
+    }
     try {
       # Refuse an incomplete interpreter before spending a release cycle on I/O.
       # Use the same choice as the complete gate; never silently replace an override.
@@ -146,6 +187,7 @@ if (-not $Isolated -and -not $DryRun) {
       $PriorPublicOid = [string]$prior.source_oid
       $prepareArgs = @('-X', 'utf8', '-B', (Join-Path $src 'tools\prepare_release.py'), '--source', $src, '--destination', $runRoot, '--oid', $oid, '--owner-pid', [string]$PID)
       if ($PrepareOnly) { $prepareArgs += '--retained' }
+      if ($resumePreparation) { $prepareArgs += '--resume' }
       $prepared = Get-BeopsNativeOutput 'prepare isolated release' $py $prepareArgs
     } catch {
       $failurePath = Join-Path $src 'data\live\publish-receipt.json'
@@ -153,8 +195,15 @@ if (-not $Isolated -and -not $DryRun) {
       New-Item -ItemType Directory -Path (Split-Path $failurePath -Parent) -Force | Out-Null
       @{schema='beops-publish-receipt/v1';at=(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ');source_head=$oid;built=$false;tests_ok=$false;pushed=$false;site_verified=$false;published=$false;why=('release preparation failed: '+$_.Exception.Message)} | ConvertTo-Json | Set-Content -LiteralPath $failureTmp -Encoding UTF8
       Move-Item -LiteralPath $failureTmp -Destination $failurePath -Force
+      Add-BeopsChainLink -Root $src -ReceiptPath $failurePath
       Save-BeopsReleaseDiagnostic -SourceRoot $src -RunRoot $runRoot -SourceOid $oid -Outcome 'preparation-failed'
-      Remove-BeopsGeneratedRelease -Path $runRoot -SourceRoot $src -BaseRoot $releaseBase
+      if (Test-BeopsResumableRelease -Path $runRoot -SourceRoot $src -SourceOid $oid) {
+        # The fixed-source phase completed before the interruption; keep the
+        # workspace so the next tick continues instead of starting over.
+        Write-Output ('Interrupted release preserved for resume: ' + (Split-Path $runRoot -Leaf))
+      } else {
+        $null = Move-BeopsReleaseToTrash -Path $runRoot -SourceRoot $src -BaseRoot $releaseBase
+      }
       throw
     }
     $capture = $prepared | ConvertFrom-Json
@@ -175,10 +224,13 @@ if (-not $Isolated -and -not $DryRun) {
       if ($PrepareOnly) {
         Write-Output ('Prepared release retained for review: ' + $runRoot)
       } else {
-        Remove-BeopsGeneratedRelease -Path $runRoot -SourceRoot $src -BaseRoot $releaseBase
+        $null = Move-BeopsReleaseToTrash -Path $runRoot -SourceRoot $src -BaseRoot $releaseBase
       }
     }
   } finally {
+    # Workspaces of this and earlier cycles are deleted here, after the outcome is recorded and
+    # while this process still holds the preparation lock (Clear-BeopsReleaseTrash).
+    try { if ($releaseBase) { Clear-BeopsReleaseTrash -BaseRoot $releaseBase -Background } } catch { Write-Warning ('Release trash: ' + $_.Exception.Message) }
     if ((Test-Path -LiteralPath $preparationLockFile) -and
         (Test-BeopsPublishLockOwnedByCurrentProcess -Path $preparationLockFile)) {
       Remove-Item -LiteralPath $preparationLockFile -Force -ErrorAction SilentlyContinue
@@ -289,6 +341,7 @@ function Write-BeopsPublishReceipt {
     $receipt | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath ($success + '.' + $PID + '.tmp') -Encoding UTF8
     Move-Item -LiteralPath ($success + '.' + $PID + '.tmp') -Destination $success -Force
   }
+  Add-BeopsChainLink -Root $StateRoot -ReceiptPath $receiptPath
 }
 function Release-BeopsPublishRun {
   if ($receipt.published -and $script:copyRecovery -and (Test-Path -LiteralPath $script:copyRecovery)) {
@@ -375,7 +428,13 @@ Invoke-BeopsNative 'build frozen watch view' $py @('-X', 'utf8', '-B', 'tools\wa
 # the site: docs/ is what GitHub Pages serves (main branch, /docs). It is GENERATED by
 # tools/build_site.py from the registry, the provenance index, the corrections and the last export,
 # so the public page cannot state a number the files do not support.
-  Invoke-BeopsNative 'build_site.py' $py @('-X', 'utf8', '-B', 'tools\build_site.py')
+  $previousBuildPython = $env:BEOPS_PYTHON
+  try {
+    # The independent calendar bridge needs the same real interpreter inside a
+    # frozen checkout, where mutable runtime/test-python.json is not archived.
+    $env:BEOPS_PYTHON = Resolve-BeopsTestPython
+    Invoke-BeopsNative 'build_site.py' $py @('-X', 'utf8', '-B', 'tools\build_site.py')
+  } finally { $env:BEOPS_PYTHON = $previousBuildPython }
   # build_site renders the citizen page after its overview, then pins every HTML entry.
   # Running the citizen builder again here would erase that generation binding.
   Invoke-BeopsNative 'export frozen experimental AI feed' 'node' @('tools\ai_feed.js', 'export')
@@ -425,6 +484,26 @@ try {
         }
       }
     } catch {}
+  }
+  # Code gate receipt (tools/code_gate.ps1, 2026-10-01): the complete suite already passed for this
+  # exact commit outside the release, less than 24 h ago. The release then carries only the data
+  # integrity gate - the same split the fast gate makes, without waiting for a prior publication.
+  if (-not $canFastGate -and $head) {
+    $codeGateFile = Join-Path $StateRoot ('runtime\code-gate\' + $head + '.json')
+    if (Test-Path -LiteralPath $codeGateFile) {
+      try {
+        $codeGate = Get-Content -LiteralPath $codeGateFile -Raw | ConvertFrom-Json
+        if ($codeGate.schema -eq 'beops-code-gate/v1' -and $codeGate.passed -eq $true -and $codeGate.source_oid -eq $head) {
+          $codeGateAt = [DateTimeOffset]::Parse([string]$codeGate.finished_at).ToUniversalTime()
+          $codeGateAge = ($gateNow - $codeGateAt).TotalHours
+          if ($codeGateAge -ge 0 -and $codeGateAge -lt 24) {
+            $canFastGate = $true
+            $receipt.last_full_gate_at = $codeGateAt.ToString('o')
+            $receipt.code_gate = 'runtime/code-gate/' + $head + '.json'
+          }
+        }
+      } catch {}
+    }
   }
   if ($canFastGate) {
     $receipt.gate_mode = 'fast'
@@ -553,6 +632,12 @@ foreach ($f in $generatedPublicPaths) {
   Copy-BeopsGeneratedPublic $f
 }
 if (Test-Path (Join-Path $src 'docs')) { Copy-Item -LiteralPath (Join-Path $src 'docs') -Destination $pub -Recurse -Force }
+# An older cached group pointer must retain its immutable objects after the next
+# full observation release. Read only hash-verified committed public objects.
+if (Test-Path -LiteralPath (Join-Path $mirror '.git')) {
+  $groupOid = if ($PriorPublicOid) { $PriorPublicOid } else { 'HEAD' }
+  Invoke-BeopsNative 'retain immutable group objects' 'node' @('tools\group_publication.js','retain',$mirror,$pub,$groupOid)
+}
 # evidence placeholder so links in the index explain themselves
 $note = @'
 # research/evidence

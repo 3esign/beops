@@ -22,6 +22,7 @@ site is a snapshot of the same files a reviewer can clone.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import pathlib
 import re
@@ -1030,9 +1031,11 @@ def main() -> int:
     # Spatial estimates and measured resource totals belong to this same frozen
     # edition. Build before the common HTML generation pin, never from wall time.
     if data['live'].get('as_of'):
+        # 120 s was the whole budget; on 2026-10-02 the disk was busy, every phase ran 5-7x slower and
+        # the publication stopped here with TimeoutExpired. The cycle budget is the real limit.
         subprocess.run(['node', str(ROOT / 'tools/build_impulse_page.js'),
                         '--root', str(ROOT), '--as-of', data['live']['as_of']],
-                       check=True, timeout=120)
+                       check=True, timeout=int(os.environ.get('BEOPS_IMPULSE_PAGE_TIMEOUT', '900')))
     if generation:
         # Every standalone entry identifies the same cut; the browser refuses
         # a stale HTML shell paired with another generation's JSON.

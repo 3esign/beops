@@ -8,7 +8,7 @@ function write(root,name,value){const target=path.join(root,name);fs.mkdirSync(p
 function read(root,name){return JSON.parse(fs.readFileSync(path.join(root,name),'utf8'));}
 function readImpulses(root,name='docs/impulse-data/impulses.json'){return decodeImpulses(read(root,name));}
 function fixture(){
- assert.ok(base.toLowerCase().startsWith(path.resolve('C:/Svemir').toLowerCase()+path.sep));fs.mkdirSync(base,{recursive:true});const root=fs.mkdtempSync(path.join(base,'fixture-'));
+ assert.ok(['C:/Svemir','D:/Svemir'].some(root=>base.toLowerCase().startsWith(path.resolve(root).toLowerCase()+path.sep)));fs.mkdirSync(base,{recursive:true});const root=fs.mkdtempSync(path.join(base,'fixture-'));
  const input_generation={schema:'beops-input-generation/v1',id:'d'.repeat(64),captured_at:at};
  write(root,'public/live-snapshot.json',{schema:'beops-live-snapshot/v1',as_of:at,input_generation});
  write(root,'research/COLLECTORS.json',{sources:[{sid:'S15',name:'Fixture news',parser:'city_listing'}]});

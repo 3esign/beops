@@ -103,7 +103,7 @@ test('rolling durations and exclusive end stay explicit, and local-day records o
  assert.equal(m.inWindow({clock:{start:new Date(now).toISOString(),end:null}},now-m.DAY,now),false);
 });
 test('bounded reader ignores empty row files and fails closed for correction overlays',async()=>{
- const base=path.resolve(process.env.BEOPS_TEST_TEMP||path.resolve(__dirname,'../runtime/impulse-test-work'));assert.ok(base.toLowerCase().startsWith(path.resolve('C:/Svemir').toLowerCase()+path.sep));fs.mkdirSync(base,{recursive:true});const root=fs.mkdtempSync(path.join(base,'test-'));
+ const base=path.resolve(process.env.BEOPS_TEST_TEMP||path.resolve(__dirname,'../runtime/impulse-test-work'));assert.ok(['C:/Svemir','D:/Svemir'].some(root=>base.toLowerCase().startsWith(path.resolve(root).toLowerCase()+path.sep)));fs.mkdirSync(base,{recursive:true});const root=fs.mkdtempSync(path.join(base,'test-'));
  try{
   fs.mkdirSync(path.join(root,'research'),{recursive:true});fs.mkdirSync(path.join(root,'data/live/rows/S15'),{recursive:true});
   fs.writeFileSync(path.join(root,'research/COLLECTORS.json'),JSON.stringify({sources:[{sid:'S15',name:'City',parser:'city_listing'}]}));

@@ -14,7 +14,7 @@ import zipfile
 
 
 def git(root, *args):
-    p = subprocess.run(['git', '-C', str(root), *args], capture_output=True, text=True, encoding='utf-8', timeout=30)
+    p = subprocess.run(['git', '-C', str(root), *args], capture_output=True, text=True, encoding='utf-8', timeout=600)
     if p.returncode: raise RuntimeError(p.stderr.strip())
     return p.stdout.strip()
 

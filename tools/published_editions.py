@@ -20,7 +20,7 @@ def git(root, *args, **kw):
     # Retained releases add several parent directories to temporary Git fixtures.
     # Enable Windows long paths for this command without changing any config file.
     result = subprocess.run(['git', '-c', 'core.longpaths=true', '-C', str(root), *args], capture_output=True,
-                            timeout=120, **kw)
+                            timeout=900, **kw)
     if result.returncode:
         raise ValueError('published editions: Git read failed: ' + result.stderr.decode('utf-8', 'replace')[:240])
     return result.stdout
@@ -54,7 +54,7 @@ def committed(root, oid=None):
         return None, {}
     # An initialized, unborn mirror has no prior editions.
     if oid is None:
-        probe = subprocess.run(['git', '-C', str(root), 'rev-parse', '--verify', 'HEAD'], capture_output=True, timeout=30)
+        probe = subprocess.run(['git', '-C', str(root), 'rev-parse', '--verify', 'HEAD'], capture_output=True, timeout=300)
         if probe.returncode:
             if (root/PREFIX).exists():
                 raise ValueError('dataset files exist without a committed public HEAD')

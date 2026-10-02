@@ -9,6 +9,10 @@ GIB = 1024 ** 3
 RESERVE_BYTES = 2 * GIB
 CAPACITY_SCHEMA = 'beops-release-capacity/v1'
 CAPACITY_FORMULA = '4*input_bytes+3*source_bytes+reserve_bytes'
+CAPACITY_PARTITION_SCHEMA = 'beops-release-capacity/v2'
+CAPACITY_PARTITION_FORMULA = '4*(input_bytes-evidence_bytes)+evidence_bytes+3*source_bytes+reserve_bytes'
+CAPACITY_EVIDENCE_ORIGIN = 'live_stat_scan:research/evidence'
+CAPACITY_MAX_BYTES = (1 << 63) - 1
 CAPACITY_MAX_AGE_SECONDS = 90 * 60
 CAPACITY_MAX_RECEIPT_BYTES = 16 * 1024
 
@@ -26,6 +30,24 @@ def nearest_existing(path):
     while not path.exists():
         path = path.parent
     return path
+
+
+def release_required_bytes(input_bytes, source_bytes=0, evidence_bytes=0):
+    """Budget a full evidence copy, even when immutable hardlinks are unavailable.
+
+    Only research/evidence is capture-only: it is excluded from both Git source
+    extraction and public export. Other inputs retain the four-copy allowance.
+    Existing mirror bytes are already charged against measured free space.
+    """
+    for value in (input_bytes, source_bytes, evidence_bytes):
+        if type(value) is not int or not 0 <= value <= CAPACITY_MAX_BYTES:
+            raise ValueError('invalid release allocation byte count')
+    if evidence_bytes > input_bytes:
+        raise ValueError('evidence allocation exceeds total inputs')
+    required = 4 * (input_bytes - evidence_bytes) + evidence_bytes + 3 * source_bytes + RESERVE_BYTES
+    if required > CAPACITY_MAX_BYTES:
+        raise ValueError('release allocation exceeds supported byte count')
+    return required
 
 
 def release_capacity_check(root, releases, disk_usage, now):
@@ -48,7 +70,7 @@ def release_capacity_check(root, releases, disk_usage, now):
         if len(raw) > CAPACITY_MAX_RECEIPT_BYTES:
             raise ValueError('oversized receipt')
         measured = json.loads(raw)
-        if not isinstance(measured, dict) or measured.get('schema') != CAPACITY_SCHEMA:
+        if not isinstance(measured, dict) or measured.get('schema') not in (CAPACITY_SCHEMA, CAPACITY_PARTITION_SCHEMA):
             raise ValueError('unexpected schema')
         if pathlib.Path(measured['source']).resolve() != root:
             raise ValueError('source mismatch')
@@ -57,8 +79,17 @@ def release_capacity_check(root, releases, disk_usage, now):
         for name in ('input_bytes', 'source_bytes', 'free_bytes', 'required_bytes', 'reserve_bytes'):
             if type(measured[name]) is not int or measured[name] < 0:
                 raise ValueError('invalid byte count')
-        if (measured['formula'] != CAPACITY_FORMULA or measured['reserve_bytes'] != RESERVE_BYTES
-                or measured['required_bytes'] != 4*measured['input_bytes'] + 3*measured['source_bytes'] + RESERVE_BYTES):
+        partitioned = measured['schema'] == CAPACITY_PARTITION_SCHEMA
+        evidence_bytes = measured['evidence_bytes'] if partitioned else 0
+        if partitioned and (measured.get('input_bytes_from') != 'live_stat_scan'
+                            or measured.get('evidence_bytes_from') != CAPACITY_EVIDENCE_ORIGIN):
+            raise ValueError('evidence allocation requires a fresh classified inventory')
+        if not partitioned and measured.get('evidence_bytes', 0) != 0:
+            raise ValueError('legacy allocation cannot discount evidence')
+        formula = CAPACITY_PARTITION_FORMULA if partitioned else CAPACITY_FORMULA
+        if (measured['formula'] != formula or measured['reserve_bytes'] != RESERVE_BYTES
+                or measured['required_bytes'] != release_required_bytes(
+                    measured['input_bytes'], measured['source_bytes'], evidence_bytes)):
             raise ValueError('allocation formula mismatch')
         if (type(measured['admitted']) is not bool
                 or measured['admitted'] != (measured['free_bytes'] >= measured['required_bytes'])):
@@ -114,11 +145,9 @@ def inspect(root, disk_usage=None, now=None):
             else 'WARN' if any(c['state']=='WARN' for c in checks) else 'OK'}
 
 
-def require_release_capacity(parent, input_bytes, source_bytes=0, disk_usage=None):
+def require_release_capacity(parent, input_bytes, source_bytes=0, disk_usage=None, *, evidence_bytes=0):
     disk_usage = disk_usage or shutil.disk_usage
-    # Mutable spool, captured inputs, export stage and mirror transaction can coexist.
-    # Reserve remains free after this conservative working allocation.
-    required = 4 * input_bytes + 3 * source_bytes + RESERVE_BYTES
+    required = release_required_bytes(input_bytes, source_bytes, evidence_bytes)
     available = disk_usage(nearest_existing(parent)).free
     capacity = {'free_bytes': available, 'required_bytes': required, 'reserve_bytes': RESERVE_BYTES}
     if available < required:

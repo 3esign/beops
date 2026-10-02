@@ -5,6 +5,7 @@ import pathlib
 import sys
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import call, patch
 
@@ -75,7 +76,7 @@ class CapacityRecount(unittest.TestCase):
              patch.object(P, 'require_release_capacity', wraps=S.require_release_capacity) as guard:
             with self.assertRaisesRegex(P.ReleaseCapacityError, str(4 * exact + 3 * self.source_bytes + S.RESERVE_BYTES)):
                 self.capacity()
-        scan.assert_called_once_with(self.source, use_cached=False)
+        scan.assert_called_once_with(self.source, use_cached=False, inventory={})
         self.assertEqual(guard.call_args_list, [call(self.root, self.estimate, self.source_bytes),
                                                call(self.root, exact, self.source_bytes)])
         receipt = json.loads((self.source/'runtime/release-capacity.json').read_text())
@@ -134,7 +135,81 @@ class CapacityRecount(unittest.TestCase):
         self.assertFalse(destination.exists())
         capacity.assert_called_once_with(self.source, destination.parent, self.estimate,
                                          P.CAPACITY_CACHED_ORIGIN, self.source_bytes)
-        self.assertEqual(estimate.call_args_list, [call(self.source), call(self.source, use_cached=False)])
+        self.assertEqual(estimate.call_args_list, [call(self.source, inventory={}),
+                         call(self.source, use_cached=False, inventory={'evidence_bytes': 0})])
+
+    def partitioned_inputs(self):
+        evidence = self.source / 'research/evidence/source/proof.bin'
+        evidence.parent.mkdir(parents=True)
+        evidence.write_bytes(b'e' * 600)
+        evidence.with_suffix('.tmp').write_bytes(b'ignored temporary evidence' * 100)
+        receipt = self.source / 'runtime/resources/receipts/cycle.json'
+        receipt.parent.mkdir(parents=True)
+        receipt.write_bytes(b'r' * 37)
+        return 837, 600
+
+    def test_fresh_inventory_discounts_only_captured_evidence(self):
+        exact, evidence_bytes = self.partitioned_inputs()
+        inventory = {'evidence_bytes': 999999, 'stale': True}
+        amount, origin = P.estimate_release_input_bytes(self.source, use_cached=False, inventory=inventory)
+        self.assertEqual((amount, origin), (exact, 'live_stat_scan'))
+        self.assertEqual(inventory, {'evidence_bytes': evidence_bytes})
+        # A subsequent cached estimate must not inherit a prior scan's discount.
+        with patch.object(pathlib.Path, 'rglob', side_effect=AssertionError('cached deep scan')):
+            P.estimate_release_input_bytes(self.source, inventory=inventory)
+        self.assertEqual(inventory, {})
+
+    def test_evidence_recount_admits_at_partition_boundary_and_refuses_one_byte_below(self):
+        exact, evidence_bytes = self.partitioned_inputs()
+        required = 4 * 237 + 600 + 3 * self.source_bytes + S.RESERVE_BYTES
+        legacy_required = 4 * exact + 3 * self.source_bytes + S.RESERVE_BYTES
+        self.assertEqual(legacy_required - required, 3 * evidence_bytes)
+        for available in (required, required - 1):
+            with self.subTest(available=available), \
+                 patch.object(S.shutil, 'disk_usage', return_value=SimpleNamespace(free=available)):
+                if available == required:
+                    capacity, amount, origin = self.capacity()
+                    self.assertEqual((amount, origin), (exact, 'live_stat_scan'))
+                    self.assertEqual(capacity['required_bytes'], required)
+                else:
+                    with self.assertRaises(P.ReleaseCapacityError):
+                        self.capacity()
+            record = json.loads((self.source/'runtime/release-capacity.json').read_text())
+            self.assertEqual(record['schema'], S.CAPACITY_PARTITION_SCHEMA)
+            self.assertEqual(record['formula'], S.CAPACITY_PARTITION_FORMULA)
+            self.assertEqual(record['evidence_bytes'], evidence_bytes)
+            self.assertEqual(record['evidence_bytes_from'], S.CAPACITY_EVIDENCE_ORIGIN)
+            self.assertEqual(record['reserve_bytes'], 2 * 1024 ** 3)
+            self.assertEqual(record['admitted'], available == required)
+            with patch.object(pathlib.Path, 'rglob', side_effect=AssertionError('monitor archive scan')):
+                check = S.release_capacity_check(self.source, self.root,
+                    lambda _: SimpleNamespace(free=available), datetime.now(timezone.utc))
+            self.assertEqual(check['state'], 'OK' if available == required else 'WARN')
+
+    def test_prepare_initial_fresh_scan_applies_partition_before_allocating_workspace(self):
+        exact, evidence_bytes = self.partitioned_inputs()
+        (self.source/'runtime/release-inputs-last.json').unlink()
+        required = 4 * (exact - evidence_bytes) + evidence_bytes + 3 * self.source_bytes + S.RESERVE_BYTES
+        destination = self.root/'releases/candidate'
+        with patch.object(P, 'git', return_value='a' * 40), \
+             patch.object(P, 'archive_paths', return_value=['source.py']), \
+             patch.object(P, 'archive_source_bytes', return_value=self.source_bytes), \
+             patch.object(S.shutil, 'disk_usage', return_value=SimpleNamespace(free=required - 1)):
+            with self.assertRaises(P.ReleaseCapacityError):
+                P.prepare(self.source, destination)
+        self.assertFalse(destination.exists())
+        record = json.loads((self.source/'runtime/release-capacity.json').read_text())
+        self.assertEqual(record['required_bytes'], required)
+        self.assertEqual(record['schema'], S.CAPACITY_PARTITION_SCHEMA)
+        self.assertFalse(record['admitted'])
+
+    def test_cached_or_unknown_inventory_cannot_discount_evidence(self):
+        for origin in (P.CAPACITY_CACHED_ORIGIN, 'unrecognized-estimate'):
+            with self.subTest(origin=origin), \
+                 patch.object(P, 'require_release_capacity', side_effect=AssertionError('guard must not run')):
+                with self.assertRaisesRegex(ValueError, 'fresh input inventory'):
+                    P.release_capacity(self.source, self.root, 200, origin, self.source_bytes,
+                                       evidence_bytes=100)
 
 
 if __name__ == '__main__':

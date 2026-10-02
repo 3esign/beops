@@ -303,8 +303,111 @@ function Remove-BeopsGeneratedRelease {
   Remove-Item -LiteralPath $full -Recurse -Force -ErrorAction Stop
 }
 
+# 2026-10-01: removing a 64,000-file workspace with Remove-Item took tens of minutes on a loaded
+# body and ran BEFORE capture, with no phase trace: the "stall after resolve release OID" recorded
+# in KNOWLEDGE on 2026-10-01 (cycle 23548, and again at 16:41Z). Cleanup now leaves the critical
+# path: the workspace is renamed to beops-trash-<32 hex> (instant, same volume, same checks as a
+# removal) and Clear-BeopsReleaseTrash deletes it with rd at the end of the cycle, while the cycle
+# still holds the preparation lock - so no release is linking sealed months at the same time.
+function Move-BeopsReleaseToTrash {
+  param([string]$Path, [string]$SourceRoot, [string]$BaseRoot)
+  if (-not (Test-Path -LiteralPath $Path)) { return }
+  $full = Get-BeopsFullPath $Path
+  $base = Get-BeopsFullPath $BaseRoot
+  $source = Get-BeopsFullPath $SourceRoot
+  if ((Split-Path $full -Parent) -ne $base -or (Split-Path $full -Leaf) -notmatch '^beops-release-[a-f0-9]{32}$' -or (Test-BeopsSameOrInside -Parent $full -Child $source)) {
+    throw 'release cleanup boundary refused'
+  }
+  $marker = Join-Path $full '.beops-generated-workspace.json'
+  if (-not (Test-Path -LiteralPath $marker)) { return } # never touch an unowned directory
+  $owned = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
+  if ((Get-BeopsFullPath $owned.destination) -ne $full -or (Get-BeopsFullPath $owned.source) -ne $source) { throw 'release owner marker mismatch' }
+  $trash = 'beops-trash-' + [guid]::NewGuid().ToString('N')
+  Rename-Item -LiteralPath $full -NewName $trash -ErrorAction Stop
+  return (Join-Path $base $trash)
+}
+
+function Clear-BeopsReleaseTrash {
+  param([string]$BaseRoot, [switch]$Background)
+  if (-not $BaseRoot -or -not (Test-Path -LiteralPath $BaseRoot)) { return }
+  $base = Get-BeopsFullPath $BaseRoot
+  foreach ($item in Get-ChildItem -LiteralPath $base -Directory -Filter 'beops-trash-*' -ErrorAction SilentlyContinue) {
+    if ($item.Name -notmatch '^beops-trash-[a-f0-9]{32}$') { continue }
+    if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
+    if (-not (Test-Path -LiteralPath (Join-Path $item.FullName '.beops-generated-workspace.json'))) { continue }
+    # rd removes a junction inside the tree without following it; attrib first lifts the
+    # read-only seal that rd cannot delete through.
+    $dir = $item.FullName
+    if ($Background) {
+      # 2026-10-02: two 66,000-file workspaces took 40 and 55 minutes to delete on a busy disk, and the
+      # publisher held the preparation lock the whole time, so the next two cycles could not start.
+      # Deletion is housekeeping, not publication: it runs detached at idle priority, the lock is
+      # released at once, and a marker keeps a later cycle from starting a second deleter.
+      $marker = Join-Path $dir '.beops-trash-deleting'
+      if (Test-Path -LiteralPath $marker) {
+        $age = (Get-Date) - (Get-Item -LiteralPath $marker).LastWriteTime
+        if ($age.TotalHours -lt 3) { Write-Output ('Release trash already being deleted: ' + $item.Name); continue }
+      }
+      Set-Content -LiteralPath $marker -Value ((Get-Date).ToUniversalTime().ToString('o')) -Encoding ASCII
+      $runner = Join-Path $base ('.' + $item.Name + '.delete.cmd')
+      Set-Content -LiteralPath $runner -Encoding ASCII -Value @(
+        ('@attrib -r "' + $dir + '\*" /s /d >nul 2>&1'),
+        ('@rd /s /q "' + $dir + '"'),
+        '@del "%~f0"')
+      # Created through WMI so it is not in the scheduled task's job and outlives this process; idle priority.
+      $startup = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ PriorityClass = [uint32]64; ShowWindow = [uint16]0 }
+      $made = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = ($env:ComSpec + ' /d /c "' + $runner + '"'); ProcessStartupInformation = $startup }
+      if ($made.ReturnValue -ne 0) { Remove-Item -LiteralPath $marker -Force -ErrorAction SilentlyContinue; Write-Warning ('Release trash deleter did not start (' + $made.ReturnValue + '): ' + $item.Name); continue }
+      Write-Output ('Release trash deletion started in background: ' + $item.Name)
+      continue
+    }
+    & $env:ComSpec /d /c ('attrib -r "' + $dir + '\*" /s /d >nul 2>&1 & rd /s /q "' + $dir + '"') 2>&1 | Out-Null
+    if (Test-Path -LiteralPath $dir) { Write-Warning ('Release trash not fully removed (next cycle retries): ' + $item.Name) }
+    else { Write-Output ('Removed release trash: ' + $item.Name) }
+  }
+}
+
+function Test-BeopsResumableRelease {
+  param([string]$Path, [string]$SourceRoot, [string]$SourceOid)
+  # A workspace is resumable when its completed fixed-source progress marker
+  # names exactly the OID about to be released and is fresh enough that
+  # resuming beats recapturing. Anything unreadable is simply not resumable.
+  if (-not $SourceOid) { return $false }
+  try {
+    $marker = Join-Path $Path '.beops-generated-workspace.json'
+    $progressFile = Join-Path $Path '.beops-prepare-progress.json'
+    if (-not (Test-Path -LiteralPath $marker) -or -not (Test-Path -LiteralPath $progressFile)) { return $false }
+    $owner = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
+    if ($owner.schema -ne 'beops-generated-workspace/v2' -or $owner.retained -ne $false) { return $false }
+    if ((Get-BeopsFullPath $owner.source) -ne (Get-BeopsFullPath $SourceRoot)) { return $false }
+    $progress = Get-Content -LiteralPath $progressFile -Raw | ConvertFrom-Json
+    if ($progress.schema -ne 'beops-prepare-progress/v1' -or -not $progress.fixed_source_complete) { return $false }
+    if ([string]$progress.source_oid -ne [string]$SourceOid) { return $false }
+    if (([DateTimeOffset]::UtcNow - [DateTimeOffset]::Parse($progress.at)).TotalHours -ge 24) { return $false }
+    return $true
+  } catch { return $false }
+}
+
+function Get-BeopsResumableRelease {
+  param([string]$BaseRoot, [string]$SourceRoot, [string]$SourceOid)
+  if (-not (Test-Path -LiteralPath $BaseRoot)) { return $null }
+  $candidates = @(Get-ChildItem -LiteralPath $BaseRoot -Directory -Filter 'beops-release-*' |
+    Where-Object { $_.Name -match '^beops-release-[a-f0-9]{32}$' -and
+                   -not ($_.Attributes -band [IO.FileAttributes]::ReparsePoint) } |
+    Where-Object { Test-BeopsResumableRelease -Path $_.FullName -SourceRoot $SourceRoot -SourceOid $SourceOid } |
+    Where-Object {
+      try {
+        $owner = Get-Content -LiteralPath (Join-Path $_.FullName '.beops-generated-workspace.json') -Raw | ConvertFrom-Json
+        -not (Test-BeopsProcessAlive -ProcessId ([int]$owner.owner_pid))
+      } catch { $false }
+    } |
+    Sort-Object LastWriteTimeUtc -Descending)
+  if ($candidates.Count -gt 0) { return $candidates[0].FullName }
+  return $null
+}
+
 function Clear-BeopsAbandonedReleases {
-  param([string]$SourceRoot, [string]$BaseRoot)
+  param([string]$SourceRoot, [string]$BaseRoot, [string]$ResumeOid)
   if (-not (Test-Path -LiteralPath $BaseRoot)) { return }
   foreach ($item in Get-ChildItem -LiteralPath $BaseRoot -Directory -Filter 'beops-release-*') {
     if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
@@ -317,9 +420,15 @@ function Clear-BeopsAbandonedReleases {
       if ((Get-BeopsFullPath $owner.source) -ne (Get-BeopsFullPath $SourceRoot)) { continue }
       if (([DateTimeOffset]::UtcNow - [DateTimeOffset]::Parse($owner.created_at)).TotalHours -lt 2) { continue }
       if (Test-BeopsProcessAlive -ProcessId ([int]$owner.owner_pid)) { continue }
+      if ($ResumeOid -and (Test-BeopsResumableRelease -Path $item.FullName -SourceRoot $SourceRoot -SourceOid $ResumeOid)) {
+        # An interrupted preparation at the OID about to be released is work
+        # already done, not abandonment; the publisher adopts it instead.
+        Write-Output ('Preserved resumable release: ' + $item.Name)
+        continue
+      }
       Save-BeopsReleaseDiagnostic -SourceRoot $SourceRoot -RunRoot $item.FullName -SourceOid $owner.source_oid -Outcome 'abandoned-cleanup'
-      Remove-BeopsGeneratedRelease -Path $item.FullName -SourceRoot $SourceRoot -BaseRoot $BaseRoot
-      Write-Output ('Removed owned abandoned release: ' + $item.Name)
+      $null = Move-BeopsReleaseToTrash -Path $item.FullName -SourceRoot $SourceRoot -BaseRoot $BaseRoot
+      Write-Output ('Removed owned abandoned release: ' + $item.Name + ' (moved to trash, deleted at the end of this cycle)')
     } catch { Write-Warning ('Release preserved: ' + $item.Name + ': ' + $_.Exception.Message) }
   }
 }
@@ -368,6 +477,9 @@ function Invoke-BeopsTimedProcess {
   $process.StartInfo = $info
   try {
     if (-not $process.Start()) { throw 'native phase did not start' }
+    # 2026-10-01 (Semir): publication has priority on a shared body. Each release phase runs
+    # above normal, so chat and agent processes on the same 8 GB machine yield the CPU to it.
+    if ($env:BEOPS_PUBLISH_PRIORITY -ne 'normal') { try { $process.PriorityClass = [Diagnostics.ProcessPriorityClass]::AboveNormal } catch {} }
     $stdout = $process.StandardOutput.ReadToEndAsync()
     $stderr = $process.StandardError.ReadToEndAsync()
     if (-not $process.WaitForExit($TimeoutMilliseconds)) {

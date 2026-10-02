@@ -27,7 +27,7 @@ class FailedPublish(unittest.TestCase):
             (source/'runtime').mkdir();(source/'data/live').mkdir(parents=True)
             if (ROOT/'runtime'/'test-python.json').exists():
                 shutil.copyfile(ROOT/'runtime'/'test-python.json', source/'runtime'/'test-python.json')
-            for name in ('publish_github.ps1','publish_safety.ps1','test-research.js','incognito_user_agent.js','mirror_transaction.py','published_editions.py'):
+            for name in ('publish_github.ps1','publish_safety.ps1','test-research.js','incognito_user_agent.js','mirror_transaction.py','published_editions.py','group_publication.js'):
                 shutil.copyfile(ROOT/'tools'/name,source/'tools'/name)
             for name in ('baseline','latency','agreement','export_permission_dataset','collect_daemon',
                          'build_history','watchman','build_site','make_maps','build_public_page'):

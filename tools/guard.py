@@ -513,6 +513,23 @@ def publish_gate() -> list[dict]:
     return out
 
 
+def publish_chain() -> list[dict]:
+    """The chain of confirmations (P2): one cheap file answers "what has the
+    publisher actually done", instead of trusting scattered logs or paying a
+    disk scan. A hash break is a STOP because it means the record of outcomes
+    was edited; an empty or lagging chain is a WARN, because the layer is new
+    and the receipt remains the primary truth while it earns trust."""
+    try:
+        import release_chain
+    except ImportError as exc:
+        return [{"check": "the chain of confirmations", "state": UNKNOWN,
+                 "why": "release_chain module unavailable: %s" % exc}]
+    receipt = LIVE / "publish-receipt.json"
+    code, message = release_chain.verify(ROOT, str(receipt) if receipt.exists() else None)
+    state = OK if code == 0 else (STOP if code == 1 else WARN)
+    return [{"check": "the chain of confirmations", "state": state, "why": message}]
+
+
 def publish_failure_started_at(current_receipt_at: datetime | None) -> datetime | None:
     """Return the start of the current continuous failed-publish streak, if visible."""
     if current_receipt_at is None:
@@ -666,7 +683,7 @@ def run(dry: bool = False) -> dict:
             d = task_state(name)
             d["repaired"] = True
         checks.append(d)
-    legal = permission_invariants() + refusal_route() + publish_gate() + static_layers() + predictions()
+    legal = permission_invariants() + refusal_route() + publish_gate() + publish_chain() + static_layers() + predictions()
     organs = organ_output()
     states = [c["state"] for c in checks] + [c["state"] for c in legal] + [c["state"] for c in organs]
     verdict = STOP if STOP in states else (UNKNOWN if UNKNOWN in states else

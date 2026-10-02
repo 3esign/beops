@@ -16,6 +16,14 @@ set "TEMP=%BEOPS_ROOT%\runtime\tmp"
 set "TMP=%TEMP%"
 if not exist "%TEMP%" mkdir "%TEMP%"
 if not defined BEOPS_PUBLISH_MIN_FREE_MB set "BEOPS_PUBLISH_MIN_FREE_MB=256"
+rem Measured 2026-09-25: a worst-case cycle needs ~55 min on a quiet disk.
+rem Measured 2026-09-30: under D: contention the pre-prepare phases alone took
+rem 27 min (23 s when quiet) and the 55 min budget killed preparation mid-walk;
+rem publish_safety then discarded the workspace, so every tick restarted from
+rem zero and nothing was published for 5 days. Until preparation is resumable,
+rem the budget must cover a contended cycle end to end. Scheduler kill window
+rem raised to PT2H30M on 2026-09-30; 110 min keeps a real hung-run backstop.
+if not defined BEOPS_CYCLE_MINUTES set "BEOPS_CYCLE_MINUTES=110"
 if not defined BEOPS_PUBLISH_FAILURE_COOLDOWN_MINUTES set "BEOPS_PUBLISH_FAILURE_COOLDOWN_MINUTES=30"
 if not defined BEOPS_MODEL_BACKEND set "BEOPS_MODEL_BACKEND=cli"
 if not defined BEOPS_PYTHON (

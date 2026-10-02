@@ -1,4 +1,4 @@
-# Lightweight cadence gate for a legacy scheduler registration. A successful
+﻿# Lightweight cadence gate for a legacy scheduler registration. A successful
 # publication starts a quiet window; a failed attempt gets a bounded cooldown so
 # repeated full gates cannot starve collection on a constrained body.
 param(
@@ -70,6 +70,51 @@ function Stop-InvalidCadenceState {
   Write-PublishDueStatus -Decision 'error' -ExitCode 9 -Reason $Reason
   [Console]::Error.WriteLine($Message)
   exit 9
+}
+
+# Live-lock admission guard: a previous cycle still holding the exclusive write
+# lock makes a full attempt wait 120 s and burn a failed receipt (observed
+# 2026-09-30 seq 2 -> seq 3). The lock probe never waits inside the lock and
+# never writes; a busy lock is a quiet skip (exit 75) that does not spend a
+# PublishAttempt. Organs (mind every 4 minutes, collect, news, watch) hold the
+# lock only for short atomic writes, so a single instant probe collides with
+# them regularly and every collision surrendered a whole 30-minute publish
+# slot (observed 2026-10-01 09:46). Publishing is the critical path: repeat
+# the probe across a bounded window and go quiet only when the lock stays
+# busy the whole time (that is the real hung-holder case).
+# A probe error is fail-open: without admission a collision degrades to the
+# known lock-busy failure, while fail-closed would stall publishing on a
+# transient probe failure. A hung holder stays owned by the recovery path; the
+# tick never kills processes.
+try {
+  $lockPath = Join-Path (Split-Path -Parent $ReceiptPath) '.write.lock'
+  $lockProbeScript = Join-Path $PSScriptRoot 'lock_probe.py'
+  if ((Test-Path -LiteralPath $lockPath) -and (Test-Path -LiteralPath $lockProbeScript)) {
+    $pyCmd = $env:BEOPS_PYTHON
+    if (-not $pyCmd) { $pyCmd = 'python' }
+    $probeDeadline = $NowUtc.ToUniversalTime().AddMinutes(5)
+    while ($true) {
+      & $pyCmd $lockProbeScript $lockPath 2>$null | Out-Null
+      $lockProbeExit = $LASTEXITCODE
+      if ($lockProbeExit -ne 75) { break }
+      if ([DateTimeOffset]::UtcNow -ge $probeDeadline) { break }
+      Start-Sleep -Seconds 15
+    }
+    if ($lockProbeExit -eq 75) {
+      Write-PublishDueStatus -Decision 'quiet' -ExitCode 75 -Reason 'live_prepare_holds_lock'
+      Write-Output 'publish quiet: a live prepare holds the exclusive write lock'
+      exit 75
+    }
+    if ($lockProbeExit -ne 0) {
+      try {
+        $logDir = Join-Path $root 'runtime'
+        if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out-Null }
+        Add-Content -Path (Join-Path $logDir 'live-guard.log') -Value ("{0} lock_probe exit={1}" -f (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'), $lockProbeExit)
+      } catch { }
+    }
+  }
+} catch {
+  # Fail open: admission is an optimization over the known lock-busy failure.
 }
 
 function Test-RecentFailedAttempt {

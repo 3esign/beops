@@ -2,6 +2,41 @@
 // Every file is bound to the exact HTML generation. A mixed CDN/cache response
 // leaves a visible failure instead of showing invented empty or stale counts.
 function sameGeneration(expected,value){return value&&value.as_of===expected.as_of&&value.generation===expected.generation&&JSON.stringify(value.input_generation)===JSON.stringify(expected.input_generation)}
+function groupStamp(value){return typeof value==='string'&&/(?:Z|[+-]\d\d:\d\d)$/.test(value)&&Number.isFinite(Date.parse(value))?Date.parse(value):null}
+function groupReference(value){
+ if(!value||!/^[a-f0-9]{64}$/.test(value.revision||'')||value.path!=='impulse-data/groups/objects/'+value.revision+'.json'||!Number.isSafeInteger(value.bytes)||value.bytes<=0||value.bytes>16*1024*1024)throw Error('group_reference_invalid');
+ return value;
+}
+async function loadGroups(name,request=globalThis.fetch,subtle=globalThis.crypto?.subtle){
+ if(name!=='impulse-data/groups/current.json'||!subtle)throw Error('group_pointer_invalid');
+ const response=await request(name,{cache:'no-cache'});if(!response.ok)throw Error('group_pointer_unavailable');
+ const pointer=await response.json();
+ if(pointer?.schema!=='beops-impulse-groups/v1')throw Error('group_pointer_schema');
+ const references=['calendar','context'].map(key=>groupReference(pointer.groups?.[key]));
+ const values=await Promise.all(references.map(async ref=>{
+  const response=await request(ref.path,{cache:'no-cache'});if(!response.ok)throw Error('group_object_unavailable');
+  const bytes=await response.arrayBuffer();if(bytes.byteLength!==ref.bytes)throw Error('group_object_size');
+  const digest=Array.from(new Uint8Array(await subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+  if(digest!==ref.revision)throw Error('group_object_hash');
+  return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+ }));
+ const [calendar,context]=values;
+ if(calendar?.schema!=='beops-calendar-group/v1'||context?.schema!=='beops-context-group/v1')throw Error('group_object_schema');
+ if(calendar.dependencies?.context!==references[1].revision)throw Error('group_dependency_mismatch');
+ if(groupStamp(calendar.as_of)===null||!Array.isArray(calendar.items)||!Array.isArray(calendar.sources)||context.basemap?.type!=='FeatureCollection'||!Array.isArray(context.basemap.features))throw Error('group_object_shape');
+ if(calendar.items.some(item=>item?.kind!=='scheduled_event'||groupStamp(item.clock?.at)===null||groupStamp(item.first_received)===null))throw Error('group_calendar_item');
+ return {calendar,context,revisions:{calendar:references[0].revision,context:references[1].revision}};
+}
+function applyGroups(view,impulses,groups){
+ if(!groups)return;
+ const {calendar,context,revisions}=groups,at=groupStamp(calendar.as_of),sources=new Map(calendar.sources.map(source=>[source.source_id,source]));
+ const items=calendar.items.filter(item=>{
+  const source=sources.get(item.source_id),received=groupStamp(item.first_received);
+  return source?.state==='available'&&groupStamp(source.received_at)===received&&received<=at&&at-received<=86400000;
+ });
+ impulses.items=[...impulses.items.filter(item=>item.kind!=='scheduled_event'),...items];
+ view.calendar_as_of=calendar.as_of;view.calendar_sources=calendar.sources;view.basemap=context.basemap;view.group_revisions=revisions;
+}
 function hydrate(view,impulses,resources){
  const kinds={headline_mention:'Naslov',scheduled_event:'Zvanična najava',ai_observation:'AI zapažanje'};
  const clocks={publication_time:'vreme objave',publication_day:'dan objave · sat nepoznat',first_reception:'prvi sačuvani prijem',scheduled_event_time:'planirani početak',model_output_time:'vreme AI odgovora',unknown:'vreme nepoznato'};
@@ -15,7 +50,7 @@ function hydrate(view,impulses,resources){
   v.estimates=rows.filter(i=>i.kind==='headline_mention'&&i.location_estimate).map(i=>adapt({...i,...i.location_estimate,scope:i.geo.scope}));
   v.points=rows.filter(i=>i.point).map(adapt);
  }
- view.upcoming=impulses.items.filter(i=>i.kind==='scheduled_event'&&i.schedule_fresh===true&&Date.parse(i.clock.at)>=Date.parse(view.as_of)).sort((a,b)=>Date.parse(a.clock.at)-Date.parse(b.clock.at)).map(adapt);
+ view.upcoming=impulses.items.filter(i=>i.kind==='scheduled_event'&&i.schedule_fresh===true&&Date.parse(i.clock.at)>=Date.parse(view.calendar_as_of||view.as_of)).sort((a,b)=>Date.parse(a.clock.at)-Date.parse(b.clock.at)).map(adapt);
  return view;
 }
 async function boot(){
@@ -31,6 +66,7 @@ async function boot(){
   }));
   if(documents[0].schema!=='beops-impulse-view/v1'||documents[1].schema!=='beops-public-impulses/v2'||documents[2].schema!=='beops-resource-summary/v1')throw Error('snapshot_schema_mismatch');
   documents[1]=BeopsImpulseCodec.decodeImpulses(documents[1]);
+  if(Object.hasOwn(expected,'groups'))applyGroups(documents[0],documents[1],await loadGroups(expected.groups));
   const data=hydrate(...documents);
   document.querySelectorAll('button,select').forEach(control=>control.disabled=false);
   start(data);status.textContent='';status.hidden=true;
@@ -54,7 +90,7 @@ function inside(p){const s=getScope(p);return scope==='all'||(scope==='serbia'?s
 function precise(p){const f=$('precision').value;return f==='all'||(f==='small'?p.radius_m<=2000:f==='city'?p.radius_m>2000&&p.radius_m<=50000:p.radius_m>50000)}
 function estimates(){return(data.view[current].estimates||[]).filter(p=>inside(p)&&precise(p))}
 function anchors(){return(data.view[current].points||[]).filter(inside)}
-function scheduled(){const until=Date.parse(data.as_of)+({day:1,week:7,month:30}[current])*86400000;return(data.upcoming||[]).filter(p=>Date.parse(p.clock.at)<until)}
+function scheduled(){const until=Date.parse(data.calendar_as_of||data.as_of)+({day:1,week:7,month:30}[current])*86400000;return(data.upcoming||[]).filter(p=>Date.parse(p.clock.at)<until)}
 function venues(){return scheduled().filter(p=>p.venue_location&&inside(p)).map(p=>({...p,...p.venue_location,scope:p.geo?.scope||'unknown'})).filter(precise)}
 function choices(){const layer=$('layer').value;if(layer==='venues')return venues();return[...(layer==='anchors'?[]:estimates()),...(layer==='estimates'?[]:anchors())]}
 function groups(rows){const out=new Map();for(const p of rows){const k=[p.lon,p.lat,p.radius_m].join('|');const g=out.get(k)||{...p,rows:[]};g.rows.push(p);out.set(k,g)}return[...out.values()].sort((a,b)=>b.rows.length-a.rows.length)}
@@ -86,12 +122,12 @@ $('activity-work').replaceChildren();for(const a of r.activities||[]){const box=
 $('cycle-note').textContent=`Završeno ${number(r.finished_cycles)} ciklusa; nezavršeno ${number(r.unfinished_cycles)}. ${v.resource_note||''} Račun je za celokupan Beops, bez geografske raspodele.`;$('scope').textContent=data.scope_note;$('history').textContent=data.history_note;$('memory').textContent='Najviši procesni RSS: '+number(r.peak_rss_bytes==null?null:r.peak_rss_bytes/1e6)+' MB; ne sabira se.'}
 function fitVenues(rows){if(!rows.length)return;const xs=rows.map(p=>p.lon),ys=rows.map(p=>p.lat),mid=ys.reduce((a,b)=>a+b,0)/ys.length,buffer=Math.max(600,...rows.map(p=>p.radius_m))/6371008.8/(Math.PI/180),padY=Math.max(buffer,(Math.max(...ys)-Math.min(...ys))*.2),padX=Math.max(buffer/Math.cos(mid*Math.PI/180),(Math.max(...xs)-Math.min(...xs))*.2);zoomBounds=[Math.min(...xs)-padX,Math.min(...ys)-padY,Math.max(...xs)+padX,Math.max(...ys)+padY];$('zoom-reset').disabled=false;}
 function renderCalendar(){const days={day:1,week:7,month:30}[current],events=scheduled(),mapped=venues(),venueLayer=$('layer').value==='venues';if(venueLayer)fitVenues(mapped);
-$('calendar-note').textContent=`Narednih ${days} dana od preseka: ${number(events.length)} najava iz sveže pročitanih programa. Prikazano do 12 termina, po planiranom početku. Najava ne dokazuje održavanje.`;
+$('calendar-note').textContent=`Kalendar · presek ${date(data.calendar_as_of||data.as_of)}. Narednih ${days} dana od tog preseka: ${number(events.length)} najava iz tada sveže pročitanih programa. Prikazano do 12 termina, po planiranom početku. Najava ne dokazuje održavanje.`;
 $('calendar-sources').replaceChildren();for(const s of data.calendar_sources||[]){const row=document.createElement('p');row.append(link(s.name||s.source_id,s.url));row.append(document.createTextNode(' · '+({available:'program pročitan',stale:'zastareo',unavailable:'trenutno nedostupan',blocked:'pristup nije dozvoljen',partial:'delimično dostupan'}[s.state]||'stanje nije potvrđeno')+' · prijem '+date(s.received_at)));$('calendar-sources').append(row)}
 rowsInto($('upcoming'),events.slice(0,12),'Nema svežih najava u ovom budućem periodu; to ne znači da u gradu nema događaja.');
 for(const id of ['headline-breakdown','unknown-section','recent-section'])$(id).hidden=venueLayer;
 $('total-label').textContent=venueLayer?'najava · svi izvori':'naslova u obuhvatu';$('located-label').textContent=venueLayer?'najava sa mestom u obuhvatu':'sa procenjenom oblašću';$('unlocated-label').textContent=venueLayer?'najava bez utvrđenog mesta':'neodređenih · cela zbirka';
-if(venueLayer){metric('total',events.length);metric('located',mapped.length);metric('unlocated',events.filter(p=>!p.venue_location).length);$('map-description').textContent=`Planirana mesta iz programa u narednih ${days} dana od ${date(data.as_of)}. Krug označava okolinu objekta; održavanje nije potvrđeno. Brojač rada i dalje se odnosi na protekli period.`;$('geo-counts').textContent=`${number(events.length)} najava · ${number(new Set(events.map(p=>p.source_id)).size)} izvora sa terminima · ${number(groups(mapped).length)} mesta na karti`;$('scope-note').textContent='Na mapi su samo programi sa dokazom o mestu i koordinatama. Najave bez utvrđenog mesta ostaju u spisku ispod.';}}
+if(venueLayer){metric('total',events.length);metric('located',mapped.length);metric('unlocated',events.filter(p=>!p.venue_location).length);$('map-description').textContent=`Planirana mesta iz programa u narednih ${days} dana od ${date(data.calendar_as_of||data.as_of)}. Krug označava okolinu objekta; održavanje nije potvrđeno. Brojač rada i dalje se odnosi na protekli period.`;$('geo-counts').textContent=`${number(events.length)} najava · ${number(new Set(events.map(p=>p.source_id)).size)} izvora sa terminima · ${number(groups(mapped).length)} mesta na karti`;$('scope-note').textContent='Na mapi su samo programi sa dokazom o mestu i koordinatama. Najave bez utvrđenog mesta ostaju u spisku ispod.';}}
 function render(){const v=data.view[current],c=v.counts||{};selected=null;pageIndex=0;zoomBounds=null;$('zoom-selected').disabled=true;$('zoom-reset').disabled=true;$('period').textContent=v.period;$('edition').textContent=date(data.generated_at);$('meter-since').textContent=data.meter_note;renderResources(v);
 const rows=v.records.filter(p=>p.kind==='headline_mention'),scoped=rows.filter(inside),loc=estimates(),unknown=rows.filter(p=>getScope(p)==='unknown');
 metric('total',scoped.length);metric('located',loc.length);metric('unlocated',c.unknown_geography??unknown.length);$('map-description').textContent='Procena polazi od mesta i konteksta u naslovu. Krug čuva razliku između objekta, gradske oblasti i države. Vreme ostaje vreme zapisa.';
@@ -130,4 +166,5 @@ const preset=new URLSearchParams(location.search);if(['day','week','month'].incl
 new ResizeObserver(draw).observe($('map'));render();
 }
 
-boot();
+if(typeof module==='object'&&module.exports)module.exports={sameGeneration,groupStamp,groupReference,loadGroups,applyGroups,hydrate};
+if(typeof document!=='undefined')boot();

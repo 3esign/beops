@@ -1657,11 +1657,13 @@ def step(now: datetime | None = None, chat=ollama_chat, tags=ollama_tags, embed=
 
 # ------------------------------------------------------------------ score
 def score(now: datetime | None = None, snap: dict | None = None) -> dict:
-    with exclusive(LIVE / ".write.lock"):
-        return _score_locked(now, snap)
-
-
-def _score_locked(now=None, snap=None):
+    # Claim evaluation and the scoreboard are reads; holding the live write
+    # lock across them starved publish admission for minutes on a contended
+    # disk (measured 2026-10-01: lock probe busy >4 min during one step).
+    # Mind is the sole writer of claims.jsonl and its own .job.lock already
+    # serializes steps, so rows read here cannot change underneath; the write
+    # lock guards only actual writes (_append takes it per row, the rewrite
+    # takes it around os.replace).
     now = now or utcnow()
     path = OUT_DIR / "claims.jsonl"
     rows = _rows(path)
@@ -1687,7 +1689,8 @@ def _score_locked(now=None, snap=None):
     if settled:
         tmp = path.with_suffix(".tmp")
         tmp.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
-        os.replace(tmp, path)
+        with exclusive(LIVE / ".write.lock"):
+            os.replace(tmp, path)
     return {"settled_now": settled, "scoreboard": scoreboard(rows)}
 
 

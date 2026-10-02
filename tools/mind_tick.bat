@@ -9,6 +9,15 @@ call "%~dp0beops_env.bat"
 if errorlevel 1 exit /b %ERRORLEVEL%
 cd /d "%BEOPS_ROOT%" || exit /b 9
 if not exist runtime mkdir runtime
+rem Publishing is the critical path and the disk is the scarce resource: while a
+rem release preparation (or Baseline) holds the preparation lock, one skipped
+rem drip costs nothing, but a mind step competing for D: I/O helped kill five
+rem days of publish cycles (2026-09-25..30). The publisher clears an abandoned
+rem lock within 15 min, so the pause is bounded.
+if exist runtime\publish-preparation.lock (
+  echo mind quiet: a publish preparation holds the lock >> runtime\mind-tick-live-2.log
+  exit /b 0
+)
 for /f "usebackq tokens=*" %%i in (`powershell -NoProfile -Command "(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')"`) do set NOWUTC=%%i
 echo ---- %NOWUTC% >> runtime\mind-tick-live-2.log
 call "%BEOPS_PYTHON%" -X utf8 -B tools\organ_mind.py step >> runtime\mind-tick-live-2.log 2>&1

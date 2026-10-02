@@ -65,6 +65,22 @@ class PreparationMetadata(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, 'linked input is not the captured file'):
                     self.capture(source, dest)
 
+    def test_unavailable_hardlink_captures_one_full_independent_evidence_copy(self):
+        with tempfile.TemporaryDirectory() as folder:
+            source, dest, rel, evidence = self.evidence(pathlib.Path(folder))
+            dest.mkdir()
+            metrics = {}
+            with patch.dict(os.environ, {'BEOPS_RELEASE_LINK_EVIDENCE': '1'}), \
+                 patch.object(P.os, 'link', side_effect=OSError('filesystem has no hardlinks')):
+                rows, _, _ = P.capture_inputs(source, dest, metrics)
+            raw = evidence.read_bytes()
+            self.assertEqual((dest / rel).read_bytes(), raw)
+            self.assertFalse(os.path.samefile(evidence, dest / rel))
+            self.assertEqual(rows, [{'path': rel.as_posix(), 'bytes': len(raw),
+                                     'sha256': hashlib.sha256(raw).hexdigest()}])
+            self.assertEqual(metrics['linked_bytes'], 0)
+            self.assertEqual(metrics['captured_bytes'], len(raw))
+
     def accounting_inputs(self, source):
         at = (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat()
         cycle, pending, attempt = 'a' * 32, 'b' * 32, 'c' * 32

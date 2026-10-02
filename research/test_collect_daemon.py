@@ -68,6 +68,14 @@ PERMIT = {"S146": {"sid": "S146", "captured_at_utc": "20260906T000000Z", "allowe
           "S10": {"sid": "S10", "captured_at_utc": "20260906T000000Z", "allowed_for_us": True, "capture_ok": True}}
 
 
+def month_file(sid):
+    """The single month file collect_one wrote for sid. Rows are stamped with the
+    real reception clock, so its name follows the calendar, not the fixture NOW."""
+    files = sorted((cd.LIVE / "rows" / sid).glob("*.jsonl"))
+    assert len(files) == 1, files
+    return files[0]
+
+
 class LiveDirCase(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -155,7 +163,7 @@ class CollectTests(LiveDirCase):
         rec = json.loads((cd.LIVE / "receipts" / "S146" / (cd.stamp(NOW) + ".json")).read_text(encoding="utf-8"))
         self.assertEqual(rec["raw_bytes"], len(SEPA_BODY))
         self.assertTrue((cd.LIVE / "raw" / "S146" / (cd.stamp(NOW) + ".json.gz")).exists())
-        rows = (cd.LIVE / "rows" / "S146" / "2026-09.jsonl").read_text(encoding="utf-8").strip().split("\n")
+        rows = month_file("S146").read_text(encoding="utf-8").strip().split("\n")
         self.assertEqual(len(rows), 2)
         self.assertEqual(json.loads(rows[0])["permission_capture"], PERMIT["S146"]["captured_at_utc"])
         self.assertIn("from=2026-09-09T09:00:00Z", rec["url"])
@@ -240,12 +248,12 @@ class DedupeAndExportTests(LiveDirCase):
         self.assertEqual(r2["rows"], 2)
         rec = json.loads((cd.LIVE / "receipts" / "S146" / (cd.stamp(NOW + timedelta(hours=1)) + ".json")).read_text(encoding="utf-8"))
         self.assertEqual(rec["rows_new"], 0)
-        lines = (cd.LIVE / "rows" / "S146" / "2026-09.jsonl").read_text(encoding="utf-8").strip().split("\n")
+        lines = month_file("S146").read_text(encoding="utf-8").strip().split("\n")
         self.assertEqual(len(lines), 2)
         # parking has no measurement time: the same displayed value received again IS a new reception
         cd.collect_one(SRC_PARK, NOW, PERMIT, fetcher=ok(PARKING_HTML))
         cd.collect_one(SRC_PARK, NOW + timedelta(minutes=15), PERMIT, fetcher=ok(PARKING_HTML))
-        lines = (cd.LIVE / "rows" / "S10" / "2026-09.jsonl").read_text(encoding="utf-8").strip().split("\n")
+        lines = month_file("S10").read_text(encoding="utf-8").strip().split("\n")
         self.assertEqual(len(lines), 6)
 
     def test_station_filter_keeps_belgrade_only_and_names(self):
@@ -573,7 +581,7 @@ class RssTests(LiveDirCase):
         self.assertEqual(r["state"], "captured")
         self.assertEqual(r["rows"], 2)
         self.assertFalse((cd.LIVE / "raw").exists())
-        lines = (cd.LIVE / "rows" / "S68" / "2026-09.jsonl").read_text(encoding="utf-8").strip().split("\n")
+        lines = month_file("S68").read_text(encoding="utf-8").strip().split("\n")
         a = json.loads(lines[0])
         self.assertEqual(a["result"], "Radovi na Brankovom mostu od ponedeljka")
         self.assertEqual(a["resultTime"], "2026-09-08T18:10:00Z")

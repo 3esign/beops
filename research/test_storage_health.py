@@ -54,6 +54,63 @@ class Storage(unittest.TestCase):
             self.assertEqual((result['state'], check['state']), ('WARN', 'WARN'))
             self.assertEqual(check['required_bytes'], 10*s.GIB)
 
+    def test_partitioned_capacity_keeps_full_copy_fallback_and_fixed_reserve(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            required = 4 * 234 + 1000 + 3 * 5678 + 2 * s.GIB
+            with self.assertRaises(s.ReleaseCapacityError):
+                s.require_release_capacity(tmp, 1234, 5678, lambda _: Usage(0, 0, required-1),
+                                           evidence_bytes=1000)
+            capacity = s.require_release_capacity(tmp, 1234, 5678, lambda _: Usage(0, 0, required),
+                                                  evidence_bytes=1000)
+            self.assertEqual(capacity['required_bytes'], required)
+            self.assertEqual(capacity['reserve_bytes'], 2 * s.GIB)
+            self.assertEqual(list(pathlib.Path(tmp).iterdir()), [])
+
+    def test_invalid_partition_counts_are_rejected_before_disk_probe(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cases = ((100, 0, -1), (100, 0, 101), (100, 0, True), (100, 0, 1.0),
+                     (True, 0, 0), (100, -1, 0), (100, 0, '1'),
+                     (s.CAPACITY_MAX_BYTES, 0, 0), (0, s.CAPACITY_MAX_BYTES, 0))
+            for input_bytes, source_bytes, evidence_bytes in cases:
+                with self.subTest(counts=(input_bytes, source_bytes, evidence_bytes)):
+                    with self.assertRaises(ValueError):
+                        s.require_release_capacity(tmp, input_bytes, source_bytes,
+                            lambda _: self.fail('invalid allocation reached disk probe'),
+                            evidence_bytes=evidence_bytes)
+
+    def test_partitioned_receipt_is_checked_without_rescanning_archive(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            self.write_capacity(root, free=8*s.GIB, schema=s.CAPACITY_PARTITION_SCHEMA,
+                input_bytes_from='live_stat_scan', evidence_bytes=s.GIB,
+                evidence_bytes_from=s.CAPACITY_EVIDENCE_ORIGIN,
+                formula=s.CAPACITY_PARTITION_FORMULA, required_bytes=7*s.GIB, admitted=True)
+            with patch.object(pathlib.Path, 'rglob', side_effect=AssertionError('archive scan')):
+                result, check = self.inspect_capacity(root, 8*s.GIB)
+            self.assertEqual((result['state'], check['state']), ('OK', 'OK'))
+            self.assertEqual(check['required_bytes'], 7*s.GIB)
+            # The 2 GiB reserve remains included at the exact admission boundary.
+            _, check = self.inspect_capacity(root, 7*s.GIB - 1)
+            self.assertEqual(check['state'], 'WARN')
+
+    def test_unproven_or_malformed_partition_receipts_cannot_claim_ready(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            fields = dict(schema=s.CAPACITY_PARTITION_SCHEMA, input_bytes_from='live_stat_scan',
+                evidence_bytes=s.GIB, evidence_bytes_from=s.CAPACITY_EVIDENCE_ORIGIN,
+                formula=s.CAPACITY_PARTITION_FORMULA, required_bytes=7*s.GIB, admitted=True)
+            cases = ({'input_bytes_from': 'cached'}, {'evidence_bytes_from': 'inferred'},
+                     {'evidence_bytes': True}, {'evidence_bytes': -1}, {'evidence_bytes': 3*s.GIB},
+                     {'evidence_bytes': 1.0}, {'evidence_bytes': None},
+                     {'required_bytes': 6*s.GIB}, {'formula': s.CAPACITY_FORMULA},
+                     {'schema': s.CAPACITY_SCHEMA, 'formula': s.CAPACITY_FORMULA,
+                      'required_bytes': 10*s.GIB})
+            for changes in cases:
+                with self.subTest(changes=changes):
+                    self.write_capacity(root, free=11*s.GIB, **{**fields, **changes})
+                    result, check = self.inspect_capacity(root, 11*s.GIB)
+                    self.assertEqual((result['state'], check['state']), ('UNKNOWN', 'UNKNOWN'))
+
     def test_compression_recovery_rechecks_free_space_not_old_refusal(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = pathlib.Path(tmp)

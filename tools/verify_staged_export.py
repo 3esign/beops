@@ -9,11 +9,11 @@ import sys
 
 def verify(root):
     root=pathlib.Path(root).resolve()
-    manifest=subprocess.run(['git','-C',str(root),'show',':docs/export-manifest.json'],check=True,capture_output=True,timeout=30).stdout
+    manifest=subprocess.run(['git','-C',str(root),'show',':docs/export-manifest.json'],check=True,capture_output=True,timeout=300).stdout
     manifest=json.loads(manifest)
     rows=manifest['files']
     specs=''.join(':'+r['path']+'\n' for r in rows).encode('utf-8')
-    raw=subprocess.run(['git','-C',str(root),'cat-file','--batch'],input=specs,check=True,capture_output=True,timeout=60).stdout
+    raw=subprocess.run(['git','-C',str(root),'cat-file','--batch'],input=specs,check=True,capture_output=True,timeout=900).stdout
     at=0
     for row in rows:
         end=raw.find(b'\n',at)

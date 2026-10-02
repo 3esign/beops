@@ -26,12 +26,14 @@ def row(state, name="x"):
 class Verdict(unittest.TestCase):
     def setUp(self):
         self._saved = (g.TASKS, g.permission_invariants, g.refusal_route,
-                       g.publish_gate, g.static_layers, g.organ_output)
+                       g.publish_gate, g.static_layers, g.organ_output,
+                       g.publish_chain, g.predictions)
         g.TASKS = []                                   # no schtasks call: this is about the arithmetic
 
     def tearDown(self):
         (g.TASKS, g.permission_invariants, g.refusal_route,
-         g.publish_gate, g.static_layers, g.organ_output) = self._saved
+         g.publish_gate, g.static_layers, g.organ_output,
+         g.publish_chain, g.predictions) = self._saved
 
     def set(self, *states):
         it = iter(list(states) + [[]] * 5)
@@ -40,6 +42,11 @@ class Verdict(unittest.TestCase):
         g.publish_gate = lambda: next(it)
         g.static_layers = lambda: next(it)
         g.organ_output = lambda: next(it)
+        # Checks added to run() after these tests were written read the live machine (the publish chain,
+        # unscored predictions). They are neutral here: this file is about the arithmetic, and a live WARN
+        # leaking in made test_all_ok_is_ok fail the publication gate on 2026-10-02.
+        g.publish_chain = lambda: []
+        g.predictions = lambda: []
 
     def test_one_stop_anywhere_makes_the_whole_verdict_stop(self):
         for i in range(5):

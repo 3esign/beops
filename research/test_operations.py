@@ -221,7 +221,7 @@ class SvemirRunner(unittest.TestCase):
 const fs=require('node:fs'),vm=require('node:vm');
 const source=fs.readFileSync('C:/Svemir/tools/llama_run.js','utf8');let printed=[],exits=[];
 const fakeFs={writeFileSync:()=>{},existsSync:()=>true,unlinkSync:()=>{}};
-vm.runInNewContext(source,{require:n=>n==='child_process'?{spawnSync:()=>({status:1,signal:null,stdout:'',stderr:'model load failed'})}:n==='fs'?fakeFs:require(n),process:{argv:['node','runner','fixture.gguf','fixture'],env:{},exit:c=>{exits.push(c);}},console:{log:s=>printed.push(JSON.parse(s))}});
+vm.runInNewContext(source,{__dirname:'C:/Svemir/tools',require:n=>n==='child_process'?{spawnSync:()=>({status:1,signal:null,stdout:'',stderr:'model load failed'})}:n==='fs'?fakeFs:require(n),process:{argv:['node','runner','fixture.gguf','fixture'],env:{},exit:c=>{exits.push(c);}},console:{log:s=>printed.push(JSON.parse(s))}});
 setImmediate(()=>console.log(JSON.stringify({printed,exits})));
 """
         result=subprocess.run(['node','-e',code],capture_output=True,text=True,encoding='utf-8',timeout=10)

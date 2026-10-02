@@ -25,6 +25,7 @@ import datetime as dt
 import hashlib
 import json
 import pathlib
+import stat
 import sys
 from contracts import exclusive
 
@@ -136,6 +137,10 @@ def redact_file(path: pathlib.Path, cut: dt.datetime, rule_id: str, now: dt.date
     if n:
         tmp = path.with_suffix(path.suffix + ".tmp")
         tmp.write_text("\n".join(out) + "\n", encoding="utf-8")
+        # A closed month is sealed read-only by the release capture (prepare_release.sealed_month);
+        # Windows refuses to replace a read-only file, so retention lifts the seal first. The new
+        # file is unsealed until the next capture seals it again with its new bytes.
+        path.chmod(stat.S_IREAD | stat.S_IWRITE)
         tmp.replace(path)
     return n
 

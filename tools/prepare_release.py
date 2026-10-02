@@ -15,10 +15,12 @@ import subprocess
 import tarfile
 import time
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from contracts import atomic_json, exclusive
-from storage_health import (CAPACITY_FORMULA, CAPACITY_SCHEMA,
+from storage_health import (CAPACITY_FORMULA, CAPACITY_SCHEMA, CAPACITY_PARTITION_SCHEMA,
+                            CAPACITY_PARTITION_FORMULA, CAPACITY_EVIDENCE_ORIGIN,
                             ReleaseCapacityError, require_release_capacity)
+from release_inventory import build_inventory, inventory_summary, save_cache
 from release_observation import is_observation_path
 
 STATE_KEY_PATTERN = re.compile(
@@ -131,12 +133,112 @@ def linkable(posix):
             and parts[-2] in LINKABLE_DERIVED and posix.endswith('.json') and not parts[-1].startswith('.'))
 HASH_CACHE_NAME = '.beops-evidence-sha-cache.json'
 HASH_CACHE_MAX_AGE_SECONDS = 24 * 3600
+PROGRESS_NAME = '.beops-prepare-progress.json'
 CAPACITY_ESTIMATE_MARGIN_BYTES = 512 * 1024 * 1024
 CAPACITY_CACHED_ORIGIN = 'runtime/release-inputs-last.json+512MiB'
 
 
 def link_enabled():
     return os.environ.get('BEOPS_RELEASE_LINK_EVIDENCE', '1') != '0'
+
+
+# 2026-10-01: a closed month is sealed once, not re-frozen every cycle. Rows are appended by
+# reception month (collect_daemon.append_rows), so a month file is final once its month is over.
+# Until now every release copied all rows under the collectors' write lock: 1.06 GB, 111-629 s of
+# lock and 33-195 s of re-hashing per cycle, almost all of it September. A closed month is now
+# linked like evidence, its facts (sha256, rows, newest reception, state key) are read once and
+# cached by (bytes, mtime_ns, file id), and the shared file is made read-only: that is the seal.
+# The grace covers a collector that received in the old month and wrote just after midnight.
+# Retention (tools/apply_retention.py) lifts the seal before it redacts. Switch off with
+# BEOPS_RELEASE_SEAL_MONTHS=0 to capture every month under the lock as before.
+SEALED_MONTHS_NAME = '.beops-sealed-months.json'
+SEAL_GRACE_HOURS = 6
+MONTH_FILE = re.compile(r'^data/live/rows/[^/]+/(\d{4})-(\d{2})\.jsonl$')
+
+
+def sealed_month(posix, now=None):
+    if os.environ.get('BEOPS_RELEASE_SEAL_MONTHS', '1') == '0':
+        return False
+    match = MONTH_FILE.match(posix)
+    if not match:
+        return False
+    year, month = int(match.group(1)), int(match.group(2))
+    following = datetime(year + (month == 12), 1 if month == 12 else month + 1, 1, tzinfo=timezone.utc)
+    return (now or datetime.now(timezone.utc)) >= following + timedelta(hours=SEAL_GRACE_HOURS)
+
+
+def describe_observation(path):
+    """Release facts of one observation file, the same ones write() derives while copying."""
+    digest, size, last = hashlib.sha256(), 0, b''
+    state_tail, state_key_present = b'', False
+    row_count, pending_nonblank = 0, False
+    row_tail, newest_received_time = b'', None
+    with open(path, 'rb') as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b''):
+            digest.update(block)
+            size += len(block)
+            last = block[-1:]
+            if not state_key_present:
+                state_tail, state_key_present = scan_state_key_block(state_tail, block)
+            parts = block.split(b'\n')
+            if len(parts) == 1:
+                pending_nonblank = pending_nonblank or bool(parts[0].strip())
+            else:
+                row_count += bool(pending_nonblank or parts[0].strip())
+                row_count += sum(bool(part.strip()) for part in parts[1:-1])
+                pending_nonblank = bool(parts[-1].strip())
+            row_parts = (row_tail + block).split(b'\n')
+            for raw_line in row_parts[:-1]:
+                if not raw_line.strip():
+                    continue
+                match = RECEIVED_TIME_PATTERN.search(raw_line)
+                if match:
+                    try:
+                        stamp = match.group(1).decode('ascii')
+                    except UnicodeDecodeError:
+                        stamp = None
+                    if stamp and (newest_received_time is None or stamp > newest_received_time):
+                        newest_received_time = stamp
+            row_tail = row_parts[-1]
+    if not state_key_present and state_tail:
+        state_key_present = raw_has_top_level_state_key(state_tail)
+    return {'bytes': size, 'sha256': digest.hexdigest(), 'complete': size == 0 or last == b'\n',
+            'nonblank_lines': row_count, 'newest_received_time': newest_received_time,
+            'state_key_present': state_key_present}
+
+
+class SealedMonths:
+    """Facts of closed month files by (bytes, mtime_ns, file id), re-read at least once a day."""
+
+    def __init__(self, file):
+        self.file = pathlib.Path(file)
+        self.fresh = {}
+        try:
+            self.rows = json.loads(self.file.read_text(encoding='utf-8')).get('files', {})
+        except (OSError, ValueError, AttributeError):
+            self.rows = {}
+        self.read_bytes = 0
+
+    def facts(self, path, posix, observed):
+        row = self.rows.get(posix)
+        now = time.time()
+        if (isinstance(row, dict) and row.get('bytes') == observed.st_size
+                and row.get('mtime_ns') == observed.st_mtime_ns and row.get('file_id') == observed.st_ino
+                and now - float(row.get('read_at', 0)) < HASH_CACHE_MAX_AGE_SECONDS):
+            self.fresh[posix] = row
+            return row
+        facts = describe_observation(path)
+        self.read_bytes += facts['bytes']
+        row = {**facts, 'mtime_ns': observed.st_mtime_ns, 'file_id': observed.st_ino, 'read_at': now}
+        self.fresh[posix] = row
+        return row
+
+    def save(self, partial=False):
+        files = {**self.rows, **self.fresh} if partial else self.fresh
+        try:
+            atomic_json(self.file, {'schema': 'beops-sealed-months/v1', 'files': files})
+        except OSError:
+            pass
 
 
 class EvidenceHashes:
@@ -167,9 +269,14 @@ class EvidenceHashes:
         self.fresh[key] = {'bytes': stat[0], 'mtime_ns': stat[1], 'sha256': digest.hexdigest(), 'hashed_at': now}
         return digest.hexdigest()
 
-    def save(self):
+    def save(self, partial=False):
+        # A partial save (mid-copy checkpoint) keeps loaded rows the walk has not
+        # revisited yet; only the completed save prunes deleted inputs. Measured
+        # 2026-10-01: taskkill /F ends an over-budget cycle with no finally, so a
+        # cache written only at the end lost every hash a killed attempt had read.
+        files = {**self.rows, **self.fresh} if partial else self.fresh
         try:
-            atomic_json(self.file, {'schema': 'beops-evidence-sha-cache/v1', 'files': self.fresh})
+            atomic_json(self.file, {'schema': 'beops-evidence-sha-cache/v1', 'files': files})
         except OSError:
             pass
 
@@ -206,8 +313,10 @@ def archive_source_bytes(source, oid, paths):
                if len(fields := line.split()) >= 4 and fields[3].isdigit())
 
 
-def estimate_release_input_bytes(source, *, use_cached=True):
+def estimate_release_input_bytes(source, *, use_cached=True, inventory=None):
     """Avoid a duplicate deep stat walk, or explicitly recount current inputs."""
+    if inventory is not None:
+        inventory.clear()
     manifest = source / 'runtime/release-inputs-last.json'
     if use_cached and manifest.is_file():
         try:
@@ -217,43 +326,65 @@ def estimate_release_input_bytes(source, *, use_cached=True):
                 return captured + CAPACITY_ESTIMATE_MARGIN_BYTES, CAPACITY_CACHED_ORIGIN
         except (OSError, ValueError, TypeError):
             pass
-    input_bytes = sum(p.stat().st_size for folder in ('data/live', 'research/evidence', 'research/observations',
-                                                    'runtime/ai-feed', 'runtime/resources/receipts')
-                      for p in (source/folder).rglob('*') if p.is_file() and p.suffix not in ('.lock', '.tmp'))
+    input_bytes, evidence_bytes = 0, 0
+    for folder in ('data/live', 'research/evidence', 'research/observations',
+                   'runtime/ai-feed', 'runtime/resources/receipts'):
+        for path in (source/folder).rglob('*'):
+            if path.is_file() and path.suffix not in ('.lock', '.tmp'):
+                size = path.stat().st_size
+                input_bytes += size
+                if folder == 'research/evidence':
+                    evidence_bytes += size
+    if inventory is not None:
+        inventory['evidence_bytes'] = evidence_bytes
     return input_bytes, 'live_stat_scan'
 
 
-def release_capacity(source, parent, input_bytes, input_bytes_from, source_bytes):
-    """Recount only a refused cached estimate; never relax the allocation guard.
+def release_capacity(source, parent, input_bytes, input_bytes_from, source_bytes, *, evidence_bytes=0):
+    """Recount a refused cached estimate and classify capture-only evidence.
 
     The cached manifest adds a growth allowance to avoid routine deep scans.
     Near the capacity boundary that allowance can reject a release which the
     current input inventory can fit. A fresh stat walk supplies a new estimate
-    to the same guard. Scan/storage errors and an exact refusal still fail.
+    to the same guard. Evidence is budgeted for one physical copy, including
+    hardlink fallback. Scan/storage errors and an exact refusal still fail.
     """
+    if evidence_bytes and input_bytes_from != 'live_stat_scan':
+        raise ValueError('evidence allocation requires a fresh input inventory')
+
+    def require():
+        options = {'evidence_bytes': evidence_bytes} if evidence_bytes else {}
+        return require_release_capacity(parent, input_bytes, source_bytes, **options)
+
     def record(capacity, admitted):
+        partition = ({'evidence_bytes': evidence_bytes,
+                      'evidence_bytes_from': CAPACITY_EVIDENCE_ORIGIN} if evidence_bytes else {})
         atomic_json(source/'runtime/release-capacity.json', {
-            'schema': CAPACITY_SCHEMA, 'at': datetime.now(timezone.utc).isoformat(),
+            'schema': CAPACITY_PARTITION_SCHEMA if evidence_bytes else CAPACITY_SCHEMA,
+            'at': datetime.now(timezone.utc).isoformat(),
             'source': str(pathlib.Path(source).resolve()),
             'release_parent': str(pathlib.Path(parent).resolve()),
             'input_bytes': input_bytes, 'input_bytes_from': input_bytes_from,
-            'source_bytes': source_bytes, 'formula': CAPACITY_FORMULA,
-            'admitted': admitted, **capacity})
+            'source_bytes': source_bytes,
+            'formula': CAPACITY_PARTITION_FORMULA if evidence_bytes else CAPACITY_FORMULA,
+            'admitted': admitted, **partition, **capacity})
 
     try:
         try:
-            capacity = require_release_capacity(parent, input_bytes, source_bytes)
+            capacity = require()
         except ReleaseCapacityError:
             if input_bytes_from != CAPACITY_CACHED_ORIGIN:
                 raise
             started = time.monotonic()
             trace_phase('capacity recount', 'start', cached_input_bytes=input_bytes,
                         source_bytes=source_bytes)
-            input_bytes, input_bytes_from = estimate_release_input_bytes(source, use_cached=False)
-            capacity = require_release_capacity(parent, input_bytes, source_bytes)
+            inventory = {}
+            input_bytes, input_bytes_from = estimate_release_input_bytes(source, use_cached=False, inventory=inventory)
+            evidence_bytes = inventory.get('evidence_bytes', 0)
+            capacity = require()
             trace_phase('capacity recount', 'end', round(time.monotonic()-started, 3),
                         input_bytes=input_bytes, input_bytes_from=input_bytes_from,
-                        source_bytes=source_bytes)
+                        source_bytes=source_bytes, evidence_bytes=evidence_bytes)
     except ReleaseCapacityError as exc:
         if exc.capacity is not None:
             record(exc.capacity, False)
@@ -275,6 +406,14 @@ def _capture_inputs(source, dest, metrics=None):
     metrics = metrics if metrics is not None else {}
     phase_started = time.monotonic()
     trace_phase('input inventory', 'start')
+    inventory_file = source / 'runtime/inventory-cache.jsonl'
+    initial_inventory, inventory_cache, inventory_metrics, observed_entries = build_inventory(
+        source, inventory_file)
+    metrics['inventory_seconds'] = inventory_metrics['seconds']
+    metrics['inventory_files'] = inventory_metrics['files']
+    metrics['inventory_hashed_files'] = inventory_metrics['hashed_files']
+    metrics['inventory_hashed_bytes'] = inventory_metrics['hashed_bytes']
+    metrics['inventory_initial_root'] = initial_inventory['root']
     captured = set()
     cap = int(os.environ.get('BEOPS_CAPTURE_LIMIT_MB', '2048')) * 1024 * 1024
     total = 0
@@ -287,10 +426,13 @@ def _capture_inputs(source, dest, metrics=None):
             parent.mkdir(exist_ok=True)
             prepared_parents.add(parent)
 
+    def unsafe_name(rel):
+        return any(x.lower().startswith(('.env', 'secrets.', 'kaggle.')) for x in rel.parts)
+
     def identity(path):
         rel = path.relative_to(source)
         if (path.is_symlink() or not path.resolve().is_relative_to(source)
-                or any(x.lower().startswith(('.env', 'secrets.', 'kaggle.')) for x in rel.parts)):
+                or unsafe_name(rel)):
             raise ValueError('unsafe release input path')
         return rel, path.stat()
 
@@ -300,7 +442,7 @@ def _capture_inputs(source, dest, metrics=None):
             raise RuntimeError('input changed after capture: ' + rel.as_posix())
         return before
 
-    def collect(path, frozen_bytes):
+    def collect(path, frozen_bytes, rel=None, observed=None, inventory_sha=None):
         nonlocal total
         if path.suffix in ('.lock', '.tmp') or path in captured:
             return
@@ -309,48 +451,41 @@ def _capture_inputs(source, dest, metrics=None):
         if path.suffix.lower() == '.claim' and path.relative_to(source).parts[:3] == ('data','live','receipts'):
             return
         captured.add(path)
-        rel, observed = identity(path)
-        stat = (observed.st_size, observed.st_mtime_ns)
+        if rel is None:
+            rel, observed = identity(path)
+            stat = (observed.st_size, observed.st_mtime_ns)
+        else:
+            rel = pathlib.Path(rel)
+            if unsafe_name(rel):
+                raise ValueError('unsafe release input path')
+            stat = observed
         if frozen_bytes:
             total += stat[0]
             if total > cap:
                 raise RuntimeError('mutable release input exceeds capture size limit; no release produced')
             target = dest / rel
             prepare_parent(target.parent)
+            if target.exists():
+                # A resumed workspace may hold this path from the interrupted
+                # attempt, possibly sealed read-only; mutable bytes are always
+                # recaptured fresh.
+                target.chmod(statmod.S_IREAD | statmod.S_IWRITE)
+                target.unlink()
             shutil.copyfile(path, target)
             verify(path, stat)
             mutable.append(rel)
         else:
-            immutable.append((path, rel, stat))
+            immutable.append((path, rel, stat, inventory_sha))
 
-    # immutable raw payload whose hash they attest. Keep both halves of that
-    # reference in the isolated release. Raw captures are small compared with
-    # rows/derived state and are immutable once their timestamped path exists.
-    for folder in ('research/evidence', 'data/live/receipts', 'data/live/raw',
-                   'runtime/ai-feed/entries', 'runtime/ai-feed/contexts', 'runtime/ai-feed/prompts'):
-        directory = source / folder
-        for path in sorted(directory.rglob('*')) if directory.exists() else []:
-            if path.is_file():
-                collect(path, False)
-    # Resource summaries need their own start/finish receipts and the independent
-    # AI attempt/response ledger. Their producers publish complete JSON once by
-    # linking a fsynced temporary file. Inventory durable JSON only; do not copy
-    # transient writers or the surrounding private runtime. Keep ordinary copies
-    # (not hardlinks) so these accounting inputs remain isolated in the release.
-    for folder in ('runtime/resources/receipts', 'runtime/ai-feed/receipts',
-                   'runtime/ai-feed/responses'):
-        directory = source / folder
-        for path in sorted(directory.glob('*.json')) if directory.exists() else []:
-            if path.is_file() and not path.name.startswith('.'):
-                collect(path, False)
-    # Timestamped model receipts and digests are immutable inputs too.
-    # Reading thousands of them under the live lock exceeded other writers'
-    # deadline. Inventory before locking; changed bytes still refuse release.
-    for path in sorted((source/'data/live/derived').rglob('*.json')):
-        if path.parent.name in ('receipts', 'digests') and path.is_file():
-            collect(path, False)
+    # The inventory already made the one metadata walk for every immutable scope.
+    # Reuse its observed stat and cached hash instead of rglob + stat-ing the same
+    # 49k entries again. Files that appear at the writer boundary are added below
+    # and receive the same post-copy verification.
+    for path, rel, stat, sha in observed_entries:
+        collect(path, False, rel=rel, observed=stat, inventory_sha=sha)
     metrics['inventory_seconds'] = round(time.monotonic()-phase_started, 3)
-    trace_phase('input inventory', 'end', metrics['inventory_seconds'], files=len(immutable))
+    trace_phase('input inventory', 'end', metrics['inventory_seconds'], files=len(immutable),
+                root=initial_inventory['root'])
     phase_started = time.monotonic()
     trace_phase('mutable capture', 'start')
     with exclusive(source/'data/live/.write.lock', timeout=120):
@@ -367,7 +502,8 @@ def _capture_inputs(source, dest, metrics=None):
             directory = source / folder
             for path in sorted(directory.rglob('*')) if directory.exists() else []:
                 if path not in captured and path.is_file():
-                    collect(path, True)
+                    # A closed month is final: it leaves the lock and is linked below.
+                    collect(path, not (link_enabled() and sealed_month(path.relative_to(source).as_posix())))
         for rel in ('research/08-provenance/LEDGER.jsonl', 'data/ca-bundle-windows.pem',
                     'runtime/ai-feed/status.json',
                     'data/live/corrections.jsonl', 'data/live/retention-ledger.jsonl',
@@ -388,6 +524,10 @@ def _capture_inputs(source, dest, metrics=None):
     def write(rel, stream):
         target = dest / rel
         prepare_parent(target.parent)
+        if target.exists():
+            # Stale bytes from an interrupted attempt, possibly sealed read-only.
+            target.chmod(statmod.S_IREAD | statmod.S_IWRITE)
+            target.unlink()
         digest, size = hashlib.sha256(), 0
         complete_digest, complete_size = hashlib.sha256(), 0
         prefix_only = is_observation_path(rel.as_posix())
@@ -545,19 +685,68 @@ def _capture_inputs(source, dest, metrics=None):
     metrics['extracted_bytes'] = sum(item['bytes'] for item in inputs)
     trace_phase('mutable extract', 'end', metrics['mutable_extract_seconds'], bytes=metrics['extracted_bytes'])
     hashes = EvidenceHashes(dest.parent / HASH_CACHE_NAME) if link_enabled() else None
+    seals = SealedMonths(dest.parent / SEALED_MONTHS_NAME) if link_enabled() else None
     linked = []
+    sealed = []
 
-    def copy_immutable(entry):
-        path, rel, stat = entry
-        verify(path, stat)
+    def link_sealed(path, rel, stat):
         posix = rel.as_posix()
-        if hashes is not None and linkable(posix) and not is_observation_path(posix):
-            target = dest / rel
+        facts = seals.facts(path, posix, path.stat())
+        if not facts['complete'] or (facts['bytes'], facts['mtime_ns']) != tuple(stat):
+            return None  # a partial last line or a moved file: capture it the ordinary way
+        target = dest / rel
+        if target.exists() and not os.path.samestat(path.stat(), target.stat()):
+            target.chmod(statmod.S_IREAD | statmod.S_IWRITE)
+            target.unlink()
+        if not target.exists():
             try:
                 os.link(path, target)
             except OSError:
-                pass                      # another volume or no link support: copy as before
-            else:
+                return None  # another volume or no link support: copy as before
+        target.chmod(statmod.S_IREAD)
+        verified = verify(path, stat)
+        sealed_stat = target.stat()
+        if not os.path.samestat(verified, sealed_stat):
+            raise RuntimeError('sealed month is not the captured file: ' + posix)
+        linked.append(stat[0])
+        sealed.append(stat[0])
+        result = {'path': posix, 'bytes': facts['bytes'], 'sha256': facts['sha256'],
+                  'source_bytes': facts['bytes'], 'source_sha256': facts['sha256'], 'excluded_tail_bytes': 0,
+                  'nonblank_lines': facts['nonblank_lines']}
+        if facts.get('newest_received_time'):
+            result['newest_received_time'] = facts['newest_received_time']
+        result['state_key_present'] = facts['state_key_present']
+        result.update(state_index_sealed=True, state_index_mtime_ns=sealed_stat.st_mtime_ns,
+                      state_index_file_id=sealed_stat.st_ino, state_index_device=sealed_stat.st_dev)
+        return result
+
+    def copy_immutable(entry):
+        path, rel, stat, known_sha = entry
+        verify(path, stat)
+        posix = rel.as_posix()
+        if seals is not None and sealed_month(posix):
+            result = link_sealed(path, rel, stat)
+            if result is not None:
+                return result
+        if hashes is not None and linkable(posix) and not is_observation_path(posix):
+            target = dest / rel
+            already_linked = False
+            if target.exists():
+                # A resumed workspace may already hold this input. Reuse it only
+                # when it is the very same inode; anything else is replaced.
+                if os.path.samestat(path.stat(), target.stat()):
+                    already_linked = True
+                else:
+                    target.chmod(statmod.S_IREAD | statmod.S_IWRITE)
+                    target.unlink()
+            if not already_linked:
+                try:
+                    os.link(path, target)
+                except OSError:
+                    already_linked = None # another volume or no link support: copy as before
+                else:
+                    already_linked = True
+            if already_linked:
                 digest = hashes.sha(path, rel, stat)
                 verified = verify(path, stat)
                 # The source stat just used for the post-hash mutation check
@@ -565,36 +754,99 @@ def _capture_inputs(source, dest, metrics=None):
                 # new stat; samefile would query the source a second time.
                 if not os.path.samestat(verified, target.stat()):
                     raise RuntimeError('linked input is not the captured file: ' + posix)
+                if known_sha is not None and digest != known_sha:
+                    raise RuntimeError('inventory hash changed: ' + posix)
                 linked.append(stat[0])
                 return {'path': posix, 'bytes': stat[0], 'sha256': digest}
         with path.open('rb') as stream:
             result = write(rel, stream)
         verify(path, stat)
+        if known_sha is not None and result['sha256'] != known_sha:
+            raise RuntimeError('inventory hash changed: ' + posix)
         return result
     # These files share no output path. Bounded parallel I/O avoids spending an
     # entire publish cadence waiting for thousands of individual file operations.
     phase_started = time.monotonic()
-    trace_phase('immutable copy', 'start', files=len(immutable), bytes=sum(entry[2][0] for entry in immutable))
+    trace_phase('immutable copy', 'start', files=len(immutable),
+                bytes=sum(entry[2][0] for entry in immutable))
     # Set up shared output directories once before workers start. Repeated mkdir
     # on Windows also stats each existing directory, multiplying metadata I/O.
-    for parent in sorted({(dest / rel).parent for _, rel, _ in immutable}):
+    for parent in sorted({(dest / rel).parent for _, rel, _, _ in immutable}):
         prepare_parent(parent)
+    immutable_results = []
+    last_checkpoint = time.monotonic()
     with ThreadPoolExecutor(max_workers=4) as pool:
-        inputs.extend(pool.map(copy_immutable, immutable))
+        for result in pool.map(copy_immutable, immutable):
+            immutable_results.append(result)
+            if hashes is not None and time.monotonic() - last_checkpoint >= 120:
+                # Checkpoint hash work mid-copy: an over-budget kill (taskkill /F,
+                # no finally) must not cost the next attempt these byte reads.
+                hashes.save(partial=True)
+                if seals is not None:
+                    seals.save(partial=True)
+                last_checkpoint = time.monotonic()
+    inputs.extend(immutable_results)
     metrics['immutable_copy_seconds'] = round(time.monotonic()-phase_started, 3)
     metrics['linked_files'] = len(linked)
     metrics['linked_bytes'] = sum(linked)
+    metrics['sealed_month_files'] = len(sealed)
+    metrics['sealed_month_bytes'] = sum(sealed)
+    if seals is not None:
+        metrics['sealed_month_bytes_read'] = seals.read_bytes
+        seals.save()
     if hashes is not None:
         metrics['evidence_bytes_hashed'] = hashes.read_bytes
         hashes.save()
     trace_phase('immutable copy', 'end', metrics['immutable_copy_seconds'])
+    inventory_rows = []
+    for entry, result in zip(immutable, immutable_results):
+        path, rel, stat, _ = entry
+        posix = rel.as_posix()
+        inventory_rows.append({'path': posix, 'sha256': result['sha256']})
+        inventory_cache[posix] = {'bytes': stat[0], 'mtime_ns': stat[1],
+                                  'sha256': result['sha256']}
+    final_inventory = inventory_summary(inventory_rows)
+    metrics['inventory'] = final_inventory
+    metrics['inventory_root'] = final_inventory['root']
+    metrics['inventory_files'] = final_inventory['files']
+    metrics['inventory_groups'] = final_inventory['groups']
+    try:
+        save_cache(inventory_file, inventory_cache)
+        metrics['inventory_cache_saved'] = True
+    except OSError as exc:
+        # The cache is an acceleration artefact, never a release prerequisite. A
+        # read-only or temporarily full runtime must not discard a verified release.
+        metrics['inventory_cache_saved'] = False
+        trace_phase('input inventory cache', 'error', error=str(exc))
     metrics['captured_bytes'] = sum(item['bytes'] for item in inputs)
     metrics['captured_files'] = len(inputs)
     inputs.sort(key=lambda r: r['path'])
     return inputs, captured_at, lock_seconds
 
 
-def prepare(source, destination, oid=None, owner_pid=None, retained=False):
+def resumable_fixed_source(source, dest, oid):
+    """Trust a resumed workspace only by artefact, never by its receipt alone:
+    the owner marker, a completed fixed-source progress marker for this exact
+    OID, and the workspace Git HEAD standing on that OID."""
+    try:
+        owner = json.loads((dest / '.beops-generated-workspace.json').read_text(encoding='utf-8'))
+        progress = json.loads((dest / PROGRESS_NAME).read_text(encoding='utf-8'))
+    except (OSError, ValueError) as exc:
+        raise RuntimeError('resume refused: workspace markers unreadable: ' + str(exc))
+    if (owner.get('schema') != 'beops-generated-workspace/v2'
+            or pathlib.Path(owner.get('source', '')) != source
+            or pathlib.Path(owner.get('destination', '')) != dest):
+        raise RuntimeError('resume refused: workspace owner marker mismatch')
+    if progress.get('schema') != 'beops-prepare-progress/v1' or not progress.get('fixed_source_complete'):
+        raise RuntimeError('resume refused: fixed source phase incomplete')
+    if progress.get('source_oid') != oid:
+        raise RuntimeError('resume refused: workspace holds a different source OID')
+    if git(dest, 'rev-parse', '--verify', 'HEAD^{commit}') != oid:
+        raise RuntimeError('resume refused: workspace HEAD is not the release OID')
+    return owner
+
+
+def prepare(source, destination, oid=None, owner_pid=None, retained=False, resume=False):
     timings = {}
     phase_started = time.monotonic()
     trace_phase('capacity and inventory', 'start')
@@ -603,49 +855,68 @@ def prepare(source, destination, oid=None, owner_pid=None, retained=False):
     if dest == source or source in dest.parents:
         raise ValueError('release workspace must be outside the live source')
     if dest.exists():
-        raise FileExistsError('release workspace already exists')
+        if not resume:
+            raise FileExistsError('release workspace already exists')
+    elif resume:
+        raise FileNotFoundError('no interrupted release workspace to resume')
     oid = git(source, 'rev-parse', '--verify', (oid or 'HEAD') + '^{commit}')
     tree = git(source, 'rev-parse', oid + '^{tree}')
+    owner = resumable_fixed_source(source, dest, oid) if resume else None
     dest.parent.mkdir(parents=True, exist_ok=True)
     # Refuse before allocating anything large; a publish must never consume the
     # operating system's last free bytes. The last manifest avoids a duplicate
     # deep stat walk over immutable evidence and receipts on normal cadence.
-    input_bytes, input_bytes_from = estimate_release_input_bytes(source)
+    inventory = {}
+    input_bytes, input_bytes_from = estimate_release_input_bytes(source, inventory=inventory)
     paths = archive_paths(source, oid)
     source_bytes = archive_source_bytes(source, oid, paths)
+    capacity_options = {'evidence_bytes': inventory['evidence_bytes']} if inventory.get('evidence_bytes') else {}
     capacity, input_bytes, input_bytes_from = release_capacity(
-        source, dest.parent, input_bytes, input_bytes_from, source_bytes)
+        source, dest.parent, input_bytes, input_bytes_from, source_bytes, **capacity_options)
     timings['capacity_and_inventory_seconds'] = round(time.monotonic()-phase_started, 3)
     timings['capacity_input_bytes_from'] = input_bytes_from
     trace_phase('capacity and inventory', 'end', timings['capacity_and_inventory_seconds'],
                 input_bytes=input_bytes, input_bytes_from=input_bytes_from, source_bytes=source_bytes)
     phase_started = time.monotonic()
-    trace_phase('fixed source', 'start')
-    dest.mkdir()
-    atomic_json(dest/'.beops-generated-workspace.json', {'schema':'beops-generated-workspace/v2',
-        'source':str(source),'destination':str(dest),'source_oid':oid,
-        'owner_pid':owner_pid or os.getpid(), 'created_at':datetime.now(timezone.utc).isoformat(),
-        'retained':bool(retained)})
-    # Independent Git metadata, read-only shared object store. This is a transient
-    # build, not a backup: cloning the entire private history every ten minutes
-    # filled the system disk. The fixed OID remains reachable in the source.
-    git(source, 'clone', '--bare', '--shared', '--quiet', str(source), str(dest/'.git'))
-    git(dest, 'config', 'core.bare', 'false')
-    git(dest, 'update-ref', 'refs/heads/release', oid)
-    git(dest, 'symbolic-ref', 'HEAD', 'refs/heads/release')
-    git(dest, 'read-tree', oid)
-    archive = dest / 'release-source.tar'
-    git(source, 'archive', '--format=tar', '-o', str(archive), oid, '--', *paths)
-    with tarfile.open(archive) as tar:
-        for member in tar.getmembers():
-            path = (dest / member.name).resolve()
-            path.relative_to(dest)
-            if member.issym() or member.islnk() or not (member.isfile() or member.isdir()):
-                raise ValueError('release archive contains a link or device')
-        tar.extractall(dest, filter='data')
-    archive.unlink()  # our own temporary archive
+    trace_phase('fixed source', 'start', resumed=owner is not None)
+    if owner is not None:
+        # Fixed source already stands verified at this OID; only the ownership
+        # moves to the resuming process. Capture below always replays in full.
+        owner['owner_pid'] = owner_pid or os.getpid()
+        atomic_json(dest/'.beops-generated-workspace.json', owner)
+        timings['fixed_source_resumed'] = True
+    else:
+        dest.mkdir()
+        atomic_json(dest/'.beops-generated-workspace.json', {'schema':'beops-generated-workspace/v2',
+            'source':str(source),'destination':str(dest),'source_oid':oid,
+            'owner_pid':owner_pid or os.getpid(), 'created_at':datetime.now(timezone.utc).isoformat(),
+            'retained':bool(retained)})
+        # Independent Git metadata, read-only shared object store. This is a transient
+        # build, not a backup: cloning the entire private history every ten minutes
+        # filled the system disk. The fixed OID remains reachable in the source.
+        git(source, 'clone', '--bare', '--shared', '--quiet', str(source), str(dest/'.git'))
+        git(dest, 'config', 'core.bare', 'false')
+        git(dest, 'update-ref', 'refs/heads/release', oid)
+        git(dest, 'symbolic-ref', 'HEAD', 'refs/heads/release')
+        git(dest, 'read-tree', oid)
+        archive = dest / 'release-source.tar'
+        git(source, 'archive', '--format=tar', '-o', str(archive), oid, '--', *paths, timeout_sec=600)
+        with tarfile.open(archive) as tar:
+            for member in tar.getmembers():
+                path = (dest / member.name).resolve()
+                path.relative_to(dest)
+                if member.issym() or member.islnk() or not (member.isfile() or member.isdir()):
+                    raise ValueError('release archive contains a link or device')
+            tar.extractall(dest, filter='data')
+        archive.unlink()  # our own temporary archive
+        # Written only after extraction finished: its presence attests the
+        # fixed-source phase, so a killed capture can resume instead of
+        # throwing this work away.
+        atomic_json(dest/PROGRESS_NAME, {'schema': 'beops-prepare-progress/v1',
+            'source_oid': oid, 'source_tree': tree, 'fixed_source_complete': True,
+            'at': datetime.now(timezone.utc).isoformat()})
     timings['fixed_source_seconds'] = round(time.monotonic()-phase_started, 3)
-    trace_phase('fixed source', 'end', timings['fixed_source_seconds'])
+    trace_phase('fixed source', 'end', timings['fixed_source_seconds'], resumed=owner is not None)
     inputs, captured_at, lock_seconds = capture_inputs(source, dest, timings)
     configuration = []
     for name in ('research/COLLECTORS.json', 'research/SOURCE_REGISTRY.json', 'research/ORGANS.json'):
@@ -657,6 +928,7 @@ def prepare(source, destination, oid=None, owner_pid=None, retained=False):
         'state_index':'sealed-readonly-jsonl/v1',
         'observation_prefix':'complete-lf-lines/v1', 'configuration':configuration,
         'captured_at':captured_at, 'writer_lock_seconds':lock_seconds, 'capacity':capacity,
+        'inventory':timings.get('inventory'),
         'timings':timings, 'files':inputs}
     atomic_json(dest/'runtime/release-inputs.json',manifest)
     return {'workspace':str(dest),'source_oid':oid,'source_tree':tree,'input_files':len(inputs), 'writer_lock_seconds':lock_seconds}
@@ -664,5 +936,5 @@ def prepare(source, destination, oid=None, owner_pid=None, retained=False):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--source',required=True);p.add_argument('--destination',required=True);p.add_argument('--oid')
-    p.add_argument('--owner-pid',type=int);p.add_argument('--retained',action='store_true')
-    args=p.parse_args();print(json.dumps(prepare(args.source,args.destination,args.oid,args.owner_pid,args.retained)))
+    p.add_argument('--owner-pid',type=int);p.add_argument('--retained',action='store_true');p.add_argument('--resume',action='store_true')
+    args=p.parse_args();print(json.dumps(prepare(args.source,args.destination,args.oid,args.owner_pid,args.retained,args.resume)))

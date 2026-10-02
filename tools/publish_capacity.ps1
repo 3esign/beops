@@ -59,6 +59,20 @@ if ($ObservedFreeMB -eq $null) {
     Write-Output 'publish quiet: memory capacity could not be measured'
     exit 75
   }
+  # 2026-10-01: publication has priority (Semir). On a shared 8 GB body free memory hovers
+  # around the floor (measured 206-253 MB while chats run), and a single reading below it
+  # skipped the whole 30-minute slot. A live measurement now waits for a window above the
+  # floor (BEOPS_PUBLISH_CAPACITY_WAIT_MINUTES, default 20; 0 = old behaviour). The floor
+  # itself is unchanged. Injected readings (tests) never wait.
+  $waitMinutes = if ($env:BEOPS_PUBLISH_CAPACITY_WAIT_MINUTES) { [double]$env:BEOPS_PUBLISH_CAPACITY_WAIT_MINUTES } else { 20 }
+  $waitUntil = [DateTimeOffset]::UtcNow.AddMinutes($waitMinutes)
+  while ([double]$ObservedFreeMB -lt $MinimumFreeMB -and [DateTimeOffset]::UtcNow -lt $waitUntil) {
+    Start-Sleep -Seconds 20
+    try {
+      $os = Get-CimInstance Win32_OperatingSystem
+      $ObservedFreeMB = [double]$os.FreePhysicalMemory / 1024
+    } catch { break }
+  }
 }
 
 if ([double]$ObservedFreeMB -lt $MinimumFreeMB) {

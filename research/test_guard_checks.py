@@ -418,6 +418,53 @@ class StaticLayers(unittest.TestCase):
         self.assertEqual(c["state"], g.WARN)
 
 
+class ChainOfConfirmations(unittest.TestCase):
+    """P2: the guard reads one small chained file instead of trusting scattered logs.
+    A hash break is history being edited (STOP); an empty or lagging chain is a young
+    layer, not a fault (WARN); a verified chain whose head is the receipt is OK."""
+    RECEIPT = {"schema": "beops-publish-receipt/v1", "at": "2026-09-30T14:00:00Z",
+               "source_head": "a" * 40, "published": False, "tests_ok": False,
+               "site_verified": False, "pushed": False, "why": "x"}
+
+    def test_a_verified_chain_covering_the_receipt_is_ok(self):
+        import release_chain
+        with world(receipt=self.RECEIPT) as root:
+            release_chain.append_link(root, root / "data" / "live" / "publish-receipt.json")
+            c = by(g.publish_chain(), "the chain of confirmations")
+        self.assertEqual(c["state"], g.OK, c["why"])
+
+    def test_an_empty_chain_warns_instead_of_pretending(self):
+        with world(receipt=self.RECEIPT):
+            c = by(g.publish_chain(), "the chain of confirmations")
+        self.assertEqual(c["state"], g.WARN)
+        self.assertIn("empty", c["why"])
+
+    def test_an_edited_link_is_a_stop(self):
+        import release_chain
+        with world(receipt=self.RECEIPT) as root:
+            release_chain.append_link(root, root / "data" / "live" / "publish-receipt.json")
+            chain = root / release_chain.CHAIN_REL
+            # utf-8-sig: the chain is Python-written, but the publish-gate scan (test_publish_gate)
+            # rightly refuses a plain utf-8 read near the receipt fixture - and costs nothing here.
+            row = json.loads(chain.read_text(encoding="utf-8-sig"))
+            row["outcome"]["why"] = "edited history"
+            chain.write_text(json.dumps(row, sort_keys=True, separators=(",", ":")) + "\n",
+                             encoding="utf-8")
+            c = by(g.publish_chain(), "the chain of confirmations")
+        self.assertEqual(c["state"], g.STOP)
+
+    def test_a_chain_behind_the_receipt_warns(self):
+        import release_chain
+        with world(receipt=self.RECEIPT) as root:
+            release_chain.append_link(root, root / "data" / "live" / "publish-receipt.json")
+            newer = dict(self.RECEIPT, at="2026-09-30T15:00:00Z")
+            (root / "data" / "live" / "publish-receipt.json").write_text(
+                json.dumps(newer), encoding="utf-8")
+            c = by(g.publish_chain(), "the chain of confirmations")
+        self.assertEqual(c["state"], g.WARN)
+        self.assertIn("behind", c["why"])
+
+
 class EveryCheckIsDriven(unittest.TestCase):
     def test_no_check_the_guard_can_emit_is_left_undriven(self):
         """The sweep's own finding, kept from happening again: every name this file drives is
@@ -431,6 +478,7 @@ class EveryCheckIsDriven(unittest.TestCase):
             "a refusal reached by another route stays the third party's utterance",
             "third-party route",
             "the publish is gated", "the publisher is still running", "a publish is not stuck",
+            "the chain of confirmations",
             "static layers", "static layers are present and still the file we accepted",
             "every static layer is named where it is shown",
             "somebody should look for a newer release", "no prediction was left unscored",

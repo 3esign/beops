@@ -5,6 +5,11 @@ if exist "%~dp0..\runtime\MAINTENANCE" exit /b 75
 rem Cadence/capacity must see the same configured limits as the publisher.
 call "%~dp0beops_env.bat"
 if errorlevel 1 exit /b %ERRORLEVEL%
+rem Calendar/context use their own small transaction before full-release admission.
+rem A small-group failure does not suppress the independent observation recovery.
+cd /d "%BEOPS_ROOT%" || exit /b 9
+if not exist runtime mkdir runtime
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0publish_groups.ps1" >> runtime\publish-groups.log 2>&1
 rem BEOPS publish tick - scheduled task Beops_Publish, every 30 minutes.
 rem Older task registrations may still wake every 10 minutes. Cap successful full
 rem releases here as well, before environment setup or release allocation.

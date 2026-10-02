@@ -75,9 +75,15 @@ function encode(value){
  if(/(?:^|["\s])(?:[A-Za-z]:[\\/]|file:\/\/|\/(?:Users|home)\/)/.test(text))throw Error('local_path_in_public_impulse_export');
  return text+'\n';
 }
+// Durable roots: the Svemir body on C: and the project disk it was moved to on
+// 2026-09-28 (C:\Svemir\!Projekti is a junction to D:\Svemir\!Projekti). A
+// C:-only root refused every release prepared under D:\Svemir\_runtime.
+const durableRoots=()=>(process.env.BEOPS_DURABLE_ROOTS||'C:/Svemir;D:/Svemir').split(';')
+ .map(s=>s.trim()).filter(Boolean).map(p=>path.resolve(p));
+const underRoot=(absolute,root)=>absolute.toLowerCase().startsWith(root.toLowerCase()+path.sep);
 function durable(target){
- const absolute=path.resolve(target),allowed=path.resolve('C:/Svemir');
- if(!absolute.toLowerCase().startsWith(allowed.toLowerCase()+path.sep))throw Error('output_outside_durable_root');
+ const absolute=path.resolve(target);
+ if(!durableRoots().some(root=>underRoot(absolute,root)))throw Error('output_outside_durable_root');
  return absolute;
 }
 async function buildPage(root=ROOT,options={}){
@@ -117,11 +123,13 @@ async function buildPage(root=ROOT,options={}){
   history_note:`Svi sačuvani AI pokušaji: ${n(history.all.attempts)}. Sa prijavljenim tokenima: ${n(history.all.reported_calls)}; bez: ${n(history.all.unreported_calls)}. Ulaz: ${n(history.all.input_tokens)}; izlaz: ${n(history.all.output_tokens)}. Obuhvata i neuspele/odbijene pokušaje; preklapa se sa novim brojačem i ne dodaje se na njegov zbir.`};
  const generation=hash({as_of:asOf,input_generation:inputGeneration,data,impulses,resources,proofs});
  const envelope=value=>({schema:value.schema,as_of:asOf,input_generation:inputGeneration,generation,...value});
- const manifest={as_of:asOf,input_generation:inputGeneration,generation,view:'impulse-data/view-data.json',impulses:'impulse-data/impulses.json',resources:'impulse-data/resources.json'};
+ const output=durable(options.outputDir||path.join(root,'docs'));
+ const groups=await require('./build_impulse_groups').buildGroups(root,{asOf,outputDir:output});
+ const manifest={as_of:asOf,input_generation:inputGeneration,generation,view:'impulse-data/view-data.json',impulses:'impulse-data/impulses.json',resources:'impulse-data/resources.json',groups:'impulse-data/groups/current.json'};
  const json=encode(manifest).trim().replaceAll('<','\\u003c').replaceAll('>','\\u003e').replaceAll('\u2028','\\u2028').replaceAll('\u2029','\\u2029');
  const template=fs.readFileSync(path.join(root,'public/impulsi.html'),'utf8');
  if(!template.includes('__IMPULSE_MANIFEST__'))throw Error('impulse_template_marker_missing');
- const html=template.replace('__IMPULSE_MANIFEST__',json),output=durable(options.outputDir||path.join(root,'docs'));
+ const html=template.replace('__IMPULSE_MANIFEST__',json);
  const artifacts={'impulsi.html':html,'impulsi.js':fs.readFileSync(path.join(root,'public/impulsi.js'),'utf8'),
   'impulse-codec.js':fs.readFileSync(path.join(root,'public/impulse-codec.js'),'utf8'),
   'impulse-data/view-data.json':encode(envelope(data)),'impulse-data/impulses.json':encode(envelope(impulses)),
@@ -130,7 +138,7 @@ async function buildPage(root=ROOT,options={}){
  for(const [name,text]of Object.entries(artifacts)){
   const file=path.join(output,name);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,text,'utf8');
  }
- return {as_of:asOf,input_generation:inputGeneration,generation,files:Object.keys(artifacts),coverage:impulses.coverage};
+ return {as_of:asOf,input_generation:inputGeneration,generation,files:Object.keys(artifacts),coverage:impulses.coverage,groups};
 }
 async function main(){
  const args=process.argv.slice(2),options={};let root=ROOT;
