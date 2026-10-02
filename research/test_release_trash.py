@@ -87,6 +87,28 @@ class ReleaseTrash(unittest.TestCase):
             time.sleep(0.5)
         self.assertEqual(list(self.base.iterdir()), [], 'the detached deleter removed the trash and its runner')
 
+    def test_the_seal_on_the_live_file_survives_deletion(self):
+        """2026-10-02: a release links sealed months (same inode as the live record) and the read-only
+        attribute IS the seal. attrib -r over a trash workspace lifted it on the live file too. With an
+        interpreter, the background deleter is tools/release_trash.py, which removes the read-only name
+        without changing the shared file's attributes."""
+        import sys, time
+        live = pathlib.Path(self.tmp.name) / 'live-2026-08.jsonl'
+        live.write_text('{"sealed":1}\n', encoding='utf-8')
+        live.chmod(stat.S_IREAD)
+        os.link(live, self.run_root / 'data/live/rows/S01/2026-08.jsonl')
+        r = ps("$null = Move-BeopsReleaseToTrash -Path '%s' -SourceRoot '%s' -BaseRoot '%s'" % (self.run_root, self.source, self.base))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        r = ps("Clear-BeopsReleaseTrash -BaseRoot '%s' -Background -Python '%s'" % (self.base, sys.executable))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('started in background', r.stdout)
+        deadline = time.time() + 60
+        while time.time() < deadline and any(self.base.iterdir()):
+            time.sleep(0.5)
+        self.assertEqual(list(self.base.iterdir()), [], 'the trash is gone')
+        self.assertTrue(live.exists(), 'the live record is untouched')
+        self.assertFalse(os.stat(live).st_mode & stat.S_IWRITE, 'the live record is still sealed (read-only)')
+
     def tearDown(self):
         for f in pathlib.Path(self.tmp.name).rglob('*'):
             try:

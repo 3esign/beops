@@ -328,9 +328,10 @@ function Move-BeopsReleaseToTrash {
 }
 
 function Clear-BeopsReleaseTrash {
-  param([string]$BaseRoot, [switch]$Background)
+  param([string]$BaseRoot, [switch]$Background, [string]$Python)
   if (-not $BaseRoot -or -not (Test-Path -LiteralPath $BaseRoot)) { return }
   $base = Get-BeopsFullPath $BaseRoot
+  $pending = @()
   foreach ($item in Get-ChildItem -LiteralPath $base -Directory -Filter 'beops-trash-*' -ErrorAction SilentlyContinue) {
     if ($item.Name -notmatch '^beops-trash-[a-f0-9]{32}$') { continue }
     if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
@@ -349,21 +350,35 @@ function Clear-BeopsReleaseTrash {
         if ($age.TotalHours -lt 3) { Write-Output ('Release trash already being deleted: ' + $item.Name); continue }
       }
       Set-Content -LiteralPath $marker -Value ((Get-Date).ToUniversalTime().ToString('o')) -Encoding ASCII
-      $runner = Join-Path $base ('.' + $item.Name + '.delete.cmd')
-      Set-Content -LiteralPath $runner -Encoding ASCII -Value @(
-        ('@attrib -r "' + $dir + '\*" /s /d >nul 2>&1'),
-        ('@rd /s /q "' + $dir + '"'),
-        '@del "%~f0"')
-      # Created through WMI so it is not in the scheduled task's job and outlives this process; idle priority.
-      $startup = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ PriorityClass = [uint32]64; ShowWindow = [uint16]0 }
-      $made = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = ($env:ComSpec + ' /d /c "' + $runner + '"'); ProcessStartupInformation = $startup }
-      if ($made.ReturnValue -ne 0) { Remove-Item -LiteralPath $marker -Force -ErrorAction SilentlyContinue; Write-Warning ('Release trash deleter did not start (' + $made.ReturnValue + '): ' + $item.Name); continue }
-      Write-Output ('Release trash deletion started in background: ' + $item.Name)
+      $pending += $item
       continue
     }
     & $env:ComSpec /d /c ('attrib -r "' + $dir + '\*" /s /d >nul 2>&1 & rd /s /q "' + $dir + '"') 2>&1 | Out-Null
     if (Test-Path -LiteralPath $dir) { Write-Warning ('Release trash not fully removed (next cycle retries): ' + $item.Name) }
     else { Write-Output ('Removed release trash: ' + $item.Name) }
+  }
+  if ($Background -and $pending.Count) {
+    # 2026-10-02: the deleter is tools/release_trash.py when an interpreter is known. It removes read-only
+    # (sealed) names with POSIX delete + IGNORE_READONLY, so the seal on the live hardlinked month stays on;
+    # attrib -r over the workspace lifted it on the live files too. The cmd runner is only the fallback.
+    $deleter = Join-Path $PSScriptRoot 'release_trash.py'
+    if ($Python -and (Test-Path -LiteralPath $Python) -and (Test-Path -LiteralPath $deleter)) {
+      $commandLine = '"' + $Python + '" -X utf8 -B "' + $deleter + '" "' + $base + '" ' + (($pending | ForEach-Object { '"' + $_.Name + '"' }) -join ' ')
+    } else {
+      $runner = Join-Path $base ('.beops-trash-' + [guid]::NewGuid().ToString('N') + '.delete.cmd')
+      $lines = @()
+      foreach ($p in $pending) { $lines += ('@attrib -r "' + $p.FullName + '\*" /s /d >nul 2>&1'); $lines += ('@rd /s /q "' + $p.FullName + '"') }
+      $lines += '@del "%~f0"'
+      Set-Content -LiteralPath $runner -Encoding ASCII -Value $lines
+      $commandLine = $env:ComSpec + ' /d /c "' + $runner + '"'
+    }
+    # Created through WMI so it is not in the scheduled task's job and outlives this process; idle priority.
+    $startup = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ PriorityClass = [uint32]64; ShowWindow = [uint16]0 }
+    $made = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = $commandLine; ProcessStartupInformation = $startup }
+    foreach ($p in $pending) {
+      if ($made.ReturnValue -ne 0) { Remove-Item -LiteralPath (Join-Path $p.FullName '.beops-trash-deleting') -Force -ErrorAction SilentlyContinue; Write-Warning ('Release trash deleter did not start (' + $made.ReturnValue + '): ' + $p.Name) }
+      else { Write-Output ('Release trash deletion started in background: ' + $p.Name) }
+    }
   }
 }
 

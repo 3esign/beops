@@ -230,7 +230,7 @@ if (-not $Isolated -and -not $DryRun) {
   } finally {
     # Workspaces of this and earlier cycles are deleted here, after the outcome is recorded and
     # while this process still holds the preparation lock (Clear-BeopsReleaseTrash).
-    try { if ($releaseBase) { Clear-BeopsReleaseTrash -BaseRoot $releaseBase -Background } } catch { Write-Warning ('Release trash: ' + $_.Exception.Message) }
+    try { if ($releaseBase) { Clear-BeopsReleaseTrash -BaseRoot $releaseBase -Background -Python $py } } catch { Write-Warning ('Release trash: ' + $_.Exception.Message) }
     if ((Test-Path -LiteralPath $preparationLockFile) -and
         (Test-BeopsPublishLockOwnedByCurrentProcess -Path $preparationLockFile)) {
       Remove-Item -LiteralPath $preparationLockFile -Force -ErrorAction SilentlyContinue
