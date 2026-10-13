@@ -1,44 +1,55 @@
 {
   "schema": "beops-lite-edition/v1",
   "edition": "lite",
-  "generated_at": "2026-10-13T21:52:38.850Z",
-  "as_of": "2026-10-13T21:23:22.382776Z",
+  "generated_at": "2026-10-13T22:04:57.883Z",
+  "as_of": "2026-10-13T21:38:18.721660Z",
   "source": {
     "head": "0bffa97f5ec98f963176cebdb087dc7ffe1c4f60",
     "tracked_worktree_dirty": true,
-    "identity": "working-tree-projection"
+    "identity": "working-tree-projection",
+    "code_sha256": {
+      "publish_lite.js": "df181555522b223ff0b2f4bc588a64b81a01bc0b6558d30d421a3acffec2261f",
+      "verify_lite_site.js": "2a8fca655f68717a4c4548482dca4cd5cdf643fda06c2060661edfd2f5b9cca0",
+      "build_public_page.py": "fe088e274efdcc31e561de4b1391334ea392edb3bb13b4675a9c38afeb3a779c"
+    }
   },
-  "projection_sha256": "c18aeab458a72a7eb8bb681b9129d6e1f5ca0eff948221eb5427b2512db324a7",
+  "projection_sha256": "3c250890a67828cf7a5452aa40beeed3d14c74f297025d05900c172fee58a1fa",
   "input_contract": "public-projection-files-only/v1",
   "inputs": {
     "live-snapshot.json": {
-      "bytes": 13661338,
-      "sha256": "b1b2f6cf8889cde501da3dc872b5292f08a79dca8e255f40a6ead3344054e4fc"
+      "bytes": 13613614,
+      "sha256": "ac6b7a1fd33115fa477ab014d5e5b67d9a18a5762bdbe16ba6161f35e1a4c82f",
+      "as_of": "2026-10-13T21:38:18.721660Z"
     },
     "watch.json": {
-      "bytes": 9324,
-      "sha256": "af5b61a75baea0afc6f2942333edac84b53c627846dff761a762646a51eb50e7"
+      "bytes": 9338,
+      "sha256": "4a2ec66587e974db9d912892cdbee6ddeb9d037a942c2ff8e837f39c8aace187",
+      "as_of": null
     },
     "events.json": {
-      "bytes": 22686,
-      "sha256": "ea79f4b71600f5ef1fca4058bb46111cd9a010e4fa2bfbf77cc25035d62499c6"
+      "bytes": 22079,
+      "sha256": "bc6831a4e9ace459943da954e4d560dc23178a8a022f6784f900564f512eb15f",
+      "as_of": "2026-09-25T18:21:04.893022+00:00"
     }
   },
   "coverage": {
     "window_hours": 24,
     "source_count": 34,
-    "status_as_of": "2026-10-13T21:23:22.382776Z"
+    "status_as_of": "2026-10-13T21:38:18.721660Z"
   },
   "current_routes": [
     "index.html",
-    "live-snapshot.json",
+    "live-snapshot.json"
+  ],
+  "supporting_routes": [
     "watch.json",
     "events.json"
   ],
-  "historical_state": "unchanged_from_last_full_verified_release",
+  "historical_state": "unchanged_by_lite_publication",
   "limitations": [
     "This edition does not re-scan private evidence, raw captures, receipts, rows, or historical derived files.",
-    "Historical pages remain from the last full verified release and must not be read as current.",
-    "Freshness and coverage describe the live projection only; missing is not zero and received is not measured."
+    "Historical and analysis pages are not refreshed by this edition; their verification and dates are independent.",
+    "Supporting files keep their own dates, which may be older than the observation snapshot.",
+    "Freshness applies to the observation snapshot only; missing is not zero and received is not measured."
   ]
 }
