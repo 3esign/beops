@@ -1,32 +1,41 @@
 {
  "schema": "beops-watch/v1",
- "at": "2026-10-14T08:53:10Z",
+ "at": "2026-10-14T10:29:37Z",
  "verdict": "stalled",
  "counts": {
-  "ok": 37,
-  "late": 1,
+  "ok": 28,
+  "late": 3,
   "unknown": 0,
   "stalled": 1,
-  "blocked": 1,
+  "blocked": 8,
   "paused": 2
  },
  "figures": {
-  "rows": 1683158,
+  "rows": 1687666,
   "hours": 574
  },
  "not_current": [
   "AI observations",
+  "coverage 24h",
   "history",
+  "mind",
   "published",
   "source S11",
-  "source S207"
+  "source S175",
+  "source S200",
+  "source S201",
+  "source S207",
+  "source S74",
+  "source S75",
+  "source S76",
+  "source S78"
  ],
  "checks": [
   {
    "check": "watchman",
    "state": "ok",
-   "said": "14 min since the last reading",
-   "gap_min": 14.1
+   "said": "10 min since the last reading",
+   "gap_min": 10.5
   },
   {
    "check": "published",
@@ -36,126 +45,175 @@
   {
    "check": "history",
    "state": "stalled",
-   "said": "the newest hour is 280.9 h behind; the history has stopped growing",
+   "said": "the newest hour is 282.5 h behind; the history has stopped growing",
    "hours": 574,
    "newest_hour": "2026-10-02T16",
-   "hours_behind": 280.89
+   "hours_behind": 282.49
   },
   {
    "check": "mind",
-   "state": "ok",
-   "said": "newest drop 2 min ago",
-   "age_min": 1.7,
-   "checked_at": "2026-10-14T09:49:14.165303Z"
+   "state": "late",
+   "said": "newest drop 74 min ago",
+   "age_min": 73.9,
+   "checked_at": "2026-10-14T11:33:24.393612Z"
   },
   {
    "check": "AI observations",
    "state": "late",
-   "said": "no accepted monologue within one hour; failed",
+   "said": "no accepted monologue within one hour; waiting",
    "last_success": "2026-10-14T02:19:35.136Z"
   },
   {
    "check": "coverage 24h",
-   "state": "ok",
-   "said": "every collected source was heard in at least 90% of its slots (2 not counted, stopped by the permission gate: S11, S207)",
+   "state": "late",
+   "said": "11 sources below 90% of their slots in 24 h: S01 90%, S03 90%, S10 90%, S15 90%, S195 90%, S196 90%, S197 90%, S198 90% (9 not counted, stopped by the permission gate: S11, S175, S200, S201, S207, S74, S75, S76, S78)",
+   "below": [
+    {
+     "sid": "S01",
+     "share": 0.896
+    },
+    {
+     "sid": "S03",
+     "share": 0.896
+    },
+    {
+     "sid": "S10",
+     "share": 0.896
+    },
+    {
+     "sid": "S15",
+     "share": 0.896
+    },
+    {
+     "sid": "S195",
+     "share": 0.896
+    },
+    {
+     "sid": "S196",
+     "share": 0.896
+    },
+    {
+     "sid": "S197",
+     "share": 0.896
+    },
+    {
+     "sid": "S198",
+     "share": 0.896
+    },
+    {
+     "sid": "S208",
+     "share": 0.896
+    },
+    {
+     "sid": "S68",
+     "share": 0.896
+    },
+    {
+     "sid": "S69",
+     "share": 0.896
+    }
+   ],
    "gated": [
     "S11",
-    "S207"
+    "S175",
+    "S200",
+    "S201",
+    "S207",
+    "S74",
+    "S75",
+    "S76",
+    "S78"
    ]
   },
   {
    "check": "rows",
    "state": "ok",
-   "said": "1683158 rows on disk",
-   "rows": 1683158
+   "said": "1687666 rows on disk",
+   "rows": 1687666
   },
   {
    "check": "rows kept",
    "state": "ok",
-   "said": "1750 rows added since the last reading",
-   "before": 1681408,
-   "after": 1683158
+   "said": "3588 rows added since the last reading",
+   "before": 1684078,
+   "after": 1687666
   },
   {
    "check": "source S146",
    "state": "ok",
-   "said": "asked 25 min ago, newest value 25 min old",
+   "said": "asked 2 min ago, newest value 2 min old",
    "sid": "S146",
    "cadence_min": 60,
-   "asked_min_ago": 25.1,
-   "heard_min_ago": 25.1
+   "asked_min_ago": 1.6,
+   "heard_min_ago": 1.6
   },
   {
    "check": "source S04",
    "state": "ok",
-   "said": "asked -30 min ago, newest value -50 min old",
+   "said": "asked 7 min ago, newest value 6 min old",
    "sid": "S04",
    "cadence_min": 10,
-   "asked_min_ago": -30.1,
-   "heard_min_ago": -49.9
+   "asked_min_ago": 6.6,
+   "heard_min_ago": 6.5
   },
   {
    "check": "source S10",
    "state": "ok",
-   "said": "asked -50 min ago, newest value -50 min old",
+   "said": "asked 2 min ago, newest value 2 min old",
    "sid": "S10",
    "cadence_min": 15,
-   "asked_min_ago": -49.9,
-   "heard_min_ago": -49.9
+   "asked_min_ago": 1.6,
+   "heard_min_ago": 1.5
   },
   {
    "check": "source S68",
    "state": "ok",
-   "said": "asked -50 min ago, newest value -31 min old",
+   "said": "asked 2 min ago, newest value 66 min old",
    "sid": "S68",
    "cadence_min": 15,
-   "asked_min_ago": -49.9,
-   "heard_min_ago": -30.8
+   "asked_min_ago": 1.6,
+   "heard_min_ago": 65.6
   },
   {
    "check": "source S69",
    "state": "ok",
-   "said": "asked -50 min ago, newest value -50 min old",
+   "said": "asked 2 min ago, newest value 1 min old",
    "sid": "S69",
    "cadence_min": 15,
-   "asked_min_ago": -49.9,
-   "heard_min_ago": -50.0
+   "asked_min_ago": 1.6,
+   "heard_min_ago": 1.4
   },
   {
    "check": "source S75",
-   "state": "ok",
-   "said": "asked -50 min ago, newest value -50 min old",
+   "state": "blocked",
+   "said": "collection blocked: permission evidence invalid: Command '['node', 'D:\\\\Svemir\\\\!Projekti\\\\Beops\\\\tools\\\\net_fetch.js']' timed out after 10 seconds",
    "sid": "S75",
    "cadence_min": 15,
-   "asked_min_ago": -49.9,
-   "heard_min_ago": -50.0
+   "network_requests": 0
   },
   {
    "check": "source S76",
-   "state": "ok",
-   "said": "asked -50 min ago, newest value -50 min old",
+   "state": "blocked",
+   "said": "collection blocked: permission evidence invalid: Command '['node', 'D:\\\\Svemir\\\\!Projekti\\\\Beops\\\\tools\\\\net_fetch.js']' timed out after 10 seconds",
    "sid": "S76",
    "cadence_min": 15,
-   "asked_min_ago": -49.9,
-   "heard_min_ago": -50.0
+   "network_requests": 0
   },
   {
    "check": "source S78",
-   "state": "ok",
-   "said": "asked -30 min ago, newest value -31 min old",
+   "state": "blocked",
+   "said": "collection blocked: permission evidence invalid: Command '['node', 'D:\\\\Svemir\\\\!Projekti\\\\Beops\\\\tools\\\\net_fetch.js']' timed out after 10 seconds",
    "sid": "S78",
    "cadence_min": 30,
-   "asked_min_ago": -30.1,
-   "heard_min_ago": -31.3
+   "network_requests": 0
   },
   {
    "check": "source S74",
-   "state": "ok",
-   "said": "asked -30 min ago, newest value -32 min old",
+   "state": "blocked",
+   "said": "collection blocked: permission evidence invalid: Command '['node', 'D:\\\\Svemir\\\\!Projekti\\\\Beops\\\\tools\\\\net_fetch.js']' timed out after 10 seconds",
    "sid": "S74",
    "cadence_min": 30,
-   "asked_min_ago": -30.1,
-   "heard_min_ago": -31.9
+   "network_requests": 0
   },
   {
    "check": "source S11",
@@ -167,111 +225,108 @@
   },
   {
    "check": "source S175",
-   "state": "ok",
-   "said": "asked -50 min ago, newest value -32 min old",
+   "state": "blocked",
+   "said": "collection blocked: permission evidence invalid: Command '['node', 'D:\\\\Svemir\\\\!Projekti\\\\Beops\\\\tools\\\\net_fetch.js']' timed out after 10 seconds",
    "sid": "S175",
    "cadence_min": 15,
-   "asked_min_ago": -49.9,
-   "heard_min_ago": -32.2
+   "network_requests": 0
   },
   {
    "check": "source S195",
    "state": "ok",
-   "said": "asked -50 min ago, newest value -50 min old",
+   "said": "asked 2 min ago, newest value 32 min old",
    "sid": "S195",
    "cadence_min": 15,
-   "asked_min_ago": -49.9,
-   "heard_min_ago": -50.0
+   "asked_min_ago": 1.6,
+   "heard_min_ago": 31.5
   },
   {
    "check": "source S196",
    "state": "ok",
-   "said": "asked -50 min ago, newest value 55 min old",
+   "said": "asked 2 min ago, silent for 151 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S196",
    "cadence_min": 15,
-   "asked_min_ago": -49.9,
-   "heard_min_ago": 54.8
+   "asked_min_ago": 1.6,
+   "heard_min_ago": 151.3
   },
   {
    "check": "source S197",
    "state": "ok",
-   "said": "asked -50 min ago, newest value -50 min old",
+   "said": "asked 2 min ago, newest value 1 min old",
    "sid": "S197",
    "cadence_min": 15,
-   "asked_min_ago": -49.9,
-   "heard_min_ago": -50.0
+   "asked_min_ago": 1.6,
+   "heard_min_ago": 1.2
   },
   {
    "check": "source S198",
    "state": "ok",
-   "said": "asked -50 min ago, newest value -50 min old",
+   "said": "asked 2 min ago, newest value -14 min old",
    "sid": "S198",
    "cadence_min": 15,
-   "asked_min_ago": -49.9,
-   "heard_min_ago": -50.1
+   "asked_min_ago": 1.6,
+   "heard_min_ago": -14.3
   },
   {
    "check": "source S199",
    "state": "ok",
-   "said": "asked -35 min ago, newest value 84 min old",
+   "said": "asked 2 min ago, newest value 181 min old",
    "sid": "S199",
    "cadence_min": 60,
-   "asked_min_ago": -35.2,
-   "heard_min_ago": 84.4
+   "asked_min_ago": 1.6,
+   "heard_min_ago": 180.9
   },
   {
    "check": "source S200",
-   "state": "ok",
-   "said": "asked -35 min ago, newest value 24 min old",
+   "state": "blocked",
+   "said": "collection blocked: permission evidence invalid: Command '['node', 'D:\\\\Svemir\\\\!Projekti\\\\Beops\\\\tools\\\\net_fetch.js']' timed out after 10 seconds",
    "sid": "S200",
    "cadence_min": 60,
-   "asked_min_ago": -35.2,
-   "heard_min_ago": 24.1
+   "network_requests": 0
   },
   {
    "check": "source S201",
-   "state": "ok",
-   "said": "asked -35 min ago, newest value -36 min old",
+   "state": "blocked",
+   "said": "collection blocked: permission evidence invalid: Command '['node', 'D:\\\\Svemir\\\\!Projekti\\\\Beops\\\\tools\\\\net_fetch.js']' timed out after 10 seconds",
    "sid": "S201",
    "cadence_min": 60,
-   "asked_min_ago": -35.2,
-   "heard_min_ago": -36.2
+   "network_requests": 0
   },
   {
    "check": "source S202",
    "state": "ok",
-   "said": "asked -35 min ago, newest value -36 min old",
+   "said": "asked 2 min ago, newest value 1 min old",
    "sid": "S202",
    "cadence_min": 60,
-   "asked_min_ago": -35.2,
-   "heard_min_ago": -36.3
+   "asked_min_ago": 1.6,
+   "heard_min_ago": 1.2
   },
   {
    "check": "source S203",
    "state": "ok",
-   "said": "asked -35 min ago, newest value 24 min old",
+   "said": "asked 2 min ago, newest value 1 min old",
    "sid": "S203",
    "cadence_min": 60,
-   "asked_min_ago": -35.2,
-   "heard_min_ago": 24.0
+   "asked_min_ago": 1.6,
+   "heard_min_ago": 1.1
   },
   {
    "check": "source S15",
    "state": "ok",
-   "said": "asked -50 min ago, silent for 575 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked -38 min ago, silent for 671 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S15",
    "cadence_min": 15,
-   "asked_min_ago": -49.9,
-   "heard_min_ago": 574.9
+   "asked_min_ago": -38.4,
+   "heard_min_ago": 671.3
   },
   {
    "check": "source S208",
    "state": "ok",
-   "said": "asked -50 min ago, silent for 1085 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked -38 min ago, silent for 1181 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S208",
    "cadence_min": 15,
-   "asked_min_ago": -49.9,
-   "heard_min_ago": 1084.8
+   "asked_min_ago": -38.4,
+   "heard_min_ago": 1181.3
   },
   {
    "check": "source S207",
@@ -284,104 +339,104 @@
   {
    "check": "source S12",
    "state": "ok",
-   "said": "asked -35 min ago, newest value 205 min old",
+   "said": "asked 2 min ago, newest value 301 min old",
    "sid": "S12",
    "cadence_min": 60,
-   "asked_min_ago": -35.2,
-   "heard_min_ago": 204.6
+   "asked_min_ago": 1.6,
+   "heard_min_ago": 301.1
   },
   {
    "check": "source S01",
    "state": "ok",
-   "said": "asked -50 min ago, newest value -50 min old",
+   "said": "asked -38 min ago, newest value -39 min old",
    "sid": "S01",
    "cadence_min": 15,
-   "asked_min_ago": -49.9,
-   "heard_min_ago": -50.1
+   "asked_min_ago": -38.4,
+   "heard_min_ago": -39.2
   },
   {
    "check": "source S03",
    "state": "ok",
-   "said": "asked -50 min ago, silent for 100 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked -38 min ago, silent for 196 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S03",
    "cadence_min": 15,
-   "asked_min_ago": -49.9,
-   "heard_min_ago": 99.9
+   "asked_min_ago": -38.4,
+   "heard_min_ago": 196.4
   },
   {
    "check": "source S52",
    "state": "ok",
-   "said": "asked -35 min ago, newest value 84 min old",
+   "said": "asked 2 min ago, newest value 181 min old",
    "sid": "S52",
    "cadence_min": 60,
-   "asked_min_ago": -35.2,
-   "heard_min_ago": 84.2
+   "asked_min_ago": 1.6,
+   "heard_min_ago": 180.6
   },
   {
    "check": "source S54",
    "state": "ok",
-   "said": "asked -35 min ago, newest value 205 min old",
+   "said": "asked 2 min ago, newest value 301 min old",
    "sid": "S54",
    "cadence_min": 60,
-   "asked_min_ago": -35.2,
-   "heard_min_ago": 204.6
+   "asked_min_ago": 1.6,
+   "heard_min_ago": 301.0
   },
   {
    "check": "source S219",
    "state": "ok",
-   "said": "asked -30 min ago, silent for 795 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked -23 min ago, silent for 891 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S219",
    "cadence_min": 30,
-   "asked_min_ago": -30.1,
-   "heard_min_ago": 794.7
+   "asked_min_ago": -23.4,
+   "heard_min_ago": 891.1
   },
   {
    "check": "source S220",
    "state": "ok",
-   "said": "asked 70 min ago, newest value 70 min old",
+   "said": "asked 167 min ago, newest value 166 min old",
    "sid": "S220",
    "cadence_min": 360,
-   "asked_min_ago": 70.2,
-   "heard_min_ago": 69.9
+   "asked_min_ago": 166.6,
+   "heard_min_ago": 166.3
   },
   {
    "check": "source S221",
    "state": "ok",
-   "said": "asked 65 min ago, newest value 65 min old",
+   "said": "asked -18 min ago, newest value 162 min old",
    "sid": "S221",
    "cadence_min": 180,
-   "asked_min_ago": 65.1,
-   "heard_min_ago": 65.1
+   "asked_min_ago": -18.5,
+   "heard_min_ago": 161.5
   },
   {
    "check": "source S222",
    "state": "ok",
-   "said": "asked 70 min ago, silent for 2235 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 167 min ago, silent for 2331 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S222",
    "cadence_min": 360,
-   "asked_min_ago": 70.2,
-   "heard_min_ago": 2234.9
+   "asked_min_ago": 166.6,
+   "heard_min_ago": 2331.3
   },
   {
    "check": "source S223",
    "state": "ok",
-   "said": "asked -35 min ago, newest value -37 min old",
+   "said": "asked 2 min ago, newest value 1 min old",
    "sid": "S223",
    "cadence_min": 60,
-   "asked_min_ago": -35.2,
-   "heard_min_ago": -36.9
+   "asked_min_ago": 1.6,
+   "heard_min_ago": 0.9
   },
   {
    "check": "source S224",
    "state": "ok",
-   "said": "asked 435 min ago, newest value 3315 min old",
+   "said": "asked 532 min ago, newest value 3411 min old",
    "sid": "S224",
    "cadence_min": 1440,
-   "asked_min_ago": 435.1,
-   "heard_min_ago": 3314.6
+   "asked_min_ago": 531.6,
+   "heard_min_ago": 3411.0
   }
  ],
- "elapsed_seconds": 3466.3,
+ "elapsed_seconds": 5484.5,
  "persistence": {
   "ledger_written": true
  }
