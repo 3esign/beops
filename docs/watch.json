@@ -1,45 +1,38 @@
 {
  "schema": "beops-watch/v1",
- "at": "2026-10-17T08:29:04Z",
+ "at": "2026-10-17T08:59:02Z",
  "verdict": "stalled",
  "counts": {
-  "ok": 24,
-  "late": 9,
+  "ok": 31,
+  "late": 2,
   "unknown": 0,
   "stalled": 1,
   "blocked": 6,
   "paused": 2
  },
  "figures": {
-  "rows": 1827347,
+  "rows": 1829005,
   "hours": 574
  },
  "not_current": [
-  "AI observations",
   "coverage 24h",
   "history",
+  "mind",
   "published",
   "source S11",
-  "source S12",
   "source S175",
   "source S195",
   "source S196",
   "source S197",
   "source S198",
-  "source S199",
-  "source S200",
-  "source S202",
-  "source S203",
-  "source S207",
-  "source S52",
-  "source S54"
+  "source S207"
  ],
  "checks": [
   {
    "check": "watchman",
    "state": "ok",
    "said": "10 min since the last reading",
-   "gap_min": 10.1
+   "gap_min": 10.0
   },
   {
    "check": "published",
@@ -49,28 +42,28 @@
   {
    "check": "history",
    "state": "stalled",
-   "said": "the newest hour is 352.5 h behind; the history has stopped growing",
+   "said": "the newest hour is 353.0 h behind; the history has stopped growing",
    "hours": 574,
    "newest_hour": "2026-10-02T16",
-   "hours_behind": 352.48
+   "hours_behind": 352.98
   },
   {
    "check": "mind",
-   "state": "ok",
-   "said": "newest drop 2 min ago",
-   "age_min": 1.6,
-   "checked_at": "2026-10-17T08:29:08.180030Z"
+   "state": "late",
+   "said": "newest drop 32 min ago",
+   "age_min": 31.6,
+   "checked_at": "2026-10-17T08:59:05.756432Z"
   },
   {
    "check": "AI observations",
-   "state": "late",
-   "said": "no accepted monologue within one hour; providers_unavailable",
-   "last_success": "2026-10-17T07:18:38.192Z"
+   "state": "ok",
+   "said": "latest accepted monologue is within one hour",
+   "age_min": 26.5
   },
   {
    "check": "coverage 24h",
    "state": "late",
-   "said": "10 sources below 90% of their slots in 24 h: S68 85%, S75 85%, S01 86%, S15 86%, S208 86%, S69 86%, S04 89%, S03 90% (7 not counted, stopped by the permission gate: S11, S175, S195, S196, S197, S198, S207)",
+   "said": "10 sources below 90% of their slots in 24 h: S68 85%, S75 85%, S01 86%, S15 86%, S208 86%, S69 86%, S03 90%, S04 90% (7 not counted, stopped by the permission gate: S11, S175, S195, S196, S197, S198, S207)",
    "below": [
     {
      "sid": "S68",
@@ -97,11 +90,11 @@
      "share": 0.865
     },
     {
-     "sid": "S04",
-     "share": 0.889
+     "sid": "S03",
+     "share": 0.896
     },
     {
-     "sid": "S03",
+     "sid": "S04",
      "share": 0.896
     },
     {
@@ -126,24 +119,24 @@
   {
    "check": "rows",
    "state": "ok",
-   "said": "1827347 rows on disk, counted from the validated row index",
-   "rows": 1827347
+   "said": "1829005 rows on disk, counted from the validated row index",
+   "rows": 1829005
   },
   {
    "check": "rows kept",
    "state": "ok",
-   "said": "278 rows added since the last reading",
-   "before": 1827069,
-   "after": 1827347
+   "said": "999 rows added since the last reading",
+   "before": 1828006,
+   "after": 1829005
   },
   {
    "check": "source S146",
    "state": "ok",
-   "said": "asked 36 min ago, newest value 36 min old",
+   "said": "asked 6 min ago, newest value 6 min old",
    "sid": "S146",
    "cadence_min": 60,
-   "asked_min_ago": 36.1,
-   "heard_min_ago": 36.1
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 6.0
   },
   {
    "check": "source S04",
@@ -151,8 +144,8 @@
    "said": "asked 1 min ago, newest value 1 min old",
    "sid": "S04",
    "cadence_min": 10,
-   "asked_min_ago": 1.1,
-   "heard_min_ago": 1.1
+   "asked_min_ago": 1.0,
+   "heard_min_ago": 1.0
   },
   {
    "check": "source S10",
@@ -160,17 +153,17 @@
    "said": "asked 11 min ago, newest value 11 min old",
    "sid": "S10",
    "cadence_min": 15,
-   "asked_min_ago": 11.1,
+   "asked_min_ago": 11.0,
    "heard_min_ago": 11.0
   },
   {
    "check": "source S68",
    "state": "ok",
-   "said": "asked 11 min ago, newest value 11 min old",
+   "said": "asked 11 min ago, newest value 41 min old",
    "sid": "S68",
    "cadence_min": 15,
-   "asked_min_ago": 11.1,
-   "heard_min_ago": 11.0
+   "asked_min_ago": 11.0,
+   "heard_min_ago": 41.0
   },
   {
    "check": "source S69",
@@ -178,44 +171,44 @@
    "said": "asked 11 min ago, newest value 11 min old",
    "sid": "S69",
    "cadence_min": 15,
-   "asked_min_ago": 11.1,
+   "asked_min_ago": 11.0,
    "heard_min_ago": 11.0
   },
   {
    "check": "source S75",
    "state": "ok",
-   "said": "asked 11 min ago, silent for 655 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 11 min ago, newest value 11 min old",
    "sid": "S75",
    "cadence_min": 15,
-   "asked_min_ago": 11.1,
-   "heard_min_ago": 655.3
+   "asked_min_ago": 11.0,
+   "heard_min_ago": 11.0
   },
   {
    "check": "source S76",
    "state": "ok",
-   "said": "asked 11 min ago, silent for 581 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 11 min ago, newest value 11 min old",
    "sid": "S76",
    "cadence_min": 15,
-   "asked_min_ago": 11.1,
-   "heard_min_ago": 580.9
+   "asked_min_ago": 11.0,
+   "heard_min_ago": 10.9
   },
   {
    "check": "source S78",
    "state": "ok",
-   "said": "asked 11 min ago, newest value 131 min old",
+   "said": "asked 11 min ago, newest value 11 min old",
    "sid": "S78",
    "cadence_min": 30,
-   "asked_min_ago": 11.1,
-   "heard_min_ago": 130.9
+   "asked_min_ago": 11.0,
+   "heard_min_ago": 10.9
   },
   {
    "check": "source S74",
    "state": "ok",
-   "said": "asked 11 min ago, silent for 1136 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 11 min ago, silent for 1166 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S74",
    "cadence_min": 30,
-   "asked_min_ago": 11.1,
-   "heard_min_ago": 1135.9
+   "asked_min_ago": 11.0,
+   "heard_min_ago": 1165.9
   },
   {
    "check": "source S11",
@@ -267,66 +260,66 @@
   },
   {
    "check": "source S199",
-   "state": "late",
-   "said": "attempted 36 min ago; last attempt failed (HTTP None); fetch failed <- ENOTFOUND getaddrinfo ENOTFOUND www.cins.rs",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 6 min old",
    "sid": "S199",
    "cadence_min": 60,
-   "asked_min_ago": 36.1,
-   "heard_min_ago": 1315.5
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 6.0
   },
   {
    "check": "source S200",
-   "state": "late",
-   "said": "attempted 36 min ago; last attempt failed (HTTP None); fetch failed <- ENOTFOUND getaddrinfo ENOTFOUND www.cenzolovka.rs",
+   "state": "ok",
+   "said": "asked 6 min ago, silent for 801 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S200",
    "cadence_min": 60,
-   "asked_min_ago": 36.1,
-   "heard_min_ago": 771.0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 801.0
   },
   {
    "check": "source S201",
    "state": "ok",
-   "said": "asked 36 min ago, silent for 831 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 6 min ago, newest value 6 min old",
    "sid": "S201",
    "cadence_min": 60,
-   "asked_min_ago": 36.1,
-   "heard_min_ago": 831.0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 6.0
   },
   {
    "check": "source S202",
-   "state": "late",
-   "said": "attempted 36 min ago; last attempt failed (HTTP None); fetch failed <- ENOTFOUND getaddrinfo ENOTFOUND www.istinomer.rs",
+   "state": "ok",
+   "said": "asked 6 min ago, silent for 986 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S202",
    "cadence_min": 60,
-   "asked_min_ago": 36.1,
-   "heard_min_ago": 955.9
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 985.8
   },
   {
    "check": "source S203",
-   "state": "late",
-   "said": "attempted 36 min ago; last attempt failed (HTTP None); fetch failed <- ENOTFOUND getaddrinfo ENOTFOUND www.srbija.gov.rs",
+   "state": "ok",
+   "said": "asked 6 min ago, silent for 861 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S203",
    "cadence_min": 60,
-   "asked_min_ago": 36.1,
-   "heard_min_ago": 831.0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 860.9
   },
   {
    "check": "source S15",
    "state": "ok",
-   "said": "asked 11 min ago, silent for 176 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 11 min ago, silent for 206 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S15",
    "cadence_min": 15,
-   "asked_min_ago": 11.1,
-   "heard_min_ago": 175.9
+   "asked_min_ago": 11.0,
+   "heard_min_ago": 205.8
   },
   {
    "check": "source S208",
    "state": "ok",
-   "said": "asked 11 min ago, silent for 1061 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 11 min ago, silent for 1091 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S208",
    "cadence_min": 15,
-   "asked_min_ago": 11.1,
-   "heard_min_ago": 1061.0
+   "asked_min_ago": 11.0,
+   "heard_min_ago": 1090.9
   },
   {
    "check": "source S207",
@@ -338,12 +331,12 @@
   },
   {
    "check": "source S12",
-   "state": "late",
-   "said": "attempted 36 min ago; last attempt failed (HTTP None); fetch failed <- ENOTFOUND getaddrinfo ENOTFOUND www.elektrodistribucija.rs",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 6 min old",
    "sid": "S12",
    "cadence_min": 60,
-   "asked_min_ago": 36.1,
-   "heard_min_ago": 1615.6
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.9
   },
   {
    "check": "source S01",
@@ -351,7 +344,7 @@
    "said": "asked 11 min ago, newest value 11 min old",
    "sid": "S01",
    "cadence_min": 15,
-   "asked_min_ago": 11.1,
+   "asked_min_ago": 11.0,
    "heard_min_ago": 10.9
   },
   {
@@ -360,83 +353,83 @@
    "said": "asked 11 min ago, newest value 11 min old",
    "sid": "S03",
    "cadence_min": 15,
-   "asked_min_ago": 11.1,
+   "asked_min_ago": 11.0,
    "heard_min_ago": 10.9
   },
   {
    "check": "source S52",
-   "state": "late",
-   "said": "attempted 36 min ago; last attempt failed (HTTP None); fetch failed <- ENOTFOUND getaddrinfo ENOTFOUND www.hidmet.gov.rs",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 126 min old",
    "sid": "S52",
    "cadence_min": 60,
-   "asked_min_ago": 36.1,
-   "heard_min_ago": 96.0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 125.9
   },
   {
    "check": "source S54",
-   "state": "late",
-   "said": "attempted 36 min ago; last attempt failed (HTTP None); fetch failed <- ENOTFOUND getaddrinfo ENOTFOUND www.elektrodistribucija.rs",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 6 min old",
    "sid": "S54",
    "cadence_min": 60,
-   "asked_min_ago": 36.1,
-   "heard_min_ago": 1075.9
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.9
   },
   {
    "check": "source S219",
    "state": "ok",
-   "said": "asked 11 min ago, silent for 736 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 11 min ago, silent for 766 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S219",
    "cadence_min": 30,
-   "asked_min_ago": 11.1,
-   "heard_min_ago": 735.7
+   "asked_min_ago": 11.0,
+   "heard_min_ago": 765.7
   },
   {
    "check": "source S220",
    "state": "ok",
-   "said": "asked 296 min ago, newest value 1376 min old",
+   "said": "asked 326 min ago, newest value 1406 min old",
    "sid": "S220",
    "cadence_min": 360,
-   "asked_min_ago": 296.1,
-   "heard_min_ago": 1375.8
+   "asked_min_ago": 326.0,
+   "heard_min_ago": 1405.8
   },
   {
    "check": "source S221",
    "state": "ok",
-   "said": "asked 116 min ago, silent for 1376 min - the source has nothing to say, which is a record and not a fault",
+   "said": "asked 146 min ago, silent for 1406 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S221",
    "cadence_min": 180,
-   "asked_min_ago": 116.1,
-   "heard_min_ago": 1375.8
+   "asked_min_ago": 146.0,
+   "heard_min_ago": 1405.8
   },
   {
    "check": "source S222",
    "state": "ok",
-   "said": "asked 296 min ago, newest value 2106 min old",
+   "said": "asked 326 min ago, newest value 2136 min old",
    "sid": "S222",
    "cadence_min": 360,
-   "asked_min_ago": 296.1,
-   "heard_min_ago": 2105.6
+   "asked_min_ago": 326.0,
+   "heard_min_ago": 2135.6
   },
   {
    "check": "source S223",
    "state": "ok",
-   "said": "asked 36 min ago, newest value 35 min old",
+   "said": "asked 6 min ago, newest value 6 min old",
    "sid": "S223",
    "cadence_min": 60,
-   "asked_min_ago": 36.1,
-   "heard_min_ago": 35.2
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.8
   },
   {
    "check": "source S224",
    "state": "ok",
-   "said": "asked 411 min ago, newest value 1851 min old",
+   "said": "asked 441 min ago, newest value 1881 min old",
    "sid": "S224",
    "cadence_min": 1440,
-   "asked_min_ago": 411.1,
-   "heard_min_ago": 1851.0
+   "asked_min_ago": 441.0,
+   "heard_min_ago": 1881.0
   }
  ],
- "elapsed_seconds": 3.4,
+ "elapsed_seconds": 3.5,
  "persistence": {
   "ledger_written": true
  }
