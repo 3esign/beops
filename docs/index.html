@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Beograd danas — BEOPS</title>
 <meta name="beops-edition" content="lite">
-<meta name="beops-as-of" content="2026-10-22T21:33:33.463377Z">
+<meta name="beops-as-of" content="2026-10-22T22:03:03.708383Z">
 <meta name="description" content="Puls Beograda za građane: vazduh, mikroklima, dešavanja, radovi i sačuvani naslovi sa procenom lokacije i poreklom podataka.">
 <style>
 :root {
@@ -109,6 +109,22 @@ header {
 .hero-headline { font-size: clamp(26px, 4vw, 36px); font-weight: 700; line-height: 1.25; margin: 0 0 calc(var(--u)*3); letter-spacing: -.02em; }
 .hero-sub { font-size: 15px; color: var(--ink70); display: flex; gap: calc(var(--u)*4); flex-wrap: wrap; align-items: center; }
 
+/* BLOK 1b: REGISTAR POSTOVA */
+.post-feed { margin: calc(var(--u)*6) 0; }
+.post-strip { display: flex; flex-wrap: wrap; gap: calc(var(--u)*1.5); margin-bottom: calc(var(--u)*3); }
+.post-strip-btn { font: 12px/1.4 var(--mono); padding: 4px 10px; border: 1px solid var(--ink12); background: var(--panel); color: var(--ink70); border-radius: 999px; cursor: pointer; }
+.post-strip-btn[aria-pressed="true"] { background: var(--ink); color: var(--field); border-color: var(--ink); }
+.post-strip-n { color: inherit; opacity: .6; margin-left: 2px; }
+.post-list { display: flex; flex-direction: column; gap: calc(var(--u)*1.5); }
+.post-item { display: grid; grid-template-columns: auto 1fr auto auto auto; gap: calc(var(--u)*3); align-items: baseline; padding: calc(var(--u)*2.5) calc(var(--u)*3); background: var(--panel); border: 1px solid var(--ink12); border-radius: 3px; font-size: 14px; }
+.post-type { font: 11px/1 var(--mono); text-transform: uppercase; letter-spacing: .05em; color: var(--signal); font-weight: 700; }
+.post-claim { font-weight: 500; }
+.post-seal { font-size: 11px; color: var(--ink55); }
+.post-state { font: 11px/1 var(--mono); padding: 2px 7px; border-radius: 2px; background: var(--ink06); color: var(--ink70); }
+.post-state-unavailable { background: var(--bad-bg); color: var(--bad); }
+.post-proof { font-size: 11px; color: var(--ink55); font-family: var(--mono); white-space: nowrap; }
+@media (max-width: 720px) { .post-item { grid-template-columns: auto 1fr; } .post-item > :nth-child(n+3) { grid-column: 2; } }
+
 /* BLOK 2: Šta znamo danas */
 .section-title { font-size: 19px; font-weight: 700; margin: calc(var(--u)*8) 0 calc(var(--u)*4); border-bottom: 1px solid var(--ink12); padding-bottom: calc(var(--u)*2); display: flex; justify-content: space-between; align-items: baseline; }
 .section-title span { font-size: 12px; font-weight: 400; color: var(--ink55); }
@@ -157,7 +173,7 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
 </style>
 </head>
 <body>
-<div class="beops-lite-notice" data-beops-edition="lite" style="padding:12px 20px;border-bottom:1px solid #888">Lite edition: observation snapshot 2026-10-22T21:33:33.463377Z. Each input retains its own date; event notices may be older. The 7-day history window is refreshed daily; other historical and analysis pages are not refreshed by this edition. <a href="lite-edition.json">Coverage, input dates and proof</a>.</div>
+<div class="beops-lite-notice" data-beops-edition="lite" style="padding:12px 20px;border-bottom:1px solid #888">Lite edition: observation snapshot 2026-10-22T22:03:03.708383Z. Each input retains its own date; event notices may be older. The 7-day history window is refreshed daily; other historical and analysis pages are not refreshed by this edition. <a href="lite-edition.json">Coverage, input dates and proof</a>.</div>
 
 <style class="bh-style">
 .bh{position:sticky;top:0;z-index:40;display:block;max-width:none;margin:0;padding:0;gap:0;justify-content:normal;justify-content:flex-start;text-align:start;border-bottom:1px solid color-mix(in srgb,currentColor 25%,transparent);background:color-mix(in srgb,Canvas 90%,transparent);backdrop-filter:blur(5px);font:12.5px/1.5 system-ui,"Segoe UI",Arial,sans-serif;color:CanvasText}
@@ -197,7 +213,7 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
 .bh-seal a{color:inherit}
 @media(max-width:740px){.bh-bar{padding:8px 14px;gap:8px}.bh-seal{padding:4px 14px 6px}}
 </style>
-<header class="bh" data-page="index" data-kolosek="lite" data-as-of="2026-10-22T21:33:33.463377Z">
+<header class="bh" data-page="index" data-kolosek="lite" data-as-of="2026-10-22T22:03:03.708383Z">
   <div class="bh-bar">
     <a class="bh-brand" href="index.html" data-nav="index" aria-current="page">BEOPS <span>· Beograd</span></a>
     <nav class="bh-nav" aria-label="Glavna navigacija">
@@ -213,7 +229,7 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
       <div class="hlangs" id="lang" role="group" aria-label="Jezik / Language"><button type="button" data-l="sr" aria-pressed="true">SR</button><button type="button" data-l="en" aria-pressed="false">EN</button></div>
     </div>
   </div>
-  <p class="bh-seal">ova stranica: <b>Beograd danas</b> · izdanje <b>lite</b> · presek <time datetime="2026-10-22T21:33:33.463377Z">22.10. u 21:33 UTC</time> · staro <b>6 min</b> · <a href="instrument.html">dokaz →</a></p>
+  <p class="bh-seal">ova stranica: <b>Beograd danas</b> · izdanje <b>lite</b> · presek <time datetime="2026-10-22T22:03:03.708383Z">22.10. u 22:03 UTC</time> · staro <b>5 min</b> · <a href="instrument.html">dokaz →</a></p>
   <script class="bh-js">
   /* Jedan jezički prekidač za sve stranice. Stranice sa svojim rukovaocem (instrument
      vezuje dugmad po data-l; monolog/podaci/traka vezuju #lang i obrću LANG) ostaju
@@ -261,15 +277,131 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
 
   <!-- BLOK 1: PULS SADA -->
   <section class="hero">
-    <div class="hero-tag">Puls Beograda · 21:33</div>
+    <div class="hero-tag">Puls Beograda · 22:03</div>
     <h1 class="hero-headline">Poslednji PM2.5 zapisi: prosek 8.4 µg/m³ iz 31 serije.</h1>
     <p style="max-width:680px;color:var(--ink55);font-size:14px;line-height:1.5">Po jedna poslednja vrednost po seriji u okviru tri sata pre preseka. Prosek ne opisuje svaku lokaciju u gradu.</p>
     <div class="hero-sub">
       <div><b>Vazduh:</b> Merenja u evidenciji (PM2.5: <a href="#pm25-dokazi" class="mono">8.4 µg/m³</a>)</div>
       <div><b>Stanica u mreži:</b> <span class="mono">32</span></div>
-      <div><b>Presek evidencije:</b> <span class="mono">22.10. u 21:33 UTC</span></div>
+      <div><b>Presek evidencije:</b> <span class="mono">22.10. u 22:03 UTC</span></div>
     </div>
   </section>
+
+  <!-- BLOK 1b: REGISTAR POSTOVA -->
+  <section id="post-feed" class="post-feed">
+<div class="section-title">Registar postova<span>poređano po tome kad je šta stiglo; zastarelo ne nestaje, pada niže</span></div>
+<div class="post-strip" role="group" aria-label="Vrste posta">
+<button class="post-strip-btn" data-post-filter="merenje" aria-pressed="false">merenje <span class="post-strip-n">3</span></button>
+<button class="post-strip-btn" data-post-filter="naslov" aria-pressed="false">naslov <span class="post-strip-n">2</span></button>
+<button class="post-strip-btn" data-post-filter="termin" aria-pressed="false">termin <span class="post-strip-n">1</span></button>
+<button class="post-strip-btn" data-post-filter="obrazac" aria-pressed="false">obrazac <span class="post-strip-n">1</span></button>
+<button class="post-strip-btn" data-post-filter="misao" aria-pressed="false">misao <span class="post-strip-n">2</span></button>
+<button class="post-strip-btn" data-post-filter="dokaz" aria-pressed="false">dokaz <span class="post-strip-n">3</span></button>
+<button class="post-strip-btn" data-post-filter="all" aria-pressed="true">svi <span class="post-strip-n">12</span></button>
+</div><div class="post-list">
+<div class="post-item" data-post-type="merenje" data-post-state="unavailable">
+  <span class="post-type">merenje</span>
+  <a class="post-claim" href="sada.html">Vazduh i mikroklima sada, sa satom svakog očitavanja</a>
+  <span class="post-seal mono">nema pečata u živom koloseku</span>
+  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <a class="post-proof" href="instrument.html">Dokaz →</a>
+</div>
+<div class="post-item" data-post-type="merenje" data-post-state="unavailable">
+  <span class="post-type">merenje</span>
+  <a class="post-claim" href="mapa.html">Grad kroz svoja čula: stanice, naslovi i termini na mapi</a>
+  <span class="post-seal mono">nema pečata u živom koloseku</span>
+  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <a class="post-proof" href="instrument.html">Dokaz →</a>
+</div>
+<div class="post-item" data-post-type="merenje" data-post-state="unavailable">
+  <span class="post-type">merenje</span>
+  <a class="post-claim" href="podaci.html">Izmerene serije i njihove jedinice, bez izmišljanja vrednosti</a>
+  <span class="post-seal mono">nema pečata u živom koloseku</span>
+  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <a class="post-proof" href="instrument.html">Dokaz →</a>
+</div>
+<div class="post-item" data-post-type="termin" data-post-state="unavailable">
+  <span class="post-type">termin</span>
+  <a class="post-claim" href="impulsi.html">Termini i resursi grada u pokretu</a>
+  <span class="post-seal mono">nema pečata u živom koloseku</span>
+  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <a class="post-proof" href="instrument.html">Dokaz →</a>
+</div>
+<div class="post-item" data-post-type="naslov" data-post-state="unavailable">
+  <span class="post-type">naslov</span>
+  <a class="post-claim" href="naslovi.html">Sačuvani naslovi sa procenom lokacije i vremenom prijema</a>
+  <span class="post-seal mono">nema pečata u živom koloseku</span>
+  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <a class="post-proof" href="instrument.html">Dokaz →</a>
+</div>
+<div class="post-item" data-post-type="naslov" data-post-state="unavailable">
+  <span class="post-type">naslov</span>
+  <a class="post-claim" href="traka.html">Traka naslova onako kako su stizali</a>
+  <span class="post-seal mono">nema pečata u živom koloseku</span>
+  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <a class="post-proof" href="instrument.html">Dokaz →</a>
+</div>
+<div class="post-item" data-post-type="obrazac" data-post-state="unavailable">
+  <span class="post-type">obrazac</span>
+  <a class="post-claim" href="obrasci.html">Šta se ponavlja, a šta je neobično — kroz vreme</a>
+  <span class="post-seal mono">nema pečata u živom koloseku</span>
+  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <a class="post-proof" href="instrument.html">Dokaz →</a>
+</div>
+<div class="post-item" data-post-type="misao" data-post-state="unavailable">
+  <span class="post-type">misao</span>
+  <a class="post-claim" href="monolog.html">Monolog uma nad gradom, rečenica po rečenica proverena</a>
+  <span class="post-seal mono">nema pečata u živom koloseku</span>
+  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <a class="post-proof" href="instrument.html">Dokaz →</a>
+</div>
+<div class="post-item" data-post-type="misao" data-post-state="unavailable">
+  <span class="post-type">misao</span>
+  <a class="post-claim" href="ai-feed.html">Zapažanja: šta um primećuje i sa kakvom nesigurnošću</a>
+  <span class="post-seal mono">nema pečata u živom koloseku</span>
+  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <a class="post-proof" href="instrument.html">Dokaz →</a>
+</div>
+<div class="post-item" data-post-type="dokaz" data-post-state="unavailable">
+  <span class="post-type">dokaz</span>
+  <a class="post-claim" href="instrument.html">Poreklo svakog zapisa i granice merenja</a>
+  <span class="post-seal mono">nema pečata u živom koloseku</span>
+  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <a class="post-proof" href="instrument.html#izvori">Dokaz →</a>
+</div>
+<div class="post-item" data-post-type="dokaz" data-post-state="unavailable">
+  <span class="post-type">dokaz</span>
+  <a class="post-claim" href="svedoci.html">Ko je šta poslao i kada: svedoci svakog zapisa</a>
+  <span class="post-seal mono">nema pečata u živom koloseku</span>
+  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <a class="post-proof" href="instrument.html">Dokaz →</a>
+</div>
+<div class="post-item" data-post-type="dokaz" data-post-state="unavailable">
+  <span class="post-type">dokaz</span>
+  <a class="post-claim" href="kontekst.html">Kontekst podataka: šta merimo, čime i sa kojim ograničenjem</a>
+  <span class="post-seal mono">nema pečata u živom koloseku</span>
+  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <a class="post-proof" href="instrument.html">Dokaz →</a>
+</div>
+</div>
+<script>
+(function () {
+  var strip = document.querySelector('.post-strip');
+  if (!strip) return;
+  strip.addEventListener('click', function (event) {
+    var button = event.target.closest('[data-post-filter]');
+    if (!button) return;
+    var filter = button.getAttribute('data-post-filter');
+    strip.querySelectorAll('[data-post-filter]').forEach(function (other) {
+      other.setAttribute('aria-pressed', other === button ? 'true' : 'false');
+    });
+    document.querySelectorAll('.post-item').forEach(function (item) {
+      item.style.display = (filter === 'all' || item.getAttribute('data-post-type') === filter) ? '' : 'none';
+    });
+  });
+})();
+</script>
+</section>
 
   <!-- BLOK 2: MOGU LI DANAS -->
   <section>
