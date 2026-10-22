@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Beograd danas — BEOPS</title>
-<meta name="beops-edition" content="full">
-<meta name="beops-as-of" content="2026-10-22T18:23:05.917560Z">
+<meta name="beops-edition" content="lite">
+<meta name="beops-as-of" content="2026-10-22T18:53:02.136623Z">
 <meta name="description" content="Puls Beograda za građane: vazduh, mikroklima, dešavanja, radovi i sačuvani naslovi sa procenom lokacije i poreklom podataka.">
 <style>
 :root {
@@ -100,8 +100,6 @@ header {
 }
 .brand { font-weight: 700; font-size: 17px; letter-spacing: -.01em; border: 0; }
 .brand span { font-weight: 400; color: var(--ink55); margin-left: 6px; font-size: 14px; }
-.nav-link { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 3px; border: 1px solid var(--ink12); }
-.nav-link:hover { background: var(--ink06); }
 
 .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 calc(var(--u)*5); }
 
@@ -159,19 +157,8 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
 </style>
 </head>
 <body>
-<div class="beops-lite-notice" data-beops-edition="lite" style="padding:12px 20px;border-bottom:1px solid #888">Lite edition: observation snapshot 2026-10-22T18:23:05.917560Z. Each input retains its own date; event notices may be older. The 7-day history window is refreshed daily; other historical and analysis pages are not refreshed by this edition. <a href="lite-edition.json">Coverage, input dates and proof</a>.</div>
+<div class="beops-lite-notice" data-beops-edition="lite" style="padding:12px 20px;border-bottom:1px solid #888">Lite edition: observation snapshot 2026-10-22T18:53:02.136623Z. Each input retains its own date; event notices may be older. The 7-day history window is refreshed daily; other historical and analysis pages are not refreshed by this edition. <a href="lite-edition.json">Coverage, input dates and proof</a>.</div>
 
-<!-- Jedinstveni javni header BEOPS. Jedini izvor: ovaj fajl.
-     Renderuju ga tools/render_header.py (Python graditelji) i tools/render_header.js
-     (Node graditelji/izdavači), u vreme gradnje — nikad skriptom u pregledaču,
-     da stranica stoji i bez JS. Tokeni: index Beograd danas full
-     2026-10-22T18:23:05.917560Z 22.10. u 18:23 UTC 15 min instrument.html.
-     Pravila ugovora (research/BEOPS_2_0_PRESEK_2026-10-22.md, tačka 3):
-     marka uvek BEOPS · Beograd, nikad BEOPS / SVEMIR na javnoj strani;
-     ista navigacija istim redom, aria-current na tekućoj stranici;
-     pečat svežine po stranici (kolosek + presek + starost + dokaz);
-     autorstvo samo u podnožju. Dugmad #theme i #lang vezuju jezične i tematske
-     skripte stranice koje ih imaju; na ostalima stoje pripremljena. -->
 <style class="bh-style">
 .bh{position:sticky;top:0;z-index:40;display:block;max-width:none;margin:0;padding:0;gap:0;justify-content:normal;justify-content:flex-start;text-align:start;border-bottom:1px solid color-mix(in srgb,currentColor 25%,transparent);background:color-mix(in srgb,Canvas 90%,transparent);backdrop-filter:blur(5px);font:12.5px/1.5 system-ui,"Segoe UI",Arial,sans-serif;color:CanvasText}
 .bh-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;max-width:1400px;margin:0 auto;padding:9px 18px}
@@ -188,7 +175,23 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
 .bh-seal a{color:inherit}
 @media(max-width:740px){.bh-bar{padding:8px 14px;gap:8px}.bh-seal{padding:4px 14px 6px}}
 </style>
-<header class="bh" data-page="index" data-kolosek="full" data-as-of="2026-10-22T18:23:05.917560Z">
+<style class="bh-style">
+.bh{position:sticky;top:0;z-index:40;display:block;max-width:none;margin:0;padding:0;gap:0;justify-content:normal;justify-content:flex-start;text-align:start;border-bottom:1px solid color-mix(in srgb,currentColor 25%,transparent);background:color-mix(in srgb,Canvas 90%,transparent);backdrop-filter:blur(5px);font:12.5px/1.5 system-ui,"Segoe UI",Arial,sans-serif;color:CanvasText}
+.bh-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;max-width:1400px;margin:0 auto;padding:9px 18px}
+.bh-brand{font-weight:700;letter-spacing:.04em;text-decoration:none;color:inherit;white-space:nowrap}
+.bh-brand span{font-weight:400;opacity:.75}
+.bh-nav{display:flex;gap:2px;flex-wrap:wrap}
+.bh-nav a{color:inherit;text-decoration:none;padding:4px 8px;border-radius:3px;opacity:.8}
+.bh-nav a:hover{opacity:1;background:color-mix(in srgb,currentColor 10%,transparent)}
+.bh-nav a[aria-current="page"]{opacity:1;font-weight:600;background:color-mix(in srgb,currentColor 14%,transparent)}
+.bh-ctl{margin-left:auto;display:flex;align-items:center;gap:8px}
+.bh-ctl button{font:inherit;background:none;border:1px solid color-mix(in srgb,currentColor 35%,transparent);border-radius:3px;color:inherit;padding:3px 7px;cursor:pointer;min-width:0}
+.bh-seal{font:11.5px/1.5 ui-monospace,Consolas,monospace;opacity:.85;margin:0 auto;padding:4px 18px 7px;max-width:1400px;border-top:1px solid color-mix(in srgb,currentColor 14%,transparent)}
+.bh-seal b{font-weight:600}
+.bh-seal a{color:inherit}
+@media(max-width:740px){.bh-bar{padding:8px 14px;gap:8px}.bh-seal{padding:4px 14px 6px}}
+</style>
+<header class="bh" data-page="index" data-kolosek="lite" data-as-of="2026-10-22T18:53:02.136623Z">
   <div class="bh-bar">
     <a class="bh-brand" href="index.html" data-nav="index" aria-current="page">BEOPS <span>· Beograd</span></a>
     <nav class="bh-nav" aria-label="Glavna navigacija">
@@ -204,21 +207,22 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
       <div class="hlangs" id="lang" role="group" aria-label="Jezik / Language"><button type="button" data-l="sr" aria-pressed="true">SR</button><button type="button" data-l="en" aria-pressed="false">EN</button></div>
     </div>
   </div>
-  <p class="bh-seal">ova stranica: <b>Beograd danas</b> · izdanje <b>full</b> · presek <time datetime="2026-10-22T18:23:05.917560Z">22.10. u 18:23 UTC</time> · staro <b>15 min</b> · <a href="instrument.html">dokaz →</a></p>
+  <p class="bh-seal">ova stranica: <b>Beograd danas</b> · izdanje <b>lite</b> · presek <time datetime="2026-10-22T18:53:02.136623Z">22.10. u 18:53 UTC</time> · staro <b>15 min</b> · <a href="instrument.html">dokaz →</a></p>
 </header>
+
 
 
 <main class="wrap">
 
   <!-- BLOK 1: PULS SADA -->
   <section class="hero">
-    <div class="hero-tag">Puls Beograda · 18:23</div>
+    <div class="hero-tag">Puls Beograda · 18:53</div>
     <h1 class="hero-headline">Poslednji PM2.5 zapisi: prosek 8.0 µg/m³ iz 31 serije.</h1>
     <p style="max-width:680px;color:var(--ink55);font-size:14px;line-height:1.5">Po jedna poslednja vrednost po seriji u okviru tri sata pre preseka. Prosek ne opisuje svaku lokaciju u gradu.</p>
     <div class="hero-sub">
       <div><b>Vazduh:</b> Merenja u evidenciji (PM2.5: <a href="#pm25-dokazi" class="mono">8.0 µg/m³</a>)</div>
       <div><b>Stanica u mreži:</b> <span class="mono">32</span></div>
-      <div><b>Presek evidencije:</b> <span class="mono">22.10. u 18:23 UTC</span></div>
+      <div><b>Presek evidencije:</b> <span class="mono">22.10. u 18:53 UTC</span></div>
     </div>
   </section>
 
