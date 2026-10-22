@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BEOPS · Veze</title>
+<meta name="beops-edition" content="graf">
+<meta name="beops-as-of" content="2026-10-21T23:59:59Z">
+<style>
+body{margin:0;font:14px/1.5 system-ui,sans-serif}
+.l5-list{max-width:880px;margin:0 auto;padding:16px}
+.section-title{font-weight:700;margin:12px 0}
+.section-title span{display:block;font-weight:400;opacity:.7;font-size:12px}
+.l5-edge{display:grid;grid-template-columns:2ch 1fr auto auto;gap:8px;padding:8px 4px;border-bottom:1px solid rgba(128,128,128,.25);font-size:13px}
+.l5-edge .l5-seen,.l5-edge .l5-state{grid-column:2/-1;opacity:.75;font-size:12px}
+.mono{font-family:ui-monospace,Consolas,monospace}
+.l5-stable{border-left:3px solid currentColor;padding-left:8px}
+.l5-moving{border-left:3px dotted currentColor;padding-left:8px;opacity:.85}
+.l5-note{font-size:12px;opacity:.7;margin-top:16px}
+</style></head><body>
+<style class="bh-style">
+.bh{position:sticky;top:0;z-index:40;display:block;max-width:none;margin:0;padding:0;gap:0;justify-content:normal;justify-content:flex-start;text-align:start;border-bottom:1px solid color-mix(in srgb,currentColor 25%,transparent);background:color-mix(in srgb,Canvas 90%,transparent);backdrop-filter:blur(5px);font:12.5px/1.5 system-ui,"Segoe UI",Arial,sans-serif;color:CanvasText}
+.bh-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;max-width:1400px;margin:0 auto;padding:9px 18px}
+.bh-brand{font-weight:700;letter-spacing:.04em;text-decoration:none;color:inherit;white-space:nowrap}
+.bh-brand span{font-weight:400;opacity:.75}
+.bh-nav{display:flex;gap:2px;flex-wrap:wrap}
+.bh-nav a{color:inherit;text-decoration:none;padding:4px 8px;border-radius:3px;opacity:.8}
+.bh-nav a:hover{opacity:1;background:color-mix(in srgb,currentColor 10%,transparent)}
+.bh-nav a[aria-current="page"]{opacity:1;font-weight:600;background:color-mix(in srgb,currentColor 14%,transparent)}
+.bh-ctl{margin-left:auto;display:flex;align-items:center;gap:8px}
+.bh-ctl button{font:inherit;background:none;border:1px solid color-mix(in srgb,currentColor 35%,transparent);border-radius:3px;color:inherit;padding:3px 7px;cursor:pointer;min-width:0;min-height:0;line-height:1.5}
+.bh-ctl .hlangs{display:flex;gap:4px;flex:none}
+.bh-ctl .hlangs button[aria-pressed="true"]{background:color-mix(in srgb,currentColor 85%,transparent);color:Canvas;border-color:transparent}
+:where(html.embedded,body.embedded) .bh{display:none}
+.bh-seal{font:11.5px/1.5 ui-monospace,Consolas,monospace;opacity:.85;margin:0 auto;padding:4px 18px 7px;max-width:1400px;border-top:1px solid color-mix(in srgb,currentColor 14%,transparent)}
+.bh-seal b{font-weight:600}
+.bh-seal a{color:inherit}
+@media(max-width:740px){.bh-bar{padding:8px 14px;gap:8px}.bh-seal{padding:4px 14px 6px}}
+</style>
+<header class="bh" data-page="veze" data-kolosek="graf" data-as-of="2026-10-21T23:59:59Z">
+  <div class="bh-bar">
+    <a class="bh-brand" href="index.html" data-nav="index">BEOPS <span>· Beograd</span></a>
+    <nav class="bh-nav" aria-label="Glavna navigacija">
+      <a href="sada.html" data-nav="sada">Sada</a>
+      <a href="mapa.html" data-nav="mapa">Mapa</a>
+      <a href="impulsi.html" data-nav="impulsi">Impulsi</a>
+      <a href="instrument.html" data-nav="instrument">Instrument</a>
+      <a href="naslovi.html" data-nav="naslovi">Naslovi</a>
+      <a href="podaci.html" data-nav="podaci">Podaci</a>
+    </nav>
+    <div class="bh-ctl">
+      <button type="button" id="theme" class="themebtn" title="Svetlo / tamno · Light / dark" aria-label="Svetlo / tamno · Light / dark">◐</button>
+      <div class="hlangs" id="lang" role="group" aria-label="Jezik / Language"><button type="button" data-l="sr" aria-pressed="true">SR</button><button type="button" data-l="en" aria-pressed="false">EN</button></div>
+    </div>
+  </div>
+  <p class="bh-seal">ova stranica: <b>Veze</b> · izdanje <b>graf</b> · presek <time datetime="2026-10-21T23:59:59Z">21.10. u 23:59 UTC</time> · staro <b>23 h</b> · <a href="instrument.html">dokaz →</a></p>
+  <script class="bh-js">
+  /* Jedan jezički prekidač za sve stranice. Stranice sa svojim rukovaocem (instrument
+     vezuje dugmad po data-l; monolog/podaci/traka vezuju #lang i obrću LANG) ostaju
+     merodavne: ovo samo (1) ne pusti klik na već izabran jezik, da obrtanje ne odvede
+     u suprotan jezik, (2) postavi lang-sr/lang-en na <body> i lang na <html> za
+     stranice bez rukovaoca, (3) drži aria-pressed u skladu sa stvarnim stanjem.
+     Stranica bez JS i dalje stoji; bez ovoga su SR/EN dugmad bila mrtva na studijama. */
+  (function(){
+    /* U okviru: stranica koja nosi okvir već ima svoj header, pa se ovaj skriva.
+       Studije koje same postavljaju 'embedded' rade isto; ovo pokriva i one koje ne. */
+    try{ if(window.self!==window.top||location.search.indexOf('embed')>=0) document.documentElement.classList.add('embedded'); }
+    catch(e){ document.documentElement.classList.add('embedded'); }
+    var box=document.currentScript.parentNode.querySelector('#lang'); if(!box) return;
+    var btns=[].slice.call(box.querySelectorAll('button[data-l]'));
+    function cur(){
+      var c=(document.body&&document.body.className||'').match(/lang-(sr|en)\b/);
+      if(c) return c[1];
+      return (document.documentElement.getAttribute('lang')||'sr').toLowerCase().indexOf('en')===0?'en':'sr';
+    }
+    function mark(){ var l=cur(); btns.forEach(function(b){ b.setAttribute('aria-pressed',String(b.getAttribute('data-l')===l)); }); }
+    function hit(e){ return e.target&&e.target.closest?e.target.closest('button[data-l]'):null; }
+    box.addEventListener('click',function(e){
+      var b=hit(e); if(b&&b.getAttribute('data-l')===cur()){ e.stopPropagation(); e.stopImmediatePropagation(); }
+    },true);
+    box.addEventListener('click',function(e){
+      var b=hit(e); if(!b) return;
+      var l=b.getAttribute('data-l');
+      document.documentElement.setAttribute('lang',l==='en'?'en':'sr-Latn');
+      if(document.body){ document.body.classList.remove('lang-sr','lang-en'); document.body.classList.add('lang-'+l); }
+      mark();
+    });
+    if(window.MutationObserver){
+      var o=new MutationObserver(mark);
+      o.observe(document.documentElement,{attributes:true,attributeFilter:['lang','class']});
+      if(document.body) o.observe(document.body,{attributes:true,attributeFilter:['class']});
+    }
+    mark();
+  })();
+  </script>
+</header>
+
+<section class="l5-list">
+<div class="section-title">Šta se javlja zajedno<span>deset najstabilnijih veza; težina raste ponavljanjem i pada zaboravljanjem — sve ispod je procena modela, ne merenje</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">1</span><span class="l5-nodes mono">izvor:S146 ⟷ mesto:88562</span><span class="l5-weight mono">w=24.06</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 42 dana, poslednji 2026-10-21</span><span class="l5-state">stabilna od 2026-10-09.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">2</span><span class="l5-nodes mono">izvor:S10 ⟷ mesto:garaža &quot;baba višnjina&quot;</span><span class="l5-weight mono">w=24.06</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 42 dana, poslednji 2026-10-21</span><span class="l5-state">stabilna od 2026-10-09.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">3</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:98610</span><span class="l5-weight mono">w=24.06</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 42 dana, poslednji 2026-10-21</span><span class="l5-state">stabilna od 2026-10-09.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">4</span><span class="l5-nodes mono">izvor:S10 ⟷ mesto:68867</span><span class="l5-weight mono">w=24.06</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 42 dana, poslednji 2026-10-21</span><span class="l5-state">stabilna od 2026-10-09.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">5</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:beograd na vodi</span><span class="l5-weight mono">w=24.06</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 42 dana, poslednji 2026-10-21</span><span class="l5-state">stabilna od 2026-10-09.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">6</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:66176</span><span class="l5-weight mono">w=24.06</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 42 dana, poslednji 2026-10-21</span><span class="l5-state">stabilna od 2026-10-09.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">7</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:obrenovac centar</span><span class="l5-weight mono">w=24.06</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 42 dana, poslednji 2026-10-21</span><span class="l5-state">stabilna od 2026-10-09.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">8</span><span class="l5-nodes mono">izvor:S146 ⟷ mesto:danijelova</span><span class="l5-weight mono">w=24.06</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 42 dana, poslednji 2026-10-21</span><span class="l5-state">stabilna od 2026-10-09.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">9</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:100727</span><span class="l5-weight mono">w=24.06</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 42 dana, poslednji 2026-10-21</span><span class="l5-state">stabilna od 2026-10-09.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">10</span><span class="l5-nodes mono">izvor:S146 ⟷ mesto:98611</span><span class="l5-weight mono">w=24.06</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 42 dana, poslednji 2026-10-21</span><span class="l5-state">stabilna od 2026-10-09.</span></div>
+<p class="l5-note">Model l5-stabilization v1: decay=0.97, smirivanje = najveća promena težine kroz 14 zatvorenih dana; obradom 14 dana grana prestaje da se pomerava. Obradjeno dana: 42. Registar modela: instrument.html.</p>
+</section>
+</body></html>
