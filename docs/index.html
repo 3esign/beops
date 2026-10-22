@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="sr">
 <head>
-<meta name="beops-edition" content="lite">
-<meta name="beops-as-of" content="2026-10-22T17:53:04.191048Z">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Beograd danas — BEOPS</title>
+<meta name="beops-edition" content="full">
+<meta name="beops-as-of" content="2026-10-22T18:23:05.917560Z">
 <meta name="description" content="Puls Beograda za građane: vazduh, mikroklima, dešavanja, radovi i sačuvani naslovi sa procenom lokacije i poreklom podataka.">
 <style>
 :root {
@@ -159,30 +159,66 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
 </style>
 </head>
 <body>
-<div class="beops-lite-notice" data-beops-edition="lite" style="padding:12px 20px;border-bottom:1px solid #888">Lite edition: observation snapshot 2026-10-22T17:53:04.191048Z. Each input retains its own date; event notices may be older. The 7-day history window is refreshed daily; other historical and analysis pages are not refreshed by this edition. <a href="lite-edition.json">Coverage, input dates and proof</a>.</div>
+<div class="beops-lite-notice" data-beops-edition="lite" style="padding:12px 20px;border-bottom:1px solid #888">Lite edition: observation snapshot 2026-10-22T18:23:05.917560Z. Each input retains its own date; event notices may be older. The 7-day history window is refreshed daily; other historical and analysis pages are not refreshed by this edition. <a href="lite-edition.json">Coverage, input dates and proof</a>.</div>
 
-<header>
-  <div class="hbar">
-    <div class="brand">BEOPS <span>Beograd danas</span></div>
-    <nav aria-label="Glavna navigacija" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-      <a href="mapa.html" class="nav-link">Mapa →</a>
-      <a href="impulsi.html" class="nav-link">Impulsi i resursi →</a>
-      <a href="instrument.html" class="nav-link">Naučni instrument →</a>
+<!-- Jedinstveni javni header BEOPS. Jedini izvor: ovaj fajl.
+     Renderuju ga tools/render_header.py (Python graditelji) i tools/render_header.js
+     (Node graditelji/izdavači), u vreme gradnje — nikad skriptom u pregledaču,
+     da stranica stoji i bez JS. Tokeni: index Beograd danas full
+     2026-10-22T18:23:05.917560Z 22.10. u 18:23 UTC 15 min instrument.html.
+     Pravila ugovora (research/BEOPS_2_0_PRESEK_2026-10-22.md, tačka 3):
+     marka uvek BEOPS · Beograd, nikad BEOPS / SVEMIR na javnoj strani;
+     ista navigacija istim redom, aria-current na tekućoj stranici;
+     pečat svežine po stranici (kolosek + presek + starost + dokaz);
+     autorstvo samo u podnožju. Dugmad #theme i #lang vezuju jezične i tematske
+     skripte stranice koje ih imaju; na ostalima stoje pripremljena. -->
+<style class="bh-style">
+.bh{position:sticky;top:0;z-index:40;display:block;max-width:none;margin:0;padding:0;gap:0;justify-content:normal;justify-content:flex-start;text-align:start;border-bottom:1px solid color-mix(in srgb,currentColor 25%,transparent);background:color-mix(in srgb,Canvas 90%,transparent);backdrop-filter:blur(5px);font:12.5px/1.5 system-ui,"Segoe UI",Arial,sans-serif;color:CanvasText}
+.bh-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;max-width:1400px;margin:0 auto;padding:9px 18px}
+.bh-brand{font-weight:700;letter-spacing:.04em;text-decoration:none;color:inherit;white-space:nowrap}
+.bh-brand span{font-weight:400;opacity:.75}
+.bh-nav{display:flex;gap:2px;flex-wrap:wrap}
+.bh-nav a{color:inherit;text-decoration:none;padding:4px 8px;border-radius:3px;opacity:.8}
+.bh-nav a:hover{opacity:1;background:color-mix(in srgb,currentColor 10%,transparent)}
+.bh-nav a[aria-current="page"]{opacity:1;font-weight:600;background:color-mix(in srgb,currentColor 14%,transparent)}
+.bh-ctl{margin-left:auto;display:flex;align-items:center;gap:8px}
+.bh-ctl button{font:inherit;background:none;border:1px solid color-mix(in srgb,currentColor 35%,transparent);border-radius:3px;color:inherit;padding:3px 7px;cursor:pointer;min-width:0}
+.bh-seal{font:11.5px/1.5 ui-monospace,Consolas,monospace;opacity:.85;margin:0 auto;padding:4px 18px 7px;max-width:1400px;border-top:1px solid color-mix(in srgb,currentColor 14%,transparent)}
+.bh-seal b{font-weight:600}
+.bh-seal a{color:inherit}
+@media(max-width:740px){.bh-bar{padding:8px 14px;gap:8px}.bh-seal{padding:4px 14px 6px}}
+</style>
+<header class="bh" data-page="index" data-kolosek="full" data-as-of="2026-10-22T18:23:05.917560Z">
+  <div class="bh-bar">
+    <a class="bh-brand" href="index.html" data-nav="index" aria-current="page">BEOPS <span>· Beograd</span></a>
+    <nav class="bh-nav" aria-label="Glavna navigacija">
+      <a href="sada.html" data-nav="sada">Sada</a>
+      <a href="mapa.html" data-nav="mapa">Mapa</a>
+      <a href="impulsi.html" data-nav="impulsi">Impulsi</a>
+      <a href="instrument.html" data-nav="instrument">Instrument</a>
+      <a href="naslovi.html" data-nav="naslovi">Naslovi</a>
+      <a href="podaci.html" data-nav="podaci">Podaci</a>
     </nav>
+    <div class="bh-ctl">
+      <button type="button" id="theme" class="themebtn" title="Svetlo / tamno · Light / dark" aria-label="Svetlo / tamno · Light / dark">◐</button>
+      <div class="hlangs" id="lang" role="group" aria-label="Jezik / Language"><button type="button" data-l="sr" aria-pressed="true">SR</button><button type="button" data-l="en" aria-pressed="false">EN</button></div>
+    </div>
   </div>
+  <p class="bh-seal">ova stranica: <b>Beograd danas</b> · izdanje <b>full</b> · presek <time datetime="2026-10-22T18:23:05.917560Z">22.10. u 18:23 UTC</time> · staro <b>15 min</b> · <a href="instrument.html">dokaz →</a></p>
 </header>
+
 
 <main class="wrap">
 
   <!-- BLOK 1: PULS SADA -->
   <section class="hero">
-    <div class="hero-tag">Puls Beograda · 17:53</div>
-    <h1 class="hero-headline">Poslednji PM2.5 zapisi: prosek 6.4 µg/m³ iz 31 serije.</h1>
+    <div class="hero-tag">Puls Beograda · 18:23</div>
+    <h1 class="hero-headline">Poslednji PM2.5 zapisi: prosek 8.0 µg/m³ iz 31 serije.</h1>
     <p style="max-width:680px;color:var(--ink55);font-size:14px;line-height:1.5">Po jedna poslednja vrednost po seriji u okviru tri sata pre preseka. Prosek ne opisuje svaku lokaciju u gradu.</p>
     <div class="hero-sub">
-      <div><b>Vazduh:</b> Merenja u evidenciji (PM2.5: <a href="#pm25-dokazi" class="mono">6.4 µg/m³</a>)</div>
+      <div><b>Vazduh:</b> Merenja u evidenciji (PM2.5: <a href="#pm25-dokazi" class="mono">8.0 µg/m³</a>)</div>
       <div><b>Stanica u mreži:</b> <span class="mono">32</span></div>
-      <div><b>Presek evidencije:</b> <span class="mono">22.10. u 17:53 UTC</span></div>
+      <div><b>Presek evidencije:</b> <span class="mono">22.10. u 18:23 UTC</span></div>
     </div>
   </section>
 
@@ -336,99 +372,99 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
 <h3>PM2.5 · vrednosti upotrebljene za prosek</h3>
 <p class="event-src">Po jedna poslednja vremenski određena vrednost po izvoru i stanici, u prozoru od tri sata pre preseka. Aritmetički prosek ovih vrednosti nije prostorni prosek grada. <a href="live-snapshot.json">Sačuvana merenja i poreklo →</a></p>
 <ol>
-<li><b>Ada Ciganlija: 3.6221666666667 µg/m³</b>
+<li><b>Ada Ciganlija: 5.5923333333333 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 92|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Ada petlja: 6.4705 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Ada petlja: 8.1465 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 84|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Banovo brdo: 5.814 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Banovo brdo: 12.301 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 83|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Beograd na vodi: 3.9018333333333 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Beograd na vodi: 3.0743333333333 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 97|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Bežanijska kosa: 3.7333333333333 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Bežanijska kosa: 6.4515 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 82|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Borča: 5.5981666666667 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Borča: 7.3993333333333 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 87|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Bulevar despota Stefana: 5.3122033898305 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Bulevar despota Stefana: 5.6096666666667 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 50|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Danijelova: 5.9115 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Danijelova: 4.6395 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 98|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Dragiša Mišović: 3.902 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Dragiša Mišović: 5.3111666666667 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 61|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Franše d’Epere: 3.8016666666667 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Franše d’Epere: 3.6395 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 88|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Jajinci: 8.8446666666667 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Jajinci: 10.828666666667 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 64|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Krnjača: 6.3815 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Krnjača: 12.857333333333 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 48|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Leštane: 8.7163333333333 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Leštane: 9.0203333333333 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 89|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Mirijevo: 7.7155 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Mirijevo: 15.065666666667 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 96|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Mostar: 5.3886666666667 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Mostar: 6.1945 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 10|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Novi Beograd: 4.5016666666667 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Novi Beograd: 6.903 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 9|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Obrenovac Centar: 7.5955 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Obrenovac Centar: 8.6053333333333 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 16|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Omladinskih brigada: 6.795 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Omladinskih brigada: 8.3391666666667 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 51|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Pančevo Sodara: 2.6305 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Pančevo Sodara: 2.809 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 6|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Pančevo Vatrogasni dom: 2.2553333333333 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Pančevo Vatrogasni dom: 2.6726666666667 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 57|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Rakovica: 25.031034482759 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Rakovica: 33.9175 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 95|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Stari grad: 4.3373333333333 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Stari grad: 4.2958333333333 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 7|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Stojčino brdo: 10.0485 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Stojčino brdo: 7.3935 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 90|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Surčin: 8.3361666666667 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Surčin: 9.4368333333333 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 85|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Topčiderska zvezda: 3.1783333333333 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Topčiderska zvezda: 4.0076666666667 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 80|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Vinča: 9.2951666666667 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Vinča: 6.4018333333333 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 60|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Vračar: 9.2113793103448 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Vračar: 8.9535 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 11|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Vračar Dom zdravlja: 3.2216666666667 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Vračar Dom zdravlja: 3.1065 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 81|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Zeleno brdo: 8.7213333333333 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Zeleno brdo: 8.6060714285714 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 12|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Zemun TB: 4.9036666666667 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Zemun TB: 5.6796666666667 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 49|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
-<li><b>Zemun Ugrinovačka: 4.3718333333333 µg/m³</b>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
+<li><b>Zemun Ugrinovačka: 9.8601666666667 µg/m³</b>
               <span class="evidence-meta">Izvor: S146 · SEPA air quality HVD API - hourly preliminary means · Serija: 86|PM2.5</span>
-              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T16:00:00Z · Izvorno vreme: 2026-10-22T18:00:00Z · Prijem: 2026-10-22T17:03:01.743740Z · Oznaka izvora: source-preliminary</span></li>
+              <span class="evidence-meta">Korigovano vreme merenja: 2026-10-22T17:00:00Z · Izvorno vreme: 2026-10-22T19:00:00Z · Prijem: 2026-10-22T18:03:01.533103Z · Oznaka izvora: source-preliminary</span></li>
 </ol>
 </section>
 <section class="claim-evidence" id="saobracaj-dokazi">
