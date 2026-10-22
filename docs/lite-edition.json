@@ -1,44 +1,44 @@
 {
   "schema": "beops-lite-edition/v1",
   "edition": "lite",
-  "generated_at": "2026-10-22T08:10:55.539Z",
-  "as_of": "2026-10-22T07:53:06.217032Z",
+  "generated_at": "2026-10-22T08:27:39.472Z",
+  "as_of": "2026-10-22T08:13:06.245493Z",
   "source": {
     "head": "140a144d73fa52a11ae63dab52bc29a7154370ff",
     "tracked_worktree_dirty": true,
     "identity": "working-tree-projection",
     "code_sha256": {
-      "publish_lite.js": "1e634192b39c483e7757a79fdb80054ffcdc605b7513a7401a15e5e6ba992f2d",
-      "verify_lite_site.js": "c9f78aa8f6c9b188b26d859609a607e38a442b16bb75b01b465b6fe6c6fe4069",
+      "publish_lite.js": "e2fb28c59e7eaf82a2f75ea7adbba157d148a4bd9060a9b5af1ac1d886a227f4",
+      "verify_lite_site.js": "1a7388bd6e0deaa0041888f8638fc443f88697a9f7545a56b047f4669a34328a",
       "publish_streams.js": "63c93c5902dc05e8e0b417ad0d4b69bf539749a09cc356b2ff0b003bcba69deb",
       "verify_streams_site.js": "8548b7136a7470f8d9928961bf5e59a81de5831929d3610ced2f6d37d0c72d97",
       "ai_feed.js": "7451030cfe0a95624a0c6aa6a3c50696654d02e6c43ccfc90f9b7986d87f0256",
       "build_public_page.py": "fe088e274efdcc31e561de4b1391334ea392edb3bb13b4675a9c38afeb3a779c"
     }
   },
-  "projection_sha256": "af60e576e533748cd5172661e27e713e1a36388e9e629614667a9aaabe5e2ea4",
+  "projection_sha256": "d17b6b8b228e6ca95b7338573e53048faa6b8f2563063c3ccfefb6dc88e7d5b8",
   "input_contract": "public-projection-files-only/v1",
   "inputs": {
     "live-snapshot.json": {
-      "bytes": 8264741,
-      "sha256": "54235bd0923b4ce7aaca1b12e16e519a591d5470155f0a301f893463f3059e8a",
-      "as_of": "2026-10-22T07:53:06.217032Z"
+      "bytes": 8519107,
+      "sha256": "d746eb5ad9c336df4790426a205ba6122ed6f58ed258348873c8d2f7417d05ba",
+      "as_of": "2026-10-22T08:13:06.245493Z"
     },
     "watch.json": {
-      "bytes": 11096,
-      "sha256": "aa69c43c4ddfb97e05906246fd78f1461439265f0798a25aea6dd8d02ac81a22",
+      "bytes": 10915,
+      "sha256": "698e05e95e20d779d2aef5844b4ba5303bd226189a01bd92917229570316f873",
       "as_of": null
     },
     "events.json": {
-      "bytes": 68513,
-      "sha256": "5f3566a3a8c1e90fc519c16374b75a20db849a3775ee3bee8d4651f52e5f2414",
-      "as_of": "2026-10-22T08:10:40.267339+00:00"
+      "bytes": 68581,
+      "sha256": "b94237fc1d4777b8c330f889e9db62a6c1d5fb4d072a1b5e4b5d0fd94fa28e79",
+      "as_of": "2026-10-22T08:23:04.883370+00:00"
     }
   },
   "coverage": {
     "window_hours": 24,
     "source_count": 34,
-    "status_as_of": "2026-10-22T07:53:06.217032Z"
+    "status_as_of": "2026-10-22T08:13:06.245493Z"
   },
   "current_routes": [
     "index.html",
@@ -46,12 +46,17 @@
   ],
   "supporting_routes": [
     "watch.json",
-    "events.json"
+    "events.json",
+    "history-7d.json"
   ],
-  "historical_state": "unchanged_by_lite_publication",
+  "history_window": {
+    "route": "history-7d.json",
+    "built": "2026-10-22T08:17:28Z"
+  },
+  "historical_state": "seven_day_window_refreshed_daily; full history unchanged by this edition",
   "limitations": [
     "This edition does not re-scan private evidence, raw captures, receipts, rows, or historical derived files.",
-    "Historical and analysis pages are not refreshed by this edition; their verification and dates are independent.",
+    "Only the 7-day history window is rebuilt daily; full-history and analysis pages keep their own verification and dates.",
     "Supporting files keep their own dates, which may be older than the observation snapshot.",
     "Freshness applies to the observation snapshot only; missing is not zero and received is not measured."
   ]
