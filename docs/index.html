@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Beograd danas — BEOPS</title>
 <meta name="beops-edition" content="lite">
-<meta name="beops-as-of" content="2026-10-23T12:38:03.491739Z">
+<meta name="beops-as-of" content="2026-10-23T12:53:02.952339Z">
 <meta name="description" content="Puls Beograda za građane: vazduh, mikroklima, dešavanja, radovi i sačuvani naslovi sa procenom lokacije i poreklom podataka.">
 <style>
 :root {
@@ -173,64 +173,96 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
 </style>
 </head>
 <body>
-<div class="beops-lite-notice" data-beops-edition="lite" style="padding:12px 20px;border-bottom:1px solid #888">Lite edition: observation snapshot 2026-10-23T12:38:03.491739Z. Each input retains its own date; event notices may be older. The 7-day history window is refreshed daily; other historical and analysis pages are not refreshed by this edition. <a href="lite-edition.json">Coverage, input dates and proof</a>.</div>
+<div class="beops-lite-notice" data-beops-edition="lite" style="padding:12px 20px;border-bottom:1px solid #888">Lite edition: observation snapshot 2026-10-23T12:53:02.952339Z. Each input retains its own date; event notices may be older. The 7-day history window is refreshed daily; other historical and analysis pages are not refreshed by this edition. <a href="lite-edition.json">Coverage, input dates and proof</a>.</div>
 
 <style class="bh-style">
-.bh{position:sticky;top:0;z-index:40;display:block;max-width:none;margin:0;padding:0;gap:0;justify-content:normal;justify-content:flex-start;text-align:start;border-bottom:1px solid color-mix(in srgb,currentColor 25%,transparent);background:color-mix(in srgb,Canvas 90%,transparent);backdrop-filter:blur(5px);font:12.5px/1.5 system-ui,"Segoe UI",Arial,sans-serif;color:CanvasText}
-.bh-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;max-width:1400px;margin:0 auto;padding:9px 18px}
-.bh-brand{font-weight:700;letter-spacing:.04em;text-decoration:none;color:inherit;white-space:nowrap}
+.bh{position:sticky;top:0;z-index:40;display:block;max-width:none;margin:0;padding:0;gap:0;justify-content:normal;justify-content:flex-start;text-align:start;border-bottom:1px solid color-mix(in srgb,currentColor 22%,transparent);background:color-mix(in srgb,Canvas 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font:12.5px/1.5 system-ui,"Segoe UI",Arial,sans-serif;color:CanvasText}
+.bh-bar{display:flex;align-items:center;gap:12px;max-width:1400px;margin:0 auto;padding:8px 18px}
+.bh-brand{font-weight:700;letter-spacing:.04em;text-decoration:none;color:inherit;white-space:nowrap;flex:none}
 .bh-brand span{font-weight:400;opacity:.75}
-.bh-nav{display:flex;gap:2px;flex-wrap:wrap}
-.bh-nav a{color:inherit;text-decoration:none;padding:4px 8px;border-radius:3px;opacity:.8}
+.bh-nav{display:flex;gap:3px;align-items:center;flex-wrap:nowrap}
+.bh-nav a{color:inherit;text-decoration:none;padding:4px 9px;border-radius:3px;opacity:.8;white-space:nowrap;font-size:12.5px}
 .bh-nav a:hover{opacity:1;background:color-mix(in srgb,currentColor 10%,transparent)}
 .bh-nav a[aria-current="page"]{opacity:1;font-weight:600;background:color-mix(in srgb,currentColor 14%,transparent)}
-.bh-ctl{margin-left:auto;display:flex;align-items:center;gap:8px}
+.bh-ctl{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
 .bh-ctl button{font:inherit;background:none;border:1px solid color-mix(in srgb,currentColor 35%,transparent);border-radius:3px;color:inherit;padding:3px 7px;cursor:pointer;min-width:0;min-height:0;line-height:1.5}
 .bh-ctl .hlangs{display:flex;gap:4px;flex:none}
 .bh-ctl .hlangs button[aria-pressed="true"]{background:color-mix(in srgb,currentColor 85%,transparent);color:Canvas;border-color:transparent}
 :where(html.embedded,body.embedded) .bh{display:none}
-.bh-seal{font:11.5px/1.5 ui-monospace,Consolas,monospace;opacity:.85;margin:0 auto;padding:4px 18px 7px;max-width:1400px;border-top:1px solid color-mix(in srgb,currentColor 14%,transparent)}
+.bh-seal{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 12px;font:11.5px/1.5 ui-monospace,Consolas,monospace;opacity:.85;margin:0 auto;padding:3px 18px 5px;max-width:1400px;border-top:1px solid color-mix(in srgb,currentColor 12%,transparent)}
 .bh-seal b{font-weight:600}
 .bh-seal a{color:inherit}
-@media(max-width:740px){.bh-bar{padding:8px 14px;gap:8px}.bh-seal{padding:4px 14px 6px}}
+.bh-seal-main{white-space:nowrap}
+.bh-seal-meta{opacity:.75;font-size:11px;white-space:nowrap}
+.bh-en{display:none}
+:is(html[lang^="en"],body.lang-en) .bh-sr{display:none}
+:is(html[lang^="en"],body.lang-en) .bh-en{display:inline}
+@media(max-width:740px){
+  .bh-bar{padding:6px 12px;gap:8px}
+  .bh-seal{padding:3px 12px 4px;font-size:11px}
+  .bh-nav a{padding:3px 7px}
+}
+@media(max-width:480px){
+  .bh-brand span{display:none}
+  .bh-bar{gap:6px;padding:6px 8px}
+  .bh-nav{gap:2px}
+  .bh-nav a{padding:3px 5px;font-size:12px}
+  .bh-ctl{gap:4px}
+  .bh-seal{flex-direction:column;align-items:flex-start;gap:2px;padding:2px 8px 3px}
+  .bh-seal-main,.bh-seal-meta{white-space:normal}
+}
 </style>
 <style class="bh-style">
-.bh{position:sticky;top:0;z-index:40;display:block;max-width:none;margin:0;padding:0;gap:0;justify-content:normal;justify-content:flex-start;text-align:start;border-bottom:1px solid color-mix(in srgb,currentColor 25%,transparent);background:color-mix(in srgb,Canvas 90%,transparent);backdrop-filter:blur(5px);font:12.5px/1.5 system-ui,"Segoe UI",Arial,sans-serif;color:CanvasText}
-.bh-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;max-width:1400px;margin:0 auto;padding:9px 18px}
-.bh-brand{font-weight:700;letter-spacing:.04em;text-decoration:none;color:inherit;white-space:nowrap}
+.bh{position:sticky;top:0;z-index:40;display:block;max-width:none;margin:0;padding:0;gap:0;justify-content:normal;justify-content:flex-start;text-align:start;border-bottom:1px solid color-mix(in srgb,currentColor 22%,transparent);background:color-mix(in srgb,Canvas 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font:12.5px/1.5 system-ui,"Segoe UI",Arial,sans-serif;color:CanvasText}
+.bh-bar{display:flex;align-items:center;gap:12px;max-width:1400px;margin:0 auto;padding:8px 18px}
+.bh-brand{font-weight:700;letter-spacing:.04em;text-decoration:none;color:inherit;white-space:nowrap;flex:none}
 .bh-brand span{font-weight:400;opacity:.75}
-.bh-nav{display:flex;gap:2px;flex-wrap:wrap}
-.bh-nav a{color:inherit;text-decoration:none;padding:4px 8px;border-radius:3px;opacity:.8}
+.bh-nav{display:flex;gap:3px;align-items:center;flex-wrap:nowrap}
+.bh-nav a{color:inherit;text-decoration:none;padding:4px 9px;border-radius:3px;opacity:.8;white-space:nowrap;font-size:12.5px}
 .bh-nav a:hover{opacity:1;background:color-mix(in srgb,currentColor 10%,transparent)}
 .bh-nav a[aria-current="page"]{opacity:1;font-weight:600;background:color-mix(in srgb,currentColor 14%,transparent)}
-.bh-ctl{margin-left:auto;display:flex;align-items:center;gap:8px}
+.bh-ctl{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
 .bh-ctl button{font:inherit;background:none;border:1px solid color-mix(in srgb,currentColor 35%,transparent);border-radius:3px;color:inherit;padding:3px 7px;cursor:pointer;min-width:0;min-height:0;line-height:1.5}
 .bh-ctl .hlangs{display:flex;gap:4px;flex:none}
 .bh-ctl .hlangs button[aria-pressed="true"]{background:color-mix(in srgb,currentColor 85%,transparent);color:Canvas;border-color:transparent}
 :where(html.embedded,body.embedded) .bh{display:none}
-.bh-seal{font:11.5px/1.5 ui-monospace,Consolas,monospace;opacity:.85;margin:0 auto;padding:4px 18px 7px;max-width:1400px;border-top:1px solid color-mix(in srgb,currentColor 14%,transparent)}
+.bh-seal{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 12px;font:11.5px/1.5 ui-monospace,Consolas,monospace;opacity:.85;margin:0 auto;padding:3px 18px 5px;max-width:1400px;border-top:1px solid color-mix(in srgb,currentColor 12%,transparent)}
 .bh-seal b{font-weight:600}
 .bh-seal a{color:inherit}
-@media(max-width:740px){.bh-bar{padding:8px 14px;gap:8px}.bh-seal{padding:4px 14px 6px}}
+.bh-seal-main{white-space:nowrap}
+.bh-seal-meta{opacity:.75;font-size:11px;white-space:nowrap}
+.bh-en{display:none}
+:is(html[lang^="en"],body.lang-en) .bh-sr{display:none}
+:is(html[lang^="en"],body.lang-en) .bh-en{display:inline}
+@media(max-width:740px){
+  .bh-bar{padding:6px 12px;gap:8px}
+  .bh-seal{padding:3px 12px 4px;font-size:11px}
+  .bh-nav a{padding:3px 7px}
+}
+@media(max-width:480px){
+  .bh-brand span{display:none}
+  .bh-bar{gap:6px;padding:6px 8px}
+  .bh-nav{gap:2px}
+  .bh-nav a{padding:3px 5px;font-size:12px}
+  .bh-ctl{gap:4px}
+  .bh-seal{flex-direction:column;align-items:flex-start;gap:2px;padding:2px 8px 3px}
+  .bh-seal-main,.bh-seal-meta{white-space:normal}
+}
 </style>
-<header class="bh" data-page="index" data-kolosek="lite" data-as-of="2026-10-23T12:38:03.491739Z">
+<header class="bh" data-page="index" data-kolosek="lite" data-as-of="2026-10-23T12:53:02.952339Z">
   <div class="bh-bar">
-    <a class="bh-brand" href="index.html" data-nav="index" aria-current="page">BEOPS <span>· Beograd</span></a>
+    <a class="bh-brand" href="index.html">BEOPS <span>· Beograd</span></a>
     <nav class="bh-nav" aria-label="Glavna navigacija">
-      <a href="sada.html" data-nav="sada">Sada</a>
-      <a href="mapa.html" data-nav="mapa">Mapa</a>
-      <a href="impulsi.html" data-nav="impulsi">Impulsi</a>
-      <a href="instrument.html" data-nav="instrument">Instrument</a>
-      <a href="naslovi.html" data-nav="naslovi">Naslovi</a>
-      <a href="podaci.html" data-nav="podaci">Podaci</a>
-      <a href="veze.html" data-nav="veze">Veze</a>
+      <a href="index.html" data-nav="tok" aria-current="page"><span class="bh-sr">Tok</span><span class="bh-en">Flow</span></a>
+      <a href="mapa.html" data-nav="mapa"><span class="bh-sr">Mapa</span><span class="bh-en">Map</span></a>
+      <a href="instrument.html" data-nav="o-projektu"><span class="bh-sr">O projektu</span><span class="bh-en">About</span></a>
     </nav>
     <div class="bh-ctl">
       <button type="button" id="theme" class="themebtn" title="Svetlo / tamno · Light / dark" aria-label="Svetlo / tamno · Light / dark">◐</button>
       <div class="hlangs" id="lang" role="group" aria-label="Jezik / Language"><button type="button" data-l="sr" aria-pressed="true">SR</button><button type="button" data-l="en" aria-pressed="false">EN</button></div>
     </div>
   </div>
-  <p class="bh-seal">ova stranica: <b>Beograd danas</b> · izdanje <b>lite</b> · presek <time datetime="2026-10-23T12:38:03.491739Z">23.10. u 12:38 UTC</time> · staro <b>1 min</b> · <a href="instrument.html">dokaz →</a></p>
+  <p class="bh-seal"><span class="bh-seal-main">ova stranica: <b>Beograd danas</b> · presek <time datetime="2026-10-23T12:53:02.952339Z">23.10. u 12:53 UTC</time> · staro <b>15 min</b></span> <span class="bh-seal-meta">· izdanje <b>lite</b> · <a href="instrument.html">dokaz →</a></span></p>
   <script class="bh-js">
   /* Jedan jezički prekidač za sve stranice. Stranice sa svojim rukovaocem (instrument
      vezuje dugmad po data-l; monolog/podaci/traka vezuju #lang i obrću LANG) ostaju
@@ -278,138 +310,247 @@ footer { padding: calc(var(--u)*6) 0 calc(var(--u)*10); border-top: 1px solid va
 
   <!-- BLOK 1: PULS SADA -->
   <section class="hero">
-    <div class="hero-tag">Puls Beograda · 12:38</div>
+    <div class="hero-tag">Puls Beograda · 12:53</div>
     <h1 class="hero-headline">Poslednji PM2.5 zapisi: prosek 6.7 µg/m³ iz 31 serije.</h1>
     <p style="max-width:680px;color:var(--ink55);font-size:14px;line-height:1.5">Po jedna poslednja vrednost po seriji u okviru tri sata pre preseka. Prosek ne opisuje svaku lokaciju u gradu.</p>
     <div class="hero-sub">
       <div><b>Vazduh:</b> Merenja u evidenciji (PM2.5: <a href="#pm25-dokazi" class="mono">6.7 µg/m³</a>)</div>
       <div><b>Stanica u mreži:</b> <span class="mono">32</span></div>
-      <div><b>Presek evidencije:</b> <span class="mono">23.10. u 12:38 UTC</span></div>
+      <div><b>Presek evidencije:</b> <span class="mono">23.10. u 12:53 UTC</span></div>
     </div>
   </section>
 
   <!-- BLOK 1b: REGISTAR POSTOVA -->
   <section id="post-feed" class="post-feed">
-<div class="section-title">Registar postova<span>poređano po tome kad je šta stiglo; zastarelo ne nestaje, pada niže</span></div>
-<div class="post-strip" role="group" aria-label="Vrste posta">
-<button class="post-strip-btn" data-post-filter="merenje" aria-pressed="false">merenje <span class="post-strip-n">3</span></button>
-<button class="post-strip-btn" data-post-filter="naslov" aria-pressed="false">naslov <span class="post-strip-n">2</span></button>
-<button class="post-strip-btn" data-post-filter="termin" aria-pressed="false">termin <span class="post-strip-n">1</span></button>
-<button class="post-strip-btn" data-post-filter="obrazac" aria-pressed="false">obrazac <span class="post-strip-n">1</span></button>
-<button class="post-strip-btn" data-post-filter="veza" aria-pressed="false">veza <span class="post-strip-n">1</span></button>
-<button class="post-strip-btn" data-post-filter="misao" aria-pressed="false">misao <span class="post-strip-n">2</span></button>
-<button class="post-strip-btn" data-post-filter="dokaz" aria-pressed="false">dokaz <span class="post-strip-n">3</span></button>
-<button class="post-strip-btn" data-post-filter="all" aria-pressed="true">svi <span class="post-strip-n">13</span></button>
-</div><div class="post-list">
-<div class="post-item" data-post-type="veza" data-post-state="estimated">
+  <div class="section-title">
+    Tok promena i registar prikaza
+    <span>tri unutrašnja sloja: zapis → veza → zapažanje · deduplikacija bez novih servisa</span>
+  </div>
+  <div class="feed-layer-bar" role="group" aria-label="Unutrašnji slojevi">
+    <span class="feed-layer-title">Sloj:</span>
+    <button class="feed-filter-btn" data-layer-filter="all" aria-pressed="true">Svi slojevi <span class="feed-n">16</span></button>
+    <button class="feed-filter-btn" data-layer-filter="zapis" aria-pressed="false">1. Zapis <span class="feed-n">11</span></button>
+    <button class="feed-filter-btn" data-layer-filter="veza" aria-pressed="false">2. Veza <span class="feed-n">2</span></button>
+    <button class="feed-filter-btn" data-layer-filter="zapazanje" aria-pressed="false">3. Zapažanje <span class="feed-n">3</span></button>
+  </div>
+  <div class="post-strip" role="group" aria-label="Vrste zapisa">
+    <span class="feed-layer-title">Vrsta:</span>
+    <button class="post-strip-btn" data-post-filter="merenje" aria-pressed="false">merenje <span class="post-strip-n">3</span></button>
+    <button class="post-strip-btn" data-post-filter="naslov" aria-pressed="false">naslov <span class="post-strip-n">2</span></button>
+    <button class="post-strip-btn" data-post-filter="termin" aria-pressed="false">termin <span class="post-strip-n">3</span></button>
+    <button class="post-strip-btn" data-post-filter="obrazac" aria-pressed="false">obrazac <span class="post-strip-n">1</span></button>
+    <button class="post-strip-btn" data-post-filter="veza" aria-pressed="false">veza <span class="post-strip-n">1</span></button>
+    <button class="post-strip-btn" data-post-filter="misao" aria-pressed="false">misao <span class="post-strip-n">3</span></button>
+    <button class="post-strip-btn" data-post-filter="dokaz" aria-pressed="false">dokaz <span class="post-strip-n">3</span></button>
+    <button class="post-strip-btn" data-post-filter="all" aria-pressed="true">svi <span class="post-strip-n">16</span></button>
+  </div>
+  <div class="change-cards-container">
+    <div class="cards-subhead">Poslednje potvrđene promene u gradu:</div>
+    <div class="change-cards-grid">
+      <article class="feed-card" data-layer="zapis" data-type="termin" data-content-state="forecast" data-publish-status="unpublished">
+        <div class="card-top">
+          <span class="card-layer-tag layer-zapis">1. Zapis</span>
+          <span class="card-type-tag">termin</span>
+          <span class="card-state-tag state-forecast">najava</span>
+          <span class="card-pub pub-no">nije objavljeno</span>
+        </div>
+        <h4 class="card-what"><a href="impulsi.html">Ažurirani termini i repertoar: Kolarac — zvanični repertoar</a></h4>
+        <div class="card-meta">
+          <div><b>Mesto:</b> Beograd</div>
+          <div><b>Događaj:</b> 22.10. u 12:08 UTC · <b>Prijem:</b> 22.10. u 12:08 UTC</div>
+          <div><b>Izvor:</b> Kolarac — zvanični repertoar</div>
+        </div>
+        <div class="card-actions">
+          <a class="card-view-btn" href="impulsi.html">Otvori prikaz →</a>
+          <a class="card-proof-link" href="impulsi.html">Dokaz →</a>
+        </div>
+      </article>
+      <article class="feed-card" data-layer="zapis" data-type="termin" data-content-state="forecast" data-publish-status="unpublished">
+        <div class="card-top">
+          <span class="card-layer-tag layer-zapis">1. Zapis</span>
+          <span class="card-type-tag">termin</span>
+          <span class="card-state-tag state-forecast">najava</span>
+          <span class="card-pub pub-no">nije objavljeno</span>
+        </div>
+        <h4 class="card-what"><a href="impulsi.html">Ažurirani termini i repertoar: Dom omladine Beograda — zvanični program</a></h4>
+        <div class="card-meta">
+          <div><b>Mesto:</b> Beograd</div>
+          <div><b>Događaj:</b> 22.10. u 12:08 UTC · <b>Prijem:</b> 22.10. u 12:08 UTC</div>
+          <div><b>Izvor:</b> Dom omladine Beograda — zvanični program</div>
+        </div>
+        <div class="card-actions">
+          <a class="card-view-btn" href="impulsi.html">Otvori prikaz →</a>
+          <a class="card-proof-link" href="impulsi.html">Dokaz →</a>
+        </div>
+      </article>
+      <article class="feed-card" data-layer="zapazanje" data-type="misao" data-content-state="estimated" data-publish-status="unpublished">
+        <div class="card-top">
+          <span class="card-layer-tag layer-zapazanje">3. Zapažanje</span>
+          <span class="card-type-tag">misao</span>
+          <span class="card-state-tag state-estimated">procena</span>
+          <span class="card-pub pub-no">nije objavljeno</span>
+        </div>
+        <h4 class="card-what"><a href="ai-feed.html">Sinteza pulsa grada i provera zapažanja (sa merenom nesigurnošću)</a></h4>
+        <div class="card-meta">
+          <div><b>Mesto:</b> Beograd (celina)</div>
+          <div><b>Događaj:</b> 23.10. u 12:22 UTC · <b>Prijem:</b> 23.10. u 13:06 UTC</div>
+          <div><b>Izvor:</b> AI opservatorija i verifikator činjenica</div>
+        </div>
+        <div class="card-actions">
+          <a class="card-view-btn" href="ai-feed.html">Otvori prikaz →</a>
+          <a class="card-proof-link" href="ai-feed.html">Dokaz →</a>
+        </div>
+      </article>
+    </div>
+  </div>
+  <div class="cards-subhead" style="margin-top:20px;">Registar prikaza i javnih postova:</div>
+  <div class="post-list">
+<div class="post-item" data-layer="veza" data-post-type="veza" data-post-state="estimated" data-content-state="estimated" data-publish-status="published">
+  <span class="card-layer-tag layer-veza">2. Veza</span>
   <span class="post-type">veza</span>
   <a class="post-claim" href="veze.html">Šta se u gradu javlja zajedno: veze koje pamte težinu i smiruju se</a>
-  <span class="post-seal mono">graf · 22.10. u 23:59 UTC · pre 12 h</span>
+  <span class="post-seal mono">graf · 22.10. u 23:59 UTC · pre 13 h</span>
   <span class="post-state post-state-estimated">procena</span>
   <a class="post-proof" href="instrument.html">Dokaz →</a>
 </div>
-<div class="post-item" data-post-type="merenje" data-post-state="unavailable">
+<div class="post-item" data-layer="zapis" data-post-type="merenje" data-post-state="unavailable" data-content-state="observed" data-publish-status="unpublished">
+  <span class="card-layer-tag layer-zapis">1. Zapis</span>
   <span class="post-type">merenje</span>
   <a class="post-claim" href="sada.html">Vazduh i mikroklima sada, sa satom svakog očitavanja</a>
   <span class="post-seal mono">nema pečata u živom koloseku</span>
-  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <span class="post-state post-state-observed">zapis</span>
   <a class="post-proof" href="instrument.html">Dokaz →</a>
 </div>
-<div class="post-item" data-post-type="merenje" data-post-state="unavailable">
+<div class="post-item" data-layer="zapis" data-post-type="merenje" data-post-state="unavailable" data-content-state="observed" data-publish-status="unpublished">
+  <span class="card-layer-tag layer-zapis">1. Zapis</span>
   <span class="post-type">merenje</span>
   <a class="post-claim" href="mapa.html">Grad kroz svoja čula: stanice, naslovi i termini na mapi</a>
   <span class="post-seal mono">nema pečata u živom koloseku</span>
-  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <span class="post-state post-state-observed">zapis</span>
   <a class="post-proof" href="instrument.html">Dokaz →</a>
 </div>
-<div class="post-item" data-post-type="merenje" data-post-state="unavailable">
+<div class="post-item" data-layer="zapis" data-post-type="merenje" data-post-state="unavailable" data-content-state="observed" data-publish-status="unpublished">
+  <span class="card-layer-tag layer-zapis">1. Zapis</span>
   <span class="post-type">merenje</span>
   <a class="post-claim" href="podaci.html">Izmerene serije i njihove jedinice, bez izmišljanja vrednosti</a>
   <span class="post-seal mono">nema pečata u živom koloseku</span>
-  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <span class="post-state post-state-observed">zapis</span>
   <a class="post-proof" href="instrument.html">Dokaz →</a>
 </div>
-<div class="post-item" data-post-type="termin" data-post-state="unavailable">
+<div class="post-item" data-layer="zapis" data-post-type="termin" data-post-state="unavailable" data-content-state="forecast" data-publish-status="unpublished">
+  <span class="card-layer-tag layer-zapis">1. Zapis</span>
   <span class="post-type">termin</span>
   <a class="post-claim" href="impulsi.html">Termini i resursi grada u pokretu</a>
   <span class="post-seal mono">nema pečata u živom koloseku</span>
-  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <span class="post-state post-state-forecast">najava</span>
   <a class="post-proof" href="instrument.html">Dokaz →</a>
 </div>
-<div class="post-item" data-post-type="naslov" data-post-state="unavailable">
+<div class="post-item" data-layer="zapis" data-post-type="naslov" data-post-state="unavailable" data-content-state="untimed" data-publish-status="unpublished">
+  <span class="card-layer-tag layer-zapis">1. Zapis</span>
   <span class="post-type">naslov</span>
   <a class="post-claim" href="naslovi.html">Sačuvani naslovi sa procenom lokacije i vremenom prijema</a>
   <span class="post-seal mono">nema pečata u živom koloseku</span>
-  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <span class="post-state post-state-untimed">bez potvrđenog vremena</span>
   <a class="post-proof" href="instrument.html">Dokaz →</a>
 </div>
-<div class="post-item" data-post-type="naslov" data-post-state="unavailable">
+<div class="post-item" data-layer="zapis" data-post-type="naslov" data-post-state="unavailable" data-content-state="untimed" data-publish-status="unpublished">
+  <span class="card-layer-tag layer-zapis">1. Zapis</span>
   <span class="post-type">naslov</span>
   <a class="post-claim" href="traka.html">Traka naslova onako kako su stizali</a>
   <span class="post-seal mono">nema pečata u živom koloseku</span>
-  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <span class="post-state post-state-untimed">bez potvrđenog vremena</span>
   <a class="post-proof" href="instrument.html">Dokaz →</a>
 </div>
-<div class="post-item" data-post-type="obrazac" data-post-state="unavailable">
+<div class="post-item" data-layer="veza" data-post-type="obrazac" data-post-state="unavailable" data-content-state="estimated" data-publish-status="unpublished">
+  <span class="card-layer-tag layer-veza">2. Veza</span>
   <span class="post-type">obrazac</span>
   <a class="post-claim" href="obrasci.html">Šta se ponavlja, a šta je neobično — kroz vreme</a>
   <span class="post-seal mono">nema pečata u živom koloseku</span>
-  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <span class="post-state post-state-estimated">procena</span>
   <a class="post-proof" href="instrument.html">Dokaz →</a>
 </div>
-<div class="post-item" data-post-type="misao" data-post-state="unavailable">
+<div class="post-item" data-layer="zapazanje" data-post-type="misao" data-post-state="unavailable" data-content-state="estimated" data-publish-status="unpublished">
+  <span class="card-layer-tag layer-zapazanje">3. Zapažanje</span>
   <span class="post-type">misao</span>
   <a class="post-claim" href="monolog.html">Monolog uma nad gradom, rečenica po rečenica proverena</a>
   <span class="post-seal mono">nema pečata u živom koloseku</span>
-  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <span class="post-state post-state-estimated">procena</span>
   <a class="post-proof" href="instrument.html">Dokaz →</a>
 </div>
-<div class="post-item" data-post-type="misao" data-post-state="unavailable">
+<div class="post-item" data-layer="zapazanje" data-post-type="misao" data-post-state="unavailable" data-content-state="estimated" data-publish-status="unpublished">
+  <span class="card-layer-tag layer-zapazanje">3. Zapažanje</span>
   <span class="post-type">misao</span>
   <a class="post-claim" href="ai-feed.html">Zapažanja: šta um primećuje i sa kakvom nesigurnošću</a>
   <span class="post-seal mono">nema pečata u živom koloseku</span>
-  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <span class="post-state post-state-estimated">procena</span>
   <a class="post-proof" href="instrument.html">Dokaz →</a>
 </div>
-<div class="post-item" data-post-type="dokaz" data-post-state="unavailable">
+<div class="post-item" data-layer="zapis" data-post-type="dokaz" data-post-state="unavailable" data-content-state="observed" data-publish-status="unpublished">
+  <span class="card-layer-tag layer-zapis">1. Zapis</span>
   <span class="post-type">dokaz</span>
   <a class="post-claim" href="instrument.html">Poreklo svakog zapisa i granice merenja</a>
   <span class="post-seal mono">nema pečata u živom koloseku</span>
-  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <span class="post-state post-state-observed">zapis</span>
   <a class="post-proof" href="instrument.html#izvori">Dokaz →</a>
 </div>
-<div class="post-item" data-post-type="dokaz" data-post-state="unavailable">
+<div class="post-item" data-layer="zapis" data-post-type="dokaz" data-post-state="unavailable" data-content-state="observed" data-publish-status="unpublished">
+  <span class="card-layer-tag layer-zapis">1. Zapis</span>
   <span class="post-type">dokaz</span>
   <a class="post-claim" href="svedoci.html">Ko je šta poslao i kada: svedoci svakog zapisa</a>
   <span class="post-seal mono">nema pečata u živom koloseku</span>
-  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <span class="post-state post-state-observed">zapis</span>
   <a class="post-proof" href="instrument.html">Dokaz →</a>
 </div>
-<div class="post-item" data-post-type="dokaz" data-post-state="unavailable">
+<div class="post-item" data-layer="zapis" data-post-type="dokaz" data-post-state="unavailable" data-content-state="observed" data-publish-status="unpublished">
+  <span class="card-layer-tag layer-zapis">1. Zapis</span>
   <span class="post-type">dokaz</span>
   <a class="post-claim" href="kontekst.html">Kontekst podataka: šta merimo, čime i sa kojim ograničenjem</a>
   <span class="post-seal mono">nema pečata u živom koloseku</span>
-  <span class="post-state post-state-unavailable">nije objavljeno</span>
+  <span class="post-state post-state-observed">zapis</span>
   <a class="post-proof" href="instrument.html">Dokaz →</a>
 </div>
-</div>
-<script>
+  </div>
+  <script>
 (function () {
-  var strip = document.querySelector('.post-strip');
-  if (!strip) return;
-  strip.addEventListener('click', function (event) {
-    var button = event.target.closest('[data-post-filter]');
-    if (!button) return;
-    var filter = button.getAttribute('data-post-filter');
-    strip.querySelectorAll('[data-post-filter]').forEach(function (other) {
-      other.setAttribute('aria-pressed', other === button ? 'true' : 'false');
+  var feed = document.getElementById('post-feed');
+  if (!feed) return;
+  var currentLayer = 'all';
+  var currentType = 'all';
+
+  function applyFilter() {
+    var items = feed.querySelectorAll('.feed-card, .post-item');
+    items.forEach(function (el) {
+      var itemLayer = el.getAttribute('data-layer');
+      var itemType = el.getAttribute('data-type') || el.getAttribute('data-post-type');
+      var matchLayer = (currentLayer === 'all' || itemLayer === currentLayer);
+      var matchType = (currentType === 'all' || itemType === currentType);
+      el.style.display = (matchLayer && matchType) ? '' : 'none';
     });
-    document.querySelectorAll('.post-item').forEach(function (item) {
-      item.style.display = (filter === 'all' || item.getAttribute('data-post-type') === filter) ? '' : 'none';
+  }
+
+  feed.querySelectorAll('[data-layer-filter]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      feed.querySelectorAll('[data-layer-filter]').forEach(function (b) {
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.setAttribute('aria-pressed', 'true');
+      currentLayer = btn.getAttribute('data-layer-filter');
+      applyFilter();
+    });
+  });
+
+  feed.querySelectorAll('[data-post-filter]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      feed.querySelectorAll('[data-post-filter]').forEach(function (b) {
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.setAttribute('aria-pressed', 'true');
+      currentType = btn.getAttribute('data-post-filter');
+      applyFilter();
     });
   });
 })();
-</script>
+  </script>
 </section>
 
   <!-- BLOK 2: MOGU LI DANAS -->

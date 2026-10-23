@@ -19,42 +19,56 @@ body{margin:0;font:14px/1.5 system-ui,sans-serif}
 .l5-note{font-size:12px;opacity:.7;margin-top:16px}
 </style></head><body>
 <style class="bh-style">
-.bh{position:sticky;top:0;z-index:40;display:block;max-width:none;margin:0;padding:0;gap:0;justify-content:normal;justify-content:flex-start;text-align:start;border-bottom:1px solid color-mix(in srgb,currentColor 25%,transparent);background:color-mix(in srgb,Canvas 90%,transparent);backdrop-filter:blur(5px);font:12.5px/1.5 system-ui,"Segoe UI",Arial,sans-serif;color:CanvasText}
-.bh-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;max-width:1400px;margin:0 auto;padding:9px 18px}
-.bh-brand{font-weight:700;letter-spacing:.04em;text-decoration:none;color:inherit;white-space:nowrap}
+.bh{position:sticky;top:0;z-index:40;display:block;max-width:none;margin:0;padding:0;gap:0;justify-content:normal;justify-content:flex-start;text-align:start;border-bottom:1px solid color-mix(in srgb,currentColor 22%,transparent);background:color-mix(in srgb,Canvas 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font:12.5px/1.5 system-ui,"Segoe UI",Arial,sans-serif;color:CanvasText}
+.bh-bar{display:flex;align-items:center;gap:12px;max-width:1400px;margin:0 auto;padding:8px 18px}
+.bh-brand{font-weight:700;letter-spacing:.04em;text-decoration:none;color:inherit;white-space:nowrap;flex:none}
 .bh-brand span{font-weight:400;opacity:.75}
-.bh-nav{display:flex;gap:2px;flex-wrap:wrap}
-.bh-nav a{color:inherit;text-decoration:none;padding:4px 8px;border-radius:3px;opacity:.8}
+.bh-nav{display:flex;gap:3px;align-items:center;flex-wrap:nowrap}
+.bh-nav a{color:inherit;text-decoration:none;padding:4px 9px;border-radius:3px;opacity:.8;white-space:nowrap;font-size:12.5px}
 .bh-nav a:hover{opacity:1;background:color-mix(in srgb,currentColor 10%,transparent)}
 .bh-nav a[aria-current="page"]{opacity:1;font-weight:600;background:color-mix(in srgb,currentColor 14%,transparent)}
-.bh-ctl{margin-left:auto;display:flex;align-items:center;gap:8px}
+.bh-ctl{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
 .bh-ctl button{font:inherit;background:none;border:1px solid color-mix(in srgb,currentColor 35%,transparent);border-radius:3px;color:inherit;padding:3px 7px;cursor:pointer;min-width:0;min-height:0;line-height:1.5}
 .bh-ctl .hlangs{display:flex;gap:4px;flex:none}
 .bh-ctl .hlangs button[aria-pressed="true"]{background:color-mix(in srgb,currentColor 85%,transparent);color:Canvas;border-color:transparent}
 :where(html.embedded,body.embedded) .bh{display:none}
-.bh-seal{font:11.5px/1.5 ui-monospace,Consolas,monospace;opacity:.85;margin:0 auto;padding:4px 18px 7px;max-width:1400px;border-top:1px solid color-mix(in srgb,currentColor 14%,transparent)}
+.bh-seal{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 12px;font:11.5px/1.5 ui-monospace,Consolas,monospace;opacity:.85;margin:0 auto;padding:3px 18px 5px;max-width:1400px;border-top:1px solid color-mix(in srgb,currentColor 12%,transparent)}
 .bh-seal b{font-weight:600}
 .bh-seal a{color:inherit}
-@media(max-width:740px){.bh-bar{padding:8px 14px;gap:8px}.bh-seal{padding:4px 14px 6px}}
+.bh-seal-main{white-space:nowrap}
+.bh-seal-meta{opacity:.75;font-size:11px;white-space:nowrap}
+.bh-en{display:none}
+:is(html[lang^="en"],body.lang-en) .bh-sr{display:none}
+:is(html[lang^="en"],body.lang-en) .bh-en{display:inline}
+@media(max-width:740px){
+  .bh-bar{padding:6px 12px;gap:8px}
+  .bh-seal{padding:3px 12px 4px;font-size:11px}
+  .bh-nav a{padding:3px 7px}
+}
+@media(max-width:480px){
+  .bh-brand span{display:none}
+  .bh-bar{gap:6px;padding:6px 8px}
+  .bh-nav{gap:2px}
+  .bh-nav a{padding:3px 5px;font-size:12px}
+  .bh-ctl{gap:4px}
+  .bh-seal{flex-direction:column;align-items:flex-start;gap:2px;padding:2px 8px 3px}
+  .bh-seal-main,.bh-seal-meta{white-space:normal}
+}
 </style>
 <header class="bh" data-page="veze" data-kolosek="graf" data-as-of="2026-10-22T23:59:59Z">
   <div class="bh-bar">
-    <a class="bh-brand" href="index.html" data-nav="index">BEOPS <span>· Beograd</span></a>
+    <a class="bh-brand" href="index.html">BEOPS <span>· Beograd</span></a>
     <nav class="bh-nav" aria-label="Glavna navigacija">
-      <a href="sada.html" data-nav="sada">Sada</a>
-      <a href="mapa.html" data-nav="mapa">Mapa</a>
-      <a href="impulsi.html" data-nav="impulsi">Impulsi</a>
-      <a href="instrument.html" data-nav="instrument">Instrument</a>
-      <a href="naslovi.html" data-nav="naslovi">Naslovi</a>
-      <a href="podaci.html" data-nav="podaci">Podaci</a>
-      <a href="veze.html" data-nav="veze" aria-current="page">Veze</a>
+      <a href="index.html" data-nav="tok" aria-current="page"><span class="bh-sr">Tok</span><span class="bh-en">Flow</span></a>
+      <a href="mapa.html" data-nav="mapa"><span class="bh-sr">Mapa</span><span class="bh-en">Map</span></a>
+      <a href="instrument.html" data-nav="o-projektu"><span class="bh-sr">O projektu</span><span class="bh-en">About</span></a>
     </nav>
     <div class="bh-ctl">
       <button type="button" id="theme" class="themebtn" title="Svetlo / tamno · Light / dark" aria-label="Svetlo / tamno · Light / dark">◐</button>
       <div class="hlangs" id="lang" role="group" aria-label="Jezik / Language"><button type="button" data-l="sr" aria-pressed="true">SR</button><button type="button" data-l="en" aria-pressed="false">EN</button></div>
     </div>
   </div>
-  <p class="bh-seal">ova stranica: <b>Veze</b> · izdanje <b>graf</b> · presek <time datetime="2026-10-22T23:59:59Z">22.10. u 23:59 UTC</time> · staro <b>2 min</b> · <a href="instrument.html">dokaz →</a></p>
+  <p class="bh-seal"><span class="bh-seal-main">ova stranica: <b>Veze</b> · presek <time datetime="2026-10-22T23:59:59Z">22.10. u 23:59 UTC</time> · staro <b>12 h</b></span> <span class="bh-seal-meta">· izdanje <b>graf</b> · <a href="instrument.html">dokaz →</a></span></p>
   <script class="bh-js">
   /* Jedan jezički prekidač za sve stranice. Stranice sa svojim rukovaocem (instrument
      vezuje dugmad po data-l; monolog/podaci/traka vezuju #lang i obrću LANG) ostaju
@@ -97,17 +111,17 @@ body{margin:0;font:14px/1.5 system-ui,sans-serif}
 </header>
 
 <section class="l5-list">
-<div class="section-title">Šta se javlja zajedno<span>deset najstabilnijih veza; težina raste ponavljanjem i pada zaboravljanjem — sve ispod je procena modela, ne merenje</span></div>
-<div class="l5-edge l5-stable"><span class="l5-rank mono">1</span><span class="l5-nodes mono">izvor:S146 ⟷ mesto:88562</span><span class="l5-weight mono">w=24.34</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
-<div class="l5-edge l5-stable"><span class="l5-rank mono">2</span><span class="l5-nodes mono">izvor:S10 ⟷ mesto:garaža &quot;baba višnjina&quot;</span><span class="l5-weight mono">w=24.34</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
-<div class="l5-edge l5-stable"><span class="l5-rank mono">3</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:98610</span><span class="l5-weight mono">w=24.34</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
-<div class="l5-edge l5-stable"><span class="l5-rank mono">4</span><span class="l5-nodes mono">izvor:S10 ⟷ mesto:68867</span><span class="l5-weight mono">w=24.34</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
-<div class="l5-edge l5-stable"><span class="l5-rank mono">5</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:beograd na vodi</span><span class="l5-weight mono">w=24.34</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
-<div class="l5-edge l5-stable"><span class="l5-rank mono">6</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:66176</span><span class="l5-weight mono">w=24.34</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
-<div class="l5-edge l5-stable"><span class="l5-rank mono">7</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:obrenovac centar</span><span class="l5-weight mono">w=24.34</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
-<div class="l5-edge l5-stable"><span class="l5-rank mono">8</span><span class="l5-nodes mono">izvor:S146 ⟷ mesto:danijelova</span><span class="l5-weight mono">w=24.34</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
-<div class="l5-edge l5-stable"><span class="l5-rank mono">9</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:100727</span><span class="l5-weight mono">w=24.34</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
-<div class="l5-edge l5-stable"><span class="l5-rank mono">10</span><span class="l5-nodes mono">izvor:S146 ⟷ mesto:98611</span><span class="l5-weight mono">w=24.34</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
-<p class="l5-note">Model l5-stabilization v1: decay=0.97, smirivanje = najveća promena težine kroz 14 zatvorenih dana; obradom 14 dana grana prestaje da se pomerava. Obradjeno dana: 43. Registar modela: instrument.html.</p>
+<div class="section-title">Ponavljanja u zapisima<span>eksperimentalni prikaz; težina raste ponavljanjem i opada svakog dana — sve ispod je procena modela, ne merenje</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">1</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:40611</span><span class="l5-weight mono">w=23.92</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">2</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:84994</span><span class="l5-weight mono">w=23.92</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">3</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:97344</span><span class="l5-weight mono">w=23.92</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">4</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:98811</span><span class="l5-weight mono">w=23.92</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">5</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:84964</span><span class="l5-weight mono">w=23.92</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">6</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:69393</span><span class="l5-weight mono">w=23.92</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">7</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:68866</span><span class="l5-weight mono">w=23.92</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">8</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:40612</span><span class="l5-weight mono">w=23.92</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">9</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:84993</span><span class="l5-weight mono">w=23.92</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
+<div class="l5-edge l5-stable"><span class="l5-rank mono">10</span><span class="l5-nodes mono">izvor:S04 ⟷ mesto:86819</span><span class="l5-weight mono">w=23.92</span><span class="l5-drift mono">drift=0.001</span><span class="l5-seen mono">ponovljena 43 dana, poslednji 2026-10-22</span><span class="l5-state">stabilna od 2026-10-10.</span></div>
+<p class="l5-note">Model l5-stabilization v2: decay=0.97. Stabilnost meri promenu normalizovane težine w/(1+w) kroz najviše 14 zatvorenih dana; ne dokazuje značaj veze. Prazan dan smanjuje težinu po kalendaru. Pokrivenost je tada nepoznata; nedostatak zapisa nije dokaz odsustva pojave u gradu. Obrađeno dana: 45. Registar modela: instrument.html.</p>
 </section>
 </body></html>
