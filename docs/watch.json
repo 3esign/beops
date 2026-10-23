@@ -1,64 +1,32 @@
 {
  "schema": "beops-watch/v1",
- "at": "2026-10-23T20:59:24Z",
+ "at": "2026-10-23T21:29:02Z",
  "verdict": "late",
  "counts": {
-  "ok": 5,
-  "late": 2,
+  "ok": 37,
+  "late": 1,
   "unknown": 0,
   "stalled": 0,
-  "blocked": 34,
-  "paused": 1
+  "blocked": 2,
+  "paused": 2
  },
  "figures": {
-  "rows": 2000346,
+  "rows": 2001819,
   "hours": 169
  },
  "not_current": [
-  "AI observations",
-  "mind",
+  "coverage 24h",
   "published",
-  "source S01",
   "source S03",
-  "source S04",
-  "source S10",
   "source S11",
-  "source S12",
-  "source S146",
-  "source S15",
-  "source S175",
-  "source S195",
-  "source S196",
-  "source S197",
-  "source S198",
-  "source S199",
-  "source S200",
-  "source S201",
-  "source S202",
-  "source S203",
-  "source S207",
-  "source S208",
-  "source S219",
-  "source S220",
-  "source S221",
-  "source S222",
-  "source S223",
-  "source S224",
-  "source S52",
-  "source S54",
-  "source S68",
-  "source S69",
-  "source S74",
-  "source S75",
-  "source S76",
-  "source S78"
+  "source S207"
  ],
  "checks": [
   {
    "check": "watchman",
    "state": "ok",
-   "said": "10 min since the last reading",
-   "gap_min": 10.3
+   "said": "9 min since the last reading",
+   "gap_min": 8.6
   },
   {
    "check": "published",
@@ -68,149 +36,249 @@
   {
    "check": "history",
    "state": "ok",
-   "said": "full history paused; 7d window carries 169 h of record, newest hour 13.0 h behind",
+   "said": "full history paused; 7d window carries 169 h of record, newest hour 13.5 h behind",
    "hours": 169,
    "newest_hour": "2026-10-23T08",
-   "hours_behind": 12.99
+   "hours_behind": 13.48
   },
   {
    "check": "mind",
-   "state": "late",
-   "said": "newest drop 64 min ago",
-   "age_min": 63.6,
-   "checked_at": "2026-10-23T21:03:10.879967Z"
+   "state": "ok",
+   "said": "newest drop 2 min ago",
+   "age_min": 2.0,
+   "checked_at": "2026-10-23T21:29:34.419449Z"
   },
   {
    "check": "AI observations",
-   "state": "late",
-   "said": "no accepted monologue within one hour; failed",
-   "last_success": "2026-10-23T19:39:04.085Z"
+   "state": "ok",
+   "said": "latest accepted monologue is within one hour",
+   "age_min": 21.5
   },
   {
    "check": "coverage 24h",
-   "state": "ok",
-   "said": "every collected source was heard in at least 90% of its slots (34 not counted, stopped by the permission gate: S01, S03, S04, S10, S11, S12, S146, S15, S175, S195, S196, S197, S198, S199, S200, S201, S202, S203, S207, S208, S219, S220, S221, S222, S223, S224, S52, S54, S68, S69, S74, S75, S76, S78)",
+   "state": "late",
+   "said": "30 sources below 90% of their slots in 24 h: S175 1%, S195 1%, S196 1%, S197 1%, S198 1%, S201 50%, S04 62%, S10 62% (3 not counted, stopped by the permission gate: S03, S11, S207)",
+   "below": [
+    {
+     "sid": "S175",
+     "share": 0.01
+    },
+    {
+     "sid": "S195",
+     "share": 0.01
+    },
+    {
+     "sid": "S196",
+     "share": 0.01
+    },
+    {
+     "sid": "S197",
+     "share": 0.01
+    },
+    {
+     "sid": "S198",
+     "share": 0.01
+    },
+    {
+     "sid": "S201",
+     "share": 0.5
+    },
+    {
+     "sid": "S04",
+     "share": 0.625
+    },
+    {
+     "sid": "S10",
+     "share": 0.625
+    },
+    {
+     "sid": "S221",
+     "share": 0.625
+    },
+    {
+     "sid": "S223",
+     "share": 0.625
+    },
+    {
+     "sid": "S68",
+     "share": 0.625
+    },
+    {
+     "sid": "S69",
+     "share": 0.625
+    },
+    {
+     "sid": "S75",
+     "share": 0.625
+    },
+    {
+     "sid": "S76",
+     "share": 0.635
+    },
+    {
+     "sid": "S74",
+     "share": 0.646
+    },
+    {
+     "sid": "S78",
+     "share": 0.646
+    },
+    {
+     "sid": "S01",
+     "share": 0.656
+    },
+    {
+     "sid": "S15",
+     "share": 0.656
+    },
+    {
+     "sid": "S208",
+     "share": 0.656
+    },
+    {
+     "sid": "S12",
+     "share": 0.667
+    },
+    {
+     "sid": "S146",
+     "share": 0.667
+    },
+    {
+     "sid": "S199",
+     "share": 0.667
+    },
+    {
+     "sid": "S200",
+     "share": 0.667
+    },
+    {
+     "sid": "S202",
+     "share": 0.667
+    },
+    {
+     "sid": "S203",
+     "share": 0.667
+    },
+    {
+     "sid": "S219",
+     "share": 0.667
+    },
+    {
+     "sid": "S52",
+     "share": 0.667
+    },
+    {
+     "sid": "S54",
+     "share": 0.667
+    },
+    {
+     "sid": "S220",
+     "share": 0.75
+    },
+    {
+     "sid": "S222",
+     "share": 0.75
+    }
+   ],
    "gated": [
-    "S01",
     "S03",
-    "S04",
-    "S10",
     "S11",
-    "S12",
-    "S146",
-    "S15",
-    "S175",
-    "S195",
-    "S196",
-    "S197",
-    "S198",
-    "S199",
-    "S200",
-    "S201",
-    "S202",
-    "S203",
-    "S207",
-    "S208",
-    "S219",
-    "S220",
-    "S221",
-    "S222",
-    "S223",
-    "S224",
-    "S52",
-    "S54",
-    "S68",
-    "S69",
-    "S74",
-    "S75",
-    "S76",
-    "S78"
+    "S207"
    ]
   },
   {
    "check": "rows",
    "state": "ok",
-   "said": "2000346 rows on disk, counted from the validated row index",
-   "rows": 2000346
+   "said": "2001819 rows on disk, counted from the validated row index",
+   "rows": 2001819
   },
   {
    "check": "rows kept",
    "state": "ok",
-   "said": "0 rows added since the last reading",
-   "before": 2000346,
-   "after": 2000346
+   "said": "16 rows added since the last reading",
+   "before": 2001803,
+   "after": 2001819
   },
   {
    "check": "source S146",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 6 min old",
    "sid": "S146",
    "cadence_min": 60,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 6.0
   },
   {
    "check": "source S04",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 6 min old",
    "sid": "S04",
    "cadence_min": 10,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.9
   },
   {
    "check": "source S10",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 6 min old",
    "sid": "S10",
    "cadence_min": 15,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.8
   },
   {
    "check": "source S68",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 6 min old",
    "sid": "S68",
    "cadence_min": 15,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.8
   },
   {
    "check": "source S69",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 6 min old",
    "sid": "S69",
    "cadence_min": 15,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.6
   },
   {
    "check": "source S75",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 6 min old",
    "sid": "S75",
    "cadence_min": 15,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.5
   },
   {
    "check": "source S76",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 6 min old",
    "sid": "S76",
    "cadence_min": 15,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.5
   },
   {
    "check": "source S78",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 6 min old",
    "sid": "S78",
    "cadence_min": 30,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.5
   },
   {
    "check": "source S74",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 5 min old",
    "sid": "S74",
    "cadence_min": 30,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.3
   },
   {
    "check": "source S11",
@@ -222,198 +290,220 @@
   },
   {
    "check": "source S175",
-   "state": "blocked",
-   "said": "collection blocked: permission unknown, refused, or incomplete",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 5 min old",
    "sid": "S175",
    "cadence_min": 15,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.3
   },
   {
    "check": "source S195",
-   "state": "blocked",
-   "said": "collection blocked: permission unknown, refused, or incomplete",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 5 min old",
    "sid": "S195",
    "cadence_min": 15,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.3
   },
   {
    "check": "source S196",
-   "state": "blocked",
-   "said": "collection blocked: permission unknown, refused, or incomplete",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 5 min old",
    "sid": "S196",
    "cadence_min": 15,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.3
   },
   {
    "check": "source S197",
-   "state": "blocked",
-   "said": "collection blocked: permission unknown, refused, or incomplete",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 5 min old",
    "sid": "S197",
    "cadence_min": 15,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.3
   },
   {
    "check": "source S198",
-   "state": "blocked",
-   "said": "collection blocked: permission unknown, refused, or incomplete",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 5 min old",
    "sid": "S198",
    "cadence_min": 15,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.2
   },
   {
    "check": "source S199",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 5 min old",
    "sid": "S199",
    "cadence_min": 60,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.2
   },
   {
    "check": "source S200",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 5 min old",
    "sid": "S200",
    "cadence_min": 60,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.2
   },
   {
    "check": "source S201",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 5 min old",
    "sid": "S201",
    "cadence_min": 60,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.1
   },
   {
    "check": "source S202",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 5 min old",
    "sid": "S202",
    "cadence_min": 60,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.1
   },
   {
    "check": "source S203",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 5 min old",
    "sid": "S203",
    "cadence_min": 60,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.1
   },
   {
    "check": "source S15",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 5 min old",
    "sid": "S15",
    "cadence_min": 15,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.1
   },
   {
    "check": "source S208",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 5 min old",
    "sid": "S208",
    "cadence_min": 15,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.1
   },
   {
    "check": "source S207",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "paused",
+   "said": "collection paused: paused 2026-10-01T19:28:16.900842Z after HTTP 429; a person removes this file after reading the source's terms again",
    "sid": "S207",
    "cadence_min": 15,
    "network_requests": 0
   },
   {
    "check": "source S12",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, silent for 1886 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S12",
    "cadence_min": 60,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 1885.7
   },
   {
    "check": "source S01",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 5 min old",
    "sid": "S01",
    "cadence_min": 15,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.1
   },
   {
    "check": "source S03",
    "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "said": "collection blocked: permission unknown, refused, or incomplete",
    "sid": "S03",
    "cadence_min": 15,
    "network_requests": 0
   },
   {
    "check": "source S52",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, silent for 801 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S52",
    "cadence_min": 60,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 800.9
   },
   {
    "check": "source S54",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, silent for 2726 min - the source has nothing to say, which is a record and not a fault",
    "sid": "S54",
    "cadence_min": 60,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 2725.6
   },
   {
    "check": "source S219",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 6 min ago, newest value 5 min old",
    "sid": "S219",
    "cadence_min": 30,
-   "network_requests": 0
+   "asked_min_ago": 6.0,
+   "heard_min_ago": 5.0
   },
   {
    "check": "source S220",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 1 min ago, newest value 931 min old",
    "sid": "S220",
    "cadence_min": 360,
-   "network_requests": 0
+   "asked_min_ago": 1.0,
+   "heard_min_ago": 930.6
   },
   {
    "check": "source S221",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 1 min ago, newest value 750 min old",
    "sid": "S221",
    "cadence_min": 180,
-   "network_requests": 0
+   "asked_min_ago": 1.0,
+   "heard_min_ago": 750.5
   },
   {
    "check": "source S222",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 1 min ago, newest value 1 min old",
    "sid": "S222",
    "cadence_min": 360,
-   "network_requests": 0
+   "asked_min_ago": 1.0,
+   "heard_min_ago": 0.9
   },
   {
    "check": "source S223",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 1 min ago, newest value 1 min old",
    "sid": "S223",
    "cadence_min": 60,
-   "network_requests": 0
+   "asked_min_ago": 1.0,
+   "heard_min_ago": 0.9
   },
   {
    "check": "source S224",
-   "state": "blocked",
-   "said": "collection blocked: permission capture expired or future dated",
+   "state": "ok",
+   "said": "asked 1 min ago, newest value 1 min old",
    "sid": "S224",
    "cadence_min": 1440,
-   "network_requests": 0
+   "asked_min_ago": 1.0,
+   "heard_min_ago": 0.8
   }
  ],
- "elapsed_seconds": 226.9,
+ "elapsed_seconds": 34.0,
  "persistence": {
   "ledger_written": true
  }
