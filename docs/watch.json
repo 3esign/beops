@@ -1,12 +1,12 @@
 {
  "schema": "beops-watch/v1",
- "at": "2026-10-23T20:32:56Z",
- "verdict": "stalled",
+ "at": "2026-10-23T20:59:24Z",
+ "verdict": "late",
  "counts": {
   "ok": 5,
-  "late": 1,
+  "late": 2,
   "unknown": 0,
-  "stalled": 1,
+  "stalled": 0,
   "blocked": 34,
   "paused": 1
  },
@@ -57,8 +57,8 @@
   {
    "check": "watchman",
    "state": "ok",
-   "said": "21 min since the last reading",
-   "gap_min": 21.4
+   "said": "10 min since the last reading",
+   "gap_min": 10.3
   },
   {
    "check": "published",
@@ -68,22 +68,23 @@
   {
    "check": "history",
    "state": "ok",
-   "said": "full history paused; 7d window carries 169 h of record, newest hour 12.5 h behind",
+   "said": "full history paused; 7d window carries 169 h of record, newest hour 13.0 h behind",
    "hours": 169,
    "newest_hour": "2026-10-23T08",
-   "hours_behind": 12.55
+   "hours_behind": 12.99
   },
   {
    "check": "mind",
    "state": "late",
-   "said": "newest drop 42 min ago",
-   "age_min": 42.4,
-   "checked_at": "2026-10-23T20:41:58.432986Z"
+   "said": "newest drop 64 min ago",
+   "age_min": 63.6,
+   "checked_at": "2026-10-23T21:03:10.879967Z"
   },
   {
    "check": "AI observations",
-   "state": "stalled",
-   "said": "no recent durable feed tick"
+   "state": "late",
+   "said": "no accepted monologue within one hour; failed",
+   "last_success": "2026-10-23T19:39:04.085Z"
   },
   {
    "check": "coverage 24h",
@@ -412,7 +413,7 @@
    "network_requests": 0
   }
  ],
- "elapsed_seconds": 552.3,
+ "elapsed_seconds": 226.9,
  "persistence": {
   "ledger_written": true
  }
