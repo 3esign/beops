@@ -8,46 +8,54 @@
 <link rel="stylesheet" href="beops.css">
 <script src="app.js" defer></script>
 <!--
-  BEOPS v2 shell. Podaci NISU u ovom HTML-u: stranica čita isključivo male
-  JSON ugovore iz ./state/ (puls, misli-7d, organizam, serije/*). Svežina se
-  meri u čitanju (sat čitaoca), ne u gradnji. Objava = commit ovih fajlova.
-
-  Lokalno: posluži fasciklu u kojoj su index.html i state/ susedi, npr.
-  python -m http.server iz privremenog spojenog direktorijuma, ili
-  tools/v2/serve_v2.py.
+  BEOPS v2 shell — javni servis. Beli interfejs po estetici originala.
+  Podaci NISU u ovom HTML-u: stranica čita isključivo male JSON ugovore iz
+  ./state/ (puls, misli-7d, organizam, serije, veze, mapa). Svežina se meri
+  u čitanju (sat čitaoca), ne u gradnji. Objava = commit ovih fajlova.
 -->
 </head>
 <body>
 <a class="skip" href="#view">Na sadržaj</a>
 <header class="top">
   <div class="brand">
-    <a class="mark" href="#danas">BEOPS<span class="mark-city"> · Beograd</span></a>
+    <a class="mark" href="#danas" aria-label="BEOPS — danas">B</a>
+    <strong>BEOPS</strong>
     <span class="brand-sub" data-i18n="tagline">grad misli</span>
   </div>
-  <nav class="nav" aria-label="Odeljci">
-    <a href="#danas" data-nav="danas">Danas</a>
-    <a href="#misli" data-nav="misli">Misli</a>
-    <a href="#podaci" data-nav="podaci">Podaci</a>
-    <a href="#mapa" data-nav="mapa">Mapa</a>
-    <a href="#organizam" data-nav="organizam">Organizam</a>
-    <a href="#o" data-nav="o">O projektu</a>
-  </nav>
+  <div class="place">
+    Mozak Beograda — javni servis
+    <small>digitalni kontekst grada · misli pre podataka</small>
+  </div>
   <div class="controls">
-    <button id="theme" type="button" aria-label="Svetla / tamna tema">◐</button>
+    <span class="top-stamp" id="top-stamp"></span>
     <button id="lang" type="button" aria-label="Srpski / English">EN</button>
+    <button id="theme" type="button" aria-label="Svetla / tamna tema">◐</button>
   </div>
 </header>
+
+<nav class="rail" aria-label="Odeljci">
+  <a href="#danas" data-nav="danas">Danas</a>
+  <a href="#misli" data-nav="misli">Misli</a>
+  <a href="#podaci" data-nav="podaci">Podaci</a>
+  <a href="#mapa" data-nav="mapa">Mapa</a>
+  <a href="#organizam" data-nav="organizam">Organizam</a>
+  <a href="#o" data-nav="o">O projektu</a>
+  <span class="edition" id="edition">BEOPS v2</span>
+</nav>
 
 <main id="view" tabindex="-1">
   <noscript>
     <p>BEOPS v2 zahteva JavaScript: stanje grada stiže kao mali JSON fajlovi koje
     ovaj shell čita i meri. Sirovi ugovori su javno dostupni u
-    <code>/v2/state/</code> (puls.json, misli-7d.json, organizam.json…).</p>
+    <code>/v2/state/</code> (puls.json, misli-7d.json, organizam.json, mapa.json…).</p>
   </noscript>
 </main>
 
 <footer class="foot">
-  <p class="authors">prof. dr Darinka Golubović Matić · doc. dr Semir Poturak</p>
+  <div>
+    <p class="authors">prof. dr Darinka Golubović Matić · doc. dr Semir Poturak</p>
+    <p>Svemir · tehnodrom</p>
+  </div>
   <p class="foot-note" data-i18n="footNote">Merenja potiču sa javnih i građanskih senzorskih mreža.
   Misli su AI interpretacija pod strogim epistemičkim kapijama — i prihvaćene i
   odbijene su javne. Svežina se meri tvojim satom, ne satom servera.</p>
