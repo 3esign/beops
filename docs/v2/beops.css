@@ -1,0 +1,281 @@
+/* BEOPS v2 — dizajn tokeni i shell stil.
+   Paleta: validirana referentna instanca (dataviz metod) — svetli i tamni
+   režim su odabrani koraci, ne automatski obrnuti. Svetli WARN (aqua/žuta
+   ispod 3:1) se nosi po pravilu olakšice: identitet ume nosi uvek i tekst. */
+
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface-1: #fcfcfb;
+  --ink-1: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --accent: #2a78d6;
+  --um-observer: #2a78d6;
+  --um-skeptic: #eb6834;
+  --um-connector: #1baf7a;
+  --um-ai: #eda100;
+  --um-organelle: #e87ba4;
+  --spark-dim: #898781;
+  --good: #0ca30c;
+  --warn: #fab219;
+  --crit: #d03b3b;
+  --wash: rgba(11, 11, 11, 0.045);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface-1: #1a1a19;
+    --ink-1: #ffffff;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --accent: #3987e5;
+    --um-observer: #3987e5;
+    --um-skeptic: #d95926;
+    --um-connector: #199e70;
+    --um-ai: #c98500;
+    --um-organelle: #d55181;
+    --spark-dim: #898781;
+    --good: #0ca30c;
+    --warn: #fab219;
+    --crit: #d03b3b;
+    --wash: rgba(255, 255, 255, 0.05);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface-1: #1a1a19;
+  --ink-1: #ffffff;
+  --ink-2: #c3c2b7;
+  --muted: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --accent: #3987e5;
+  --um-observer: #3987e5;
+  --um-skeptic: #d95926;
+  --um-connector: #199e70;
+  --um-ai: #c98500;
+  --um-organelle: #d55181;
+  --spark-dim: #898781;
+  --good: #0ca30c;
+  --warn: #fab219;
+  --crit: #d03b3b;
+  --wash: rgba(255, 255, 255, 0.05);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink-1);
+  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+.skip {
+  position: absolute; left: -999px; top: 0;
+  background: var(--surface-1); color: var(--ink-1);
+  padding: 8px 14px; z-index: 30;
+}
+.skip:focus { left: 0; }
+
+/* ── Header ─────────────────────────────────────────────── */
+.top {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+  padding: 10px 14px;
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 20;
+}
+.brand { display: flex; align-items: baseline; gap: 8px; margin-right: auto; }
+.mark {
+  font-weight: 700; font-size: 18px; letter-spacing: 0.4px;
+  color: var(--ink-1); text-decoration: none;
+}
+.mark-city { font-weight: 400; color: var(--ink-2); }
+.brand-sub { color: var(--muted); font-size: 12px; }
+.nav { display: flex; flex-wrap: wrap; gap: 2px; }
+.nav a {
+  color: var(--ink-2); text-decoration: none; font-size: 14px;
+  padding: 6px 9px; border-radius: 8px;
+}
+.nav a:hover { background: var(--wash); color: var(--ink-1); }
+.nav a[aria-current="page"] { color: var(--ink-1); font-weight: 600; background: var(--wash); }
+.controls { display: flex; gap: 6px; }
+.controls button {
+  font: 600 13px/1 system-ui, sans-serif;
+  color: var(--ink-2); background: var(--surface-1);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 7px 10px; cursor: pointer;
+}
+.controls button:hover { color: var(--ink-1); background: var(--wash); }
+.controls button:focus-visible, .nav a:focus-visible, .skip:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
+/* ── Layout ─────────────────────────────────────────────── */
+#view { max-width: 1080px; margin: 0 auto; padding: 18px 14px 40px; outline: none; }
+h1 { font-size: 22px; margin: 6px 0 4px; }
+h2 { font-size: 16px; margin: 26px 0 10px; color: var(--ink-1); }
+.sub { color: var(--ink-2); font-size: 14px; margin: 0 0 14px; }
+section { margin-top: 22px; }
+
+/* ── Banner (tišina je sadržaj) ─────────────────────────── */
+.banner {
+  display: flex; gap: 10px; align-items: baseline;
+  background: var(--surface-1); border: 1px solid var(--border);
+  border-left: 3px solid var(--crit);
+  border-radius: 10px; padding: 10px 12px; margin: 12px 0;
+  font-size: 14px; color: var(--ink-2);
+}
+.banner b { color: var(--ink-1); font-weight: 600; }
+.banner .when { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.banner.ok { border-left-color: var(--good); }
+
+/* ── Tile red (grad u brojkama) ─────────────────────────── */
+.tiles {
+  display: grid; gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 640px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 980px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.tile {
+  background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 12px 10px;
+  display: flex; flex-direction: column; gap: 4px; min-width: 0;
+}
+.tile-label { color: var(--ink-2); font-size: 13px; }
+.tile-value {
+  font-size: 26px; font-weight: 600; color: var(--ink-1); line-height: 1.1;
+}
+.tile.hero .tile-value { font-size: 48px; }
+.tile-unit { color: var(--muted); font-size: 12px; }
+.tile-spark { margin-top: 6px; }
+.tile-delta { font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.tile-delta .dir-up { color: var(--crit); }
+.tile-delta .dir-down { color: var(--good); }
+.tile-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+
+/* ── Pečati starosti (oblik + boja + tekst, nikad samo boja) ── */
+.stamp {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.stamp i {
+  width: 8px; height: 8px; flex: none; display: inline-block;
+  border-radius: 50%; background: var(--good);
+}
+.stamp.old i { background: var(--warn); border-radius: 1px; transform: rotate(45deg) scale(0.9); }
+.stamp.silent i { background: var(--crit); border-radius: 1px; }
+
+/* ── Misli ──────────────────────────────────────────────── */
+.filters {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 10px; padding: 8px 10px; margin: 12px 0;
+}
+.filters label { color: var(--ink-2); font-size: 13px; display: inline-flex; gap: 6px; align-items: center; }
+.filters select {
+  font: 14px system-ui, sans-serif; color: var(--ink-1);
+  background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 8px; padding: 5px 8px; max-width: 46vw;
+}
+.filters .count { margin-left: auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.mind-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+
+.misao {
+  background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px; margin: 10px 0;
+}
+.misao.rejected { opacity: 0.92; }
+.misao-head {
+  display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center;
+  margin-bottom: 6px; font-size: 12.5px; color: var(--ink-2);
+}
+.mind-chip { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--ink-1); font-size: 13px; }
+.misao .tekst { margin: 6px 0; white-space: pre-wrap; overflow-wrap: break-word; }
+.misao .tekst.rej { color: var(--ink-2); }
+.razlog {
+  margin: 8px 0 0; padding: 7px 10px; border-radius: 8px;
+  background: var(--wash); color: var(--ink-2); font-size: 13px;
+}
+.razlog b { color: var(--ink-1); font-weight: 600; }
+.cites { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.cite {
+  font-size: 11.5px; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px;
+  font-variant-numeric: tabular-nums;
+}
+.misao details { margin-top: 8px; }
+.misao summary { cursor: pointer; color: var(--ink-2); font-size: 13px; }
+.misao summary:hover { color: var(--ink-1); }
+.misao details ul { margin: 6px 0 2px; padding-left: 20px; color: var(--ink-2); font-size: 13.5px; }
+.misao details li { margin: 4px 0; }
+
+/* ── Odbijeno (javna epistemika) ────────────────────────── */
+.odbijeno-box {
+  background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px;
+}
+.odbijeno-box table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.odbijeno-box th {
+  text-align: left; color: var(--muted); font-weight: 500; font-size: 12px;
+  padding: 4px 8px 4px 0; border-bottom: 1px solid var(--grid);
+}
+.odbijeno-box td { padding: 5px 8px 5px 0; border-bottom: 1px solid var(--grid); vertical-align: top; }
+.odbijeno-box td.n { color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.odbijeno-box details { margin-top: 10px; }
+.odbijeno-box summary { cursor: pointer; color: var(--ink-2); font-size: 13px; }
+
+/* ── Organizam strip ────────────────────────────────────── */
+.organs { display: flex; flex-wrap: wrap; gap: 8px; }
+.organ {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 9px; padding: 6px 10px; font-size: 12.5px; color: var(--ink-2);
+}
+.organ b { color: var(--ink-1); font-weight: 600; }
+
+/* ── Sparkline + tooltip ────────────────────────────────── */
+.spark { position: relative; display: block; }
+.spark svg { display: block; }
+.spark:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+#tt {
+  position: fixed; z-index: 40; pointer-events: none;
+  background: var(--surface-1); color: var(--ink-1);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 5px 9px; font-size: 12.5px; box-shadow: 0 2px 10px rgba(0,0,0,0.14);
+  max-width: 240px;
+}
+#tt b { font-weight: 650; }
+#tt .tt-sub { color: var(--ink-2); }
+
+/* ── Tablice / listе ────────────────────────────────────── */
+.kv { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.kv th { text-align: left; color: var(--muted); font-weight: 500; font-size: 12px; padding: 5px 8px 5px 0; border-bottom: 1px solid var(--grid); }
+.kv td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--grid); color: var(--ink-2); vertical-align: top; }
+.kv td:first-child { color: var(--ink-1); }
+.placeholder {
+  border: 1px dashed var(--axis); border-radius: 12px;
+  padding: 14px; color: var(--ink-2); font-size: 14px;
+}
+
+/* ── Footer ─────────────────────────────────────────────── */
+.foot {
+  border-top: 1px solid var(--border); margin-top: 34px;
+  padding: 16px 14px 26px; color: var(--muted); font-size: 12.5px;
+}
+.foot .authors { margin: 0 0 4px; color: var(--ink-2); }
+.foot .foot-note { margin: 0; max-width: 70ch; }

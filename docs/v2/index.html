@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="BEOPS — mozak Beograda. Misli, zapažanja i dokazi gradske superinteligencije nad živim podacima grada.">
+<title>BEOPS · Beograd — grad misli</title>
+<link rel="stylesheet" href="beops.css">
+<script src="app.js" defer></script>
+<!--
+  BEOPS v2 shell. Podaci NISU u ovom HTML-u: stranica čita isključivo male
+  JSON ugovore iz ./state/ (puls, misli-7d, organizam, serije/*). Svežina se
+  meri u čitanju (sat čitaoca), ne u gradnji. Objava = commit ovih fajlova.
+
+  Lokalno: posluži fasciklu u kojoj su index.html i state/ susedi, npr.
+  python -m http.server iz privremenog spojenog direktorijuma, ili
+  tools/v2/serve_v2.py.
+-->
+</head>
+<body>
+<a class="skip" href="#view">Na sadržaj</a>
+<header class="top">
+  <div class="brand">
+    <a class="mark" href="#danas">BEOPS<span class="mark-city"> · Beograd</span></a>
+    <span class="brand-sub" data-i18n="tagline">grad misli</span>
+  </div>
+  <nav class="nav" aria-label="Odeljci">
+    <a href="#danas" data-nav="danas">Danas</a>
+    <a href="#misli" data-nav="misli">Misli</a>
+    <a href="#podaci" data-nav="podaci">Podaci</a>
+    <a href="#mapa" data-nav="mapa">Mapa</a>
+    <a href="#organizam" data-nav="organizam">Organizam</a>
+    <a href="#o" data-nav="o">O projektu</a>
+  </nav>
+  <div class="controls">
+    <button id="theme" type="button" aria-label="Svetla / tamna tema">◐</button>
+    <button id="lang" type="button" aria-label="Srpski / English">EN</button>
+  </div>
+</header>
+
+<main id="view" tabindex="-1">
+  <noscript>
+    <p>BEOPS v2 zahteva JavaScript: stanje grada stiže kao mali JSON fajlovi koje
+    ovaj shell čita i meri. Sirovi ugovori su javno dostupni u
+    <code>/v2/state/</code> (puls.json, misli-7d.json, organizam.json…).</p>
+  </noscript>
+</main>
+
+<footer class="foot">
+  <p class="authors">prof. dr Darinka Golubović Matić · doc. dr Semir Poturak</p>
+  <p class="foot-note" data-i18n="footNote">Merenja potiču sa javnih i građanskih senzorskih mreža.
+  Misli su AI interpretacija pod strogim epistemičkim kapijama — i prihvaćene i
+  odbijene su javne. Svežina se meri tvojim satom, ne satom servera.</p>
+</footer>
+</body>
+</html>
