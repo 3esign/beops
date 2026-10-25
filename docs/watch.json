@@ -1,13 +1,13 @@
 {
  "schema": "beops-watch/v1",
- "at": "2026-10-25T15:09:11Z",
- "verdict": "late",
+ "at": "2026-10-25T15:49:06Z",
+ "verdict": "stalled",
  "counts": {
-  "ok": 36,
-  "late": 3,
+  "ok": 17,
+  "late": 21,
   "unknown": 0,
-  "stalled": 0,
-  "blocked": 2,
+  "stalled": 2,
+  "blocked": 1,
   "paused": 2
  },
  "figures": {
@@ -15,20 +15,39 @@
   "hours": 169
  },
  "not_current": [
+  "AI observations",
   "coverage 24h",
   "ledger persistence",
   "mind",
   "published",
+  "source S01",
   "source S03",
+  "source S04",
+  "source S10",
   "source S11",
-  "source S207"
+  "source S15",
+  "source S175",
+  "source S195",
+  "source S196",
+  "source S197",
+  "source S198",
+  "source S207",
+  "source S208",
+  "source S219",
+  "source S68",
+  "source S69",
+  "source S74",
+  "source S75",
+  "source S76",
+  "source S78",
+  "watchman"
  ],
  "checks": [
   {
    "check": "watchman",
-   "state": "ok",
-   "said": "10 min since the last reading",
-   "gap_min": 10.0
+   "state": "late",
+   "said": "50 min since the last reading - nothing here speaks for that gap",
+   "gap_min": 49.9
   },
   {
    "check": "published",
@@ -38,96 +57,95 @@
   {
    "check": "history",
    "state": "ok",
-   "said": "full history paused; 7d window carries 169 h of record, newest hour 4.2 h behind",
+   "said": "full history paused; 7d window carries 169 h of record, newest hour 4.8 h behind",
    "hours": 169,
    "newest_hour": "2026-10-25T11",
-   "hours_behind": 4.15
+   "hours_behind": 4.82
   },
   {
    "check": "mind",
    "state": "late",
-   "said": "newest drop 57 min ago",
-   "age_min": 56.8,
-   "checked_at": "2026-10-25T15:44:24.260184Z"
+   "said": "newest drop 74 min ago",
+   "age_min": 74.3,
+   "checked_at": "2026-10-25T16:01:58.113887Z"
   },
   {
    "check": "AI observations",
-   "state": "ok",
-   "said": "latest accepted monologue is within one hour",
-   "age_min": 50.2
+   "state": "stalled",
+   "said": "no recent durable feed tick"
   },
   {
    "check": "coverage 24h",
    "state": "late",
-   "said": "30 sources below 90% of their slots in 24 h: S01 20%, S10 20%, S15 20%, S175 20%, S195 20%, S196 20%, S197 20%, S198 20% (3 not counted, stopped by the permission gate: S03, S11, S207)",
+   "said": "30 sources below 90% of their slots in 24 h: S01 18%, S10 18%, S15 18%, S175 18%, S195 18%, S196 18%, S197 18%, S198 18% (2 not counted, stopped by the permission gate: S11, S207)",
    "below": [
     {
      "sid": "S01",
-     "share": 0.198
+     "share": 0.177
     },
     {
      "sid": "S10",
-     "share": 0.198
+     "share": 0.177
     },
     {
      "sid": "S15",
-     "share": 0.198
+     "share": 0.177
     },
     {
      "sid": "S175",
-     "share": 0.198
+     "share": 0.177
     },
     {
      "sid": "S195",
-     "share": 0.198
+     "share": 0.177
     },
     {
      "sid": "S196",
-     "share": 0.198
+     "share": 0.177
     },
     {
      "sid": "S197",
-     "share": 0.198
+     "share": 0.177
     },
     {
      "sid": "S198",
-     "share": 0.198
+     "share": 0.177
     },
     {
      "sid": "S208",
-     "share": 0.198
+     "share": 0.177
     },
     {
      "sid": "S68",
-     "share": 0.198
+     "share": 0.177
     },
     {
      "sid": "S69",
-     "share": 0.198
+     "share": 0.177
     },
     {
      "sid": "S75",
-     "share": 0.198
+     "share": 0.177
     },
     {
      "sid": "S76",
-     "share": 0.198
-    },
-    {
-     "sid": "S04",
-     "share": 0.222
+     "share": 0.177
     },
     {
      "sid": "S219",
-     "share": 0.229
+     "share": 0.188
     },
     {
      "sid": "S74",
-     "share": 0.229
+     "share": 0.188
     },
     {
      "sid": "S78",
-     "share": 0.229
+     "share": 0.188
+    },
+    {
+     "sid": "S04",
+     "share": 0.194
     },
     {
      "sid": "S12",
@@ -158,6 +176,18 @@
      "share": 0.25
     },
     {
+     "sid": "S220",
+     "share": 0.25
+    },
+    {
+     "sid": "S221",
+     "share": 0.25
+    },
+    {
+     "sid": "S222",
+     "share": 0.25
+    },
+    {
      "sid": "S223",
      "share": 0.25
     },
@@ -168,22 +198,9 @@
     {
      "sid": "S54",
      "share": 0.25
-    },
-    {
-     "sid": "S221",
-     "share": 0.375
-    },
-    {
-     "sid": "S220",
-     "share": 0.5
-    },
-    {
-     "sid": "S222",
-     "share": 0.5
     }
    ],
    "gated": [
-    "S03",
     "S11",
     "S207"
    ]
@@ -204,83 +221,83 @@
   {
    "check": "source S146",
    "state": "ok",
-   "said": "asked 36 min ago, newest value 36 min old",
+   "said": "asked 76 min ago, newest value 76 min old",
    "sid": "S146",
    "cadence_min": 60,
-   "asked_min_ago": 36.2,
-   "heard_min_ago": 36.2
+   "asked_min_ago": 76.1,
+   "heard_min_ago": 76.1
   },
   {
    "check": "source S04",
-   "state": "ok",
-   "said": "asked 1 min ago, newest value 1 min old",
+   "state": "late",
+   "said": "last asked 26 min ago, over two cadences of 10 min",
    "sid": "S04",
    "cadence_min": 10,
-   "asked_min_ago": 1.2,
-   "heard_min_ago": 1.1
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 41.0
   },
   {
    "check": "source S10",
-   "state": "ok",
-   "said": "asked 6 min ago, newest value 6 min old",
+   "state": "late",
+   "said": "attempted 26 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S10",
    "cadence_min": 15,
-   "asked_min_ago": 6.2,
-   "heard_min_ago": 6.2
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 46.1
   },
   {
    "check": "source S68",
-   "state": "ok",
-   "said": "asked 6 min ago, silent for 111 min - the source has nothing to say, which is a record and not a fault",
+   "state": "late",
+   "said": "attempted 26 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S68",
    "cadence_min": 15,
-   "asked_min_ago": 6.2,
-   "heard_min_ago": 111.1
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 151.0
   },
   {
    "check": "source S69",
-   "state": "ok",
-   "said": "asked 6 min ago, newest value 6 min old",
+   "state": "late",
+   "said": "attempted 26 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S69",
    "cadence_min": 15,
-   "asked_min_ago": 6.2,
-   "heard_min_ago": 6.0
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 45.9
   },
   {
    "check": "source S75",
-   "state": "ok",
-   "said": "asked 6 min ago, newest value 81 min old",
+   "state": "late",
+   "said": "attempted 26 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S75",
    "cadence_min": 15,
-   "asked_min_ago": 6.2,
-   "heard_min_ago": 81.1
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 121.0
   },
   {
    "check": "source S76",
-   "state": "ok",
-   "said": "asked 6 min ago, newest value 6 min old",
+   "state": "late",
+   "said": "attempted 26 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S76",
    "cadence_min": 15,
-   "asked_min_ago": 6.2,
-   "heard_min_ago": 5.9
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 45.9
   },
   {
    "check": "source S78",
-   "state": "ok",
-   "said": "asked 21 min ago, newest value 81 min old",
+   "state": "late",
+   "said": "attempted 26 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S78",
    "cadence_min": 30,
-   "asked_min_ago": 21.2,
-   "heard_min_ago": 81.0
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 120.9
   },
   {
    "check": "source S74",
-   "state": "ok",
-   "said": "asked 21 min ago, silent for 216 min - the source has nothing to say, which is a record and not a fault",
+   "state": "late",
+   "said": "attempted 26 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S74",
    "cadence_min": 30,
-   "asked_min_ago": 21.2,
-   "heard_min_ago": 215.6
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 255.5
   },
   {
    "check": "source S11",
@@ -292,111 +309,111 @@
   },
   {
    "check": "source S175",
-   "state": "ok",
-   "said": "asked 6 min ago, silent for 216 min - the source has nothing to say, which is a record and not a fault",
+   "state": "late",
+   "said": "attempted 26 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S175",
    "cadence_min": 15,
-   "asked_min_ago": 6.2,
-   "heard_min_ago": 215.6
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 255.5
   },
   {
    "check": "source S195",
-   "state": "ok",
-   "said": "asked 6 min ago, newest value 6 min old",
+   "state": "late",
+   "said": "attempted 26 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S195",
    "cadence_min": 15,
-   "asked_min_ago": 6.2,
-   "heard_min_ago": 5.9
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 45.8
   },
   {
    "check": "source S196",
-   "state": "ok",
-   "said": "asked 6 min ago, silent for 2505 min - the source has nothing to say, which is a record and not a fault",
+   "state": "late",
+   "said": "attempted 26 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S196",
    "cadence_min": 15,
-   "asked_min_ago": 6.2,
-   "heard_min_ago": 2505.4
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 2545.3
   },
   {
    "check": "source S197",
-   "state": "ok",
-   "said": "asked 6 min ago, newest value 6 min old",
+   "state": "late",
+   "said": "attempted 26 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S197",
    "cadence_min": 15,
-   "asked_min_ago": 6.2,
-   "heard_min_ago": 5.9
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 45.8
   },
   {
    "check": "source S198",
-   "state": "ok",
-   "said": "asked 6 min ago, newest value 6 min old",
+   "state": "late",
+   "said": "attempted 26 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S198",
    "cadence_min": 15,
-   "asked_min_ago": 6.2,
-   "heard_min_ago": 5.9
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 45.8
   },
   {
    "check": "source S199",
    "state": "ok",
-   "said": "asked 36 min ago, newest value 215 min old",
+   "said": "asked 76 min ago, newest value 255 min old",
    "sid": "S199",
    "cadence_min": 60,
-   "asked_min_ago": 36.2,
-   "heard_min_ago": 215.4
+   "asked_min_ago": 76.1,
+   "heard_min_ago": 255.3
   },
   {
    "check": "source S200",
    "state": "ok",
-   "said": "asked 36 min ago, newest value 96 min old",
+   "said": "asked 76 min ago, newest value 136 min old",
    "sid": "S200",
    "cadence_min": 60,
-   "asked_min_ago": 36.2,
-   "heard_min_ago": 95.9
+   "asked_min_ago": 76.1,
+   "heard_min_ago": 135.8
   },
   {
    "check": "source S201",
    "state": "ok",
-   "said": "asked 36 min ago, newest value 36 min old",
+   "said": "asked 76 min ago, newest value 76 min old",
    "sid": "S201",
    "cadence_min": 60,
-   "asked_min_ago": 36.2,
-   "heard_min_ago": 36.0
+   "asked_min_ago": 76.1,
+   "heard_min_ago": 75.9
   },
   {
    "check": "source S202",
    "state": "ok",
-   "said": "asked 36 min ago, newest value 215 min old",
+   "said": "asked 76 min ago, newest value 255 min old",
    "sid": "S202",
    "cadence_min": 60,
-   "asked_min_ago": 36.2,
-   "heard_min_ago": 215.3
+   "asked_min_ago": 76.1,
+   "heard_min_ago": 255.2
   },
   {
    "check": "source S203",
    "state": "ok",
-   "said": "asked 36 min ago, newest value 96 min old",
+   "said": "asked 76 min ago, newest value 136 min old",
    "sid": "S203",
    "cadence_min": 60,
-   "asked_min_ago": 36.2,
-   "heard_min_ago": 95.9
+   "asked_min_ago": 76.1,
+   "heard_min_ago": 135.8
   },
   {
    "check": "source S15",
-   "state": "ok",
-   "said": "asked 6 min ago, silent for 96 min - the source has nothing to say, which is a record and not a fault",
+   "state": "late",
+   "said": "attempted 26 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S15",
    "cadence_min": 15,
-   "asked_min_ago": 6.2,
-   "heard_min_ago": 95.8
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 135.8
   },
   {
    "check": "source S208",
-   "state": "ok",
-   "said": "asked 6 min ago, silent for 130 min - the source has nothing to say, which is a record and not a fault",
+   "state": "late",
+   "said": "attempted 26 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S208",
    "cadence_min": 15,
-   "asked_min_ago": 6.2,
-   "heard_min_ago": 130.2
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 170.1
   },
   {
    "check": "source S207",
@@ -409,100 +426,101 @@
   {
    "check": "source S12",
    "state": "ok",
-   "said": "asked 36 min ago, newest value 215 min old",
+   "said": "asked 76 min ago, newest value 255 min old",
    "sid": "S12",
    "cadence_min": 60,
-   "asked_min_ago": 36.2,
-   "heard_min_ago": 215.2
+   "asked_min_ago": 76.1,
+   "heard_min_ago": 255.1
   },
   {
    "check": "source S01",
-   "state": "ok",
-   "said": "asked 6 min ago, newest value 6 min old",
+   "state": "late",
+   "said": "attempted 26 min ago; last attempt failed (HTTP 200); {'type': 'TimeoutError', 'message': 'resource busy: .write.lock'}",
    "sid": "S01",
    "cadence_min": 15,
-   "asked_min_ago": 6.2,
-   "heard_min_ago": 5.9
+   "asked_min_ago": 26.1,
+   "heard_min_ago": 45.8
   },
   {
    "check": "source S03",
-   "state": "blocked",
-   "said": "collection blocked: permission unknown, refused, or incomplete",
+   "state": "stalled",
+   "said": "we stopped asking 3051 min ago (cadence 15 min) - this is ours, not the publisher's",
    "sid": "S03",
    "cadence_min": 15,
-   "network_requests": 0
+   "asked_min_ago": 3051.1,
+   "heard_min_ago": 3066.0
   },
   {
    "check": "source S52",
    "state": "ok",
-   "said": "asked 36 min ago, newest value 215 min old",
+   "said": "asked 76 min ago, newest value 255 min old",
    "sid": "S52",
    "cadence_min": 60,
-   "asked_min_ago": 36.2,
-   "heard_min_ago": 215.1
+   "asked_min_ago": 76.1,
+   "heard_min_ago": 255.0
   },
   {
    "check": "source S54",
    "state": "ok",
-   "said": "asked 36 min ago, newest value 215 min old",
+   "said": "asked 76 min ago, newest value 255 min old",
    "sid": "S54",
    "cadence_min": 60,
-   "asked_min_ago": 36.2,
-   "heard_min_ago": 215.1
+   "asked_min_ago": 76.1,
+   "heard_min_ago": 255.0
   },
   {
    "check": "source S219",
-   "state": "ok",
-   "said": "asked 21 min ago, silent for 215 min - the source has nothing to say, which is a record and not a fault",
+   "state": "late",
+   "said": "last asked 61 min ago, over two cadences of 30 min",
    "sid": "S219",
    "cadence_min": 30,
-   "asked_min_ago": 21.2,
-   "heard_min_ago": 215.0
+   "asked_min_ago": 61.1,
+   "heard_min_ago": 255.0
   },
   {
    "check": "source S220",
    "state": "ok",
-   "said": "asked 216 min ago, newest value 215 min old",
+   "said": "asked 256 min ago, newest value 255 min old",
    "sid": "S220",
    "cadence_min": 360,
-   "asked_min_ago": 216.2,
-   "heard_min_ago": 215.0
+   "asked_min_ago": 256.1,
+   "heard_min_ago": 254.9
   },
   {
    "check": "source S221",
    "state": "ok",
-   "said": "asked 36 min ago, newest value 215 min old",
+   "said": "asked 76 min ago, newest value 255 min old",
    "sid": "S221",
    "cadence_min": 180,
-   "asked_min_ago": 36.2,
-   "heard_min_ago": 215.0
+   "asked_min_ago": 76.1,
+   "heard_min_ago": 254.9
   },
   {
    "check": "source S222",
    "state": "ok",
-   "said": "asked 216 min ago, newest value 215 min old",
+   "said": "asked 256 min ago, newest value 255 min old",
    "sid": "S222",
    "cadence_min": 360,
-   "asked_min_ago": 216.2,
-   "heard_min_ago": 215.0
+   "asked_min_ago": 256.1,
+   "heard_min_ago": 254.9
   },
   {
    "check": "source S223",
    "state": "ok",
-   "said": "asked 36 min ago, newest value 36 min old",
+   "said": "asked 76 min ago, newest value 76 min old",
    "sid": "S223",
    "cadence_min": 60,
-   "asked_min_ago": 36.2,
-   "heard_min_ago": 35.8
+   "asked_min_ago": 76.1,
+   "heard_min_ago": 75.7
   },
   {
    "check": "source S224",
    "state": "ok",
-   "said": "asked 216 min ago, newest value 2501 min old",
+   "said": "asked 256 min ago, newest value 2541 min old",
    "sid": "S224",
    "cadence_min": 1440,
-   "asked_min_ago": 216.2,
-   "heard_min_ago": 2501.0
+   "asked_min_ago": 256.1,
+   "heard_min_ago": 2540.9
   },
   {
    "check": "ledger persistence",
@@ -510,7 +528,7 @@
    "said": "Shared input lock remained busy; this reading was not appended to the monitoring ledger."
   }
  ],
- "elapsed_seconds": 2115.1,
+ "elapsed_seconds": 772.3,
  "persistence": {
   "ledger_written": false,
   "reason": "live_input_lock_busy",
