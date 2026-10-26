@@ -1,9 +1,9 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-10-26T11:14:57.655697+00:00",
-  "as_of": "2026-10-26T10:53:03.348320Z",
+  "generated_at": "2026-10-26T11:23:25.579108+00:00",
+  "as_of": "2026-10-26T11:18:21.889866Z",
   "city_status": {
-    "aqi_us": 30,
+    "aqi_us": 26,
     "category": "dobar",
     "dominant_pollutant": "PM2.5",
     "summary_sr": "Vazduh u Beogradu je dobrog kvaliteta.",
@@ -11,18 +11,18 @@
   },
   "current_metrics": {
     "pm25": {
-      "mean": 7.2,
+      "mean": 6.2,
       "min": 0.0,
-      "max": 46.9,
-      "max_station": "47427",
+      "max": 20.9,
+      "max_station": "Leštane",
       "unit": "µg/m³",
       "sensors_count": 57
     },
     "pm10": {
-      "mean": 10.5,
+      "mean": 9.4,
       "min": 0.0,
-      "max": 51.5,
-      "max_station": "47427",
+      "max": 30.1,
+      "max_station": "Leštane",
       "unit": "µg/m³",
       "sensors_count": 57
     },
@@ -43,39 +43,45 @@
       "sensors_count": 26
     },
     "meteo": {
-      "temperature": 15.0,
-      "humidity": 65.7,
-      "pressure": 1005.4,
+      "temperature": 15.4,
+      "humidity": 60.9,
+      "pressure": 1005.3,
       "wind_speed": 6.3,
-      "wind_direction": "300.0"
+      "wind_direction": "330.0"
     }
   },
   "superintelligence_monologue": {
-    "id": "mind-20261026104732-0",
-    "at": "2026-10-26T10:47:32.096033Z",
-    "speaker": "Posmatrač",
-    "speaker_role": "observer",
-    "text_sr": "Najveća prikazana promena parkinga u ovom prozoru je u Garaži \"Obilićev venac\": sa 414 na 1 slobodno mesto, bez objavljenog vremena merenja. To je upravo vrsta obližnjeg parking-displeja koju je Connector tražio, i to nije VMA — Skeptikovo odbacivanje bolničke priče ostaje netaknuto onim što je sada stiglo. Sam Parking Servis je poslednji put javio pre 19 min, pa ovaj pomak uređuje samo prijeme, ne minut kada se garaža napunila. [F6][F5]",
-    "text_en": "The largest displayed parking change in this window is at Garaža \"Obilićev venac\": from 414 to 1 free spaces, with no measurement time published [F6][F5]. That is exactly the kind of nearby parking display Connector asked for, and it is not VMA — Skeptic's rejection of the hospital story stands untouched by what arrived now. Parking Servis itself last reported 19 min ago [F5], so this move orders only receptions, not the minute the garage filled.",
+    "id": "mind-20261026111934-0",
+    "at": "2026-10-26T11:19:34.568896Z",
+    "speaker": "Sumnjalo",
+    "speaker_role": "skeptic",
+    "text_sr": "Starosti prijema kod Connectora i Observera su zastarele: SEPA je sada stara 46 min, građanski senzori 26 min, Parking Servis 36 min. Pomak na Obilićevom vencu sa 414 na 1 ne nosi vreme merenja, a čak ga je i organ za iznenađenje ocenio samo 2/5 — kolaps te veličine u jednom prozoru liči koliko na reset displeja toliko i na punu garažu. U međuvremenu, organela za veze upari Blicov naslov o krađi kablova sa pričama o uredničkim imenovanjima i nagradama uz sličnost 0.74 i 0.73, a sam Blic nije isporučio ništa u poslednjih 6 h, 0 od 96 slotova; te veze se oslanjaju na naslov čiju starost nijedna činjenica ne potvrđuje. [F2][F4][F5][F6][F42][F39][F40][F41][F26]",
+    "text_en": "Connector's and Observer's reception ages are stale: SEPA is now 46 min old [F2], citizen sensors 26 min [F4], Parking Servis 36 min [F5]. The Obilićev venac move from 414 to 1 carries no measurement time [F6], and even the surprise organ rated it only 2/5 [F42] — a one-window collapse of that size looks as much like a display reset as a filled garage. Meanwhile the link organelle pairs Blic's cable-theft headline with editorial and award stories at similarity 0.74 and 0.73 [F39][F40][F41], yet Blic itself delivered nothing in the last 6 h, 0 of 96 slots [F26]; those links lean on a headline whose age no fact confirms.",
     "hypotheses_sr": [
-      "Pad u Garaži \"Obilićev venac\" sa 414 prikazanih slobodnih mesta na 1 [F6] mogao bi odražavati koncentrisanu tražnju u pešačkom jezgru, prostorno saglasnu sa proslavama posle izbora širom grada o kojima javljaju naslovi [F11][F21] — hipoteza, pošto izvor ne objavljuje vreme merenja [F5].",
-      "Ako tražnja u centru pokreće pomak na Obilićevom vencu [F6], druge lokacije u užem gradu među 27 lokacija Parking Servisa [F5] trebalo bi da pokažu padove u istom prozoru, dok periferne ne bi; pad jedne garaže uz stabilne susede ukazivao bi pre na nešto lokalno za tu garažu.",
-      "Studio B javlja da je u Pionirskom parku mirno [F9], dok obližnja centralna garaža prikazuje gotovo nula slobodnih mesta [F6]; ako oboje stoji, gužva i mir mogu biti razdvojeni svega nekoliko blokova — pomak garaže ne mora poticati od okupljanja u samom parku."
+      "Pad sa 414 na 1 u Garaži \"Obilićev venac\" [F6] je artefakt podataka ili reset displeja pre nego stvarna popunjenost: vreme merenja se ne objavljuje [F5][F6], a sam model iznenađenja ga je ocenio neupadljivim sa 2/5 [F42].",
+      "Embedding veze [F39][F40][F41] su lažno pozitivne — model rečeničnih embedinga grupiše generičku novinsku frazeologiju, ne identitet događaja: tri nepovezane teme usidrene na jedan Blicov naslov iz izvora koji ćuti, 0 od 96 slotova [F26]."
     ],
     "questions_sr": [
-      "Da li druge centralne lokacije među 27 prijavljenih lokacija Parking Servisa [F5] pokazuju paralelne padove u istom prozoru kao Obilićev venac [F6]?",
-      "Da li će displej Obilićevog venca pri sledećem prijemu da se vrati ka ranijoj vrednosti ili ostane blizu 1 [F6][F5]?"
+      "Da li je brojač Obilićevog venca prošao kroz međuvrednosti između prijema, ili je skočio sa 414 na 1 u jednom dolasku [F5][F6]?",
+      "Kada je Blicov naslov o krađi kablova zaista objavljen, s obzirom da Blicov fid nije isporučio ništa u poslednjih 6 h [F26][F39]?"
     ],
     "cites": [
+      "F2",
+      "F26",
+      "F39",
+      "F4",
+      "F40",
+      "F41",
+      "F42",
       "F5",
       "F6"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-10-26T10:47:32.096033Z",
+    "last_mind_step": "2026-10-26T11:19:34.568896Z",
     "active_sources_count": 37,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-10-26T10:53:03.348320Z"
+    "sensors_as_of": "2026-10-26T11:18:21.889866Z"
   }
 }
