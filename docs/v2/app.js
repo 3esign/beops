@@ -189,6 +189,31 @@ function hideTT() { if (ttEl) ttEl.hidden = true; }
 
 
 /* ── Kartica misli ──────────────────────────────────────── */
+function oslonciEl(t) {
+  const box = el('div', 'reading-proof');
+  if (t.status_odgovora === 'nedovoljno_podataka')
+    box.appendChild(el('p', 'reading-note', LANG === 'sr' ? 'Nema dovoljno podataka za zaključak' : 'Insufficient evidence for a conclusion'));
+  if (t.oblik !== 'esej' && t.pouzdanost)
+    box.appendChild(el('p', 'sub', (LANG === 'sr' ? 'Procena modela: ' : 'Model assessment: ') + t.pouzdanost));
+  if (t.ekspertize) {
+    const exp = el('details');
+    exp.appendChild(el('summary', null, LANG === 'sr' ? 'Šta treba stručno proveriti' : 'Expert checks needed'));
+    exp.appendChild(el('p', 'tekst', t.ekspertize)); box.appendChild(exp);
+  }
+  const items = (t.oslonci || []).length ? t.oslonci : (t.cites || []).map(id => ({ naslov: id }));
+  if (items.length) {
+    const det = el('details');
+    det.appendChild(el('summary', null, (LANG === 'sr' ? 'Izvori i ograničenja' : 'Sources and limitations') + ' · ' + items.length));
+    for (const e of items) {
+      det.appendChild(el('h4', null, e.naslov));
+      if (e.at || e.izvor) det.appendChild(el('p', 'meta', [e.at && absTime(e.at), e.izvor].filter(Boolean).join(' · ')));
+      if (e.tekst) det.appendChild(el('p', 'source-record', e.tekst));
+    }
+    if (t.kontekst_sha256) det.appendChild(el('p', 'meta source-record', 'SHA-256: ' + t.kontekst_sha256));
+    box.appendChild(det);
+  }
+  return box;
+}
 function thoughtCard(t) {
   const card = el('article', 'misao' + (t.state === 'rejected' ? ' rejected' : ''));
   const head = el('div', 'misao-head');
@@ -199,6 +224,8 @@ function thoughtCard(t) {
   const tim = el('span', 'time', absTime(t.at));
   head.appendChild(tim);
   card.appendChild(head);
+  if (t.urednicka_napomena) card.appendChild(el('p', 'reading-note', t.urednicka_napomena));
+  if (t.odgovor_na_pitanje) card.appendChild(el('p', 'direct-answer', t.odgovor_na_pitanje));
 
   const txt = LANG === 'sr' ? (t.text_sr || t.text_en) : (t.text_en || t.text_sr);
   card.appendChild(el('p', 'tekst' + (t.state === 'rejected' ? ' rej' : ''), txt || '—'));
@@ -224,15 +251,7 @@ function thoughtCard(t) {
     det.appendChild(ul);
     card.appendChild(det);
   }
-  if ((t.cites || []).length) {
-    const c = el('div', 'cites');
-    for (const cid of t.cites) {
-      const ch = el('span', 'cite', '[' + cid + ']');
-      ch.title = T().citatHint;
-      c.appendChild(ch);
-    }
-    card.appendChild(c);
-  }
+  card.appendChild(oslonciEl(t));
   return card;
 }
 
@@ -262,18 +281,14 @@ function esejCard(t) {
   head.appendChild(stampEl(t.at, 4));
   art.appendChild(head);
   if (t.naslov) art.appendChild(el('h3', 'esej-naslov', t.naslov));
+  if (t.urednicka_napomena) art.appendChild(el('p', 'reading-note', t.urednicka_napomena));
   /* starost nosioca na glas: razmatranje starije od 12 h to i kaže */
   if (Date.now() - Date.parse(t.at) > 12 * 3600e3) art.appendChild(el('p', 'sub', T().esejStaro));
   const body = el('div', 'esej-telo');
   for (const p of reci.split(/\n+/)) if (p.trim()) body.appendChild(el('p', null, p.trim()));
   art.appendChild(body);
   /* dokazi van proze: oslonci eseja kao čipovi, ne zagrade u rečenici */
-  if ((t.cites || []).length) {
-    const c = el('div', 'cites');
-    c.appendChild(el('span', 'meta', T().dokaziLabel + ':'));
-    for (const cid of t.cites) c.appendChild(el('span', 'cite', cid));
-    art.appendChild(c);
-  }
+  art.appendChild(oslonciEl(t));
   return art;
 }
 function karticaCard(t) {
