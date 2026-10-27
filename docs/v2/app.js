@@ -23,6 +23,7 @@ function loadCore() {
     jfetch('state/puls.json'),
     jfetch('state/misli-7d.json'),
     jfetch('state/organizam.json'),
+    jfetch('state/oslonci.json').then(m => { STATE.oslonciFull = m; }, () => { STATE.oslonciFull = { oslonci: {} }; })
   ]).then(([puls, misli, organizam]) => {
     STATE.puls = puls; STATE.misli = misli; STATE.organizam = organizam;
   });
@@ -57,6 +58,18 @@ function loadBelaznica() {
 function loadMapaNews() {
   if (!STATE.mapaNews) return jfetch('state/mapa_news.json').then(m => { STATE.mapaNews = m; }, () => {});
   return Promise.resolve();
+}
+/* pun tekst oslonaca: ugovor misli nosi samo prozor (280 + …), pun tekst živi
+   u oslonci.json po misli; stariji rasporedi bez fajla — prikaz ostaje na prozoru */
+function loadOslonci() {
+  if (!STATE.oslonciFull) return jfetch('state/oslonci.json').then(m => { STATE.oslonciFull = m; }, () => { STATE.oslonciFull = { oslonci: {} }; });
+  return Promise.resolve();
+}
+function punTekstOslonca(t, e) {
+  const mapa = STATE.oslonciFull && STATE.oslonciFull.oslonci && STATE.oslonciFull.oslonci[t.id];
+  if (!mapa) return e.tekst;
+  const pun = mapa.find(p => p.id === e.id);
+  return (pun && pun.tekst) || e.tekst;
 }
 
 /* ── Svežina (P2): meri je sat čitaoca ──────────────────── */
@@ -207,7 +220,7 @@ function oslonciEl(t) {
     for (const e of items) {
       det.appendChild(el('h4', null, e.naslov));
       if (e.at || e.izvor) det.appendChild(el('p', 'meta', [e.at && absTime(e.at), e.izvor].filter(Boolean).join(' · ')));
-      if (e.tekst) det.appendChild(el('p', 'source-record', e.tekst));
+      if (e.tekst) det.appendChild(el('p', 'source-record', punTekstOslonca(t, e)));
     }
     if (t.kontekst_sha256) det.appendChild(el('p', 'meta source-record', 'SHA-256: ' + t.kontekst_sha256));
     box.appendChild(det);
