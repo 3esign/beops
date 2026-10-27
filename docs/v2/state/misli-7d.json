@@ -1,17 +1,17 @@
 {
   "schema": "beops-v2-misli/v1.1",
-  "generated_at": "2026-10-27T18:13:24.362Z",
-  "as_of": "2026-10-27T18:11:32.321070Z",
-  "total_thoughts": 82,
+  "generated_at": "2026-10-27T18:23:25.412Z",
+  "as_of": "2026-10-27T18:17:48.565Z",
+  "total_thoughts": 80,
   "filter_counts": {
-    "accepted": 52,
+    "accepted": 50,
     "rejected": 30,
     "observer": 21,
     "skeptic": 21,
     "connector": 21,
     "organelle": 12,
     "ai_feed": 0,
-    "bridge": 7,
+    "bridge": 5,
     "kartice": 3,
     "eseji": 2
   },
@@ -1645,126 +1645,6 @@
       "urednicka_napomena": "Ispravka: preporuka da je oko podneva najbolje vreme za izlazak nije potkrepljena prognozom niti poređenjem celog dana. Taj savet je povučen. Izvorno tumačenje ostaje ispod radi sledljivosti."
     },
     {
-      "id": "bridge:2026-10-27T12-00-20-337Z__m4__zai-glm-5_3-flash",
-      "at": "2026-10-27T12:00:53.264Z",
-      "origin": "bridge",
-      "entity": "bridge:zai",
-      "entity_label": "zai/glm-5.3-flash",
-      "model": "zai/glm-5.3-flash",
-      "prompt_id": "M4",
-      "oblik": "misao",
-      "narav": null,
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "U paketu postoji samo trenutni presek merenja čestica po gradu i po pojedinim stanicama; nema nijedne prognoze sa vremenom važenja za traženo mesto, pa prošla i sadašnja očitavanja ne mogu odrediti budući najčistiji termin — svaki izbor bi bila pretpostavka bez zapisa.",
-      "text_en": null,
-      "hypotheses_sr": [],
-      "questions_sr": [],
-      "cites": [
-        "puls:pm25",
-        "puls:pm10"
-      ],
-      "pouzdanost": "nisko — nema prognoze niti duže vremenske serije, a presek nije potvrđen čas svakog senzora",
-      "naslov": null,
-      "prompt_version": 4,
-      "status_odgovora": "nedovoljno_podataka",
-      "odgovor_na_pitanje": null,
-      "ekspertize": null,
-      "prozor": "—",
-      "kontekst_sha256": "7f86d7a0e8fd3efb3c411491545d86ada5d821f95ccbb57e0ed4ddc09923aae2",
-      "oslonci": [
-        {
-          "id": "puls:pm25",
-          "naslov": "PM25",
-          "tekst": "{\"mean\":10.4,\"min\":1.1,\"max\":37.4,\"max_station\":\"Mirijevo\",\"unit\":\"µg/m³\",\"sensors_count\":57}",
-          "at": "2026-10-27T11:33:17.724188Z",
-          "izvor": "state/puls.json#/current_metrics/pm25"
-        },
-        {
-          "id": "puls:pm10",
-          "naslov": "PM10",
-          "tekst": "{\"mean\":17.3,\"min\":1.1,\"max\":49.2,\"max_station\":\"Omladinskih brigada\",\"unit\":\"µg/m³\",\"sensors_count\":57}",
-          "at": "2026-10-27T11:33:17.724188Z",
-          "izvor": "state/puls.json#/current_metrics/pm10"
-        }
-      ],
-      "level": "srednje",
-      "za_gradjanina": null,
-      "validacija": {
-        "state": "accepted",
-        "razlog": [],
-        "at": "2026-10-27T12:03:44.109Z"
-      }
-    },
-    {
-      "id": "bridge:2026-10-27T12-02-13-827Z__m1__zai-glm-5_3-flash",
-      "at": "2026-10-27T12:04:40.855Z",
-      "origin": "bridge",
-      "entity": "bridge:zai",
-      "entity_label": "zai/glm-5.3-flash",
-      "model": "zai/glm-5.3-flash",
-      "prompt_id": "M1",
-      "oblik": "misao",
-      "narav": null,
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "Paket izričito navodi da nema prognoze niti dokaza za budući najčistiji termin, a bez satne serije termin u 15:47 nema sa čim ni da se uporedi. Ozon sada stoji na 33,6 µg/m³, ali nemam zapis kako se menja do popodneva — tvrdnja o njegovom dnevnom hodu bila bi pretpostavka o navici vazduha, koju zapis ne pokazuje. Raspon PM10 po stanicama je od 1,1 do 49,2 µg/m³, pa ni „gde je najčišće“ ne mogu da vezujem za kasniji termin.",
-      "text_en": null,
-      "hypotheses_sr": [],
-      "questions_sr": [],
-      "cites": [
-        "puls:pm25",
-        "puls:pm10",
-        "puls:o3",
-        "puls:meteo"
-      ],
-      "pouzdanost": "visoko — paket sam navodi odsustvo prognoze i bilo kakve osnove za budući najčistiji termin, pa je nalaz o nedostatku podataka čvrsto utemeljen.",
-      "naslov": null,
-      "prompt_version": 4,
-      "status_odgovora": "nedovoljno_podataka",
-      "odgovor_na_pitanje": "Ne mogu to potvrditi — paket nema prognozu ni satni sastav za popodne, samo presek od 11:33 UTC: PM2.5 prosek 10,4 µg/m³, PM10 prosek 17,3 µg/m³, temperatura 12,7 °C. Da li je 15:47 danas najbolji i siguran termin za trčanje, iz ovih zapisa se ne vidi.",
-      "ekspertize": null,
-      "prozor": null,
-      "kontekst_sha256": "b2739394f905a9e7e602783473b2c89a36ae7ca46909ac5933d9c2eea0f5ffed",
-      "oslonci": [
-        {
-          "id": "puls:pm25",
-          "naslov": "PM25",
-          "tekst": "{\"mean\":10.4,\"min\":1.1,\"max\":37.4,\"max_station\":\"Mirijevo\",\"unit\":\"µg/m³\",\"sensors_count\":57}",
-          "at": "2026-10-27T11:33:17.724188Z",
-          "izvor": "state/puls.json#/current_metrics/pm25"
-        },
-        {
-          "id": "puls:pm10",
-          "naslov": "PM10",
-          "tekst": "{\"mean\":17.3,\"min\":1.1,\"max\":49.2,\"max_station\":\"Omladinskih brigada\",\"unit\":\"µg/m³\",\"sensors_count\":57}",
-          "at": "2026-10-27T11:33:17.724188Z",
-          "izvor": "state/puls.json#/current_metrics/pm10"
-        },
-        {
-          "id": "puls:o3",
-          "naslov": "O3",
-          "tekst": "{\"mean\":33.6,\"min\":11.5,\"max\":50.8,\"max_station\":\"Surčin\",\"unit\":\"µg/m³\",\"sensors_count\":26}",
-          "at": "2026-10-27T11:33:17.724188Z",
-          "izvor": "state/puls.json#/current_metrics/o3"
-        },
-        {
-          "id": "puls:meteo",
-          "naslov": "Vremenski uslovi",
-          "tekst": "{\"temperature\":12.7,\"humidity\":63.5,\"pressure\":1006,\"wind_speed\":5.3,\"wind_direction\":\"330.0\"}",
-          "at": "2026-10-27T11:33:17.724188Z",
-          "izvor": "state/puls.json#/current_metrics/meteo"
-        }
-      ],
-      "level": "površinsko",
-      "za_gradjanina": null,
-      "validacija": {
-        "state": "accepted",
-        "razlog": [],
-        "at": "2026-10-27T12:06:56.510Z"
-      }
-    },
-    {
       "model": "gpt-6.1-sol",
       "prompt_id": null,
       "oblik": "misao",
@@ -1903,41 +1783,6 @@
         "F4"
       ],
       "level": "povrsinsko"
-    },
-    {
-      "id": "bridge:2026-10-27T13-15-01-457Z__zai-glm-5_3-flash",
-      "at": "2026-10-27T13:17:32.395Z",
-      "origin": "bridge",
-      "entity": "bridge:zai",
-      "entity_label": "zai/glm-5.3-flash",
-      "model": "zai/glm-5.3-flash",
-      "prompt_id": null,
-      "oblik": "misao",
-      "narav": null,
-      "state": "rejected",
-      "rejection_reason": "nema polja za_gradjanina",
-      "text_sr": "Vazduh nad Beogradom danas nije jedan vazduh: senzor 97343 u centru meri PM2.5 od 4.22 µg/m³, dok prosek sa 57 senzora stoji na 10.4, a najviši zabeleženi trenutak je 37.4 na Mirijevu. To nisu dve priče nego ista slika iz dva uzorka iz istog minuta — centar diše gotovo čisto, a istovremeno postoji naselje gde je koncentracija višestruko iznad onoga što prosek sugeriše. Prosek od 10.4 dakle nije opis svakog kvarta, nego zbir mesta koja se veoma razlikuju. U isto vreme organizam pokazuje da je objava „late\" u svakom snimku satnice koji danas imam pred sobom, od 07:52 do 12:45, dok je prikupljanje „ok\" kroz ceo dan. Po pravilu iz satnice, merenja i objava su živi tek kad su i collect i publish „ok\" — znači grad meri redovno, ali sloj koji bi tu međukvartovsku razliku donio građanima kasni. Kombinovano gledano, upravo informacija o tome gde je vazduh loš je ona koja najsporije putuje do ljudi. Pretpostavljam da će razlika centar–Mirijevo ostati vidljiva i u popodnevnim snimcima, ali to je hipoteza dok ne stigne nov merodajan snimak. Ako razlike među naseljima prevazilaze dnevno kolebanje proseka, da li prosek uopšte treba da bude glavna reč o vazduhu?",
-      "text_en": null,
-      "hypotheses_sr": [],
-      "questions_sr": [],
-      "cites": [
-        "satnica 2026-10-27 12:45, tačka 1; satnica 2026-10-27 12:45, tačka 4; satnica 2026-10-27 07:52, tačka 4; istaknuto: PM2.5 4.22 µg/m³ — 97343\nza_gradjanin: Ne meri se grad jednim brojem — na Mirijevu je vazduh danas osetno lošiji od gradskog proseka, u centru gotovo čist, pa planiraj boravak napolju po kvartu, ne po prosekui. Pre nego što poveruješ objavljenom broju, proveri vreme merenja na snimku (as_of) — sloj objave danas kasni za merenjem."
-      ],
-      "pouzdanost": null,
-      "naslov": null,
-      "level": "veza",
-      "za_gradjanina": null,
-      "validacija": {
-        "state": "rejected",
-        "razlog": [
-          {
-            "pravilo": "za_gradjanina",
-            "stanje": "rejected",
-            "razlog": "nema polja za_gradjanina"
-          }
-        ],
-        "at": "2026-10-27T13:17:32.583Z"
-      }
     },
     {
       "model": "gpt-6.1-sol",
@@ -2624,6 +2469,117 @@
         "F5"
       ],
       "level": "veza"
+    },
+    {
+      "id": "bridge:2026-10-27T18-15-00-979Z__zai-glm-5_3-flash",
+      "at": "2026-10-27T18:17:48.565Z",
+      "origin": "bridge",
+      "entity": "bridge:zai",
+      "entity_label": "zai/glm-5.3-flash",
+      "model": "zai/glm-5.3-flash",
+      "prompt_id": null,
+      "oblik": "misao",
+      "narav": null,
+      "state": "rejected",
+      "rejection_reason": "brojevi izvan citiranih zapisa: 80",
+      "text_sr": "Današnji presek grada nosi spisak planiranih isključenja struje za sutra, 2026-10-28: najave pominju Čukaricu — Jastrebovljeva i još nekoliko ulica, od 09:00 do 15:00, Stari grad — Terazije 6-6, od 08:30 do 14:00, više tačaka na Zvezdari, od Mihaila Bulgakova i Čingrijine do Malog Mokrog Luga, Lazarevac sa terminom u Dudovici ujutru i u Junkovcu posle podneva, i Surčin — Banovačka i Radnička, do 13:00. To su najave, ne izvedeni prekidi: u paketu nema zapisa da je šta od toga već počelo ili završeno. A pitanje koje ostaje otvoreno: koliko ljudi u tim ulicama danas uopšte zna da im je sutra termin?",
+      "text_en": null,
+      "hypotheses_sr": [],
+      "questions_sr": [],
+      "cites": [
+        "izvor:07cd5c32a4d5cabb",
+        "izvor:08459918b423a8e9",
+        "izvor:097b550c2c4b2864",
+        "izvor:0c2547689144aa0c",
+        "izvor:3ab72e4cb638850a",
+        "izvor:3571933ed4034046",
+        "izvor:2880c8635d229ff5",
+        "izvor:3f101feb75a7b1c1"
+      ],
+      "pouzdanost": "srednje — termini i ulice su eksplicitno zapisani u najavama, ali su vesti označene kao procena i naslov ne potvrđuje da će isključenje zaista krenuti u navedeni sat.",
+      "naslov": null,
+      "prompt_version": 4,
+      "status_odgovora": "nalaz",
+      "odgovor_na_pitanje": null,
+      "ekspertize": null,
+      "prozor": null,
+      "kontekst_sha256": "2166f323f0c081f4fe24c8e8551822d0e2b1405ee11cddfbd71b4e16ca0f139f",
+      "oslonci": [
+        {
+          "id": "izvor:07cd5c32a4d5cabb",
+          "naslov": "Планирано искључење струје 2026-10-28 · Чукарица · 09:00 - 15:00 · ЈАСТРЕБОВЉЕВА: 16-28А,9-21, ЉЕШКА: 72-82,35-45А, МАТИЈЕ БАНА: 2-4,1, МИЛИСАВА ДАКИЋА: 2-4, НЕМИРОВИЋ ДАНЧЕНКА: 2,1-7, НИКОЛАЈА ГОГОЉА",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-28 · Чукарица · 09:00 - 15:00 · ЈАСТРЕБОВЉЕВА: 16-28А,9-21, ЉЕШКА: 72-82,35-45А, МАТИЈЕ БАНА: 2-4,1, МИЛИСАВА ДАКИЋА: 2-4, НЕМИРОВИЋ ДАНЧЕНКА: 2,1-7, НИКОЛАЈА…",
+          "at": "2026-10-28",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:08459918b423a8e9",
+          "naslov": "Планирано искључење струје 2026-10-28 · Стари град · 08:30 - 14:00 · ТЕРАЗИЈЕ: 6-6",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-28 · Стари град · 08:30 - 14:00 · ТЕРАЗИЈЕ: 6-6\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-10-28\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-10-28",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:097b550c2c4b2864",
+          "naslov": "Планирано искључење струје 2026-10-28 · Звездара · 08:30 - 16:00 · МИХАИЛА БУЛГАКОВА: 76-80,71-71А",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-28 · Звездара · 08:30 - 16:00 · МИХАИЛА БУЛГАКОВА: 76-80,71-71А\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-10-28\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-10-28",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:0c2547689144aa0c",
+          "naslov": "Планирано искључење струје 2026-10-28 · Звездара · 08:30 - 14:00 · Насеље М.МОКРИ ЛУГ: ПРВОМАЈСКА: 36-64,37-39А,43А-63А,67-71А, СТИШКА: 7-9",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-28 · Звездара · 08:30 - 14:00 · Насеље М.МОКРИ ЛУГ: ПРВОМАЈСКА: 36-64,37-39А,43А-63А,67-71А, СТИШКА: 7-9\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-10-28\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-10-28",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:2880c8635d229ff5",
+          "naslov": "Планирано искључење струје 2026-10-28 · Лазаревац · 12:00 - 13:30 · Јунковац (засеок Дом-према Великим Црљенима).",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-28 · Лазаревац · 12:00 - 13:30 · Јунковац (засеок Дом-према Великим Црљенима).\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-10-28\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-10-28",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:3571933ed4034046",
+          "naslov": "Планирано искључење струје 2026-10-28 · Лазаревац · 09:00 - 11:00 · Дудовица: Радничка,Др.Воје Даниловића,Друге шумадисјке бригаде,Станије Томић (засеок Дудовица 1).",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-28 · Лазаревац · 09:00 - 11:00 · Дудовица: Радничка,Др.Воје Даниловића,Друге шумадисјке бригаде,Станије Томић (засеок Дудовица 1).\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-10-28\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-10-28",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:3ab72e4cb638850a",
+          "naslov": "Планирано искључење струје 2026-10-28 · Звездара · 09:30 - 14:00 · ЧИНГРИЈИНА: ББ,2-18А,5-11, ДИМИТРИЈА ТУЦОВИЋА: 152,156-166, ДЈУЗЕПЕА МАНЦИНИЈА: 12-14, ЂОКА ВОЈВОДИЋА: 6-10, МИЛАНА РАКИЋА: 41А, МИЛО",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-28 · Звездара · 09:30 - 14:00 · ЧИНГРИЈИНА: ББ,2-18А,5-11, ДИМИТРИЈА ТУЦОВИЋА: 152,156-166, ДЈУЗЕПЕА МАНЦИНИЈА: 12-14, ЂОКА ВОЈВОДИЋА: 6-10, МИЛАНА РАКИЋА: 41А,…",
+          "at": "2026-10-28",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:3f101feb75a7b1c1",
+          "naslov": "Планирано искључење струје 2026-10-28 · Сурчин · 08:30 - 13:00 · Насеље СУРЧИН: БАНОВАЧКА: 48-64,21-23,27,31-35, РАДНИЧКА: 2-8,1-25а",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-28 · Сурчин · 08:30 - 13:00 · Насеље СУРЧИН: БАНОВАЧКА: 48-64,21-23,27,31-35, РАДНИЧКА: 2-8,1-25а\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-10-28\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-10-28",
+          "izvor": "news-sorter"
+        }
+      ],
+      "level": "veza",
+      "za_gradjanina": {
+        "akcija": "Ako si u Zvezdari, pogledaj još danas da li je tvoja ulica na spisku: najava za Mihaila Bulgakova 76-80 i 71-71A ide od 08:30 do 16:00, a za Mali Mokri Lug (Prvomajska, Stiška) od 08:30 do 14:00.",
+        "vazi_do": null,
+        "lokacija": "ПРВОМАЈСКА, СТИШКА, МИХАИЛА БУЛГАКОВА",
+        "dokaz": "izvor:07cd5c32a4d5cabb · izvor:08459918b423a8e9 · izvor:097b550c2c4b2864 · izvor:0c2547689144aa0c · izvor:3ab72e4cb638850a · izvor:3571933ed4034046 · izvor:2880c8635d229ff5 · izvor:3f101feb75a7b1c1"
+      },
+      "validacija": {
+        "state": "rejected",
+        "razlog": [
+          {
+            "pravilo": "brojevi_iz_dokaza",
+            "stanje": "rejected",
+            "razlog": "brojevi izvan citiranih zapisa: 80"
+          }
+        ],
+        "at": "2026-10-27T18:17:48.782Z"
+      }
     }
   ]
 }
