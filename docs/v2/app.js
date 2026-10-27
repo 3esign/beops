@@ -233,18 +233,20 @@ function fmtNum(x, dec) {
 }
 
 /* ── Mind identitet (brendovi modela se ne prikazuju) ───── */
-function mindKey(t) { return t.origin === 'ai_feed' ? 'ai' : (t.entity || 'unknown'); }
+function mindKey(t) { return t.origin === 'ai_feed' ? 'ai' : (t.origin === 'bridge' ? 'bridge' : (t.entity || 'unknown')); }
 function mindName(t) {
   const k = mindKey(t);
   if (k === 'ai') return T().aiLabel;
+  /* Zakon vidnog sloja: most je Svemir; potpis modela živi samo u javnom JSON-u. */
+  if (k === 'bridge') return mindDisplayName('bridge');
   return t.entity_label || t.entity_sr || k;
 }
 function mindVar(k) {
-  return { observer: 'var(--um-observer)', skeptic: 'var(--um-skeptic)', connector: 'var(--um-connector)', ai: 'var(--um-ai)', organelle: 'var(--um-organelle)' }[k] || 'var(--muted)';
+  return { observer: 'var(--um-observer)', skeptic: 'var(--um-skeptic)', connector: 'var(--um-connector)', ai: 'var(--um-ai)', organelle: 'var(--um-organelle)', bridge: 'var(--um-bridge)' }[k] || 'var(--muted)';
 }
 function mindDisplayName(k) {
-  const sr = { observer: 'Posmatrač', skeptic: 'Sumnjalo', connector: 'Povezivač', ai: null, organelle: 'Organela' };
-  const en = { observer: 'Observer', skeptic: 'Skeptic', connector: 'Connector', ai: null, organelle: 'Organelle' };
+  const sr = { observer: 'Posmatrač', skeptic: 'Sumnjalo', connector: 'Povezivač', ai: null, organelle: 'Organela', bridge: 'Svemir most' };
+  const en = { observer: 'Observer', skeptic: 'Skeptic', connector: 'Connector', ai: null, organelle: 'Organelle', bridge: 'Svemir bridge' };
   if (k === 'ai') return T().aiLabel;
   return (LANG === 'sr' ? sr[k] : en[k]) || k;
 }
@@ -600,7 +602,7 @@ function viewMisli(root) {
   }
 
   const f = el('div', 'filters');
-  const mindOpts = [['all', T().umSve], ['observer', mindDisplayName('observer')], ['skeptic', mindDisplayName('skeptic')], ['connector', mindDisplayName('connector')], ['organelle', mindDisplayName('organelle')], ['ai', mindDisplayName('ai')]];
+  const mindOpts = [['all', T().umSve], ['observer', mindDisplayName('observer')], ['skeptic', mindDisplayName('skeptic')], ['connector', mindDisplayName('connector')], ['organelle', mindDisplayName('organelle')], ['ai', mindDisplayName('ai')], ['bridge', mindDisplayName('bridge')]];
   f.appendChild(selectFilter(T().filterUm + ':', mindOpts, MISLI_F.um, v => { MISLI_F.um = v; route(); }));
   f.appendChild(selectFilter(T().filterStanje + ':', [
     ['acc', T().stanjeAcc], ['rej', T().stanjeRej], ['all', T().stanjeSve],
@@ -609,7 +611,7 @@ function viewMisli(root) {
   f.appendChild(selectFilter(T().filterNivo + ':', [['all', T().nivoSve], ...levels.map(l => [l, l])], MISLI_F.nivo, v => { MISLI_F.nivo = v; route(); }));
   /* legenda identiteta: tačke u filteru su legenda umova */
   const legend = el('span', 'legend');
-  for (const k of ['observer', 'skeptic', 'connector', 'organelle', 'ai']) {
+  for (const k of ['observer', 'skeptic', 'connector', 'organelle', 'ai', 'bridge']) {
     const lab = el('label');
     const dot = el('span', 'mind-dot'); dot.style.background = mindVar(k); dot.setAttribute('aria-hidden', 'true');
     lab.appendChild(dot);
