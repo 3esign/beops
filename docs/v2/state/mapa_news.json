@@ -1,14 +1,14 @@
 {
  "schema": "mapa/v1",
- "generated_at": "2026-10-27T15:16:01.496Z",
- "as_of": "2026-10-27T15:08:19.790Z",
+ "generated_at": "2026-10-27T15:35:42.058Z",
+ "as_of": "2026-10-27T15:23:18.358Z",
  "naslovni_slud": [
   {
-   "naslov": "Slobodnih parking mesta 83 — Garaža \"Baba Višnjina\"",
+   "naslov": "Slobodnih parking mesta 102 — Garaža \"Baba Višnjina\"",
    "vrsta": "merenje",
    "tema": "mobilnost",
    "score": 0.7925,
-   "zasto": "gate 0.7 (untimed) · svezina 0.35 (Δ null min, τ=120 min) · magnituda 1.00 (83 slobodnih mesta) · korak 1 · masa 1.00 (hex 14242 stanovnika)",
+   "zasto": "gate 0.7 (untimed) · svezina 0.35 (Δ null min, τ=120 min) · magnituda 1.00 (102 slobodnih mesta) · korak 1 · masa 1.00 (hex 14242 stanovnika)",
    "t": null,
    "izvor": "Parking servis - displayed free spaces per lot",
    "lokacija": {
@@ -23,8 +23,8 @@
    "naslov": "PM2.5 4.97 µg/m³ — 47427",
    "vrsta": "merenje",
    "tema": "vazduh",
-   "score": 0.7839,
-   "zasto": "gate 1 (observed) · svezina 0.99 (Δ 2 min, τ=120 min) · magnituda 0.32 (4.97 protiv sat-opsega 2.1–25.5 u 15h) · korak 0.9 · masa 0.85 (hex 12168 stanovnika)",
+   "score": 0.7549,
+   "zasto": "gate 1 (observed) · svezina 0.87 (Δ 17 min, τ=120 min) · magnituda 0.32 (4.97 protiv sat-opsega 2.1–25.5 u 15h) · korak 0.9 · masa 0.85 (hex 12168 stanovnika)",
    "t": "2026-10-27T15:06:41Z",
    "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre",
    "lokacija": {
@@ -36,19 +36,19 @@
    }
   },
   {
-   "naslov": "PM2.5 6.29 µg/m³ — 97343",
+   "naslov": "Temperatura 11.1 °C — Beograd",
    "vrsta": "merenje",
-   "tema": "vazduh",
-   "score": 0.7725,
-   "zasto": "gate 1 (observed) · svezina 1.00 (Δ 0 min, τ=120 min) · magnituda 0.26 (6.29 protiv sat-opsega 2.1–25.5 u 15h) · korak 0.9 · masa 0.85 (hex 12168 stanovnika)",
-   "t": "2026-10-27T15:08:00Z",
-   "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre",
+   "tema": "meteo",
+   "score": 0.7477,
+   "zasto": "gate 1 (observed) · svezina 0.90 (Δ 13 min, τ=120 min) · magnituda 0.72 (11.1 protiv sat-opsega 13.4–22.8 u 15h) · korak 0.4 · masa 0.76 (hex 10826 stanovnika)",
+   "t": "2026-10-27T15:10:00Z",
+   "izvor": "RHMZ automatic stations - Belgrade (Beograd, Košutnjak)",
    "lokacija": {
     "nacin": "koordinate stanice",
-    "lat": 44.74661,
-    "lon": 20.43645,
-    "ime": "97343",
-    "napomena": "sid mesto:S04 je grupa-izvor; koordinate su centroid grupe u registru"
+    "lat": 44.8,
+    "lon": 20.467,
+    "ime": "Beograd",
+    "napomena": "sid mesto:S01 je grupa-izvor; koordinate su centroid grupe u registru"
    }
   }
  ],
@@ -147,7 +147,7 @@
      "ime": "Земун",
      "lat": 44.843,
      "lon": 20.404,
-     "broj_mesta": 9,
+     "broj_mesta": 10,
      "mesta": [
       {
        "ime": "КАРАЂОРЂЕВА",
@@ -201,6 +201,12 @@
        "ime": "ВЕСЛАРСКА",
        "prozori": [
         "2026-10-28 08:00–14:00"
+       ]
+      },
+      {
+       "ime": "СОПОТСКА УЛИЦА",
+       "prozori": [
+        "2026-10-28 08:30–15:30"
        ]
       }
      ]
@@ -356,38 +362,6 @@
      ]
     },
     {
-     "ime": "Лазаревац",
-     "lat": 44.388,
-     "lon": 20.258,
-     "broj_mesta": 4,
-     "mesta": [
-      {
-       "ime": "Трудељ",
-       "prozori": [
-        "2026-10-27 09:00–13:00"
-       ]
-      },
-      {
-       "ime": "Даросава",
-       "prozori": [
-        "2026-10-27 09:00–14:00"
-       ]
-      },
-      {
-       "ime": "Јајчић",
-       "prozori": [
-        "2026-10-28 09:00–14:00"
-       ]
-      },
-      {
-       "ime": "Шутци",
-       "prozori": [
-        "2026-10-28 08:00–15:00"
-       ]
-      }
-     ]
-    },
-    {
      "ime": "Сурчин",
      "lat": 44.8,
      "lon": 20.3,
@@ -448,8 +422,9 @@
      ]
     }
    ],
-   "adrese_negeokodirane": 373,
-   "napomena": "centroidi opština su približni ručni unos (±2 km); adrese iz najava nemaju koordinate i ne dobijaju ih ovde"
+   "adrese_negeokodirane": 374,
+   "van_beograda_mesta": 4,
+   "napomena": "centroidi opština su približni ručni unos (±2 km); adrese iz najava nemaju koordinate i ne dobijaju ih ovde; 4 mesta u prozoru je van Beograda po sadržaju (etiketa izvora kaže beogradska opština) i ne ulazi u krugove"
   }
  },
  "znanje": {

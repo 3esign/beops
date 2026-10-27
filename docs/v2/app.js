@@ -316,6 +316,12 @@ function karticaCard(t) {
   art.appendChild(el('p', 'akcija', z.akcija || '—'));
   const meta = el('div', 'kartica-meta');
   if (z.lokacija) meta.appendChild(el('span', 'lok', z.lokacija));
+  /* van Beograda po sadržaju najave: etiketa izvora kaže beogradska opština,
+     sadržaj imenuje opštinu van grada — to se građaninu izgovara, ne sakriva */
+  if (Array.isArray(z.van_beograda) && z.van_beograda.length) {
+    meta.appendChild(el('span', 'lok van-bg',
+      (LANG === 'sr' ? 'van Beograda po sadržaju najave: ' : 'outside Belgrade per notice content: ') + z.van_beograda.join(', ')));
+  }
   meta.appendChild(rokEl(z.vazi_do));
   art.appendChild(meta);
   if (z.dokaz) {
