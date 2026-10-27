@@ -381,7 +381,7 @@ function renderDanas(root) {
   root.appendChild(el('h2', null, T().karticeTitle));
   root.appendChild(el('hr', 'rule'));
   const kartice = ((STATE.misli && STATE.misli.thoughts) || [])
-    .filter(t => t.state === 'accepted' && t.za_gradjanina && typeof t.za_gradjanina === 'object' && t.za_gradjanina.akcija)
+    .filter(t => t.state === 'accepted' && t.prompt_version === 4 && t.za_gradjanina && typeof t.za_gradjanina === 'object' && t.za_gradjanina.akcija)
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
     .slice(0, 6);
   if (!kartice.length) root.appendChild(el('p', 'sub', T().karticeEmpty));
@@ -401,9 +401,9 @@ function renderDanas(root) {
     root.appendChild(el('h2', null, T().istaknutoTitle));
     root.appendChild(el('hr', 'rule'));
     const list = el('div', 'istaknuto');
-    for (const st of STATE.istaknuto.top.slice(0, 5)) {
+    for (const st of STATE.istaknuto.top.filter(t => ['merenje', 'vest'].includes(t.vrsta)).slice(0, 5)) {
       const row = el('article', 'ist-red');
-      row.appendChild(el('span', 'score', fmtNum(st.score, 2)));
+      row.appendChild(el('span', 'score', st.vrsta === 'merenje' ? (LANG === 'sr' ? 'Merenje' : 'Reading') : (LANG === 'sr' ? 'Najava / vest' : 'Notice / news')));
       const mid = el('div', 'ist-mid');
       mid.appendChild(el('p', 'naslov', st.naslov));
       mid.appendChild(el('p', 'meta', (st.tema_ime || st.tema || '') + ' · ' + (st.vrsta || '') + (st.t ? ' · ' + absTime(st.t) : '')));
