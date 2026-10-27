@@ -276,7 +276,7 @@ function esejCard(t) {
   head.appendChild(el('span', 'meta', reci.split(/\s+/).filter(Boolean).length + ' ' + T().esejReci));
   /* v3: pouzdanost je ordinalna reč, nikad sirovi skor (WMO lekcija) */
   const pz = t.pouzdanost && (t.pouzdanost.match(/^(nisko|srednje|visoko)/i) || [])[0];
-  if (pz) { const b = el('span', 'pouzd ' + pz.toLowerCase(), pz.toLowerCase()); b.title = t.pouzdanost; head.appendChild(b); }
+  if (pz && !t.urednicka_napomena) { const b = el('span', 'pouzd ' + pz.toLowerCase(), pz.toLowerCase()); b.title = t.pouzdanost; head.appendChild(b); }
   const sp = el('span'); sp.style.marginLeft = 'auto'; head.appendChild(sp);
   head.appendChild(stampEl(t.at, 4));
   art.appendChild(head);
@@ -286,7 +286,13 @@ function esejCard(t) {
   if (Date.now() - Date.parse(t.at) > 12 * 3600e3) art.appendChild(el('p', 'sub', T().esejStaro));
   const body = el('div', 'esej-telo');
   for (const p of reci.split(/\n+/)) if (p.trim()) body.appendChild(el('p', null, p.trim()));
-  art.appendChild(body);
+  if (!t.urednicka_napomena) {
+    const brief = reci.split(/(?<=[.!?])\s+(?=[A-ZČĆŠŽĐ])/u).slice(0, 2).join(' ');
+    art.appendChild(el('p', 'esej-brief', brief));
+  }
+  const full = el('details', 'esej-full');
+  full.appendChild(el('summary', null, LANG === 'sr' ? (t.urednicka_napomena ? 'Izvorno razmatranje uz ispravku' : 'Pročitaj celo razmatranje') : (t.urednicka_napomena ? 'Original analysis with correction' : 'Read the full analysis')));
+  full.appendChild(body); art.appendChild(full);
   /* dokazi van proze: oslonci eseja kao čipovi, ne zagrade u rečenici */
   art.appendChild(oslonciEl(t));
   return art;
