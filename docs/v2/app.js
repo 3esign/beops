@@ -8,150 +8,10 @@
    nikad innerHTML sa podacima. Brendovi modela se ne prikazuju (sve je Svemir). */
 'use strict';
 
-/* ── Jezik ──────────────────────────────────────────────── */
-const STR = {
-  sr: {
-    tagline: 'grad misli',
-    footNote: 'Merenja potiču sa javnih i građanskih senzorskih mreža. Misli su AI interpretacija pod strogim epistemičkim kapijama — i prihvaćene i odbijene su javne. Svežina se meri tvojim satom, ne satom servera.',
-    danasTitle: 'Beograd danas misli',
-    danasSub: 'Poslednji uvidi gradske superinteligencije i živi puls grada. Svaki pečat starosti meri tvoj pregledač.',
-    gradUBrojkama: 'Grad u brojkama',
-    uvidiDana: 'Uvidi dana',
-    otkucaji: 'Otkucaji organizma',
-    uvidiEmpty: 'Još nema prihvaćenih uvida sa dovoljno dokaza u posmatranom prozoru.',
-    misliTitle: 'Tok misli',
-    misliSub: 'Sve misli umova grada u poslednjih 7 dana — prihvaćene i odbijene, sa razlozima.',
-    filterUm: 'Um', filterStanje: 'Stanje', filterNivo: 'Nivo',
-    umSve: 'svi umovi', stanjeSve: 'sve', stanjeAcc: 'prihvaćene', stanjeRej: 'odbijene',
-    nivoSve: 'svi nivoi',
-    aiLabel: 'AI umovi',
-    hipotezePitanja: 'Hipoteze i pitanja',
-    razlogOdbijanja: 'Razlog odbijanja',
-    odbijenoTitle: 'Odbijeno — javna epistemika',
-    odbijenoSub: 'Ništa nije tiho odbaceno: svako odbijanje ima razlog, i razlozi su javni. Ovo je deo metoda, ne kvar.',
-    odbijenoNone: 'U posmatranom prozoru nema odbijenih misli za izabrane filtere.',
-    reasonCol: 'Razlog (mašinski, kako je zapisan)', nCol: 'broj',
-    citatHint: 'Citat dokaza — identifikator izvora iz koga je misao citirala',
-    nemaPodataka: 'Stanje grada se ne učitava. Proveri da su /v2/state/*.json dostupni.',
-    gradCuti: 'Grad se čuje tiše',
-    gradCutiText: 'poslednji prijem podataka bilo je',
-    umCuti: 'Um grada misli tiše',
-    umCutiText: 'poslednja misao u toku bila je',
-    sada: 'upravo sada',
-    svezina: 'sveže', staro: 'staro', cuti: 'ćuti',
-    pre: 'pre', uscanje: 'ago',
-    nemaTrenda: 'nema 7-dnevnog trenda',
-    orgTitle: 'Kako organizam diše',
-    orgSub: 'Stvarni poslednji otkucaj svakog organa, čitan iz njegovog sopstvenog zapisa — ne vreme gradnje stranice.',
-    organCol: 'Organ', ulogaCol: 'Uloga', kadensaCol: 'Kadensa', poslednjiCol: 'Poslednji otkucaj', statusCol: 'Status',
-    izvoriTitle: 'Izvori podataka',
-    izvoriSub: 'Šta sistem čita i koliko je sveže ono što je pročitao.',
-    izvorCol: 'Izvor', oblastCol: 'Oblast', starostCol: 'Starost prijema',
-    statusOk: 'radi', statusLate: 'kasni', statusUnknown: 'nepoznato',
-    podaciTitle: 'Podaci — istraživanje',
-    podaciSub: 'Serije od kojih misli citiraju dokaze: pojas običnog (min–max) i prosek po satu, sedam dana. Povuci preko grafika da čitaš vrednosti.',
-    vezeTitle: 'Stabilne veze (L5 graf)',
-    vezeSub: 'Prostorno-vremenske veze koje su se održale dovoljno dugo da postanu znanje o gradu.',
-    vezaCol: 'Veza', tezinaCol: 'Težina', stabilnaOdCol: 'Stabilna od',
-    mapaTitle: 'Mapa grada',
-    mapaSub: 'Svaka stanica sa koordinatama, svako poslednje merenje, svaka populaciona ćelija — ceo prostorni ugovor na jednom ekranu. Klikni tačku za dosije stanice.',
-    mapaStations: 'stanica', mapaCells: 'ćelija stanovništva', mapaAsOf: 'presek podataka',
-    slojStanice: 'Stanice', slojPopulacija: 'Stanovništvo (ćelije)', slojBaza: 'Reke i izgrađeni prostor',
-    dosijeHint: 'Klikni stanicu na karti za njen dosije: svako poslednje merenje, sa vremenom i stanjem podatka.',
-    dosijeIzvor: 'Izvor', dosijeKoordinate: 'Koordinate', dosijeMeranja: 'Poslednja merenja',
-    dosijeParam: 'Veličina', dosijeVrednost: 'Vrednost', dosijeStanje: 'Stanje', dosijeVreme: 'Mereno',
-    mapNapomena: 'Napomene: prijem podatka nije potvrda merenja — stanje svakog reda je vidljivo. Misli umova nemaju provereno prostorno sidro pa se ne crtaju na karti. Stanovništvo je modelovana ćelija (estimated), ne granica ni popis. Baza: generalizovana geometrija, orijentacija ne geodezija.',
-    stObserved: 'mereno', stUntimed: 'prijem bez vremena', stEstimated: 'usklađeni sat (procena)', stForecast: 'prognoza', stUnavailable: 'nedostupno',
-    prijemHint: 'prijem', merenoHint: 'mereno',
-    oTitle: 'O projektu',
-    oSub: 'Šta je BEOPS, kako misli i ko stoji iza toga.',
-    staJe: 'Šta je BEOPS',
-    staJeText: 'BEOPS je pokušaj da grad ima digitalni kontekst koji je stvaran, proverljiv i živ: senzori i javni izvori ulaze kroz kapije koje odbijaju ono što ne može da se dokaže, umovi (Posmatrač, Sumnjalo, Povezivač i AI umovi) čitaju taj kontekst i javno misle o njemu, a građani dobijaju misli pre podataka — i mogu da provere svaku.',
-    metod: 'Metod',
-    metodLi1: 'Pet epistemičkih stanja; ništa nije procena bez označenog porekla.',
-    metodLi2: 'Kapije odbijaju — i odbijanje je javno, sa razlogom.',
-    metodLi3: 'Svežina se meri u čitanju; kad sistem ćuti, sajt to kaže.',
-    metodLi4: 'Sirovi ugovori stanja su javni JSON fajlovi koje možeš preuzeti.',
-    autorstvo: 'Autorstvo',
-    izjava: 'Izjava (AI Act, član 50)',
-    verzija: 'Stanje izgrađeno',
-    tangierUcitavanje: 'Učitavam stanje grada…',
-    q7: 'prosek 24 h', minMax: 'min–max (7 d)', tacaka: 'tačaka',
-  },
-  en: {
-    tagline: 'the city thinks',
-    footNote: 'Measurements come from public and citizen sensor networks. Thoughts are AI interpretation under strict epistemic gates — accepted and rejected alike are public. Freshness is measured by your clock, not the server’s.',
-    danasTitle: 'Belgrade thinks today',
-    danasSub: 'The city superintelligence’s latest insights and the live pulse. Every age stamp is measured by your browser.',
-    gradUBrojkama: 'The city in numbers',
-    uvidiDana: 'Insights of the day',
-    otkucaji: 'Organism heartbeats',
-    uvidiEmpty: 'No accepted insights with sufficient evidence in the observed window yet.',
-    misliTitle: 'Stream of thoughts',
-    misliSub: 'Every mind’s thoughts from the last 7 days — accepted and rejected, with reasons.',
-    filterUm: 'Mind', filterStanje: 'State', filterNivo: 'Level',
-    umSve: 'all minds', stanjeSve: 'all', stanjeAcc: 'accepted', stanjeRej: 'rejected',
-    nivoSve: 'all levels',
-    aiLabel: 'AI minds',
-    hipotezePitanja: 'Hypotheses & questions',
-    razlogOdbijanja: 'Rejection reason',
-    odbijenoTitle: 'Rejected — public epistemics',
-    odbijenoSub: 'Nothing is silently discarded: every rejection has a reason, and reasons are public. This is part of the method, not a failure.',
-    odbijenoNone: 'No rejected thoughts in the observed window for the selected filters.',
-    reasonCol: 'Reason (machine, as recorded)', nCol: 'count',
-    citatHint: 'Evidence citation — the source identifier the thought cited',
-    nemaPodataka: 'The city state failed to load. Check that /v2/state/*.json are reachable.',
-    gradCuti: 'The city is quiet',
-    gradCutiText: 'last data reception was',
-    umCuti: 'The city mind thinks quietly',
-    umCutiText: 'the last thought in the stream was',
-    sada: 'just now',
-    svezina: 'fresh', staro: 'stale', cuti: 'silent',
-    pre: 'ago', uscanje: 'ago',
-    nemaTrenda: 'no 7-day trend',
-    orgTitle: 'How the organism breathes',
-    orgSub: 'Each organ’s real last heartbeat, read from its own record — not the page build time.',
-    organCol: 'Organ', ulogaCol: 'Role', kadensaCol: 'Cadence', poslednjiCol: 'Last beat', statusCol: 'Status',
-    izvoriTitle: 'Data sources',
-    izvoriSub: 'What the system reads, and how fresh what it read is.',
-    izvorCol: 'Source', oblastCol: 'Domain', starostCol: 'Reception age',
-    statusOk: 'ok', statusLate: 'late', statusUnknown: 'unknown',
-    podaciTitle: 'Data — explore',
-    podaciSub: 'The series thoughts cite as evidence: the usual band (min–max) and hourly mean, seven days. Drag across the chart to read values.',
-    vezeTitle: 'Stable connections (L5 graph)',
-    vezeSub: 'Spatio-temporal links that held long enough to become knowledge about the city.',
-    vezaCol: 'Link', tezinaCol: 'Weight', stabilnaOdCol: 'Stable since',
-    mapaTitle: 'City map',
-    mapaSub: 'Every station with coordinates, every latest reading, every population cell — the whole spatial contract on one screen. Click a point for the station dossier.',
-    mapaStations: 'stations', mapaCells: 'population cells', mapaAsOf: 'data as of',
-    slojStanice: 'Stations', slojPopulacija: 'Population (cells)', slojBaza: 'Rivers and built area',
-    dosijeHint: 'Click a station on the map for its dossier: every latest reading, with time and data state.',
-    dosijeIzvor: 'Source', dosijeKoordinate: 'Coordinates', dosijeMeranja: 'Latest readings',
-    dosijeParam: 'Quantity', dosijeVrednost: 'Value', dosijeStanje: 'State', dosijeVreme: 'Measured',
-    mapNapomena: 'Notes: reception is not confirmation of measurement — each row’s state is visible. Minds’ thoughts have no verified spatial anchor and are not drawn on the map. Population is a modeled cell (estimated), not a boundary or a census. Base: generalized geometry, orientation not geodesy.',
-    stObserved: 'observed', stUntimed: 'received untimed', stEstimated: 'clock-aligned (estimated)', stForecast: 'forecast', stUnavailable: 'unavailable',
-    prijemHint: 'received', merenoHint: 'measured',
-    oTitle: 'About',
-    oSub: 'What BEOPS is, how it thinks, and who stands behind it.',
-    staJe: 'What BEOPS is',
-    staJeText: 'BEOPS is an attempt to give a city a digital context that is real, checkable and alive: sensors and public sources enter through gates that reject what cannot be evidenced, minds (Observer, Skeptic, Connector and AI minds) read that context and think about it in public, and citizens get thoughts before data — yet can verify every one.',
-    metod: 'Method',
-    metodLi1: 'Five epistemic states; nothing is an estimate without a marked origin.',
-    metodLi2: 'Gates reject — and rejection is public, with a reason.',
-    metodLi3: 'Freshness is measured at reading time; when the system is silent, the site says so.',
-    metodLi4: 'The raw state contracts are public JSON files you can download.',
-    autorstvo: 'Authorship',
-    izjava: 'Statement (AI Act, article 50)',
-    verzija: 'State built',
-    tangierUcitavanje: 'Loading the city state…',
-    q7: '24 h mean', minMax: 'min–max (7 d)', tacaka: 'points',
-  },
-};
-let LANG = localStorage.getItem('beops-lang') === 'en' ? 'en' : 'sr';
-const T = () => STR[LANG];
+/* (jezik živi u strings.js — učitan pre app.js) */
 
 /* ── Stanje ─────────────────────────────────────────────── */
-const STATE = { puls: null, misli: null, organizam: null, veze: null, mapa: null, serije: {} };
+const STATE = { puls: null, misli: null, organizam: null, veze: null, mapa: null, serije: {}, istaknuto: null, belaznica: null, mapaNews: null };
 const SERIES_IDS = ['pm25', 'pm10', 'temperature', 'humidity'];
 let serijePromise = null;
 
@@ -181,6 +41,21 @@ function loadVeze() {
 }
 function loadMapa() {
   if (!STATE.mapa) return jfetch('state/mapa.json').then(m => { STATE.mapa = m; }, () => {});
+  return Promise.resolve();
+}
+/* INTERFEJS-PLAN T1–T4: istaknuto (jedna istina o relevantnosti), belažnica
+   (ocene građana) i javni sloj mape (isključenja). Pad mreže ih ne ruši —
+   strana živi i bez njih, samo kaže da nema. */
+function loadIstaknuto() {
+  if (!STATE.istaknuto) return jfetch('state/istaknuto.json').then(m => { STATE.istaknuto = m; }, () => {});
+  return Promise.resolve();
+}
+function loadBelaznica() {
+  if (!STATE.belaznica) return jfetch('state/belaznica.json').then(m => { STATE.belaznica = m; }, () => {});
+  return Promise.resolve();
+}
+function loadMapaNews() {
+  if (!STATE.mapaNews) return jfetch('state/mapa_news.json').then(m => { STATE.mapaNews = m; }, () => {});
   return Promise.resolve();
 }
 
@@ -312,80 +187,6 @@ function showTT(x, y, value, sub) {
 }
 function hideTT() { if (ttEl) ttEl.hidden = true; }
 
-/* ── Sparkline (stat tile trend) ────────────────────────── */
-function sparkTile(points, unit) {
-  /* points: [isoHour, mean, ...] — prava vremenska osa, 2px linija, crosshair +
-     tooltip, tastatura: fokus + strele pomeraju aktivnu tačku. */
-  const wrap = el('div', 'spark');
-  const pts = (points || []).map(p => ({ x: Date.parse(p[0] + ':00:00Z'), v: p[1] }))
-    .filter(p => Number.isFinite(p.x) && p.v !== null && Number.isFinite(p.v));
-  if (pts.length < 2) {
-    wrap.appendChild(el('span', 'muted', T().nemaTrenda));
-    return wrap;
-  }
-  const W = 120, H = 34, PAD = 4;
-  const xs = pts.map(p => p.x), ys = pts.map(p => p.v);
-  const x0 = Math.min(...xs), x1 = Math.max(...xs);
-  let y0 = Math.min(...ys), y1 = Math.max(...ys);
-  if (y1 - y0 < 1e-9) { y1 = y0 + 1; }
-  const sx = t => PAD + (t - x0) / (x1 - x0) * (W - 2 * PAD);
-  const sy = v => H - PAD - (v - y0) / (y1 - y0) * (H - 2 * PAD);
-  const NS = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('width', W); svg.setAttribute('height', H);
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.setAttribute('aria-hidden', 'true');
-  const mk = (tag, at) => { const n = document.createElementNS(NS, tag); for (const k in at) n.setAttribute(k, at[k]); return n; };
-  const d = pts.map((p, i) => (i ? 'L' : 'M') + sx(p.x).toFixed(1) + ' ' + sy(p.v).toFixed(1)).join(' ');
-  svg.appendChild(mk('path', { d, fill: 'none', stroke: 'var(--spark-dim)', 'stroke-width': '2', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
-  const last = pts.length - 1;
-  const cross = mk('line', { x1: 0, x2: 0, y1: 0, y2: H, stroke: 'var(--axis)', 'stroke-width': '1', visibility: 'hidden' });
-  svg.appendChild(cross);
-  const dot = mk('circle', { cx: sx(pts[last].x), cy: sy(pts[last].v), r: 3.5, fill: 'var(--green)', stroke: 'var(--paper)', 'stroke-width': '1.5' });
-  svg.appendChild(dot);
-
-  let active = -1;
-  const setIdx = (i, clientX, clientY) => {
-    i = Math.max(0, Math.min(pts.length - 1, i));
-    if (i === active && clientX === undefined) return;
-    active = i;
-    const px = sx(pts[i].x);
-    cross.setAttribute('x1', px); cross.setAttribute('x2', px);
-    cross.setAttribute('visibility', 'visible');
-    dot.setAttribute('cx', px); dot.setAttribute('cy', sy(pts[i].v));
-    const r = wrap.getBoundingClientRect();
-    const ax = clientX !== undefined ? clientX : r.left + px / W * r.width;
-    const ay = clientY !== undefined ? clientY : r.top + sy(pts[i].v) / H * r.height;
-    showTT(ax, ay, fmtNum(pts[i].v) + ' ' + (unit || ''), absTime(new Date(pts[i].x).toISOString().replace('.000Z', 'Z')));
-  };
-  const clear = () => {
-    active = -1; cross.setAttribute('visibility', 'hidden');
-    dot.setAttribute('cx', sx(pts[last].x)); dot.setAttribute('cy', sy(pts[last].v));
-    hideTT();
-  };
-  svg.addEventListener('pointermove', ev => {
-    const r = svg.getBoundingClientRect();
-    const fx = (ev.clientX - r.left) / r.width * W;
-    let best = 0, bd = Infinity;
-    for (let i = 0; i < pts.length; i++) { const dd = Math.abs(sx(pts[i].x) - fx); if (dd < bd) { bd = dd; best = i; } }
-    setIdx(best, ev.clientX, ev.clientY);
-  });
-  svg.addEventListener('pointerleave', clear);
-  wrap.tabIndex = 0;
-  wrap.setAttribute('role', 'img');
-  const firstT = absTime(new Date(x0).toISOString().replace('.000Z', 'Z'));
-  const lastT = absTime(new Date(x1).toISOString().replace('.000Z', 'Z'));
-  wrap.setAttribute('aria-label', `${pts.length} ${T().tacaka}, ${firstT} – ${lastT}, ${fmtNum(pts[last].v)} ${unit || ''}`);
-  wrap.addEventListener('keydown', ev => {
-    if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') {
-      ev.preventDefault();
-      setIdx(active < 0 ? last : active + (ev.key === 'ArrowRight' ? 1 : -1));
-    } else if (ev.key === 'Escape') clear();
-  });
-  wrap.addEventListener('blur', clear);
-  wrap.appendChild(svg);
-  return wrap;
-}
 
 /* ── Kartica misli ──────────────────────────────────────── */
 function thoughtCard(t) {
@@ -435,81 +236,78 @@ function thoughtCard(t) {
   return card;
 }
 
-/* ── Pogled: #danas ─────────────────────────────────────── */
-function tileDef(id, labelSr, labelEn, unit, metricKey, seriesId, upIsBad) {
-  return { id, labelSr, labelEn, unit, metricKey, seriesId, upIsBad };
-}
-function tileLabel(m) { return LANG === 'sr' ? m.labelSr : m.labelEn; }
-const TILES = [
-  tileDef('pm25', 'PM2.5 prosek', 'PM2.5 mean', 'µg/m³', 'pm25', 'pm25', true),
-  tileDef('pm10', 'PM10 prosek', 'PM10 mean', 'µg/m³', 'pm10', 'pm10', true),
-  tileDef('no2', 'NO₂ prosek', 'NO₂ mean', 'µg/m³', 'no2', null, true),
-  tileDef('o3', 'O₃ prosek', 'O₃ mean', 'µg/m³', 'o3', null, false),
-  tileDef('temp', 'Temperatura', 'Temperature', '°C', 'meteo:temperature', 'temperature', null),
-  tileDef('rh', 'Vlažnost', 'Humidity', '%', 'meteo:humidity', 'humidity', null),
-];
+/* ── Pogled: #danas (K4 — misli pre podataka, P6) ─────── */
 
-function metricValue(m) {
-  const [grp, key] = m.metricKey.split(':');
-  const src = STATE.puls && STATE.puls.current_metrics && STATE.puls.current_metrics[grp];
-  if (!src) return null;
-  if (!key) return src.mean !== undefined ? src.mean : src;
-  return src[key];
+/* ── K4: rok kartice odbrojava javno, nikad ne nagađa ────── */
+function rokEl(iso) {
+  const s = el('span', 'rok');
+  if (!iso || !Number.isFinite(Date.parse(iso))) { s.appendChild(el('span', 'nema', T().rokBez)); return s; }
+  const d = Date.parse(iso) - Date.now();
+  if (d <= 0) { s.appendChild(el('span', 'nema', T().rokIstekao)); return s; }
+  const h = Math.floor(d / 3600000), m = Math.round((d % 3600000) / 60000);
+  s.appendChild(el('b', null, T().rokJos + ' ' + (h ? h + ' h ' + m + ' min' : m + ' min')));
+  s.title = absTime(iso);
+  return s;
 }
-function delta24h(series) {
-  if (!series || !Array.isArray(series.points) || series.points.length < 2) return null;
-  const pts = series.points.filter(p => p[1] !== null).map(p => [Date.parse(p[0] + ':00:00Z'), p[1]]);
-  if (pts.length < 2) return null;
-  const lastX = pts[pts.length - 1][0], lastV = pts[pts.length - 1][1];
-  const target = lastX - 24 * 3600e3;
-  let best = null, bd = Infinity;
-  for (const [x, v] of pts) { const d = Math.abs(x - target); if (d < bd) { bd = d; best = v; } }
-  return Number.isFinite(best) ? lastV - best : null;
+function esejCard(t) {
+  const art = el('article', 'esej');
+  const head = el('div', 'esej-head');
+  head.appendChild(mindChip(t));
+  const reci = ((LANG === 'sr' ? t.text_sr : t.text_en) || '').trim();
+  head.appendChild(el('span', 'meta', reci.split(/\s+/).filter(Boolean).length + ' ' + T().esejReci));
+  const sp = el('span'); sp.style.marginLeft = 'auto'; head.appendChild(sp);
+  head.appendChild(stampEl(t.at, 4));
+  art.appendChild(head);
+  const body = el('div', 'esej-telo');
+  for (const p of reci.split(/\n+/)) if (p.trim()) body.appendChild(el('p', null, p.trim()));
+  art.appendChild(body);
+  return art;
 }
-function deltaEl(m) {
-  const ser = STATE.serije[m.seriesId];
-  const d = ser ? delta24h(ser) : null;
-  const dl = el('span', 'delta');
-  if (d !== null && Math.abs(d) > 0.049) {
-    const cls = m.upIsBad === null ? 'flat' : (d > 0 === m.upIsBad ? 'up' : 'down');
-    const arrow = d > 0 ? '▲' : '▼';
-    const sign = d > 0 ? '+' : '−';
-    dl.appendChild(el('span', cls, arrow + ' ' + sign + fmtNum(Math.abs(d))));
-    dl.appendChild(document.createTextNode(' / 24 h'));
-  } else {
-    dl.appendChild(el('span', 'flat', '·'));
+function karticaCard(t) {
+  const z = t.za_gradjanina || {};
+  const art = el('article', 'kartica');
+  art.appendChild(el('p', 'akcija', z.akcija || '—'));
+  const meta = el('div', 'kartica-meta');
+  if (z.lokacija) meta.appendChild(el('span', 'lok', z.lokacija));
+  meta.appendChild(rokEl(z.vazi_do));
+  art.appendChild(meta);
+  if (z.dokaz) {
+    const det = el('details');
+    det.appendChild(el('summary', null, LANG === 'sr' ? 'dokaz' : 'evidence'));
+    det.appendChild(el('p', 'sub', z.dokaz));
+    art.appendChild(det);
   }
-  return dl;
+  return art;
 }
-function metricTile(m) {
-  const tile = el('div', 'metric');
-  tile.appendChild(el('div', 'label', tileLabel(m)));
-  const v = metricValue(m);
-  tile.appendChild(el('div', 'value', fmtNum(v) + ' '));
-  tile.appendChild(el('div', 'cat', m.unit));
-  const foot = el('div', 'foot');
-  foot.appendChild(deltaEl(m));
+/* traka merenja: čista od uma — nula AI reči (AI Act 50 u layoutu, P6) */
+function trakaMerenja() {
+  const strip = el('div', 'traka');
+  const cm = (STATE.puls && STATE.puls.current_metrics) || {};
+  const cs = STATE.puls && STATE.puls.city_status;
+  const red = (label, v, unit) => {
+    const c = el('span', 'tr-c');
+    c.appendChild(el('span', 'tr-l', label));
+    c.appendChild(el('b', null, v === null || v === undefined || !Number.isFinite(v) ? '—' : fmtNum(v)));
+    if (unit) c.appendChild(el('span', 'tr-u', unit));
+    return c;
+  };
+  strip.appendChild(red('AQI', cs ? cs.aqi_us : null, null));
+  strip.appendChild(red('PM2.5', cm.pm25 && cm.pm25.mean, 'µg/m³'));
+  strip.appendChild(red('PM10', cm.pm10 && cm.pm10.mean, 'µg/m³'));
+  strip.appendChild(red('NO₂', cm.no2 && cm.no2.mean, 'µg/m³'));
+  strip.appendChild(red('O₃', cm.o3 && cm.o3.mean, 'µg/m³'));
+  const met = cm.meteo || {};
+  strip.appendChild(red(LANG === 'sr' ? 'temp' : 'temp', met.temperature, '°C'));
+  strip.appendChild(red(LANG === 'sr' ? 'vlag' : 'rh', met.humidity, '%'));
+  const foot = el('span', 'tr-st');
   if (STATE.puls && STATE.puls.as_of) foot.appendChild(stampEl(STATE.puls.as_of, 5));
-  tile.appendChild(foot);
-  const ser = STATE.serije[m.seriesId];
-  if (ser) tile.appendChild(sparkTile(ser.points, m.unit));
-  return tile;
-}
-function heroTile() {
-  const cs = (STATE.puls && STATE.puls.city_status) || {};
-  const tile = el('div', 'metric wide');
-  tile.appendChild(el('div', 'label', LANG === 'sr' ? 'Vazduh — AQI (US)' : 'Air — AQI (US)'));
-  tile.appendChild(el('div', 'value', cs.aqi_us === null || cs.aqi_us === undefined ? '—' : String(cs.aqi_us)));
-  tile.appendChild(el('div', 'cat', (LANG === 'sr' ? cs.summary_sr : cs.summary_en) || cs.category || ''));
-  const foot = el('div', 'foot');
-  foot.appendChild(el('span', 'delta', (LANG === 'sr' ? 'dominira ' : 'dominant ') + (cs.dominant_pollutant || '—')));
-  if (STATE.puls && STATE.puls.as_of) foot.appendChild(stampEl(STATE.puls.as_of, 5));
-  tile.appendChild(foot);
-  return tile;
+  strip.appendChild(foot);
+  return strip;
 }
 
 function viewDanas(root) {
   loadSerije().then(() => { if (currentRoute() === 'danas') renderDanas(root); });
+  loadIstaknuto().then(() => { if (currentRoute() === 'danas') renderDanas(root); });
   renderDanas(root);
 }
 function renderDanas(root) {
@@ -536,21 +334,55 @@ function renderDanas(root) {
     root.appendChild(banner(T().umCuti + ' —', T().umCutiText, null, newest, false));
   }
 
-  root.appendChild(el('h2', null, T().gradUBrojkama));
+  /* 1 — razmatranje dana: esej je nosilac strane (K4) */
+  root.appendChild(el('h2', null, T().razmatranjeTitle));
   root.appendChild(el('hr', 'rule'));
-  const tiles = el('div', 'metrics');
-  tiles.appendChild(heroTile());
-  for (const m of TILES) tiles.appendChild(metricTile(m));
-  root.appendChild(tiles);
+  const eseji = ((STATE.misli && STATE.misli.thoughts) || [])
+    .filter(t => t.oblik === 'esej' && t.state === 'accepted')
+    .sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+  if (eseji.length) root.appendChild(esejCard(eseji[0]));
+  else root.appendChild(el('p', 'sub', T().razmatranjeEmpty));
 
-  root.appendChild(el('h2', null, T().uvidiDana));
+  /* 2 — koraci za građanina: akcija, lokacija, rok na glas */
+  root.appendChild(el('h2', null, T().karticeTitle));
   root.appendChild(el('hr', 'rule'));
-  const acc = ((STATE.misli && STATE.misli.thoughts) || []).filter(t => t.state === 'accepted')
-    .map(t => ({ t, score: ((t.cites || []).length >= 2 ? 1 : 0) + ((t.hypotheses_sr || []).length ? 1 : 0) }))
-    .sort((a, b) => b.score - a.score || Date.parse(b.t.at) - Date.parse(a.t.at))
-    .slice(0, 5);
-  if (!acc.length) { root.appendChild(el('p', 'sub', T().uvidiEmpty)); }
-  for (const { t } of acc) root.appendChild(thoughtCard(t));
+  const kartice = ((STATE.misli && STATE.misli.thoughts) || [])
+    .filter(t => t.state === 'accepted' && t.za_gradjanina && typeof t.za_gradjanina === 'object' && t.za_gradjanina.akcija)
+    .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
+    .slice(0, 6);
+  if (!kartice.length) root.appendChild(el('p', 'sub', T().karticeEmpty));
+  else {
+    const g = el('div', 'kartice');
+    for (const t of kartice) g.appendChild(karticaCard(t));
+    root.appendChild(g);
+  }
+
+  /* 3 — traka merenja: mono, fizički odvojena od misli */
+  root.appendChild(el('h2', null, T().trakaTitle));
+  root.appendChild(el('hr', 'rule'));
+  root.appendChild(trakaMerenja());
+
+  /* 4 — istaknuto po relevantnosti (T1: jedna istina, šel ne boduje sam) */
+  if (STATE.istaknuto && (STATE.istaknuto.top || []).length) {
+    root.appendChild(el('h2', null, T().istaknutoTitle));
+    root.appendChild(el('hr', 'rule'));
+    const list = el('div', 'istaknuto');
+    for (const st of STATE.istaknuto.top.slice(0, 5)) {
+      const row = el('article', 'ist-red');
+      row.appendChild(el('span', 'score', fmtNum(st.score, 2)));
+      const mid = el('div', 'ist-mid');
+      mid.appendChild(el('p', 'naslov', st.naslov));
+      mid.appendChild(el('p', 'meta', (st.tema_ime || st.tema || '') + ' · ' + (st.vrsta || '') + (st.t ? ' · ' + absTime(st.t) : '')));
+      row.appendChild(mid);
+      const det = el('details');
+      det.appendChild(el('summary', null, T().istaknutoZasto));
+      det.appendChild(el('p', 'sub', st.zasto));
+      if (st.izvor) det.appendChild(el('p', 'meta', st.izvor));
+      row.appendChild(det);
+      list.appendChild(row);
+    }
+    root.appendChild(list);
+  }
 
   root.appendChild(el('h2', null, T().otkucaji));
   root.appendChild(el('hr', 'rule'));
@@ -915,7 +747,7 @@ function viewMapa(root) {
   root.appendChild(sectionHead(null, T().mapaTitle, T().mapaSub));
   const loading = el('p', 'sub', T().tangierUcitavanje);
   root.appendChild(loading);
-  loadMapa().then(() => {
+  Promise.all([loadMapa(), loadMapaNews()]).then(() => {
     if (currentRoute() === 'mapa') renderMapa(root, loading);
   });
 }
@@ -965,6 +797,15 @@ function renderMapa(root, loading) {
     li.appendChild(el('span', 'n', String(counts[s] || 0)));
     leg.appendChild(li);
   }
+  /* neznanje kao podatak (T4): deo naseljenih ćelija bez ijednog senzora */
+  const zn = STATE.mapaNews && STATE.mapaNews.znanje;
+  if (zn && zn.hex_naseljenih) {
+    const li = el('span', 'li');
+    li.appendChild(el('span', 'n', Math.round(100 * zn.hex_bez_senzora / zn.hex_naseljenih) + '%'));
+    li.appendChild(el('span', null, T().znanjeNasPrazno));
+    li.title = zn.hex_bez_senzora + ' / ' + zn.hex_naseljenih;
+    leg.appendChild(li);
+  }
   legBox.appendChild(leg);
   side.appendChild(legBox);
 
@@ -976,7 +817,11 @@ function renderMapa(root, loading) {
     ['population', T().slojPopulacija, (M.population.hexes || []).length],
     ['basemap', T().slojBaza, (M.basemap.features || []).length],
   ];
+  /* T4: sloj isključenja iz javnog ugovora mapa_news.json (agregat po opštini) */
+  const isklj = STATE.mapaNews && STATE.mapaNews.slojevi && STATE.mapaNews.slojevi.iskljucenja;
+  if (isklj && isklj.opstine) LAY.push(['iskljucenja', T().slojIskljucenja, isklj.opstine.length]);
   const visible = new Set(['stations', 'population', 'basemap']);
+  if (isklj && isklj.opstine) visible.add('iskljucenja');
   for (const [id, label, n] of LAY) {
     const row = el('label', 'layer-row');
     const cb = el('input'); cb.type = 'checkbox'; cb.checked = true;
@@ -1007,6 +852,8 @@ function renderMapa(root, loading) {
   let selected = null;
   const stations = (M.stations || []).map(s => ({ lat: s.la, lon: s.lo, data: s, layer: 'stations' }));
   const hexes = (M.population.hexes || []).map(h => ({ lat: h[1], lon: h[0], pop: h[2], layer: 'population' }));
+  const opstine = ((isklj && isklj.opstine) || []).map(o => ({ lat: o.lat, lon: o.lon, data: o, layer: 'iskljucenja' }));
+  const rIskl = o => 6 + Math.sqrt(o.broj_mesta) * 2.2;
 
   function project(lat, lon) {
     const kx = Math.cos(44.8 * Math.PI / 180);
@@ -1099,6 +946,29 @@ function renderMapa(root, loading) {
         }
       }
     }
+    /* isključenja struje (T4): prsten po opštini, prečnik po broju mesta */
+    if (isklj && visible.has('iskljucenja')) {
+      for (const o of opstine) {
+        const [x, y] = project(o.lat, o.lon);
+        const r = rIskl(o.data) / scale;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = cssVar('--isklj');
+        ctx.globalAlpha = 0.14; ctx.fill(); ctx.globalAlpha = 1;
+        ctx.strokeStyle = cssVar('--isklj');
+        ctx.lineWidth = 1.6 / scale;
+        ctx.setLineDash([4 / scale, 3 / scale]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        if (selected === o) {
+          ctx.beginPath();
+          ctx.arc(x, y, (rIskl(o.data) + 4) / scale, 0, Math.PI * 2);
+          ctx.strokeStyle = cssVar('--ink');
+          ctx.lineWidth = 1.6 / scale;
+          ctx.stroke();
+        }
+      }
+    }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
   function redraw() {
@@ -1154,7 +1024,22 @@ function renderMapa(root, loading) {
       const dist = Math.hypot(mx - (x * scale + tx), my - (y * scale + ty));
       if (dist < best) { best = dist; hit = p; }
     }
-    if (hit) { selected = hit; showDossier(hit); redraw(); }
+    if (!hit && visible.has('iskljucenja')) {
+      for (const o of opstine) {
+        const [x, y] = project(o.lat, o.lon);
+        if (Math.hypot(mx - (x * scale + tx), my - (y * scale + ty)) < rIskl(o.data) + 8) { hit = o; break; }
+      }
+    }
+    if (hit) {
+      selected = hit;
+      if (hit.layer === 'iskljucenja') showIsklj(hit); else showDossier(hit);
+      redraw();
+    } else {
+      /* klik u prazno (T4): „koliko znamo ovaj kraj" — neznanje je podatak */
+      selected = null;
+      showZnanje(mx, my);
+      redraw();
+    }
   });
   canvas.addEventListener('pointercancel', () => { drag = null; });
   canvas.addEventListener('keydown', ev => {
@@ -1194,6 +1079,57 @@ function renderMapa(root, loading) {
     table.appendChild(tb);
     dossier.appendChild(table);
     dossier.appendChild(el('p', 'meta', T().merenoHint + ' = vreme merenja; ' + T().prijemHint + ' = vreme prijema · ' + T().mapaAsOf + ' ' + absTime(M.as_of)));
+  }
+  function unproject(px, py) {
+    const kx = Math.cos(44.8 * Math.PI / 180);
+    const s = Math.min((width - 36) / ((W0.lo1 - W0.lo0) * kx), (height - 36) / (W0.la1 - W0.la0));
+    const A = (width - (W0.lo1 - W0.lo0) * kx * s) / 2, B = (height - (W0.la1 - W0.la0) * s) / 2;
+    return [W0.la1 - (py - B) / s, W0.lo0 + (px - A) / (kx * s)];
+  }
+  function kmHav(la1, lo1, la2, lo2) {
+    const r = Math.PI / 180, dLa = (la2 - la1) * r, dLo = (lo2 - lo1) * r;
+    const a = Math.sin(dLa / 2) ** 2 + Math.cos(la1 * r) * Math.cos(la2 * r) * Math.sin(dLo / 2) ** 2;
+    return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+  function showIsklj(o) {
+    const d = o.data;
+    dossier.textContent = '';
+    dossier.appendChild(el('h4', null, d.ime));
+    dossier.appendChild(el('p', 'meta', T().mapaIskljProzor + ': ' + (isklj.prozor || []).join(', ') + ' · ' + d.broj_mesta + ' ' + T().mapaIskljMesta));
+    for (const m of d.mesta || []) {
+      const p = el('p', 'isklj-mesto');
+      p.appendChild(el('b', null, m.ime));
+      p.appendChild(document.createTextNode(' — ' + (m.prozori || []).join('; ')));
+      dossier.appendChild(p);
+    }
+    dossier.appendChild(el('p', 'hint', T().mapaIskljHint));
+  }
+  function showZnanje(mx, my) {
+    const [la, lo] = unproject((mx - tx) / scale, (my - ty) / scale);
+    let senzora = 0, najnovije = 0, najblSt = null, najblD = Infinity;
+    for (const st of M.stations || []) {
+      const dkm = kmHav(la, lo, st.la, st.lo);
+      if (dkm < najblD) { najblD = dkm; najblSt = st; }
+      if (dkm <= 1.5) {
+        senzora++;
+        for (const r of st.r || []) { const tm = r.t ? Date.parse(r.t) : 0; if (tm > najnovije) najnovije = tm; }
+      }
+    }
+    let pop = null, najblH = Infinity;
+    for (const h of hexes) {
+      const dkm = kmHav(la, lo, h.lat, h.lon);
+      if (dkm < najblH) { najblH = dkm; pop = h.pop; }
+    }
+    dossier.textContent = '';
+    dossier.appendChild(el('h4', null, T().znanjeTitle));
+    dossier.appendChild(el('p', 'meta', la.toFixed(4) + ', ' + lo.toFixed(4) + (pop != null ? ' · ' + fmtNum(pop, 0) + ' ' + T().znanjePop : '')));
+    if (senzora) {
+      dossier.appendChild(el('p', null, senzora + ' ' + T().znanjeSenzora + (najnovije ? ' · ' + T().znanjeNajnovije + ' ' + relTime(new Date(najnovije).toISOString()) : '')));
+      if (najblSt && najblD > 1.5) dossier.appendChild(el('p', 'sub', (LANG === 'sr' ? 'najbliža stanica ' : 'nearest station ') + najblSt.n + ' — ' + fmtNum(najblD, 1) + ' km'));
+    } else {
+      dossier.appendChild(el('p', null, T().znanjeNema + (najblSt ? ' (' + najblSt.n + ' — ' + fmtNum(najblD, 1) + ' km)' : '')));
+    }
+    dossier.appendChild(el('p', 'hint', T().znanjeHint));
   }
   const onTheme = () => redraw();
   window.addEventListener('resize', resize);
@@ -1270,6 +1206,20 @@ function viewOrganizam(root) {
 
 /* ── Pogled: #o ─────────────────────────────────────────── */
 function viewO(root) {
+  renderO(root);
+  /* belažnica (K7) stiže posebnim ugovorom — strana se nacrta odmah, dopuni se */
+  loadBelaznica().then(() => { if (currentRoute() === 'o') renderO(root); });
+}
+function belaznicaRed(naziv, g) {
+  const tr = el('tr');
+  tr.appendChild(el('td', null, naziv));
+  tr.appendChild(el('td', 'v', String(g.misli)));
+  tr.appendChild(el('td', 'v', String(g.korisno)));
+  tr.appendChild(el('td', 'v', String(g.nekorisno)));
+  tr.appendChild(el('td', 'v', g.deo_korisnih === null ? '—' : fmtNum(g.deo_korisnih, 2)));
+  return tr;
+}
+function renderO(root) {
   root.textContent = '';
   root.appendChild(sectionHead(null, T().oTitle, T().oSub));
   const body = el('div', 'static');
@@ -1283,6 +1233,33 @@ function viewO(root) {
   if (d) {
     body.appendChild(el('h2', null, T().izjava));
     body.appendChild(el('p', 'sub', LANG === 'sr' ? d.measurement_vs_inference_sr : d.measurement_vs_inference_en));
+  }
+  /* belažnica (K7, T3): glasovi građana kao javno učenje — prazna je iskrena */
+  body.appendChild(el('h2', null, T().belaTitle));
+  body.appendChild(el('p', 'sub', T().belaSub));
+  const bel = STATE.belaznica;
+  if (!bel) body.appendChild(el('p', null, '—'));
+  else if (!bel.prihvacenih_glasova) body.appendChild(el('p', null, T().belaEmpty));
+  else {
+    const bt = el('table', 'kv');
+    const th = el('thead'); const trh = el('tr');
+    for (const h of ['', T().belaMisli, T().belaKorisno, T().belaNekorisno, T().belaDeo]) trh.appendChild(el('th', null, h));
+    th.appendChild(trh); bt.appendChild(th);
+    const tb = el('tbody');
+    const sekcija = (naslov, acc) => {
+      const tr = el('tr'); tr.appendChild(el('td', 'sec', naslov));
+      for (let i = 0; i < 4; i++) tr.appendChild(el('td'));
+      tb.appendChild(tr);
+      for (const [k, g] of Object.entries(acc || {})) tb.appendChild(belaznicaRed(k, g));
+    };
+    sekcija(T().belaPoNaravi, bel.po_naravi);
+    sekcija(T().belaPoNivou, bel.po_nivou);
+    bt.appendChild(tb);
+    body.appendChild(bt);
+    const m = el('p', 'meta');
+    m.appendChild(document.createTextNode(bel.prihvacenih_glasova + ' ' + T().belaGlasova + ' ' + T().belaNad + ' ' + bel.ocenjenih_misli + ' ' + T().belaMisli));
+    if (bel.glasova_na_nepoznatoj_misli) m.appendChild(document.createTextNode(' · ' + bel.glasova_na_nepoznatoj_misli + ' ' + T().belaNepoznate));
+    body.appendChild(m);
   }
   body.appendChild(el('h2', null, T().autorstvo));
   body.appendChild(el('p', null, 'prof. dr Darinka Golubović Matić · doc. dr Semir Poturak'));

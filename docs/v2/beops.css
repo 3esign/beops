@@ -41,6 +41,9 @@
   --m-waterline: #91a7b0;
   --m-paper: #fdfdfc;
 
+  /* isključenja struje na karti (T4) — najava, dashed prsten */
+  --isklj: #b74732;
+
   --wash-ink: rgba(31, 41, 37, 0.05);
   --good: #1e7d46;
   --warn: #c28500;
@@ -80,6 +83,8 @@
   --m-water: #1c2b31;
   --m-waterline: #3d5560;
   --m-paper: #101210;
+
+  --isklj: #e06d55;
 
   --wash-ink: rgba(255, 255, 255, 0.05);
   --good: #279e63;
@@ -415,4 +420,47 @@ table.kv td:not(:first-child), .odbijeno-box td:not(:first-child) { color: var(-
   .legend { grid-template-columns: 1fr; }
   #bigchart { height: 260px; }
   .foot { padding: 16px; flex-direction: column; gap: 10px; }
+}
+
+/* ── #danas po K4 (INTERFEJS-PLAN T2): misli pre podataka ── */
+.esej { border: 1px solid var(--line); border-left: 3px solid var(--um-bridge); background: var(--m-paper); padding: 18px 20px; margin: 0 0 8px; }
+.esej-head { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+.esej-head .meta { letter-spacing: .02em; }
+.esej-telo p { font-family: Georgia, 'Times New Roman', serif; font-size: 16.5px; line-height: 1.72; margin: 0 0 12px; color: var(--ink); }
+.kartice { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.kartica { border: 1px solid var(--line); background: var(--wash); padding: 12px 14px; }
+.kartica .akcija { font-size: 14px; line-height: 1.55; margin: 0 0 8px; font-weight: 600; color: var(--ink); }
+.kartica-meta { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 12.5px; }
+.kartica-meta .lok { color: var(--ink-2); }
+.kartica-meta .rok b { color: var(--crit); }
+.kartica-meta .rok .nema { color: var(--muted); }
+.kartica details { margin-top: 8px; font-size: 12px; color: var(--muted); }
+
+/* traka merenja: mono, čista od uma (P6/AI Act 50 u layoutu) */
+.traka { display: flex; flex-wrap: wrap; border: 1px solid var(--line); background: var(--m-paper); font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; }
+.tr-c { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-right: 1px solid var(--line); min-width: 84px; }
+.tr-l { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.tr-c b { font-size: 18px; font-weight: 600; color: var(--ink); }
+.tr-u { font-size: 10.5px; color: var(--muted); }
+.tr-st { margin-left: auto; align-self: center; padding: 8px 12px; font-size: 11px; }
+
+/* istaknuto po relevantnosti (T1): jedna istina, razlog na klik */
+.istaknuto { display: flex; flex-direction: column; }
+.ist-red { display: flex; gap: 14px; align-items: baseline; padding: 10px 2px; border-bottom: 1px solid var(--grid); flex-wrap: wrap; }
+.ist-red .score { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: 13px; color: var(--muted); min-width: 38px; }
+.ist-mid { flex: 1; min-width: 220px; }
+.ist-red .naslov { margin: 0; font-size: 14.5px; font-weight: 600; }
+.ist-red .meta { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+.ist-red details { font-size: 12.5px; }
+.ist-red details p { margin: 6px 0; max-width: 680px; }
+
+/* belažnica (T3) i mapa (T4) */
+table.kv td.sec { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.isklj-mesto { margin: 4px 0; font-size: 13px; color: var(--ink); }
+.isklj-mesto b { font-size: 12.5px; }
+
+@media (max-width: 760px) {
+  .traka { flex-direction: column; }
+  .tr-c { border-right: 0; border-bottom: 1px solid var(--grid); }
+  .esej { padding: 14px; }
 }
