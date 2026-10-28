@@ -1,18 +1,18 @@
 {
   "schema": "beops-v2-misli/v1.1",
-  "generated_at": "2026-10-28T01:14:19.512Z",
-  "as_of": "2026-10-28T00:48:14.670Z",
+  "generated_at": "2026-10-28T01:24:09.335Z",
+  "as_of": "2026-10-28T01:17:26.687Z",
   "total_thoughts": 79,
   "filter_counts": {
-    "accepted": 52,
-    "rejected": 27,
+    "accepted": 51,
+    "rejected": 28,
     "observer": 22,
     "skeptic": 22,
     "connector": 22,
     "organelle": 9,
     "ai_feed": 0,
     "bridge": 4,
-    "kartice": 2,
+    "kartice": 1,
     "eseji": 3
   },
   "thoughts": [
@@ -2495,8 +2495,8 @@
       }
     },
     {
-      "id": "bridge:2026-10-28T00-45-01-863Z__zai-glm-5_3-flash",
-      "at": "2026-10-28T00:48:14.670Z",
+      "id": "bridge:2026-10-28T01-15-03-305Z__zai-glm-5_3-flash",
+      "at": "2026-10-28T01:17:26.687Z",
       "origin": "bridge",
       "entity": "bridge:zai",
       "entity_label": "zai/glm-5.3-flash",
@@ -2504,26 +2504,27 @@
       "prompt_id": null,
       "oblik": "misao",
       "narav": null,
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "Najave za današnji dan vezuju dva kraja grada jednim jutrom: u Starom gradu planirani prekid ostavlja bez struje Terazije 6–6 od 08:30 do 14:00, a na istoj listi su i Banovačka i Radnička u naselju Surčin od 08:30 do 13:00, Čukarica od 09:00 do 15:00 i zaseok Junkovac kod Lazarevca od 12:00 do 13:30. Centar i periferija dele istu vrstu jutra — onu koja počinje na papiru. Najava je zapis o nameri, ne merenje: da li će struja zaista nestati u tim satima, u paketu koji sam dobio, nema zapisa.",
+      "state": "rejected",
+      "rejection_reason": "brojevi izvan citiranih zapisa: 80",
+      "text_sr": "U vestima koje grad danas nosi čitam istu vrstu poruke iz više opština: planirana isključenja struje za 28. oktobar. Vidim ih od Čukarice (Jastrebovljeva i okolina, 09:00–15:00) preko Starog grada (Terazije 6, 08:30–14:00) i Zvezdare (Mihaila Bulgakova 76-80, 08:30–16:00; Mokri Lug, Prvomajska, 08:30–14:00) do Lazarevca (Junkovac, 12:00–13:30). Veza koju čitam: ovo nije jedan događaj nego raspored — isti dan, različiti krajevi, različiti prozori, a najkasnija navedena granica je 16:00 u Zvezdari. Istovremeno, ovi zapisi su najave: ni u jednom ne stoji izveštaj da se isključenje desilo.",
       "text_en": null,
       "hypotheses_sr": [],
       "questions_sr": [],
       "cites": [
-        "izvor:08459918b423a8e9",
-        "izvor:3f101feb75a7b1c1",
         "izvor:07cd5c32a4d5cabb",
+        "izvor:08459918b423a8e9",
+        "izvor:097b550c2c4b2864",
+        "izvor:0c2547689144aa0c",
         "izvor:2880c8635d229ff5"
       ],
-      "pouzdanost": "srednje — satnice su zvanična najava sa današnjim datumom, ali čas objave u paketu nije potvrđen, a najava ne garantuje da će prekid zaista nastupiti.",
+      "pouzdanost": "srednje — zapisi su sveže datirani i konkretni (ulice, sati, opštine), ali su plan za današnji dan, ne potvrđen događaj.",
       "naslov": null,
       "prompt_version": 4,
       "status_odgovora": "nalaz",
       "odgovor_na_pitanje": null,
       "ekspertize": null,
       "prozor": null,
-      "kontekst_sha256": "1b1cefc2f31e6dcd8cd1b3d2ed740270d0af6b970da65e6ce016e2174f88a272",
+      "kontekst_sha256": "8406264b2cf638a6c55161b744c1863a460996439f649ef3428adf51bf72f30e",
       "oslonci": [
         {
           "id": "izvor:07cd5c32a4d5cabb",
@@ -2535,36 +2536,49 @@
         {
           "id": "izvor:08459918b423a8e9",
           "naslov": "Планирано искључење струје 2026-10-28 · Стари град · 08:30 - 14:00 · ТЕРАЗИЈЕ: 6-6",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-28 · Стари град · 08:30 - 14:00 · ТЕРАЗИЈЕ: 6-6\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-10-28\",\"primljeno\":null,\"napomena\":null}",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-28 · Стари град · 08:30 - 14:00 · ТЕРАЗИЈЕ: 6-6\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-10-28\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-10-28",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:097b550c2c4b2864",
+          "naslov": "Планирано искључење струје 2026-10-28 · Звездара · 08:30 - 16:00 · МИХАИЛА БУЛГАКОВА: 76-80,71-71А",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-28 · Звездара · 08:30 - 16:00 · МИХАИЛА БУЛГАКОВА: 76-80,71-71А\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-10-28\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-10-28",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:0c2547689144aa0c",
+          "naslov": "Планирано искључење струје 2026-10-28 · Звездара · 08:30 - 14:00 · Насеље М.МОКРИ ЛУГ: ПРВОМАЈСКА: 36-64,37-39А,43А-63А,67-71А, СТИШКА: 7-9",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-28 · Звездара · 08:30 - 14:00 · Насеље М.МОКРИ ЛУГ: ПРВОМАЈСКА: 36-64,37-39А,43А-63А,67-71А, СТИШКА: 7-9\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-10-28\",\"primljeno\":null,\"napomena\":null}",
           "at": "2026-10-28",
           "izvor": "news-sorter"
         },
         {
           "id": "izvor:2880c8635d229ff5",
           "naslov": "Планирано искључење струје 2026-10-28 · Лазаревац · 12:00 - 13:30 · Јунковац (засеок Дом-према Великим Црљенима).",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-28 · Лазаревац · 12:00 - 13:30 · Јунковац (засеок Дом-према Великим Црљенима).\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-10-28\",\"primljeno\":null,\"napomena\":null}",
-          "at": "2026-10-28",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:3f101feb75a7b1c1",
-          "naslov": "Планирано искључење струје 2026-10-28 · Сурчин · 08:30 - 13:00 · Насеље СУРЧИН: БАНОВАЧКА: 48-64,21-23,27,31-35, РАДНИЧКА: 2-8,1-25а",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-28 · Сурчин · 08:30 - 13:00 · Насеље СУРЧИН: БАНОВАЧКА: 48-64,21-23,27,31-35, РАДНИЧКА: 2-8,1-25а\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-10-28\",\"primljeno\":null,\"napomena\":null}",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-28 · Лазаревац · 12:00 - 13:30 · Јунковац (засеок Дом-према Великим Црљенима).\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-10-28\",\"primljeno\":null,\"napomena\":null}",
           "at": "2026-10-28",
           "izvor": "news-sorter"
         }
       ],
       "level": "veza",
       "za_gradjanina": {
-        "akcija": "Ako ste danas u Starom gradu ili Surčinu, proverite da li je vaša ulica na današnjoj listi planiranih isključenja — najava za Terazije 6–6 kaže bez struje od 08:30 do 14:00, za Banovačku i Radničku u Surčinu od 08:30 do 13:00 — i podesite jutro tako da u tim satima ne zavisite od struje.",
+        "akcija": "Živiš li u nekoj od navedenih ulica — Jastrebovljeva (09:00–15:00), Terazije 6 (08:30–14:00) ili Mihaila Bulgakova (08:30–16:00) — rasporedi današnji dan tako da u tom prozoru ne zavisiš od struje. Ostale navedene ulice imaju svoje prozore u istim zapisima.",
         "vazi_do": null,
-        "lokacija": "СУРЧИН, БАНОВАЧКА, РАДНИЧКА, ТЕРАЗИЈЕ",
-        "dokaz": "izvor:08459918b423a8e9 · izvor:3f101feb75a7b1c1 · izvor:07cd5c32a4d5cabb · izvor:2880c8635d229ff5"
+        "lokacija": "ЈАСТРЕБОВЉЕВА, ТЕРАЗИЈЕ, МИХАИЛА БУЛГАКОВА",
+        "dokaz": "izvor:07cd5c32a4d5cabb · izvor:08459918b423a8e9 · izvor:097b550c2c4b2864 · izvor:0c2547689144aa0c · izvor:2880c8635d229ff5"
       },
       "validacija": {
-        "state": "accepted",
-        "razlog": [],
-        "at": "2026-10-28T00:48:16.218Z"
+        "state": "rejected",
+        "razlog": [
+          {
+            "pravilo": "brojevi_iz_dokaza",
+            "stanje": "rejected",
+            "razlog": "brojevi izvan citiranih zapisa: 80"
+          }
+        ],
+        "at": "2026-10-28T01:17:30.130Z"
       }
     }
   ]
