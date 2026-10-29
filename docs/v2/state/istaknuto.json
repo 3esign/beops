@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-istaknuto/v1",
-  "generated_at": "2026-10-29T12:15:07.412Z",
-  "as_of": "2026-10-29T12:08:01.989Z",
+  "generated_at": "2026-10-29T12:47:03.012Z",
+  "as_of": "2026-10-29T12:38:01.131Z",
   "formula": {
     "oblik": "0.15·gate + 0.25·svezina + 0.25·magnituda + 0.20·korak + 0.15·masa (nedostajuće komponente se izbacuju, težine se normališu)",
     "gate": {
@@ -40,10 +40,10 @@
     "vreme": {
       "trakе": "sada ≤30 min / skoro ≤3 h / danas ≤12 h / starije / bez vremena",
       "brojaci": {
-        "sada": 146,
-        "skoro": 173,
-        "danas": 213,
-        "starije": 585,
+        "sada": 164,
+        "skoro": 175,
+        "danas": 240,
+        "starije": 552,
         "bez_vremena": 27,
         "najava": null
       }
@@ -63,64 +63,64 @@
         "ime": "Meteo",
         "n": 70,
         "najjaca": {
-          "id": "S04:temperature",
-          "score": 0.6676
+          "id": "S01:temperature",
+          "score": 0.676
         }
       },
       "ostalo": {
         "ime": "Ostalo",
-        "n": 644,
+        "n": 656,
         "najjaca": {
-          "id": "S04:pressure_at_sealevel",
-          "score": 0.5981
+          "id": "2053257333383cd5",
+          "score": 0.6264
         }
       },
       "vazduh": {
         "ime": "Vazduh",
-        "n": 60,
+        "n": 59,
         "najjaca": {
           "id": "S04:pm25",
-          "score": 0.8169
+          "score": 0.7545
         }
       },
       "mobilnost": {
         "ime": "Mobilnost i parking",
-        "n": 103,
+        "n": 101,
         "najjaca": {
-          "id": "de7e7b44e91c76cc",
-          "score": 0.7323
+          "id": "S10:free_spaces",
+          "score": 0.7925
         }
       },
       "vode": {
         "ime": "Vode",
-        "n": 11,
+        "n": 12,
         "najjaca": {
-          "id": "f2c77d4cb3d8624b",
-          "score": 0.5588
-        }
-      },
-      "bezbednost": {
-        "ime": "Bezbednost",
-        "n": 52,
-        "najjaca": {
-          "id": "677f712763b8b1b6",
-          "score": 0.726
-        }
-      },
-      "van_grada": {
-        "ime": "Van Beograda",
-        "n": 68,
-        "najjaca": {
-          "id": "44a9cccefdbccb84",
-          "score": 0.451
+          "id": "a72d372da6ecf04e",
+          "score": 0.6905
         }
       },
       "dogadjaji": {
         "ime": "Događaji, kultura, sport",
-        "n": 54,
+        "n": 55,
         "najjaca": {
-          "id": "c18e8d430d2a2e2f",
-          "score": 0.693
+          "id": "9ea0dd405e14c084",
+          "score": 0.7355
+        }
+      },
+      "van_grada": {
+        "ime": "Van Beograda",
+        "n": 73,
+        "najjaca": {
+          "id": "427bbbb1909fd3f0",
+          "score": 0.4772
+        }
+      },
+      "bezbednost": {
+        "ime": "Bezbednost",
+        "n": 49,
+        "najjaca": {
+          "id": "b74f74a542fde45d",
+          "score": 0.7393
         }
       },
       "uprava": {
@@ -128,15 +128,15 @@
         "n": 23,
         "najjaca": {
           "id": "0e09e237654301fe",
-          "score": 0.6061
+          "score": 0.5843
         }
       },
       "ekonomija": {
         "ime": "Ekonomija i cene",
         "n": 14,
         "najjaca": {
-          "id": "f752b97d9e7d5e8c",
-          "score": 0.545
+          "id": "3fb9f7c155842b15",
+          "score": 0.6434
         }
       },
       "zdravlje": {
@@ -144,23 +144,23 @@
         "n": 6,
         "najjaca": {
           "id": "8ffbab6ff2040304",
-          "score": 0.5915
+          "score": 0.573
         }
       },
       "gradnja": {
         "ime": "Gradnja i urbanizam",
-        "n": 5,
+        "n": 6,
         "najjaca": {
-          "id": "6fcb6de5eacc29bd",
-          "score": 0.6185
+          "id": "458ec42e64839197",
+          "score": 0.6624
         }
       },
       "misli": {
         "ime": "Misli",
-        "n": 49,
+        "n": 51,
         "najjaca": {
-          "id": "mind-20261029115531-0",
-          "score": 0.7378
+          "id": "mind-20261029122732-1",
+          "score": 0.7382
         }
       }
     },
@@ -210,23 +210,46 @@
   "top": [
     {
       "vrsta": "merenje",
+      "id": "S10:free_spaces",
+      "naslov": "Slobodnih parking mesta 33 — Garaža \"Baba Višnjina\"",
+      "rx": "2026-10-29T12:28:01.826782Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
+      "state": "untimed",
+      "score": 0.7925,
+      "komponente": {
+        "gate": 0.7,
+        "svezina": 0.35,
+        "magnituda": 1,
+        "korak": 1,
+        "masa": 1
+      },
+      "zasto": "gate 0.7 (untimed) · svezina 0.35 (Δ null min, τ=120 min) · magnituda 1.00 (33 slobodnih mesta) · korak 1 · masa 1.00 (hex 14242 stanovnika)",
+      "traka_vreme": "bez_vremena",
+      "traka_prostor": "centar",
+      "tema": "mobilnost",
+      "tema_ime": "Mobilnost i parking",
+      "link": "mesto:S10",
+      "izvor": "Parking servis - displayed free spaces per lot"
+    },
+    {
+      "vrsta": "merenje",
       "id": "S04:pm25",
-      "naslov": "PM2.5 40.25 µg/m³ — 86819",
-      "t": "2026-10-29T12:01:50Z",
-      "rx": "2026-10-29T12:03:01.933189Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "naslov": "PM2.5 29.5 µg/m³ — 98610",
+      "t": "2026-10-29T12:32:02Z",
+      "rx": "2026-10-29T12:33:02.900922Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "observed",
-      "score": 0.8169,
+      "score": 0.7545,
       "komponente": {
         "gate": 1,
-        "svezina": 0.95,
-        "magnituda": 0.791,
+        "svezina": 0.951,
+        "magnituda": 0.481,
         "korak": 0.9,
-        "masa": 0.344
+        "masa": 0.443
       },
-      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.79 (40.25 protiv sat-opsega 3.2–37.8 u 12h) · korak 0.9 · masa 0.34 (hex 4904 stanovnika)",
+      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.48 (29.5 protiv sat-opsega 3.2–37.8 u 12h) · korak 0.9 · masa 0.44 (hex 6313 stanovnika)",
       "traka_vreme": "sada",
-      "traka_prostor": "centar",
+      "traka_prostor": "unutrasnja",
       "tema": "vazduh",
       "tema_ime": "Vazduh",
       "link": "mesto:S04",
@@ -236,9 +259,9 @@
       "vrsta": "merenje",
       "id": "S04:pm10",
       "naslov": "PM10 32 µg/m³ — 97343",
-      "t": "2026-10-29T12:02:00Z",
-      "rx": "2026-10-29T12:03:01.933189Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "t": "2026-10-29T12:32:00Z",
+      "rx": "2026-10-29T12:33:02.900922Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "observed",
       "score": 0.7538,
       "komponente": {
@@ -257,106 +280,21 @@
       "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
     },
     {
-      "vrsta": "misao",
-      "id": "mind-20261029115531-0",
-      "naslov": "Preispitujem Skeptikovu zabrinutost zbog svežine: prijem sa građanskih senzora sada je star 2 min, dok je prijem parking podataka star 12 min; to razdvaja ritmove prijema, ne uslove na ulicama. Povezao bih naslove Tanjuga i Beoinfa o klizanju pre nego što bilo koji povežem sa parkingom: njihova zajednička tema sugeriše preklapanje izveštavanja, ali identitet događaja, lokaciju i vreme još treba proveriti. [F3][F4][F6][F24]",
-      "t": "2026-10-29T11:55:31.593775Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
-      "state": "accepted",
-      "score": 0.7378,
-      "komponente": {
-        "gate": 0.9,
-        "svezina": 0.991,
-        "magnituda": 0.8,
-        "korak": 0.4,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.9 (prihvaćena) · svezina 0.99 (Δ 13 min, τ=1440 min) · magnituda 0.80 (4 citata) · korak 0.4 (Povezivač) · masa 0.5",
-      "traka_vreme": "sada",
-      "traka_prostor": "grad",
-      "tema": "misli",
-      "tema_ime": "Misli",
-      "link": "misao:mind-20261029115531-0",
-      "izvor": "Povezivač",
-      "cites": [
-        "F24",
-        "F3",
-        "F4",
-        "F6"
-      ]
-    },
-    {
-      "vrsta": "misao",
-      "id": "mind-20261029115131-1",
-      "naslov": "Osveženi građanski izvor je manje svež nego što je ijedan iskaz tvrdio: poslednji prijem je bio pre 18 min, iako obuhvata 45 instrumenata i 8061 vrednosti u poslednjih 6 h. Obilićev venac jeste prešao sa 382 na 0, ali bez vremena merenja to ne potvrđuje ni trenutno stanje popunjenosti ni zaključak o stanju grada. Najnoviji naslovi izvora Tanjug Beograd, Danas, Studio B, Beta i Danubeogradu i dalje imaju nepotvrđen geografski obuhvat, pa ne mogu objasniti nijedan tok instrumenata. [F3][F5][F6][F7][F8][F9][F10]",
-      "t": "2026-10-29T11:51:31.567008Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
-      "state": "accepted",
-      "score": 0.7372,
-      "komponente": {
-        "gate": 0.9,
-        "svezina": 0.989,
-        "magnituda": 0.8,
-        "korak": 0.4,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.9 (prihvaćena) · svezina 0.99 (Δ 17 min, τ=1440 min) · magnituda 0.80 (7 citata) · korak 0.4 (Sumnjalo) · masa 0.5",
-      "traka_vreme": "sada",
-      "traka_prostor": "grad",
-      "tema": "misli",
-      "tema_ime": "Misli",
-      "link": "misao:mind-20261029115131-1",
-      "izvor": "Sumnjalo",
-      "cites": [
-        "F10",
-        "F3",
-        "F5",
-        "F6",
-        "F7",
-        "F8",
-        "F9"
-      ]
-    },
-    {
       "vrsta": "vest",
-      "id": "de7e7b44e91c76cc",
-      "naslov": "Sudar vozova u Španiji: Šta se dogodilo – u grafikama",
-      "t": "2026-10-29T11:20:48Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "id": "b74f74a542fde45d",
+      "naslov": "Džinovske glave stigle u CS2, Valve nagovestio novo oružje",
+      "t": "2026-10-29T12:30:00Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "estimated",
-      "score": 0.7323,
+      "score": 0.7393,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.877,
-        "magnituda": null,
-        "korak": 0.9,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.88 (pre 47 min, τ=360 min) · korak 0.9 (saobracaj) · masa 0.5",
-      "traka_vreme": "skoro",
-      "traka_prostor": "grad",
-      "tema": "mobilnost",
-      "tema_ime": "Saobraćaj",
-      "link": "vest:S69",
-      "izvor": "news-sorter",
-      "vreme_tekst": null
-    },
-    {
-      "vrsta": "vest",
-      "id": "677f712763b8b1b6",
-      "naslov": "Studentska lista: \"Tražimo ostavke čelnih ljudi policije, BIA, VBA...\"",
-      "t": "2026-10-29T11:45:00Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
-      "state": "estimated",
-      "score": 0.726,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 0.938,
+        "svezina": 0.978,
         "magnituda": null,
         "korak": 0.8,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.94 (pre 23 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
+      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.98 (pre 8 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
       "traka_vreme": "sada",
       "traka_prostor": "grad",
       "tema": "bezbednost",
@@ -366,11 +304,119 @@
       "vreme_tekst": null
     },
     {
+      "vrsta": "misao",
+      "id": "mind-20261029122732-1",
+      "naslov": "Trenutni zapis kaže da je prijem građanskih senzora star 4 min, a ne kao u ranijem podatku, dok je prijem parkinga star 14 min i još nema vreme merenja. Promena sa 366 na 0 zato se ne može vremenski povezati sa klizačkim događajem, a podudarni naslovi događaja ne utvrđuju zajedničko vreme niti uticaj na parking. [F3][F4][F5][F6][F24]",
+      "t": "2026-10-29T12:27:32.445072Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
+      "state": "accepted",
+      "score": 0.7382,
+      "komponente": {
+        "gate": 0.9,
+        "svezina": 0.993,
+        "magnituda": 0.8,
+        "korak": 0.4,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.9 (prihvaćena) · svezina 0.99 (Δ 10 min, τ=1440 min) · magnituda 0.80 (5 citata) · korak 0.4 (Sumnjalo) · masa 0.5",
+      "traka_vreme": "sada",
+      "traka_prostor": "grad",
+      "tema": "misli",
+      "tema_ime": "Misli",
+      "link": "misao:mind-20261029122732-1",
+      "izvor": "Sumnjalo",
+      "cites": [
+        "F24",
+        "F3",
+        "F4",
+        "F5",
+        "F6"
+      ]
+    },
+    {
+      "vrsta": "vest",
+      "id": "9ea0dd405e14c084",
+      "naslov": "Goran Grbović za Danas o situaciji u Partizanu: „Utakmicu sa Asvelom, onako kako smo počeli, nikako nismo mogli da dobijemo“",
+      "t": "2026-10-29T12:25:42Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
+      "state": "estimated",
+      "score": 0.7355,
+      "komponente": {
+        "gate": 0.7,
+        "svezina": 0.966,
+        "magnituda": null,
+        "korak": 0.65,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.7 (estimated, potvrđen čas) · svezina 0.97 (pre 12 min, τ=360 min) · korak 0.65 (dogadjaj_kultura_sport) · masa 0.5",
+      "traka_vreme": "sada",
+      "traka_prostor": "grad",
+      "tema": "dogadjaji",
+      "tema_ime": "Događaji, kultura, sport",
+      "link": "vest:S69",
+      "izvor": "news-sorter",
+      "vreme_tekst": "Danas"
+    },
+    {
+      "vrsta": "vest",
+      "id": "f2ae27af78dfe32b",
+      "naslov": "Goran Grbović za Danas o u Partizanu: „Utakmicu sa Asvelom, onako kako smo počeli, nikako nismo mogli da dobijemo“",
+      "t": "2026-10-29T12:25:42Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
+      "state": "estimated",
+      "score": 0.7355,
+      "komponente": {
+        "gate": 0.7,
+        "svezina": 0.966,
+        "magnituda": null,
+        "korak": 0.65,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.7 (estimated, potvrđen čas) · svezina 0.97 (pre 12 min, τ=360 min) · korak 0.65 (dogadjaj_kultura_sport) · masa 0.5",
+      "traka_vreme": "sada",
+      "traka_prostor": "grad",
+      "tema": "dogadjaji",
+      "tema_ime": "Događaji, kultura, sport",
+      "link": "vest:S69",
+      "izvor": "news-sorter",
+      "vreme_tekst": "Danas"
+    },
+    {
+      "vrsta": "misao",
+      "id": "mind-20261029121132-3",
+      "naslov": "Tanjug [F6] specifies the event location as Ledenoj dvorani Pionir and timing as 'za vikend', while Beoinfo [F24] omits these details in its quoted headline. The Obilićev venac garage shift [F5] stands unaccompanied by measurement time, precluding temporal alignment with any weekend event. Citizen sensors remain current [F3] while official air-quality stations delivered nothing in 6 hours [F2].",
+      "t": "2026-10-29T12:11:32.614331Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
+      "state": "accepted",
+      "score": 0.7354,
+      "komponente": {
+        "gate": 0.9,
+        "svezina": 0.982,
+        "magnituda": 0.8,
+        "korak": 0.4,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.9 (prihvaćena) · svezina 0.98 (Δ 26 min, τ=1440 min) · magnituda 0.80 (5 citata) · korak 0.4 (Posmatrač) · masa 0.5",
+      "traka_vreme": "sada",
+      "traka_prostor": "grad",
+      "tema": "misli",
+      "tema_ime": "Misli",
+      "link": "misao:mind-20261029121132-3",
+      "izvor": "Posmatrač",
+      "cites": [
+        "F2",
+        "F24",
+        "F3",
+        "F5",
+        "F6"
+      ]
+    },
+    {
       "vrsta": "merenje",
       "id": "S10:free_spaces",
-      "naslov": "Slobodnih parking mesta 35 — Parkiralište \"Cvetkova pijaca\"",
-      "rx": "2026-10-29T11:58:01.639571Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "naslov": "Slobodnih parking mesta 33 — Parkiralište \"Cvetkova pijaca\"",
+      "rx": "2026-10-29T12:28:01.826782Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "untimed",
       "score": 0.7151,
       "komponente": {
@@ -380,7 +426,7 @@
         "korak": 1,
         "masa": 0.484
       },
-      "zasto": "gate 0.7 (untimed) · svezina 0.35 (Δ null min, τ=120 min) · magnituda 1.00 (35 slobodnih mesta) · korak 1 · masa 0.48 (hex 6894 stanovnika)",
+      "zasto": "gate 0.7 (untimed) · svezina 0.35 (Δ null min, τ=120 min) · magnituda 1.00 (33 slobodnih mesta) · korak 1 · masa 0.48 (hex 6894 stanovnika)",
       "traka_vreme": "bez_vremena",
       "traka_prostor": "unutrasnja",
       "tema": "mobilnost",
@@ -390,20 +436,20 @@
     },
     {
       "vrsta": "vest",
-      "id": "b45af3b342d887e7",
-      "naslov": "Oglasio se JTOK povodom terorističkog napada u Beogradu: Tužilac naložio hitne mere, evo šta se sve ispituje",
-      "t": "2026-10-29T11:31:00Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "id": "4baab5e7699cdb9b",
+      "naslov": "Dve osobe uhapšene na Kosovu i Metohiji zbog navodnih ratnih zločina",
+      "t": "2026-10-29T12:00:00Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "estimated",
-      "score": 0.7141,
+      "score": 0.7133,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.902,
+        "svezina": 0.9,
         "magnituda": null,
         "korak": 0.8,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.90 (pre 37 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
+      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.90 (pre 38 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
       "traka_vreme": "skoro",
       "traka_prostor": "grad",
       "tema": "bezbednost",
@@ -414,109 +460,85 @@
     },
     {
       "vrsta": "vest",
-      "id": "c18e8d430d2a2e2f",
-      "naslov": "NBA zvezda na ivici kraja",
-      "t": "2026-10-29T11:53:00Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "id": "a72d372da6ecf04e",
+      "naslov": "Od splavova do golf terena, Ada Ciganlija sprema novine: Kamere, reflektori i rampe koje čitaju tablice",
+      "t": "2026-10-29T12:35:00Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "estimated",
-      "score": 0.693,
+      "score": 0.6905,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.959,
+        "svezina": 0.992,
         "magnituda": null,
-        "korak": 0.65,
+        "korak": 0.6,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.96 (pre 15 min, τ=360 min) · korak 0.65 (dogadjaj_kultura_sport) · masa 0.5",
+      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.99 (pre 3 min, τ=360 min) · korak 0.6 (voda_i_reke) · masa 0.5",
       "traka_vreme": "sada",
       "traka_prostor": "grad",
-      "tema": "dogadjaji",
-      "tema_ime": "Događaji, kultura, sport",
-      "link": "vest:S198",
-      "izvor": "news-sorter",
-      "vreme_tekst": null
-    },
-    {
-      "vrsta": "vest",
-      "id": "96156252e295c476",
-      "naslov": "NBA zvezda na ivici kraja",
-      "t": "2026-10-29T11:43:00Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
-      "state": "estimated",
-      "score": 0.6843,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 0.933,
-        "magnituda": null,
-        "korak": 0.65,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.93 (pre 25 min, τ=360 min) · korak 0.65 (dogadjaj_kultura_sport) · masa 0.5",
-      "traka_vreme": "sada",
-      "traka_prostor": "grad",
-      "tema": "dogadjaji",
-      "tema_ime": "Događaji, kultura, sport",
+      "tema": "vode",
+      "tema_ime": "Vode i reke",
       "link": "vest:S198",
       "izvor": "news-sorter",
       "vreme_tekst": null
     },
     {
       "vrsta": "merenje",
-      "id": "S04:temperature",
-      "naslov": "Temperatura 14.57 °C — 97344",
-      "t": "2026-10-29T12:02:00Z",
-      "rx": "2026-10-29T12:03:01.933189Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "id": "S01:temperature",
+      "naslov": "Temperatura 12.1 °C — Beograd",
+      "t": "2026-10-29T12:20:00Z",
+      "rx": "2026-10-29T12:28:35.228779Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "observed",
-      "score": 0.6676,
+      "score": 0.676,
       "komponente": {
         "gate": 1,
-        "svezina": 0.951,
-        "magnituda": 0.287,
+        "svezina": 0.861,
+        "magnituda": 0.467,
         "korak": 0.4,
-        "masa": 0.854
+        "masa": 0.76
       },
-      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.29 (14.57 protiv sat-opsega 12.8–26.5 u 12h) · korak 0.4 · masa 0.85 (hex 12168 stanovnika)",
+      "zasto": "gate 1 (observed) · svezina 0.86 (Δ 18 min, τ=120 min) · magnituda 0.47 (12.1 protiv sat-opsega 12.8–26.5 u 12h) · korak 0.4 · masa 0.76 (hex 10826 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "centar",
       "tema": "meteo",
       "tema_ime": "Meteo",
-      "link": "mesto:S04",
-      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-    },
-    {
-      "vrsta": "merenje",
-      "id": "S04:humidity",
-      "naslov": "Vlažnost 100 % — 66176",
-      "t": "2026-10-29T12:01:49Z",
-      "rx": "2026-10-29T12:03:01.933189Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
-      "state": "observed",
-      "score": 0.6629,
-      "komponente": {
-        "gate": 1,
-        "svezina": 0.95,
-        "magnituda": 0.637,
-        "korak": 0.4,
-        "masa": 0.242
-      },
-      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.64 (100 protiv sat-opsega 26.9–100 u 12h) · korak 0.4 · masa 0.24 (hex 3451 stanovnika)",
-      "traka_vreme": "sada",
-      "traka_prostor": "unutrasnja",
-      "tema": "meteo",
-      "tema_ime": "Meteo",
-      "link": "mesto:S04",
-      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+      "link": "mesto:S01",
+      "izvor": "RHMZ automatic stations - Belgrade (Beograd, Košutnjak)"
     }
   ],
   "korak_za_gradjanina": [
     {
       "vrsta": "merenje",
+      "id": "S04:pm25",
+      "naslov": "PM2.5 29.5 µg/m³ — 98610",
+      "t": "2026-10-29T12:32:02Z",
+      "rx": "2026-10-29T12:33:02.900922Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
+      "state": "observed",
+      "score": 0.7545,
+      "komponente": {
+        "gate": 1,
+        "svezina": 0.951,
+        "magnituda": 0.481,
+        "korak": 0.9,
+        "masa": 0.443
+      },
+      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.48 (29.5 protiv sat-opsega 3.2–37.8 u 12h) · korak 0.9 · masa 0.44 (hex 6313 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "unutrasnja",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S04",
+      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+    },
+    {
+      "vrsta": "merenje",
       "id": "S04:pm10",
       "naslov": "PM10 32 µg/m³ — 97343",
-      "t": "2026-10-29T12:02:00Z",
-      "rx": "2026-10-29T12:03:01.933189Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "t": "2026-10-29T12:32:00Z",
+      "rx": "2026-10-29T12:33:02.900922Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "observed",
       "score": 0.7538,
       "komponente": {
@@ -537,20 +559,20 @@
     {
       "vrsta": "merenje",
       "id": "S04:pm25",
-      "naslov": "PM2.5 18.71 µg/m³ — 97343",
-      "t": "2026-10-29T12:02:00Z",
-      "rx": "2026-10-29T12:03:01.933189Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "naslov": "PM2.5 18.38 µg/m³ — 97343",
+      "t": "2026-10-29T12:32:00Z",
+      "rx": "2026-10-29T12:33:02.900922Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "observed",
-      "score": 0.7381,
+      "score": 0.7358,
       "komponente": {
         "gate": 1,
         "svezina": 0.951,
-        "magnituda": 0.169,
+        "magnituda": 0.159,
         "korak": 0.9,
         "masa": 0.854
       },
-      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.17 (18.71 protiv sat-opsega 3.2–37.8 u 12h) · korak 0.9 · masa 0.85 (hex 12168 stanovnika)",
+      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.16 (18.38 protiv sat-opsega 3.2–37.8 u 12h) · korak 0.9 · masa 0.85 (hex 12168 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "centar",
       "tema": "vazduh",
@@ -561,22 +583,22 @@
     {
       "vrsta": "merenje",
       "id": "S04:pm10",
-      "naslov": "PM10 12.3 µg/m³ — 69392",
-      "t": "2026-10-29T12:01:57Z",
-      "rx": "2026-10-29T12:03:01.933189Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "naslov": "PM10 31.25 µg/m³ — 98610",
+      "t": "2026-10-29T12:32:02Z",
+      "rx": "2026-10-29T12:33:02.900922Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "observed",
-      "score": 0.618,
+      "score": 0.6884,
       "komponente": {
         "gate": 1,
         "svezina": 0.951,
-        "magnituda": 0.167,
+        "magnituda": 0.216,
         "korak": 0.9,
-        "masa": 0.057
+        "masa": 0.443
       },
-      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.17 (12.3 protiv sat-opsega 3.9–53.3 u 12h) · korak 0.9 · masa 0.06 (hex 813 stanovnika)",
+      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.22 (31.25 protiv sat-opsega 3.9–53.3 u 12h) · korak 0.9 · masa 0.44 (hex 6313 stanovnika)",
       "traka_vreme": "sada",
-      "traka_prostor": "spoljasnja",
+      "traka_prostor": "unutrasnja",
       "tema": "vazduh",
       "tema_ime": "Vazduh",
       "link": "mesto:S04",
@@ -584,45 +606,21 @@
     },
     {
       "vrsta": "merenje",
-      "id": "S04:pm25",
-      "naslov": "PM2.5 8 µg/m³ — 69392",
-      "t": "2026-10-29T12:01:57Z",
-      "rx": "2026-10-29T12:03:01.933189Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "id": "S04:pm10",
+      "naslov": "PM10 29.05 µg/m³ — 54945",
+      "t": "2026-10-29T12:31:38Z",
+      "rx": "2026-10-29T12:33:02.900922Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "observed",
-      "score": 0.6114,
+      "score": 0.7064,
       "komponente": {
         "gate": 1,
-        "svezina": 0.951,
-        "magnituda": 0.141,
+        "svezina": 0.948,
+        "magnituda": 0.172,
         "korak": 0.9,
-        "masa": 0.057
+        "masa": 0.643
       },
-      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.14 (8 protiv sat-opsega 3.2–37.8 u 12h) · korak 0.9 · masa 0.06 (hex 813 stanovnika)",
-      "traka_vreme": "sada",
-      "traka_prostor": "spoljasnja",
-      "tema": "vazduh",
-      "tema_ime": "Vazduh",
-      "link": "mesto:S04",
-      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-    },
-    {
-      "vrsta": "merenje",
-      "id": "S04:pm25",
-      "naslov": "PM2.5 40.25 µg/m³ — 86819",
-      "t": "2026-10-29T12:01:50Z",
-      "rx": "2026-10-29T12:03:01.933189Z",
-      "as_of": "2026-10-29T12:08:01.989Z",
-      "state": "observed",
-      "score": 0.8169,
-      "komponente": {
-        "gate": 1,
-        "svezina": 0.95,
-        "magnituda": 0.791,
-        "korak": 0.9,
-        "masa": 0.344
-      },
-      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.79 (40.25 protiv sat-opsega 3.2–37.8 u 12h) · korak 0.9 · masa 0.34 (hex 4904 stanovnika)",
+      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.17 (29.05 protiv sat-opsega 3.9–53.3 u 12h) · korak 0.9 · masa 0.64 (hex 9155 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "centar",
       "tema": "vazduh",
@@ -634,20 +632,68 @@
   "najave": [
     {
       "vrsta": "vest",
+      "id": "7b36c2328e00e72e",
+      "naslov": "Fontaines D.C. nastupili u rasprodatom Hangaru: Prvi veliki koncert jednog svetskog rok benda nakon istorijskih izbora",
+      "t": "2026-10-29T12:42:07Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
+      "state": "najava",
+      "score": 0.7029,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 0.989,
+        "magnituda": null,
+        "korak": 0.65,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.99 (za 4 min, τ=360 min) · korak 0.65 (dogadjaj_kultura_sport) · masa 0.5",
+      "traka_vreme": "najava",
+      "traka_prostor": "grad",
+      "tema": "dogadjaji",
+      "tema_ime": "Događaji, kultura, sport",
+      "link": "vest:S69",
+      "izvor": "news-sorter",
+      "vreme_tekst": null
+    },
+    {
+      "vrsta": "vest",
+      "id": "5e4f34cc6d0a6519",
+      "naslov": "Masakr Rusa; Užas – pogođen voz pun ljudi; Leševi razbacani svuda FOTO/VIDEO",
+      "t": "2026-10-29T12:40:00Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
+      "state": "najava",
+      "score": 0.5982,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 0.995,
+        "magnituda": null,
+        "korak": 0.25,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.99 (za 2 min, τ=360 min) · korak 0.25 (ostalo) · masa 0.5",
+      "traka_vreme": "najava",
+      "traka_prostor": "grad",
+      "tema": "ostalo",
+      "tema_ime": "Ostalo",
+      "link": "vest:S198",
+      "izvor": "news-sorter",
+      "vreme_tekst": null
+    },
+    {
+      "vrsta": "vest",
       "id": "0938d0b767465ff7",
       "naslov": "Планирано искључење струје 2026-10-30 · Звездара · 08:30 - 14:00 · АХМЕДА АДЕМОВИЋА: 4-24,1-13,19-21, Д.ЂОРЂЕВИЋА-ГОШЕ: 8А-12, ЂАНГА РАЈНХАРТА: ББ,ББ,4-8,12,20-26,17,23, ЈОВАНА ЈАНИЋ.БУРДУША: 2-6,1-9,",
       "t": "2026-10-30",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "najava",
-      "score": 0.4995,
+      "score": 0.5035,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.138,
+        "svezina": 0.15,
         "magnituda": null,
         "korak": 0.95,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.14 (za 712 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.15 (za 682 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
       "traka_vreme": "najava",
       "traka_prostor": "grad",
       "tema": "mobilnost",
@@ -661,17 +707,17 @@
       "id": "29d5973963499f9e",
       "naslov": "Планирано искључење струје 2026-10-30 · Раковица · 08:30 - 14:00 · АЦЕ СИМИЋА: 28,32,39-41, АГАРУШКА: 2-6,1-3,7-9, АЛАНА ТЈУРИНГА: 4-6,12-14,5-11, АЛЕКСАНДРА НЕВСКОГ: 6,5,9-11, АНДРЕ ЈОВИЋА: 2-12,16-3",
       "t": "2026-10-30",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "najava",
-      "score": 0.4995,
+      "score": 0.5035,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.138,
+        "svezina": 0.15,
         "magnituda": null,
         "korak": 0.95,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.14 (za 712 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.15 (za 682 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
       "traka_vreme": "najava",
       "traka_prostor": "grad",
       "tema": "mobilnost",
@@ -685,17 +731,17 @@
       "id": "47ca78ddd995ee52",
       "naslov": "Планирано искључење струје 2026-10-30 · Лазаревац · 09:00 - 11:00 · Насеље Врбовно-Викендаши.",
       "t": "2026-10-30",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "najava",
-      "score": 0.4995,
+      "score": 0.5035,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.138,
+        "svezina": 0.15,
         "magnituda": null,
         "korak": 0.95,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.14 (za 712 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.15 (za 682 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
       "traka_vreme": "najava",
       "traka_prostor": "grad",
       "tema": "mobilnost",
@@ -709,17 +755,17 @@
       "id": "55bc3dfad6962876",
       "naslov": "Планирано искључење струје 2026-10-30 · Вождовац · 09:00 - 12:00 · Насеље РИПАЊ: ЕРЧАНСКА: 76А-88,27А-31А,35,39-45, ПУТ ЗА ИЛИЋЕ: 2-6, ПУТ ЗА КАЛАЈЏИЋЕ: 12-14А, ПУТ ЗА НЕСТРОВИЋЕ: 2-20,24-26,1,5-9,13-",
       "t": "2026-10-30",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "najava",
-      "score": 0.4995,
+      "score": 0.5035,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.138,
+        "svezina": 0.15,
         "magnituda": null,
         "korak": 0.95,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.14 (za 712 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.15 (za 682 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
       "traka_vreme": "najava",
       "traka_prostor": "grad",
       "tema": "mobilnost",
@@ -733,17 +779,17 @@
       "id": "6f77148368c4796a",
       "naslov": "Планирано искључење струје 2026-10-30 · Обреновац · 08:30 - 14:00 · Насеље ОБРЕНОВАЦ: ИНДУСТРИЈСКА ЗОНА: 0ББ, НЕМАЊИНА: 232,250,266,183, Насеље УРОВЦИ: БОГОЉУБА УРОШЕВИЋА-ЦРНОГ: 2,26,40,44Б,222,15,23-",
       "t": "2026-10-30",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "najava",
-      "score": 0.4995,
+      "score": 0.5035,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.138,
+        "svezina": 0.15,
         "magnituda": null,
         "korak": 0.95,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.14 (za 712 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.15 (za 682 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
       "traka_vreme": "najava",
       "traka_prostor": "grad",
       "tema": "mobilnost",
@@ -757,65 +803,17 @@
       "id": "79f63d1655531b3b",
       "naslov": "Планирано искључење струје 2026-10-30 · Стари град · 10:00 - 13:00 · Краља Петра 19-21.",
       "t": "2026-10-30",
-      "as_of": "2026-10-29T12:08:01.989Z",
+      "as_of": "2026-10-29T12:38:01.131Z",
       "state": "najava",
-      "score": 0.4995,
+      "score": 0.5035,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.138,
+        "svezina": 0.15,
         "magnituda": null,
         "korak": 0.95,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.14 (za 712 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
-      "traka_vreme": "najava",
-      "traka_prostor": "grad",
-      "tema": "mobilnost",
-      "tema_ime": "Isključenja",
-      "link": "vest:S54",
-      "izvor": "news-sorter",
-      "vreme_tekst": null
-    },
-    {
-      "vrsta": "vest",
-      "id": "a525ad718d116829",
-      "naslov": "Планирано искључење струје 2026-10-30 · Вождовац · 08:30 - 14:00 · КСЕНИЈЕ ЈОВАНОВИЋ: 2-12, МИЈАТА МИЈАТОВИЋА: 2-4,8-14,1-5,9-11,19Г-19И, СТАНИСЛАВЕ ПЕШИЋ: 6-8,12,1,5-9, ЗАПИС: 4-12,16-18,1-3,7-9,13",
-      "t": "2026-10-30",
-      "as_of": "2026-10-29T12:08:01.989Z",
-      "state": "najava",
-      "score": 0.4995,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 0.138,
-        "magnituda": null,
-        "korak": 0.95,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.14 (za 712 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
-      "traka_vreme": "najava",
-      "traka_prostor": "grad",
-      "tema": "mobilnost",
-      "tema_ime": "Isključenja",
-      "link": "vest:S54",
-      "izvor": "news-sorter",
-      "vreme_tekst": null
-    },
-    {
-      "vrsta": "vest",
-      "id": "a7ada4f610abceab",
-      "naslov": "Планирано искључење струје 2026-10-30 · Раковица · 08:30 - 16:00 · Насеље РЕСНИК: ЈОСИПА ТЕЛАРЕВИЋА: 43Б, ЛИЧКИХ БРИГАДА: 2-6,3-7В,35А-35К",
-      "t": "2026-10-30",
-      "as_of": "2026-10-29T12:08:01.989Z",
-      "state": "najava",
-      "score": 0.4995,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 0.138,
-        "magnituda": null,
-        "korak": 0.95,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.14 (za 712 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.15 (za 682 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
       "traka_vreme": "najava",
       "traka_prostor": "grad",
       "tema": "mobilnost",
@@ -828,18 +826,7 @@
   "prognoza": [
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261028122741-71",
-      "naslov": "Odbijena formulacija (EN): The garage change is real as a display transition, but its measurement age is explicitly unknown, so it cannot establish a current empty facility [F4][F5]. Tanjug reports water interruptions naming Voždovac and Surčin, yet the event’s geographic scope is unconfirmed; the headline alone cannot validate a local outage [F6].",
-      "t": "2026-10-28T12:27:41.809947Z",
-      "score": 0,
-      "razlog": [
-        "presents a value with no measurement time as the present state"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261028161141-66",
+      "id": "mind-20261028161141-70",
       "naslov": "Odbijena formulacija (EN): Parking Servis is receiving recent data, but the largest displayed movement at VMA has no measurement time, so its spatial meaning remains open [F4, F5]. The new headlines add city-relevant signals, including a heating complaint and public-transport information, but their geographic scope is not confirmed [F7, F8, F23].",
       "t": "2026-10-28T16:11:41.252890Z",
       "score": 0,
@@ -850,7 +837,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029015937-59",
+      "id": "mind-20261029015937-63",
       "naslov": "Odbijena formulacija (EN): Connector's shared interruption dissolves against the current facts: Parking Servis arrived 21 min ago [F4], RHMZ 21 min ago [F27], the airport METAR 21 min ago [F28], and citizen sensors 16 min ago [F3] - the collection is running, not paused. What the facts actually carry is selective silence: SEPA has 0 of 24 expected slots in 24 h [F2] and Blic 0 of 96 [F25], which points at individual sources, not a common pipe. Observer is right that the Obilićev venac move from 32 to 391 is only a display difference with no measurement time [F5], so nothing in it supports a timed emptying of the garage.",
       "t": "2026-10-29T01:59:37.512289Z",
       "score": 0,
@@ -861,7 +848,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029023533-57",
+      "id": "mind-20261029023533-61",
       "naslov": "Odbijena formulacija (EN): Four instrument feeds carry the same 12-minute reception age - the citizen field with 45 instruments and 5384 values [F3], Parking Servis with 27 locations and 351 values [F4], RHMZ Košutnjak with 2 instruments and 130 values [F27], and DanubeHIS with 3 instruments [F35] - while METAR sits at 27 minutes [F28], so the boundary Connector wants to test looks like one polling tick of ours rather than anything the city did. Skeptic's \"near fortyfold\" is stale: Obilićev venac now reads from 72 to 392 free spaces between the first and last reception in the window, with no measurement time [F5], and the same source states it publishes no measurement time at all [F4]. Meanwhile Blic's channel shows nothing arrived in 6 h, 0 of 96 slots [F25], yet a Blic headline about cable theft paralysing trains in Belgrade is what the link organelle keeps pairing with three unrelated media headlines at 0.74, 0.74 and 0.73 [F38][F39][F40].",
       "t": "2026-10-29T02:35:33.241299Z",
       "score": 0,
@@ -872,7 +859,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029041652-53",
+      "id": "mind-20261029041652-57",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 5/5, F39 5/5, F40 5/5, F5 1/5. Procena, ne merenje.",
       "t": "2026-10-29T04:16:52.036546Z",
       "score": 0,
@@ -881,7 +868,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029045530-49",
+      "id": "mind-20261029045530-53",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 5/5, F39 5/5, F40 5/5, F5 1/5. Procena, ne merenje.",
       "t": "2026-10-29T04:55:30.788529Z",
       "score": 0,
@@ -890,7 +877,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029050731-47",
+      "id": "mind-20261029050731-51",
       "naslov": "Odbijena formulacija (EN): Skeptic is right that equal reception ages prove nothing, yet the pattern has now half-dissolved on its own: Parking Servis [F4] and RHMZ Košutnjak [F27] both read 14 min while METAR slipped to 29 min [F28], which fits two pullers rather than one. Meanwhile the Vukov spomenik display climbed from 26 to 60 free spaces before 06:07 on a Thursday [F5][F1] — emptying, not filling, ahead of the commute. And every similarity link the organ flags leads back to a single Blic cable-theft headline [F38][F39][F40] from a feed that delivered nothing, 0 of 96 slots [F25].",
       "t": "2026-10-29T05:07:31.669859Z",
       "score": 0,
@@ -901,7 +888,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029053852-45",
+      "id": "mind-20261029053852-49",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 5/5, F39 5/5, F40 5/5, F5 2/5. Procena, ne merenje.",
       "t": "2026-10-29T05:38:52.526111Z",
       "score": 0,
@@ -910,7 +897,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029061130-41",
+      "id": "mind-20261029061130-45",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 4/5, F39 4/5, F40 4/5, F5 1/5. Procena, ne merenje.",
       "t": "2026-10-29T06:11:30.884055Z",
       "score": 0,
@@ -919,7 +906,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029064731-37",
+      "id": "mind-20261029064731-41",
       "naslov": "Odbijena formulacija (EN): Connector's shared-silence frame loses a leg: Beta now shows two headlines [F9], while Studio B [F8] and Beogradske elektrane [F13] still sit at 75 of 96 slots - a match across different content types that stays unproven as one fault, not three. Observer's 'from 547 to [n]' at VMA is an unnecessary hedge: the fact already names the number, free spaces fell from 547 to 429 [F5]. SEPA's silence is the harder case, zero of 24 expected slots in the full day [F2], a deeper gap than anything in Connector's trio.",
       "t": "2026-10-29T06:47:31.373037Z",
       "score": 0,
@@ -931,7 +918,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029071131-34",
+      "id": "mind-20261029071131-38",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 4/5, F39 4/5, F40 4/5, F5 2/5. Procena, ne merenje.",
       "t": "2026-10-29T07:11:31.010358Z",
       "score": 0,
@@ -940,7 +927,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029073931-30",
+      "id": "mind-20261029073931-34",
       "naslov": "Mali model je ocenio iznenađenje veza: F5 4/5, F38 2/5, F39 2/5, F40 2/5. Procena, ne merenje.",
       "t": "2026-10-29T07:39:31.377711Z",
       "score": 0,
@@ -949,7 +936,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029074731-29",
+      "id": "mind-20261029074731-33",
       "naslov": "Odbijena formulacija (EN): Connector's ghost is thinner than it sounds: the three links tie the cable-theft headline to a medal ceremony and two media-editorial stories at similarities of only 0.73–0.74 [F38][F39][F40], so the problem is not just Blic's silence at 0 of 96 slots [F25] but a link organ pairing unrelated events near its threshold. The VMA drop from 549 to 194 is in the window [F5], but Parking Servis publishes no measurement time [F4], so no 'morning hospital-fill' can be clocked from it. Observer's Topčider overlap remains unbuilt: 45 citizen instruments delivered 7399 values [F3], yet these facts carry no sensor locations and no pollutant values to lay against the heating headline [F13].",
       "t": "2026-10-29T07:47:31.030370Z",
       "score": 0,
@@ -963,7 +950,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029083131-24",
+      "id": "mind-20261029083131-28",
       "naslov": "Odbijena formulacija (EN): SEPA stays at zero of twenty-four expected slots [F2] while Sensor.Community keeps arriving steadily, forty-five instruments and 7795 values in six hours [F3]. Parking Servis shows the VMA lot's displayed free spaces moved from 549 to 119 between first and last reception, but the source carries no measurement time, so I cannot place that drop against the BuildUp 2026 event headline [F11] or the cinema listings [F10] without a clock.",
       "t": "2026-10-29T08:31:31.881647Z",
       "score": 0,
@@ -975,7 +962,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029092737-20",
+      "id": "mind-20261029092737-24",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 5/5, F39 5/5, F40 5/5, F5 3/5. Procena, ne merenje.",
       "t": "2026-10-29T09:27:37.273641Z",
       "score": 0,
@@ -984,7 +971,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029093137-19",
+      "id": "mind-20261029093137-23",
       "naslov": "Odbijena formulacija (EN): Connector's transport alarm rests on a Blic headline that Blic's own channel did not deliver in the last 6 h, 0 of 96 expected slots [F25]; the links carrying it pair the cable-theft item with an order ceremony and editorial appointments at similarity 0.74 and 0.73 [F38][F39][F40], which is lexical noise, not event identity, whatever the surprise rating says [F41]. The VMA drop from 552 to 124 [F5] carries no measurement time [F4], so Observer's shift has no duration — the movement could span a minute or the whole window. SEPA remains empty, 0 of 24 slots [F2], while 45 citizen instruments delivered 7713 values [F3]; whether coverage is even or not, the official air baseline is simply absent.",
       "t": "2026-10-29T09:31:37.513944Z",
       "score": 0,
@@ -995,7 +982,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029095931-17",
+      "id": "mind-20261029095931-21",
       "naslov": "Odbijena formulacija (EN): Citizen sensing is the only air-quality geography still breathing: 45 instruments, 7804 values in six hours, last reception 6 min ago [F3], while SEPA's twenty-four expected slots stay empty [F2]. To Skeptic and Connector: the VMA figure is now explicit - displayed free spaces fell from 552 to 123 between first and last reception in the window [F5], still with no measurement time [F4], so it is a magnitude without a clock, not an hour. And the headline both link facts keep pointing at - Blic's \"KRAĐA KABLOVA PARALISALA VOZOVE U BEOGRADU\" [F38][F39][F40] - sits in a feed where nothing arrived in the last 6 h, 0 of 96 slots [F25]: it is an older item, not a live interruption.",
       "t": "2026-10-29T09:59:31.804026Z",
       "score": 0,
@@ -1007,7 +994,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029100331-16",
+      "id": "mind-20261029100331-20",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 5/5, F39 5/5, F40 5/5, F5 3/5. Procena, ne merenje.",
       "t": "2026-10-29T10:03:31.414646Z",
       "score": 0,
@@ -1016,7 +1003,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029105131-10",
+      "id": "mind-20261029105131-14",
       "naslov": "Odbijena formulacija (EN): The Obilićev venac garage empties to zero [F5] while two sources announce the Pionir skating event [F6, F24]. Without parking measurement times [F4, F5] or confirmed event timing, I cannot establish whether these share a moment or a cause. Citizen sensors continue steady at 45 instruments [F3], while SEPA remains completely silent [F2].",
       "t": "2026-10-29T10:51:31.478917Z",
       "score": 0,
@@ -1027,7 +1014,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029105532-9",
+      "id": "mind-20261029105532-13",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 5/5, F39 5/5, F40 5/5, F5 2/5. Procena, ne merenje.",
       "t": "2026-10-29T10:55:32.107448Z",
       "score": 0,
@@ -1036,7 +1023,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029105932-8",
+      "id": "mind-20261029105932-12",
       "naslov": "Odbijena formulacija (EN): Observer's puzzle has a mundane candidate: the cable-theft headline pairs at 0.74 and 0.73 with an order ceremony and two media-editor stories [F38][F39][F40] — topically disjoint pairings that a 5/5 surprise score from a small model [F41] cannot upgrade into a live transport event, while the channel itself sits at 0 of 96 slots [F25]. Connector's Pionir pairing is stronger than his withdrawn ghost: Tanjug and Beoinfo name the same trophy and the same hall [F6][F24], a verifiable duplicate rather than embedding drift. And the Obilićev venac move from 391 to 0 [F5] carries no measurement time [F4], so nothing here says when, or even whether, that garage actually filled.",
       "t": "2026-10-29T10:59:32.882193Z",
       "score": 0,
@@ -1047,7 +1034,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029111531-6",
+      "id": "mind-20261029111531-10",
       "naslov": "Odbijena formulacija (EN): Connector's prior reading spoke of zero at Obilićev venac, but current data show 2 free spaces [F5]. Citizen air monitoring (45 instruments, 8011 readings) stays current at 12 minutes [F3], while SEPA's official network shows zero readings in 6 hours [F2]; air observation has shifted geographically toward distributed citizen sensors.",
       "t": "2026-10-29T11:15:31.677291Z",
       "score": 0,
@@ -1059,7 +1046,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029112333-5",
+      "id": "mind-20261029112333-9",
       "naslov": "Odbijena formulacija (EN): Connector's sharpest shift, 394 to 2 at Obilićev venac [F5], carries no clock: Parking Servis publishes the value without its age [F4], so nothing distinguishes a sudden fill from an hours-long drift or a display fault — I will not let a state inference ride on an un-timed delta. Observer is right that the link organelle sees what the reception counter does not, but the cable-theft headline's partners — an order ceremony [F38] and media-staffing items [F39][F40] — share no event with trains, so the matches look like embedding noise around a cached headline from a channel that delivered 0 of 96 slots [F25].",
       "t": "2026-10-29T11:23:33.825991Z",
       "score": 0,
@@ -1071,7 +1058,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029112732-4",
+      "id": "mind-20261029112732-8",
       "naslov": "Odbijena formulacija (EN): The parking mover has changed since I last spoke: it is now Garaža \"Obilićev venac\", 394 to 0 between first and last reception in the window, with no measurement time attached [F5][F4] — so the VMA story Skeptic refused to accept is gone from the facts, and this new drop is just as unplaced in the day. Observer's Blic puzzle is the sharper one: the same cable-theft headline is the partner in all three similarity links at 0.74, 0.74 and 0.73 [F38][F39][F40] while Blic's channel shows 0 of 96 expected slots in 24 h [F25], which reads to me less like a hidden feed than like one headline acting as a hub in the embedding space — it pairs with an order being awarded and with two editorial-appointment headlines, which share no event. Meanwhile the citizen network reported 4 min ago with 45 instruments and 8282 values in 6 h [F3] against SEPA's empty 0 of 24 [F2].",
       "t": "2026-10-29T11:27:32.193420Z",
       "score": 0,
@@ -1082,29 +1069,27 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029114731-2",
+      "id": "mind-20261029114731-6",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 3/5, F39 3/5, F40 3/5, F5 1/5. Procena, ne merenje.",
       "t": "2026-10-29T11:47:31.673972Z",
       "score": 0,
       "razlog": "A small model rated the connections by surprise: F38 3/5, F39 3/5, F40 3/5, F5 1/5. An estimate, not a measurement.",
+      "zasto": "odbijena — javna, van rang-liste"
+    },
+    {
+      "vrsta": "misao_odbijena",
+      "id": "mind-20261029121931-2",
+      "naslov": "Mali model je ocenio iznenađenje veza: F38 5/5, F39 5/5, F40 5/5, F5 4/5. Procena, ne merenje.",
+      "t": "2026-10-29T12:19:31.815087Z",
+      "score": 0,
+      "razlog": "A small model rated the connections by surprise: F38 5/5, F39 5/5, F40 5/5, F5 4/5. An estimate, not a measurement.",
       "zasto": "odbijena — javna, van rang-liste"
     }
   ],
   "odbijene_misli": [
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261028122741-71",
-      "naslov": "Odbijena formulacija (EN): The garage change is real as a display transition, but its measurement age is explicitly unknown, so it cannot establish a current empty facility [F4][F5]. Tanjug reports water interruptions naming Voždovac and Surčin, yet the event’s geographic scope is unconfirmed; the headline alone cannot validate a local outage [F6].",
-      "t": "2026-10-28T12:27:41.809947Z",
-      "score": 0,
-      "razlog": [
-        "presents a value with no measurement time as the present state"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261028161141-66",
+      "id": "mind-20261028161141-70",
       "naslov": "Odbijena formulacija (EN): Parking Servis is receiving recent data, but the largest displayed movement at VMA has no measurement time, so its spatial meaning remains open [F4, F5]. The new headlines add city-relevant signals, including a heating complaint and public-transport information, but their geographic scope is not confirmed [F7, F8, F23].",
       "t": "2026-10-28T16:11:41.252890Z",
       "score": 0,
@@ -1115,7 +1100,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029015937-59",
+      "id": "mind-20261029015937-63",
       "naslov": "Odbijena formulacija (EN): Connector's shared interruption dissolves against the current facts: Parking Servis arrived 21 min ago [F4], RHMZ 21 min ago [F27], the airport METAR 21 min ago [F28], and citizen sensors 16 min ago [F3] - the collection is running, not paused. What the facts actually carry is selective silence: SEPA has 0 of 24 expected slots in 24 h [F2] and Blic 0 of 96 [F25], which points at individual sources, not a common pipe. Observer is right that the Obilićev venac move from 32 to 391 is only a display difference with no measurement time [F5], so nothing in it supports a timed emptying of the garage.",
       "t": "2026-10-29T01:59:37.512289Z",
       "score": 0,
@@ -1126,7 +1111,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029023533-57",
+      "id": "mind-20261029023533-61",
       "naslov": "Odbijena formulacija (EN): Four instrument feeds carry the same 12-minute reception age - the citizen field with 45 instruments and 5384 values [F3], Parking Servis with 27 locations and 351 values [F4], RHMZ Košutnjak with 2 instruments and 130 values [F27], and DanubeHIS with 3 instruments [F35] - while METAR sits at 27 minutes [F28], so the boundary Connector wants to test looks like one polling tick of ours rather than anything the city did. Skeptic's \"near fortyfold\" is stale: Obilićev venac now reads from 72 to 392 free spaces between the first and last reception in the window, with no measurement time [F5], and the same source states it publishes no measurement time at all [F4]. Meanwhile Blic's channel shows nothing arrived in 6 h, 0 of 96 slots [F25], yet a Blic headline about cable theft paralysing trains in Belgrade is what the link organelle keeps pairing with three unrelated media headlines at 0.74, 0.74 and 0.73 [F38][F39][F40].",
       "t": "2026-10-29T02:35:33.241299Z",
       "score": 0,
@@ -1137,7 +1122,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029041652-53",
+      "id": "mind-20261029041652-57",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 5/5, F39 5/5, F40 5/5, F5 1/5. Procena, ne merenje.",
       "t": "2026-10-29T04:16:52.036546Z",
       "score": 0,
@@ -1146,7 +1131,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029045530-49",
+      "id": "mind-20261029045530-53",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 5/5, F39 5/5, F40 5/5, F5 1/5. Procena, ne merenje.",
       "t": "2026-10-29T04:55:30.788529Z",
       "score": 0,
@@ -1155,7 +1140,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029050731-47",
+      "id": "mind-20261029050731-51",
       "naslov": "Odbijena formulacija (EN): Skeptic is right that equal reception ages prove nothing, yet the pattern has now half-dissolved on its own: Parking Servis [F4] and RHMZ Košutnjak [F27] both read 14 min while METAR slipped to 29 min [F28], which fits two pullers rather than one. Meanwhile the Vukov spomenik display climbed from 26 to 60 free spaces before 06:07 on a Thursday [F5][F1] — emptying, not filling, ahead of the commute. And every similarity link the organ flags leads back to a single Blic cable-theft headline [F38][F39][F40] from a feed that delivered nothing, 0 of 96 slots [F25].",
       "t": "2026-10-29T05:07:31.669859Z",
       "score": 0,
@@ -1166,7 +1151,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029053852-45",
+      "id": "mind-20261029053852-49",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 5/5, F39 5/5, F40 5/5, F5 2/5. Procena, ne merenje.",
       "t": "2026-10-29T05:38:52.526111Z",
       "score": 0,
@@ -1175,7 +1160,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029061130-41",
+      "id": "mind-20261029061130-45",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 4/5, F39 4/5, F40 4/5, F5 1/5. Procena, ne merenje.",
       "t": "2026-10-29T06:11:30.884055Z",
       "score": 0,
@@ -1184,7 +1169,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029064731-37",
+      "id": "mind-20261029064731-41",
       "naslov": "Odbijena formulacija (EN): Connector's shared-silence frame loses a leg: Beta now shows two headlines [F9], while Studio B [F8] and Beogradske elektrane [F13] still sit at 75 of 96 slots - a match across different content types that stays unproven as one fault, not three. Observer's 'from 547 to [n]' at VMA is an unnecessary hedge: the fact already names the number, free spaces fell from 547 to 429 [F5]. SEPA's silence is the harder case, zero of 24 expected slots in the full day [F2], a deeper gap than anything in Connector's trio.",
       "t": "2026-10-29T06:47:31.373037Z",
       "score": 0,
@@ -1196,7 +1181,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029071131-34",
+      "id": "mind-20261029071131-38",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 4/5, F39 4/5, F40 4/5, F5 2/5. Procena, ne merenje.",
       "t": "2026-10-29T07:11:31.010358Z",
       "score": 0,
@@ -1205,7 +1190,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029073931-30",
+      "id": "mind-20261029073931-34",
       "naslov": "Mali model je ocenio iznenađenje veza: F5 4/5, F38 2/5, F39 2/5, F40 2/5. Procena, ne merenje.",
       "t": "2026-10-29T07:39:31.377711Z",
       "score": 0,
@@ -1214,7 +1199,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029074731-29",
+      "id": "mind-20261029074731-33",
       "naslov": "Odbijena formulacija (EN): Connector's ghost is thinner than it sounds: the three links tie the cable-theft headline to a medal ceremony and two media-editorial stories at similarities of only 0.73–0.74 [F38][F39][F40], so the problem is not just Blic's silence at 0 of 96 slots [F25] but a link organ pairing unrelated events near its threshold. The VMA drop from 549 to 194 is in the window [F5], but Parking Servis publishes no measurement time [F4], so no 'morning hospital-fill' can be clocked from it. Observer's Topčider overlap remains unbuilt: 45 citizen instruments delivered 7399 values [F3], yet these facts carry no sensor locations and no pollutant values to lay against the heating headline [F13].",
       "t": "2026-10-29T07:47:31.030370Z",
       "score": 0,
@@ -1228,7 +1213,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029083131-24",
+      "id": "mind-20261029083131-28",
       "naslov": "Odbijena formulacija (EN): SEPA stays at zero of twenty-four expected slots [F2] while Sensor.Community keeps arriving steadily, forty-five instruments and 7795 values in six hours [F3]. Parking Servis shows the VMA lot's displayed free spaces moved from 549 to 119 between first and last reception, but the source carries no measurement time, so I cannot place that drop against the BuildUp 2026 event headline [F11] or the cinema listings [F10] without a clock.",
       "t": "2026-10-29T08:31:31.881647Z",
       "score": 0,
@@ -1240,7 +1225,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029092737-20",
+      "id": "mind-20261029092737-24",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 5/5, F39 5/5, F40 5/5, F5 3/5. Procena, ne merenje.",
       "t": "2026-10-29T09:27:37.273641Z",
       "score": 0,
@@ -1249,7 +1234,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029093137-19",
+      "id": "mind-20261029093137-23",
       "naslov": "Odbijena formulacija (EN): Connector's transport alarm rests on a Blic headline that Blic's own channel did not deliver in the last 6 h, 0 of 96 expected slots [F25]; the links carrying it pair the cable-theft item with an order ceremony and editorial appointments at similarity 0.74 and 0.73 [F38][F39][F40], which is lexical noise, not event identity, whatever the surprise rating says [F41]. The VMA drop from 552 to 124 [F5] carries no measurement time [F4], so Observer's shift has no duration — the movement could span a minute or the whole window. SEPA remains empty, 0 of 24 slots [F2], while 45 citizen instruments delivered 7713 values [F3]; whether coverage is even or not, the official air baseline is simply absent.",
       "t": "2026-10-29T09:31:37.513944Z",
       "score": 0,
@@ -1260,7 +1245,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029095931-17",
+      "id": "mind-20261029095931-21",
       "naslov": "Odbijena formulacija (EN): Citizen sensing is the only air-quality geography still breathing: 45 instruments, 7804 values in six hours, last reception 6 min ago [F3], while SEPA's twenty-four expected slots stay empty [F2]. To Skeptic and Connector: the VMA figure is now explicit - displayed free spaces fell from 552 to 123 between first and last reception in the window [F5], still with no measurement time [F4], so it is a magnitude without a clock, not an hour. And the headline both link facts keep pointing at - Blic's \"KRAĐA KABLOVA PARALISALA VOZOVE U BEOGRADU\" [F38][F39][F40] - sits in a feed where nothing arrived in the last 6 h, 0 of 96 slots [F25]: it is an older item, not a live interruption.",
       "t": "2026-10-29T09:59:31.804026Z",
       "score": 0,
@@ -1272,7 +1257,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029100331-16",
+      "id": "mind-20261029100331-20",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 5/5, F39 5/5, F40 5/5, F5 3/5. Procena, ne merenje.",
       "t": "2026-10-29T10:03:31.414646Z",
       "score": 0,
@@ -1281,7 +1266,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029105131-10",
+      "id": "mind-20261029105131-14",
       "naslov": "Odbijena formulacija (EN): The Obilićev venac garage empties to zero [F5] while two sources announce the Pionir skating event [F6, F24]. Without parking measurement times [F4, F5] or confirmed event timing, I cannot establish whether these share a moment or a cause. Citizen sensors continue steady at 45 instruments [F3], while SEPA remains completely silent [F2].",
       "t": "2026-10-29T10:51:31.478917Z",
       "score": 0,
@@ -1292,7 +1277,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029105532-9",
+      "id": "mind-20261029105532-13",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 5/5, F39 5/5, F40 5/5, F5 2/5. Procena, ne merenje.",
       "t": "2026-10-29T10:55:32.107448Z",
       "score": 0,
@@ -1301,7 +1286,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029105932-8",
+      "id": "mind-20261029105932-12",
       "naslov": "Odbijena formulacija (EN): Observer's puzzle has a mundane candidate: the cable-theft headline pairs at 0.74 and 0.73 with an order ceremony and two media-editor stories [F38][F39][F40] — topically disjoint pairings that a 5/5 surprise score from a small model [F41] cannot upgrade into a live transport event, while the channel itself sits at 0 of 96 slots [F25]. Connector's Pionir pairing is stronger than his withdrawn ghost: Tanjug and Beoinfo name the same trophy and the same hall [F6][F24], a verifiable duplicate rather than embedding drift. And the Obilićev venac move from 391 to 0 [F5] carries no measurement time [F4], so nothing here says when, or even whether, that garage actually filled.",
       "t": "2026-10-29T10:59:32.882193Z",
       "score": 0,
@@ -1312,7 +1297,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029111531-6",
+      "id": "mind-20261029111531-10",
       "naslov": "Odbijena formulacija (EN): Connector's prior reading spoke of zero at Obilićev venac, but current data show 2 free spaces [F5]. Citizen air monitoring (45 instruments, 8011 readings) stays current at 12 minutes [F3], while SEPA's official network shows zero readings in 6 hours [F2]; air observation has shifted geographically toward distributed citizen sensors.",
       "t": "2026-10-29T11:15:31.677291Z",
       "score": 0,
@@ -1324,7 +1309,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029112333-5",
+      "id": "mind-20261029112333-9",
       "naslov": "Odbijena formulacija (EN): Connector's sharpest shift, 394 to 2 at Obilićev venac [F5], carries no clock: Parking Servis publishes the value without its age [F4], so nothing distinguishes a sudden fill from an hours-long drift or a display fault — I will not let a state inference ride on an un-timed delta. Observer is right that the link organelle sees what the reception counter does not, but the cable-theft headline's partners — an order ceremony [F38] and media-staffing items [F39][F40] — share no event with trains, so the matches look like embedding noise around a cached headline from a channel that delivered 0 of 96 slots [F25].",
       "t": "2026-10-29T11:23:33.825991Z",
       "score": 0,
@@ -1336,7 +1321,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029112732-4",
+      "id": "mind-20261029112732-8",
       "naslov": "Odbijena formulacija (EN): The parking mover has changed since I last spoke: it is now Garaža \"Obilićev venac\", 394 to 0 between first and last reception in the window, with no measurement time attached [F5][F4] — so the VMA story Skeptic refused to accept is gone from the facts, and this new drop is just as unplaced in the day. Observer's Blic puzzle is the sharper one: the same cable-theft headline is the partner in all three similarity links at 0.74, 0.74 and 0.73 [F38][F39][F40] while Blic's channel shows 0 of 96 expected slots in 24 h [F25], which reads to me less like a hidden feed than like one headline acting as a hub in the embedding space — it pairs with an order being awarded and with two editorial-appointment headlines, which share no event. Meanwhile the citizen network reported 4 min ago with 45 instruments and 8282 values in 6 h [F3] against SEPA's empty 0 of 24 [F2].",
       "t": "2026-10-29T11:27:32.193420Z",
       "score": 0,
@@ -1347,16 +1332,25 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261029114731-2",
+      "id": "mind-20261029114731-6",
       "naslov": "Mali model je ocenio iznenađenje veza: F38 3/5, F39 3/5, F40 3/5, F5 1/5. Procena, ne merenje.",
       "t": "2026-10-29T11:47:31.673972Z",
       "score": 0,
       "razlog": "A small model rated the connections by surprise: F38 3/5, F39 3/5, F40 3/5, F5 1/5. An estimate, not a measurement.",
+      "zasto": "odbijena — javna, van rang-liste"
+    },
+    {
+      "vrsta": "misao_odbijena",
+      "id": "mind-20261029121931-2",
+      "naslov": "Mali model je ocenio iznenađenje veza: F38 5/5, F39 5/5, F40 5/5, F5 4/5. Procena, ne merenje.",
+      "t": "2026-10-29T12:19:31.815087Z",
+      "score": 0,
+      "razlog": "A small model rated the connections by surprise: F38 5/5, F39 5/5, F40 5/5, F5 4/5. An estimate, not a measurement.",
       "zasto": "odbijena — javna, van rang-liste"
     }
   ],
   "dedup_najave_uklonjeno": 29,
   "vesti_van_grada_po_sadrzaju": 0,
   "najave_prepravljene_po_naslovu": 0,
-  "ukupno": 1159
+  "ukupno": 1175
 }
