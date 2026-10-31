@@ -1,9 +1,9 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-10-31T20:24:18.763215+00:00",
-  "as_of": "2026-10-31T20:13:03.638726Z",
+  "generated_at": "2026-10-31T20:33:22.761887+00:00",
+  "as_of": "2026-10-31T20:28:01.407508Z",
   "city_status": {
-    "aqi_us": 63,
+    "aqi_us": 62,
     "category": "umeren",
     "dominant_pollutant": "PM2.5",
     "summary_sr": "Vazduh u Beogradu je umerenog kvaliteta; osetljive grupe mogu osetiti blagi uticaj.",
@@ -11,18 +11,18 @@
   },
   "current_metrics": {
     "pm25": {
-      "mean": 17.7,
-      "min": 4.7,
+      "mean": 17.5,
+      "min": 4.3,
       "max": 34.6,
       "max_station": "Rakovica",
       "unit": "µg/m³",
       "sensors_count": 56
     },
     "pm10": {
-      "mean": 21.4,
+      "mean": 21.2,
       "min": 6.6,
-      "max": 40.4,
-      "max_station": "40611",
+      "max": 35.3,
+      "max_station": "Rakovica",
       "unit": "µg/m³",
       "sensors_count": 56
     },
@@ -43,40 +43,44 @@
       "sensors_count": 25
     },
     "meteo": {
-      "temperature": 9.0,
-      "humidity": 89.3,
+      "temperature": 8.9,
+      "humidity": 89.5,
       "pressure": 1008.1,
-      "wind_speed": 3.0,
+      "wind_speed": 3.1,
       "wind_direction": "260.0"
     }
   },
   "superintelligence_monologue": {
-    "id": "mind-20261031201952-0",
-    "at": "2026-10-31T20:19:52.779419Z",
-    "speaker": "Povezivač",
-    "speaker_role": "connector",
-    "text_sr": "U subotu uveče, građanski senzori su svežiji od zvaničnog izvora kvaliteta vazduha, dok ni izvor kvaliteta vazduha ni parking izvor ne navode vreme merenja. Promena u Donjem gradu sa 298 na 127 i dalje je promena između prijema, a ne vremenski određen događaj, dok popravka u Obrenovcu koju navodi Tanjug ostaje geografski nepotvrđena. [F1][F2][F4][F5][F6][F7]",
-    "text_en": "On Saturday evening, citizen sensors are fresher than the official air-quality feed, while neither the air-quality nor parking source supplies measurement time [F1][F2][F4][F5]. The Donji grad movement from 298 to 127 remains a reception-to-reception change rather than a timed event [F6], and Tanjug’s Obrenovac repair remains geographically unconfirmed [F7].",
+    "id": "mind-20261031203132-0",
+    "at": "2026-10-31T20:31:32.065737Z",
+    "speaker": "Posmatrač",
+    "speaker_role": "observer",
+    "text_sr": "Feed Parking Servisa stigao je pre 8 min i ponovo pokazuje da se Donji grad kreće sa 298 na 102, ali bez vremena merenja to je i dalje razlika između snimaka. Sensor.Community je takođe javio pre 8 min sa 43 instrumenta, dok je SEPA stigla pre 33 min i ne daje starost vrednosti. Blic je isporučio 0 od 96 očekivanih termina u 24 h, a ipak model rečeničnih ugradnji povezuje njegov naslov o krađi kablova koja je zaustavila vozove sa nepovezanim naslovima. [F5][F6][F4][F2][F26][F39][F40][F41]",
+    "text_en": "The Parking Servis feed arrived 8 min ago and again shows Donji grad moving from 298 to 102 [F5][F6], but with no measurement time this is still a snapshot difference [F5]. Sensor.Community also reported 8 min ago with 43 instruments [F4], while SEPA arrived 33 min ago and gives no age for its values [F2]. Blic has delivered 0 of 96 expected slots in 24 h [F26], yet a Blic headline about cable theft stopping trains is being matched by the sentence-embedding model to unrelated headlines [F39][F40][F41].",
     "hypotheses_sr": [
-      "Promena parkinga može dobiti smisao tek ako kasniji izvor navede vreme i lokaciju događaja, pa se može uporediti sa svežim obrascem senzora, a ne samo sa redosledom prijema [F4][F6]."
+      "Pad na Donjem gradu sa 298 na 102 [F6] mogao bi biti stvaran pomak na 27 lokacija Parking Servisa [F5], ali tek poređenje sa drugim lokacijama u istom prozoru može razdvojiti lokalni događaj od ponašanja feeda.",
+      "Blicov naslov o krađi kablova [F39] ima samo veze preko modela sličnosti sa nepovezanim naslovima [F40][F41], a Blicov broj termina je 0 od 96 [F26]. Zato su njegova pouzdanost i mesto u beogradskoj slici nepotvrđeni."
     ],
     "questions_sr": [
-      "Može li sledeći parking ili saobraćajni zapis da navede vreme i lokaciju događaja za promenu u Donjem gradu, i može li se popravka u Obrenovcu povezati sa instrumentom u Beogradu? [F6][F7]"
+      "Da li su se i druge lokacije Parking Servisa među 27 [F5] jako pomerile, ili je samo Donji grad [F6]?",
+      "Zašto je Blic isporučio 0 od 96 očekivanih termina [F26] dok se njegov naslov ipak pojavljuje u vezama [F39]?"
     ],
     "cites": [
-      "F1",
       "F2",
+      "F26",
+      "F39",
       "F4",
+      "F40",
+      "F41",
       "F5",
-      "F6",
-      "F7"
+      "F6"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-10-31T20:19:52.779419Z",
+    "last_mind_step": "2026-10-31T20:31:32.065737Z",
     "active_sources_count": 37,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-10-31T20:13:03.638726Z"
+    "sensors_as_of": "2026-10-31T20:28:01.407508Z"
   }
 }
