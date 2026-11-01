@@ -1,17 +1,7 @@
-/* BEOPS v2 shell — javni servis, beli interfejs po estetici originala.
-   Principi (research/V2_INTERFEJS_PLAN_2026-10-25.md):
-   P2 svežina se meri u čitanju (sat čitaoca vs generated_at/as_of/at),
-   P3 tišina je sadržaj (prag 2× kadence → „grad ćuti“),
-   P5 jedan shell, rute u klientu,
-   P6 misli su glavni sadržaj, podaci su dokaz.
-   Svi podaci stižu iz ./state/*.json; DOM se gradi createElement/textContent —
-   nikad innerHTML sa podacima. Brendovi modela se ne prikazuju (sve je Svemir). */
+/* BEOPS v2 shell — P2 svežina u čitanju, P3 tišina je sadržaj, P5 klijentske rute, P6 misli pre podataka. */
 'use strict';
 
-/* (jezik živi u strings.js — učitan pre app.js) */
-
-/* ── Stanje ─────────────────────────────────────────────── */
-const STATE = { puls: null, misli: null, organizam: null, veze: null, mapa: null, serije: {}, istaknuto: null, belaznica: null, mapaNews: null };
+const STATE = { puls: null, misli: null, organizam: null, veze: null, mapa: null, serije: {}, istaknuto: null, belaznica: null, mapaNews: null, kolokacija: null };
 const SERIES_IDS = ['pm25', 'pm10', 'temperature', 'humidity'];
 let serijePromise = null;
 
@@ -35,6 +25,10 @@ function loadSerije() {
     ));
   }
   return serijePromise;
+}
+function loadKolokacija() {
+  if (!STATE.kolokacija) return jfetch('state/kolokacija.json').then(m => { STATE.kolokacija = m; }, () => {});
+  return Promise.resolve();
 }
 function loadVeze() {
   if (!STATE.veze) return jfetch('state/veze.json').then(v => { STATE.veze = v; }, () => {});
@@ -373,9 +367,12 @@ function renderDanas(root) {
 
   const cs = STATE.puls && STATE.puls.city_status;
   if (cs) {
+    const eq = cs.eaqi;
+    const eqTxt = eq && eq.level ? ' · EAQI ' + eq.level + '/6 (' + (LANG === 'sr' ? eq.label_sr : eq.label_en) + ')' : '';
+    const advTxt = eq && eq.level >= 3 && LANG === 'sr' && eq.advice_sensitive_sr ? ' — ' + eq.advice_sensitive_sr : '';
     root.appendChild(banner(
       LANG === 'sr' ? 'Vazduh:' : 'Air:',
-      'AQI ' + cs.aqi_us + ' · ' + (LANG === 'sr' ? cs.summary_sr : cs.summary_en), null,
+      'AQI ' + cs.aqi_us + eqTxt + ' · ' + (LANG === 'sr' ? cs.summary_sr : cs.summary_en) + advTxt, null,
       STATE.puls.as_of, (cs.aqi_us || 0) <= 100
     ));
   }
@@ -415,6 +412,14 @@ function renderDanas(root) {
   root.appendChild(el('h2', null, T().trakaTitle));
   root.appendChild(el('hr', 'rule'));
   root.appendChild(trakaMerenja());
+  const cm = (STATE.puls && STATE.puls.current_metrics) || {};
+  if (cm.low_cost && cm.pm25) {
+    const lc = cm.low_cost;
+    const netNote = T().mrezaRef + (cm.pm25.sensors_count || 0) + ' (PM2.5 ' + fmtNum(cm.pm25.mean) + ' µg/m³)' +
+      T().mrezaGradj + (lc.sensors_count || 0) + ' (PM2.5 ' + fmtNum(lc.pm25_mean) + ' µg/m³)' +
+      (lc.high_humidity_flag ? ' · ' + T().rhUpozorenje : '');
+    root.appendChild(el('p', 'sub', netNote));
+  }
 
   /* 4 — istaknuto po relevantnosti (T1: jedna istina, šel ne boduje sam) */
   if (STATE.istaknuto && (STATE.istaknuto.top || []).length) {
@@ -744,6 +749,7 @@ function viewPodaci(root) {
   root.appendChild(sectionHead(null, T().podaciTitle, T().podaciSub));
   loadVeze().then(() => { if (currentRoute() === 'podaci') renderVeze(root); });
   loadSerije().then(() => { if (currentRoute() === 'podaci') renderPodaci(root); });
+  loadKolokacija().then(() => { if (currentRoute() === 'podaci') renderKolokacija(root); });
 
   const tabs = el('div', 'chart-tabs');
   tabs.id = 'chart-tabs';
@@ -771,6 +777,59 @@ function renderPodaci(root) {
 window.addEventListener('resize', () => {
   if (currentRoute() === 'podaci' && podaciRoot) renderPodaci(podaciRoot);
 });
+/* Kolokacija: građanski senzor vs referentna mreža — pristrasnost po vlažnosti. */
+function renderKolokacija(root) {
+  const old = document.getElementById('kolo-block');
+  if (old) old.remove();
+  const k = STATE.kolokacija;
+  if (!k || !k.per_param) return;
+  const block = el('div');
+  block.id = 'kolo-block';
+  block.appendChild(el('h2', null, T().koloTitle));
+  block.appendChild(el('p', 'sub', T().koloSub + ' — ' + k.total_pairs + ' × ' +
+    k.window_days + 'd, < ' + k.radius_km + ' km (' + k.sc_source.network + ' ↔ ' +
+    k.sepa_source.network + ')'));
+  for (const param of Object.keys(k.per_param)) {
+    const pp = k.per_param[param];
+    if (!pp || (!pp.pairs_found)) continue;
+    const sec = el('div');
+    sec.appendChild(el('h3', null, (SERIES_META[param] ? SERIES_META[param][LANG] : param) +
+      ' — ' + T().koloFleet + ' (' + pp.pairs_found + ')'));
+    if (pp.fleet && Array.isArray(pp.fleet.rh_bins)) {
+      const ft = el('table', 'kv'); const fh = el('thead'); const fhr = el('tr');
+      for (const h of [T().koloBin, 'n', T().koloBias, T().koloRatio]) fhr.appendChild(el('th', null, h));
+      fh.appendChild(fhr); ft.appendChild(fh);
+      const fb = el('tbody');
+      for (const b of pp.fleet.rh_bins) {
+        const tr = el('tr');
+        tr.appendChild(el('td', null, 'RH ' + b.bin));
+        tr.appendChild(el('td', null, String(b.n)));
+        tr.appendChild(el('td', null, b.mean_bias === null ? '—' : fmtNum(b.mean_bias, 2) + ' µg/m³'));
+        tr.appendChild(el('td', null, b.mean_ratio === null ? '—' : '×' + fmtNum(b.mean_ratio, 3)));
+        fb.appendChild(tr);
+      }
+      ft.appendChild(fb); sec.appendChild(ft);
+    }
+    const pt = el('table', 'kv'); const ph = el('thead'); const phr = el('tr');
+    for (const h of [T().koloPairCol, T().koloDist, 'n', T().koloBias, 'r']) phr.appendChild(el('th', null, h));
+    ph.appendChild(phr); pt.appendChild(ph);
+    const pb = el('tbody');
+    for (const pair of (pp.pairs || []).slice(0, 6)) {
+      const tr = el('tr');
+      tr.appendChild(el('td', null, pair.sc.location_id + ' (' + (pair.sc.sensor_type || '?') + ') ↔ ' +
+        pair.sepa.station_id));
+      tr.appendChild(el('td', null, fmtNum(pair.sepa.distance_km, 2) + ' km'));
+      tr.appendChild(el('td', null, String(pair.stats.n)));
+      tr.appendChild(el('td', null, pair.stats.mean_bias === null ? '—' : fmtNum(pair.stats.mean_bias, 2) + ' µg/m³'));
+      tr.appendChild(el('td', null, pair.stats.r === null ? '—' : fmtNum(pair.stats.r, 3)));
+      pb.appendChild(tr);
+    }
+    pt.appendChild(pb); sec.appendChild(pt);
+    block.appendChild(sec);
+  }
+  block.appendChild(el('p', 'sub', k.state_note));
+  root.appendChild(block);
+}
 function renderVeze(root) {
   const old = document.getElementById('veze-block');
   if (old) old.remove();
@@ -1133,7 +1192,9 @@ function renderMapa(root, loading) {
     const d = p.data;
     dossier.textContent = '';
     dossier.appendChild(el('h4', null, d.n));
-    dossier.appendChild(el('p', 'meta', T().dosijeIzvor + ': ' + d.src + ' · ' + T().dosijeKoordinate + ': ' + d.la.toFixed(4) + ', ' + d.lo.toFixed(4)));
+    const clsTxt = d.cls === 'reference' ? T().klasaRef : d.cls === 'low-cost' ? T().klasaLowCost : d.cls === 'meteo' ? T().klasaMeteo : '';
+    dossier.appendChild(el('p', 'meta', T().dosijeIzvor + ': ' + d.src + (clsTxt ? ' (' + clsTxt + ')' : '') + ' · ' + T().dosijeKoordinate + ': ' + d.la.toFixed(4) + ', ' + d.lo.toFixed(4)));
+    if (d.rh_warn) dossier.appendChild(el('p', 'reading-note', T().rhUpozorenje));
     const table = el('table');
     const thead = el('thead'); const trh = el('tr');
     for (const h of [T().dosijeParam, T().dosijeVrednost, T().dosijeStanje, T().dosijeVreme]) trh.appendChild(el('th', null, h));
