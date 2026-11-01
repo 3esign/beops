@@ -26,33 +26,19 @@ function loadSerije() {
   }
   return serijePromise;
 }
-function loadKolokacija() {
-  if (!STATE.kolokacija) return jfetch('state/kolokacija.json').then(m => { STATE.kolokacija = m; }, () => {});
-  return Promise.resolve();
+function cachedLoad(key, path) {
+  return () => STATE[key] ? Promise.resolve()
+    : jfetch(path).then(m => { STATE[key] = m; }, () => {});
 }
-function loadVeze() {
-  if (!STATE.veze) return jfetch('state/veze.json').then(v => { STATE.veze = v; }, () => {});
-  return Promise.resolve();
-}
-function loadMapa() {
-  if (!STATE.mapa) return jfetch('state/mapa.json').then(m => { STATE.mapa = m; }, () => {});
-  return Promise.resolve();
-}
+const loadKolokacija = cachedLoad('kolokacija', 'state/kolokacija.json');
+const loadVeze = cachedLoad('veze', 'state/veze.json');
+const loadMapa = cachedLoad('mapa', 'state/mapa.json');
 /* INTERFEJS-PLAN T1–T4: istaknuto (jedna istina o relevantnosti), belažnica
    (ocene građana) i javni sloj mape (isključenja). Pad mreže ih ne ruši —
    strana živi i bez njih, samo kaže da nema. */
-function loadIstaknuto() {
-  if (!STATE.istaknuto) return jfetch('state/istaknuto.json').then(m => { STATE.istaknuto = m; }, () => {});
-  return Promise.resolve();
-}
-function loadBelaznica() {
-  if (!STATE.belaznica) return jfetch('state/belaznica.json').then(m => { STATE.belaznica = m; }, () => {});
-  return Promise.resolve();
-}
-function loadMapaNews() {
-  if (!STATE.mapaNews) return jfetch('state/mapa_news.json').then(m => { STATE.mapaNews = m; }, () => {});
-  return Promise.resolve();
-}
+const loadIstaknuto = cachedLoad('istaknuto', 'state/istaknuto.json');
+const loadBelaznica = cachedLoad('belaznica', 'state/belaznica.json');
+const loadMapaNews = cachedLoad('mapaNews', 'state/mapa_news.json');
 /* pun tekst oslonaca: ugovor misli nosi samo prozor (280 + …), pun tekst živi
    u oslonci.json po misli; stariji rasporedi bez fajla — prikaz ostaje na prozoru */
 function loadOslonci() {
@@ -133,12 +119,9 @@ function mindDisplayName(k) {
   return (LANG === 'sr' ? sr[k] : en[k]) || k;
 }
 function mindChip(t) {
-  const k = mindKey(t);
   const chip = document.createElement('span');
   chip.className = 'mind-chip';
-  const dot = document.createElement('span');
-  dot.className = 'mind-dot'; dot.style.background = mindVar(k); dot.setAttribute('aria-hidden', 'true');
-  chip.appendChild(dot);
+  chip.appendChild(mindDot(mindKey(t)));
   chip.appendChild(document.createTextNode(mindName(t)));
   return chip;
 }
@@ -161,6 +144,19 @@ function banner(srText, boldText, tailText, iso, isOk) {
   t.appendChild(when);
   b.appendChild(t);
   return b;
+}
+function mindDot(k) {
+  const dot = el('span', 'mind-dot');
+  dot.style.background = mindVar(k);
+  dot.setAttribute('aria-hidden', 'true');
+  return dot;
+}
+/* SVG graditelj — grafikon, dosije i glifa nose istu porodicu */
+function mk(tag, at, text) {
+  const n = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const k in at) n.setAttribute(k, at[k]);
+  if (text !== undefined) n.textContent = text;
+  return n;
 }
 function sectionHead(eyebrowText, titleText, subText) {
   const head = el('div', 'section-head');
@@ -526,8 +522,7 @@ function viewMisli(root) {
   const legend = el('span', 'legend');
   for (const k of ['observer', 'skeptic', 'connector', 'organelle', 'ai', 'bridge']) {
     const lab = el('label');
-    const dot = el('span', 'mind-dot'); dot.style.background = mindVar(k); dot.setAttribute('aria-hidden', 'true');
-    lab.appendChild(dot);
+    lab.appendChild(mindDot(k));
     lab.appendChild(document.createTextNode(mindDisplayName(k)));
     legend.appendChild(lab);
   }
@@ -649,20 +644,9 @@ function bigChart(id, wpx) {
   const sx = t => L + (t - x0) / (x1 - x0) * (W - L - R);
   const sy = v => H - B - (v - y0) / (y1 - y0) * (H - TP - B);
 
-  const NS = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('width', W);
-  svg.setAttribute('height', H);
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.setAttribute('role', 'img');
+  const svg = mk('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'img' });
   svg.id = 'bigchart';
   svg.tabIndex = 0;
-  const mk = (tag, at, text) => {
-    const n = document.createElementNS(NS, tag);
-    for (const k in at) n.setAttribute(k, at[k]);
-    if (text !== undefined) n.textContent = text;
-    return n;
-  };
   /* horizontalne mrežne linije + y labele (recesivne) */
   for (let i = 0; i <= 4; i++) {
     const v = y0 + (y1 - y0) * i / 4;
@@ -777,7 +761,23 @@ function renderPodaci(root) {
 window.addEventListener('resize', () => {
   if (currentRoute() === 'podaci' && podaciRoot) renderPodaci(podaciRoot);
 });
-/* Kolokacija: građanski senzor vs referentna mreža — pristrasnost po vlažnosti. */
+/* zajednička tabela: ćelija je string ili već pod; klasa po izboru */
+function mkTable(head, rows, cls) {
+  const t = el('table', cls === undefined ? 'kv' : cls); const h = el('thead'); const hr = el('tr');
+  head.forEach(x => hr.appendChild(el('th', null, x)));
+  h.appendChild(hr); t.appendChild(h);
+  const b = el('tbody');
+  rows.forEach(r => {
+    const tr = el('tr');
+    r.forEach(c => {
+      const td = el('td');
+      if (typeof c === 'string') td.textContent = c; else if (c) td.appendChild(c);
+      tr.appendChild(td);
+    });
+    b.appendChild(tr);
+  });
+  t.appendChild(b); return t;
+}
 function renderKolokacija(root) {
   const old = document.getElementById('kolo-block');
   if (old) old.remove();
@@ -786,45 +786,18 @@ function renderKolokacija(root) {
   const block = el('div');
   block.id = 'kolo-block';
   block.appendChild(el('h2', null, T().koloTitle));
-  block.appendChild(el('p', 'sub', T().koloSub + ' — ' + k.total_pairs + ' × ' +
-    k.window_days + 'd, < ' + k.radius_km + ' km (' + k.sc_source.network + ' ↔ ' +
-    k.sepa_source.network + ')'));
+  block.appendChild(el('p', 'sub', T().koloSub + ' — ' + k.total_pairs + ' × ' + k.window_days + 'd, < ' + k.radius_km + ' km'));
   for (const param of Object.keys(k.per_param)) {
     const pp = k.per_param[param];
-    if (!pp || (!pp.pairs_found)) continue;
+    if (!pp || !pp.pairs_found) continue;
     const sec = el('div');
-    sec.appendChild(el('h3', null, (SERIES_META[param] ? SERIES_META[param][LANG] : param) +
-      ' — ' + T().koloFleet + ' (' + pp.pairs_found + ')'));
-    if (pp.fleet && Array.isArray(pp.fleet.rh_bins)) {
-      const ft = el('table', 'kv'); const fh = el('thead'); const fhr = el('tr');
-      for (const h of [T().koloBin, 'n', T().koloBias, T().koloRatio]) fhr.appendChild(el('th', null, h));
-      fh.appendChild(fhr); ft.appendChild(fh);
-      const fb = el('tbody');
-      for (const b of pp.fleet.rh_bins) {
-        const tr = el('tr');
-        tr.appendChild(el('td', null, 'RH ' + b.bin));
-        tr.appendChild(el('td', null, String(b.n)));
-        tr.appendChild(el('td', null, b.mean_bias === null ? '—' : fmtNum(b.mean_bias, 2) + ' µg/m³'));
-        tr.appendChild(el('td', null, b.mean_ratio === null ? '—' : '×' + fmtNum(b.mean_ratio, 3)));
-        fb.appendChild(tr);
-      }
-      ft.appendChild(fb); sec.appendChild(ft);
-    }
-    const pt = el('table', 'kv'); const ph = el('thead'); const phr = el('tr');
-    for (const h of [T().koloPairCol, T().koloDist, 'n', T().koloBias, 'r']) phr.appendChild(el('th', null, h));
-    ph.appendChild(phr); pt.appendChild(ph);
-    const pb = el('tbody');
-    for (const pair of (pp.pairs || []).slice(0, 6)) {
-      const tr = el('tr');
-      tr.appendChild(el('td', null, pair.sc.location_id + ' (' + (pair.sc.sensor_type || '?') + ') ↔ ' +
-        pair.sepa.station_id));
-      tr.appendChild(el('td', null, fmtNum(pair.sepa.distance_km, 2) + ' km'));
-      tr.appendChild(el('td', null, String(pair.stats.n)));
-      tr.appendChild(el('td', null, pair.stats.mean_bias === null ? '—' : fmtNum(pair.stats.mean_bias, 2) + ' µg/m³'));
-      tr.appendChild(el('td', null, pair.stats.r === null ? '—' : fmtNum(pair.stats.r, 3)));
-      pb.appendChild(tr);
-    }
-    pt.appendChild(pb); sec.appendChild(pt);
+    sec.appendChild(el('h3', null, (SERIES_META[param] ? SERIES_META[param][LANG] : param) + ' — ' + T().koloFleet + ' (' + pp.pairs_found + ')'));
+    if (pp.fleet && Array.isArray(pp.fleet.rh_bins)) sec.appendChild(mkTable(
+      [T().koloBin, 'n', T().koloBias, T().koloRatio],
+      pp.fleet.rh_bins.map(b => ['RH ' + b.bin, String(b.n), b.mean_bias === null ? '—' : fmtNum(b.mean_bias, 2) + ' µg/m³', b.mean_ratio === null ? '—' : '×' + fmtNum(b.mean_ratio, 3)])));
+    sec.appendChild(mkTable(
+      [T().koloPairCol, T().koloDist, 'n', T().koloBias, 'r'],
+      (pp.pairs || []).slice(0, 6).map(p => [p.sc.location_id + ' (' + (p.sc.sensor_type || '?') + ') ↔ ' + p.sepa.station_id, fmtNum(p.sepa.distance_km, 2) + ' km', String(p.stats.n), p.stats.mean_bias === null ? '—' : fmtNum(p.stats.mean_bias, 2) + ' µg/m³', p.stats.r === null ? '—' : fmtNum(p.stats.r, 3)])));
     block.appendChild(sec);
   }
   block.appendChild(el('p', 'sub', k.state_note));
@@ -838,20 +811,10 @@ function renderVeze(root) {
   block.id = 'veze-block';
   block.appendChild(el('h2', null, T().vezeTitle));
   block.appendChild(el('p', 'sub', T().vezeSub + ' — ' + (STATE.veze.stable_edges_count || 0) + ' / ' + (STATE.veze.total_edges || 0)));
-  const vt = el('table', 'kv');
-  const vh = el('thead'); const vrh = el('tr');
-  for (const h of [T().vezaCol, T().tezinaCol, T().stabilnaOdCol]) vrh.appendChild(el('th', null, h));
-  vh.appendChild(vrh); vt.appendChild(vh);
-  const vb = el('tbody');
-  for (const c of (STATE.veze.connections || []).slice(0, 20)) {
-    const tr = el('tr');
-    tr.appendChild(el('td', null, (c.pair || []).join(' ↔ ')));
-    tr.appendChild(el('td', null, fmtNum(c.weight, 2)));
-    tr.appendChild(el('td', null, c.stable_since || ''));
-    vb.appendChild(tr);
-  }
-  vt.appendChild(vb);
-  block.appendChild(vt);
+  block.appendChild(mkTable(
+    [T().vezaCol, T().tezinaCol, T().stabilnaOdCol],
+    (STATE.veze.connections || []).slice(0, 20).map(c =>
+      [(c.pair || []).join(' ↔ '), fmtNum(c.weight, 2), c.stable_since || ''])));
   root.appendChild(block);
 }
 
@@ -1195,26 +1158,18 @@ function renderMapa(root, loading) {
     const clsTxt = d.cls === 'reference' ? T().klasaRef : d.cls === 'low-cost' ? T().klasaLowCost : d.cls === 'meteo' ? T().klasaMeteo : '';
     dossier.appendChild(el('p', 'meta', T().dosijeIzvor + ': ' + d.src + (clsTxt ? ' (' + clsTxt + ')' : '') + ' · ' + T().dosijeKoordinate + ': ' + d.la.toFixed(4) + ', ' + d.lo.toFixed(4)));
     if (d.rh_warn) dossier.appendChild(el('p', 'reading-note', T().rhUpozorenje));
-    const table = el('table');
-    const thead = el('thead'); const trh = el('tr');
-    for (const h of [T().dosijeParam, T().dosijeVrednost, T().dosijeStanje, T().dosijeVreme]) trh.appendChild(el('th', null, h));
-    thead.appendChild(trh); table.appendChild(thead);
-    const tb = el('tbody');
-    for (const r of d.r || []) {
-      const tr = el('tr');
-      const pl = PARAM_LABEL[r.p];
-      tr.appendChild(el('td', null, pl ? (LANG === 'sr' ? pl.sr : pl.en) : r.p));
-      tr.appendChild(el('td', 'v', (r.v === undefined ? '—' : fmtNum(r.v, Math.abs(r.v) < 10 ? 2 : 1)) + ' ' + (UNIT_LABEL[r.u] || r.u || '')));
-      const stTd = el('td');
-      const g = stateGlyph(r.s, 11);
-      stTd.appendChild(g);
-      stTd.appendChild(document.createTextNode(' ' + mapStateWord(r.s)));
-      tr.appendChild(stTd);
-      tr.appendChild(el('td', null, r.t ? absTime(r.t) : (r.rx ? T().prijemHint + ' ' + absTime(r.rx) : '—')));
-      tb.appendChild(tr);
-    }
-    table.appendChild(tb);
-    dossier.appendChild(table);
+    dossier.appendChild(mkTable(
+      [T().dosijeParam, T().dosijeVrednost, T().dosijeStanje, T().dosijeVreme],
+      (d.r || []).map(r => {
+        const st = document.createDocumentFragment();
+        st.appendChild(stateGlyph(r.s, 11));
+        st.appendChild(document.createTextNode(' ' + mapStateWord(r.s)));
+        const pl = PARAM_LABEL[r.p];
+        return [pl ? (LANG === 'sr' ? pl.sr : pl.en) : r.p,
+          (r.v === undefined ? '—' : fmtNum(r.v, Math.abs(r.v) < 10 ? 2 : 1)) + ' ' + (UNIT_LABEL[r.u] || r.u || ''),
+          st,
+          r.t ? absTime(r.t) : (r.rx ? T().prijemHint + ' ' + absTime(r.rx) : '—')];
+      }), ''));
     dossier.appendChild(el('p', 'meta', T().merenoHint + ' = vreme merenja; ' + T().prijemHint + ' = vreme prijema · ' + T().mapaAsOf + ' ' + absTime(M.as_of)));
   }
   function unproject(px, py) {
@@ -1279,23 +1234,16 @@ function renderMapa(root, loading) {
 }
 function stateGlyph(s, size) {
   /* oblik + boja + uz tekst uvek — legenda i dosije nose i reč */
-  const NS = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('width', size); svg.setAttribute('height', size);
-  svg.setAttribute('viewBox', '0 0 16 16');
-  svg.setAttribute('aria-hidden', 'true');
   const col = MAP_STATE_VAR[s] || MAP_STATE_VAR.unavailable;
-  const shape = document.createElementNS(NS, 'path');
-  let d;
-  if (s === 'untimed') d = 'M8 1 L15 8 L8 15 L1 8 Z';
-  else if (s === 'estimated') d = 'M2.5 2.5 H13.5 V13.5 H2.5 Z';
-  else if (s === 'forecast') d = 'M8 1.5 L14.8 14 H1.2 Z';
-  else d = 'M8 1 A7 7 0 1 1 7.99 1 Z';
-  shape.setAttribute('d', d);
-  shape.setAttribute('fill', s === 'unavailable' ? 'none' : col);
-  shape.setAttribute('stroke', col);
-  shape.setAttribute('stroke-width', s === 'unavailable' ? '2' : '1');
-  svg.appendChild(shape);
+  const un = s === 'unavailable';
+  const svg = mk('svg', { width: size, height: size, viewBox: '0 0 16 16', 'aria-hidden': 'true' });
+  svg.appendChild(mk('path', {
+    d: s === 'untimed' ? 'M8 1 L15 8 L8 15 L1 8 Z'
+      : s === 'estimated' ? 'M2.5 2.5 H13.5 V13.5 H2.5 Z'
+      : s === 'forecast' ? 'M8 1.5 L14.8 14 H1.2 Z'
+      : 'M8 1 A7 7 0 1 1 7.99 1 Z',
+    fill: un ? 'none' : col, stroke: col, 'stroke-width': un ? '2' : '1'
+  }));
   return svg;
 }
 
@@ -1303,42 +1251,21 @@ function stateGlyph(s, size) {
 function viewOrganizam(root) {
   root.textContent = '';
   root.appendChild(sectionHead(null, T().orgTitle, T().orgSub));
-  const table = el('table', 'kv');
-  const thead = el('thead'); const trh = el('tr');
-  for (const h of [T().organCol, T().ulogaCol, T().kadensaCol, T().poslednjiCol, T().statusCol]) trh.appendChild(el('th', null, h));
-  thead.appendChild(trh); table.appendChild(thead);
-  const tb = el('tbody');
-  for (const o of (STATE.organizam && STATE.organizam.organs) || []) {
-    const tr = el('tr');
-    tr.appendChild(el('td', null, o.name));
-    tr.appendChild(el('td', null, o.role || ''));
-    tr.appendChild(el('td', null, (o.cadence_minutes || '?') + ' min'));
-    const td = el('td');
-    if (o.last_run) { td.appendChild(stampEl(o.last_run, o.cadence_minutes || 30)); td.appendChild(el('div', 'sub', absTime(o.last_run))); }
-    else td.appendChild(el('span', null, T().statusUnknown));
-    tr.appendChild(td);
-    tr.appendChild(el('td', null, T()[o.status === 'ok' ? 'statusOk' : o.status === 'late' ? 'statusLate' : 'statusUnknown']));
-    tb.appendChild(tr);
-  }
-  table.appendChild(tb);
-  root.appendChild(table);
+  root.appendChild(mkTable(
+    [T().organCol, T().ulogaCol, T().kadensaCol, T().poslednjiCol, T().statusCol],
+    ((STATE.organizam && STATE.organizam.organs) || []).map(o => {
+      const stamp = document.createDocumentFragment();
+      if (o.last_run) { stamp.appendChild(stampEl(o.last_run, o.cadence_minutes || 30)); stamp.appendChild(el('div', 'sub', absTime(o.last_run))); }
+      else stamp.appendChild(el('span', null, T().statusUnknown));
+      return [o.name, o.role || '', (o.cadence_minutes || '?') + ' min', stamp,
+        T()[o.status === 'ok' ? 'statusOk' : o.status === 'late' ? 'statusLate' : 'statusUnknown']];
+    })));
 
   root.appendChild(el('h2', null, T().izvoriTitle));
   root.appendChild(el('p', 'sub', T().izvoriSub));
-  const st = el('table', 'kv');
-  const sh = el('thead'); const srh = el('tr');
-  for (const h of [T().izvorCol, T().oblastCol, T().starostCol]) srh.appendChild(el('th', null, h));
-  sh.appendChild(srh); st.appendChild(sh);
-  const sb = el('tbody');
-  for (const s of ((STATE.organizam && STATE.organizam.sources) || []).slice(0, 40)) {
-    const tr = el('tr');
-    tr.appendChild(el('td', null, s.name));
-    tr.appendChild(el('td', null, s.domain || ''));
-    tr.appendChild(el('td', null, (s.reception_age_minutes === null || s.reception_age_minutes === undefined ? '—' : s.reception_age_minutes + ' min')));
-    sb.appendChild(tr);
-  }
-  st.appendChild(sb);
-  root.appendChild(st);
+  root.appendChild(mkTable([T().izvorCol, T().oblastCol, T().starostCol],
+    ((STATE.organizam && STATE.organizam.sources) || []).slice(0, 40).map(s =>
+      [s.name, s.domain || '', s.reception_age_minutes == null ? '—' : s.reception_age_minutes + ' min'])));
 }
 
 /* ── Pogled: #o ─────────────────────────────────────────── */
