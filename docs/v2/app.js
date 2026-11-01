@@ -361,6 +361,7 @@ function trakaMerenja() {
 function viewDanas(root) {
   loadSerije().then(() => { if (currentRoute() === 'danas') renderDanas(root); });
   loadIstaknuto().then(() => { if (currentRoute() === 'danas') renderDanas(root); });
+  if (!STATE.dog) jfetch('state/dogadjaji.json').then(m => { STATE.dog = m; if (currentRoute() === 'danas') renderDanas(root); }, () => {});
   renderDanas(root);
 }
 function renderDanas(root) {
@@ -435,6 +436,26 @@ function renderDanas(root) {
       list.appendChild(row);
     }
     root.appendChild(list);
+  }
+
+  /* 5 — kultura: samo eksplicitni termini iz zvaničnih repertoara */
+  const dg = STATE.dog && STATE.dog.events;
+  if (dg && dg.length) {
+    root.appendChild(el('h2', null, T().dogTitle));
+    root.appendChild(el('hr', 'rule'));
+    const list = el('div', 'istaknuto');
+    for (const e of dg.slice(0, 12)) {
+      const row = el('article', 'ist-red'), l = e.tl || e.t;
+      row.appendChild(el('span', 'score', l.slice(8, 10) + '.' + l.slice(5, 7) + '. ' + l.slice(11, 16)));
+      const mid = el('div', 'ist-mid'), a = el('a', 'naslov', e.n);
+      a.href = e.u; a.rel = 'noopener';
+      mid.appendChild(a);
+      mid.appendChild(el('p', 'meta', [e.m, (STATE.dog.sources.find(x => x.id === e.i) || {}).name].filter(Boolean).join(' · ')));
+      row.appendChild(mid);
+      list.appendChild(row);
+    }
+    root.appendChild(list);
+    root.appendChild(el('p', 'sub', T().dogSub));
   }
 
   root.appendChild(el('h2', null, T().otkucaji));
