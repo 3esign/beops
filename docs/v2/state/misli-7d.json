@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-misli/v1.1",
-  "generated_at": "2026-11-02T06:53:31.637Z",
-  "as_of": "2026-11-02T06:31:34.908204Z",
+  "generated_at": "2026-11-02T07:03:35.030Z",
+  "as_of": "2026-11-02T06:57:42.998Z",
   "total_thoughts": 78,
   "filter_counts": {
     "accepted": 36,
@@ -16,199 +16,6 @@
     "eseji": 3
   },
   "thoughts": [
-    {
-      "id": "bridge:2026-10-29T18-47-44-703Z__urednik__zai_glm-5_3-flash",
-      "at": "2026-10-29T18:51:46.894Z",
-      "origin": "bridge",
-      "entity": "bridge:zai",
-      "entity_label": "zai/glm-5.3-flash",
-      "model": "zai/glm-5.3-flash",
-      "prompt_id": null,
-      "oblik": "esej",
-      "narav": null,
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "Beograd se u poslednjem preseku meri umerenim česticama: prosečan PM2.5 je 16.1 µg/m³, prosečan PM10 24 µg/m³, na osnovu dvadeset šest senzora, a najviša očitavanja, 37.2 za PM2.5 i 40.5 µg/m³ za PM10, dolaze sa iste stanice, 90803. Termometar na Košutnjaku pokazuje 10.7 °C, a građanski senzor 98319 u okolini grada 11.46 °C. Sam prijem merenja je u zapisu označen kao redovan, dok su procesi publish i l5 označeni kao zakasneli.\n\nSutra, 30. oktobra, gradu je najavljen dan prekida: u Starom gradu struje nema od 10:00 do 13:00 u Kralja Petra 19-21, na Zvezdari od 08:30 do 14:00, u Rakovici od 08:30 do 14:00 i u naselju Resnik od 08:30 do 16:00, na Voždovcu od 08:30 do 14:00 i u naselju Ripanj od 09:00 do 12:00, u Obrenovcu od 08:30 do 14:00, a u Lazarevcu od 09:00 do 11:00. Za delove Grocke i Leštane najavljeno je da će sutra česme biti suve. Od parkiranja ostaje samo jedan slab signal: garaža „Baba Višnjina\" prikazuje 125 slobodnih mesta, ali zapis nema potvrđen čas merenja, pa se na taj broj ne može osloniti.\n\nVeza koju vredi razmotriti je razmak između proseka i pojedinačnih zapisa: građanski senzor 97343 čita PM10 od 44 µg/m³, iznad najvećih 40.5 u preseku mreže, a PM2.5 od 24.14 µg/m³, nad prosekom od 16.1 µg/m³; pretpostavljam da tu govorimo o različitim mestima i vremenima očitavanja, a ne o tome da je neki broj pogrešan. Uz to, grad u prosekne brojke ne upisuje svoje najavljene prekide: prosek grada ne opisuje ulice sa najavljenim isključenjem struje ni četvrti sa najavljenom suvom česmom, a sutra takvih adresa ima u najmanju ruku u sedam opština.\n\nOvde znanje staje: za NO2 i O3 u ovom preseku nema nijednog očitavanja, pa o njima ne mogu ništa da kažem, a prazno nije nula. Najave prekida su naslovi obaveštenja, ne potvrda da će se izvesti tačno u navedenim satnicama. Nemam ni sedmodnevnu seriju merenja, pa bi svaka priča o trendu vazduha bila čista pretpostavka.",
-      "text_en": null,
-      "hypotheses_sr": [],
-      "questions_sr": [],
-      "cites": [
-        "puls:pm25",
-        "puls:pm10",
-        "puls:no2",
-        "puls:o3",
-        "izvor:S01:temperature",
-        "izvor:S04:temperature",
-        "izvor:S04:pm25",
-        "izvor:S04:pm10",
-        "izvor:d74eac7b70ed7f22",
-        "izvor:79f63d1655531b3b",
-        "izvor:0938d0b767465ff7",
-        "izvor:29d5973963499f9e",
-        "izvor:a7ada4f610abceab",
-        "izvor:a525ad718d116829",
-        "izvor:55bc3dfad6962876",
-        "izvor:6f77148368c4796a",
-        "izvor:47ca78ddd995ee52",
-        "izvor:S10:free_spaces",
-        "sistem:organi"
-      ],
-      "pouzdanost": "srednje — čestice imaju pokriće iz dva izvora, ali NO2 i O3 nemaju nijedno očitavanje, najave prekida nisu potvrde izvođenja, a parking broj nema potvrđen čas merenja.",
-      "naslov": "Umeren vazduh, sutra prekidi struje po opštinama",
-      "prompt_version": 4,
-      "status_odgovora": "nalaz",
-      "odgovor_na_pitanje": null,
-      "ekspertize": null,
-      "prozor": null,
-      "kontekst_sha256": "90cc31c98797e867b8fe6374955f5704cd83cbe57b4d3a659c42a39850fd677a",
-      "oslonci": [
-        {
-          "id": "puls:pm25",
-          "naslov": "PM25",
-          "tekst": "{\"mean\":16.1,\"min\":1.1,\"max\":37.2,\"max_station\":\"90803\",\"unit\":\"µg/m³\",\"sensors_count\":26}",
-          "at": "2026-10-29T18:33:01.886145Z",
-          "izvor": "state/puls.json#/current_metrics/pm25"
-        },
-        {
-          "id": "puls:pm10",
-          "naslov": "PM10",
-          "tekst": "{\"mean\":24,\"min\":1.1,\"max\":40.5,\"max_station\":\"90803\",\"unit\":\"µg/m³\",\"sensors_count\":26}",
-          "at": "2026-10-29T18:33:01.886145Z",
-          "izvor": "state/puls.json#/current_metrics/pm10"
-        },
-        {
-          "id": "puls:no2",
-          "naslov": "NO2",
-          "tekst": "{\"mean\":null,\"min\":null,\"max\":null,\"max_station\":null,\"unit\":\"µg/m³\",\"sensors_count\":0}",
-          "at": "2026-10-29T18:33:01.886145Z",
-          "izvor": "state/puls.json#/current_metrics/no2"
-        },
-        {
-          "id": "puls:o3",
-          "naslov": "O3",
-          "tekst": "{\"mean\":null,\"min\":null,\"max\":null,\"max_station\":null,\"unit\":\"µg/m³\",\"sensors_count\":0}",
-          "at": "2026-10-29T18:33:01.886145Z",
-          "izvor": "state/puls.json#/current_metrics/o3"
-        },
-        {
-          "id": "izvor:S10:free_spaces",
-          "naslov": "Slobodnih parking mesta 125 — Garaža \"Baba Višnjina\"",
-          "tekst": "{\"naslov\":\"Slobodnih parking mesta 125 — Garaža \\\"Baba Višnjina\\\"\",\"stanje\":\"untimed\",\"vreme_merenja_ili_objave\":null,\"primljeno\":\"2026-10-29T17:53:02.011035Z\",\"napomena\":\"Čas merenja nije potvrđen; prijem ne određuje starost vrednosti.\"}",
-          "at": null,
-          "izvor": "Parking servis - displayed free spaces per lot"
-        },
-        {
-          "id": "izvor:d74eac7b70ed7f22",
-          "naslov": "Delovi Grocke i Leštana sutra bez vode: Spiska ulica u kojima će \"česme biti suve\"",
-          "tekst": "{\"naslov\":\"Delovi Grocke i Leštana sutra bez vode: Spiska ulica u kojima će \\\"česme biti suve\\\"\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-10-29T17:08:00Z\",\"primljeno\":null,\"napomena\":null}",
-          "at": "2026-10-29T17:08:00Z",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:S01:temperature",
-          "naslov": "Temperatura 10.7 °C — Beograd",
-          "tekst": "{\"naslov\":\"Temperatura 10.7 °C — Beograd\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-10-29T17:50:00Z\",\"primljeno\":\"2026-10-29T17:53:11.489855Z\",\"napomena\":null}",
-          "at": "2026-10-29T17:50:00Z",
-          "izvor": "RHMZ automatic stations - Belgrade (Beograd, Košutnjak)"
-        },
-        {
-          "id": "izvor:S04:pm10",
-          "naslov": "PM10 44 µg/m³ — 97343",
-          "tekst": "{\"naslov\":\"PM10 44 µg/m³ — 97343\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-10-29T17:57:00Z\",\"primljeno\":\"2026-10-29T17:58:02.589291Z\",\"napomena\":null}",
-          "at": "2026-10-29T17:57:00Z",
-          "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-        },
-        {
-          "id": "izvor:S04:pm25",
-          "naslov": "PM2.5 24.14 µg/m³ — 97343",
-          "tekst": "{\"naslov\":\"PM2.5 24.14 µg/m³ — 97343\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-10-29T17:57:00Z\",\"primljeno\":\"2026-10-29T17:58:02.589291Z\",\"napomena\":null}",
-          "at": "2026-10-29T17:57:00Z",
-          "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-        },
-        {
-          "id": "izvor:S04:temperature",
-          "naslov": "Temperatura 11.46 °C — 98319",
-          "tekst": "{\"naslov\":\"Temperatura 11.46 °C — 98319\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-10-29T17:54:54Z\",\"primljeno\":\"2026-10-29T17:58:02.589291Z\",\"napomena\":null}",
-          "at": "2026-10-29T17:54:54Z",
-          "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-        },
-        {
-          "id": "izvor:0938d0b767465ff7",
-          "naslov": "Планирано искључење струје 2026-10-30 · Звездара · 08:30 - 14:00 · АХМЕДА АДЕМОВИЋА: 4-24,1-13,19-21, Д.ЂОРЂЕВИЋА-ГОШЕ: 8А-12, ЂАНГА РАЈНХАРТА: ББ,ББ,4-8,12,20-26,17,23, ЈОВАНА ЈАНИЋ.БУРДУША: 2-6,1-9,",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-30 · Звездара · 08:30 - 14:00 · АХМЕДА АДЕМОВИЋА: 4-24,1-13,19-21, Д.ЂОРЂЕВИЋА-ГОШЕ: 8А-12, ЂАНГА РАЈНХАРТА: ББ,ББ,4-8,12,20-26,17,23, ЈОВАНА ЈАНИЋ.БУРДУША:…",
-          "at": "2026-10-30",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:29d5973963499f9e",
-          "naslov": "Планирано искључење струје 2026-10-30 · Раковица · 08:30 - 14:00 · АЦЕ СИМИЋА: 28,32,39-41, АГАРУШКА: 2-6,1-3,7-9, АЛАНА ТЈУРИНГА: 4-6,12-14,5-11, АЛЕКСАНДРА НЕВСКОГ: 6,5,9-11, АНДРЕ ЈОВИЋА: 2-12,16-3",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-30 · Раковица · 08:30 - 14:00 · АЦЕ СИМИЋА: 28,32,39-41, АГАРУШКА: 2-6,1-3,7-9, АЛАНА ТЈУРИНГА: 4-6,12-14,5-11, АЛЕКСАНДРА НЕВСКОГ: 6,5,9-11, АНДРЕ ЈОВИЋА:…",
-          "at": "2026-10-30",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:47ca78ddd995ee52",
-          "naslov": "Планирано искључење струје 2026-10-30 · Лазаревац · 09:00 - 11:00 · Насеље Врбовно-Викендаши.",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-30 · Лазаревац · 09:00 - 11:00 · Насеље Врбовно-Викендаши.\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-10-30\",\"primljeno\":null,\"napomena\":null}",
-          "at": "2026-10-30",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:55bc3dfad6962876",
-          "naslov": "Планирано искључење струје 2026-10-30 · Вождовац · 09:00 - 12:00 · Насеље РИПАЊ: ЕРЧАНСКА: 76А-88,27А-31А,35,39-45, ПУТ ЗА ИЛИЋЕ: 2-6, ПУТ ЗА КАЛАЈЏИЋЕ: 12-14А, ПУТ ЗА НЕСТРОВИЋЕ: 2-20,24-26,1,5-9,13-",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-30 · Вождовац · 09:00 - 12:00 · Насеље РИПАЊ: ЕРЧАНСКА: 76А-88,27А-31А,35,39-45, ПУТ ЗА ИЛИЋЕ: 2-6, ПУТ ЗА КАЛАЈЏИЋЕ: 12-14А, ПУТ ЗА НЕСТРОВИЋЕ:…",
-          "at": "2026-10-30",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:6f77148368c4796a",
-          "naslov": "Планирано искључење струје 2026-10-30 · Обреновац · 08:30 - 14:00 · Насеље ОБРЕНОВАЦ: ИНДУСТРИЈСКА ЗОНА: 0ББ, НЕМАЊИНА: 232,250,266,183, Насеље УРОВЦИ: БОГОЉУБА УРОШЕВИЋА-ЦРНОГ: 2,26,40,44Б,222,15,23-",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-30 · Обреновац · 08:30 - 14:00 · Насеље ОБРЕНОВАЦ: ИНДУСТРИЈСКА ЗОНА: 0ББ, НЕМАЊИНА: 232,250,266,183, Насеље УРОВЦИ: БОГОЉУБА УРОШЕВИЋА-ЦРНОГ:…",
-          "at": "2026-10-30",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:79f63d1655531b3b",
-          "naslov": "Планирано искључење струје 2026-10-30 · Стари град · 10:00 - 13:00 · Краља Петра 19-21.",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-30 · Стари град · 10:00 - 13:00 · Краља Петра 19-21.\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-10-30\",\"primljeno\":null,\"napomena\":null}",
-          "at": "2026-10-30",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:a525ad718d116829",
-          "naslov": "Планирано искључење струје 2026-10-30 · Вождовац · 08:30 - 14:00 · КСЕНИЈЕ ЈОВАНОВИЋ: 2-12, МИЈАТА МИЈАТОВИЋА: 2-4,8-14,1-5,9-11,19Г-19И, СТАНИСЛАВЕ ПЕШИЋ: 6-8,12,1,5-9, ЗАПИС: 4-12,16-18,1-3,7-9,13",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-30 · Вождовац · 08:30 - 14:00 · КСЕНИЈЕ ЈОВАНОВИЋ: 2-12, МИЈАТА МИЈАТОВИЋА: 2-4,8-14,1-5,9-11,19Г-19И, СТАНИСЛАВЕ ПЕШИЋ: 6-8,12,1,5-9, ЗАПИС:…",
-          "at": "2026-10-30",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:a7ada4f610abceab",
-          "naslov": "Планирано искључење струје 2026-10-30 · Раковица · 08:30 - 16:00 · Насеље РЕСНИК: ЈОСИПА ТЕЛАРЕВИЋА: 43Б, ЛИЧКИХ БРИГАДА: 2-6,3-7В,35А-35К",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-10-30 · Раковица · 08:30 - 16:00 · Насеље РЕСНИК: ЈОСИПА ТЕЛАРЕВИЋА: 43Б, ЛИЧКИХ БРИГАДА: 2-6,3-7В,35А-35К\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-10-30\",\"primljeno\":null,\"napomena\":null}",
-          "at": "2026-10-30",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "sistem:organi",
-          "naslov": "Dostupnost izvora i procesa",
-          "tekst": "[{\"id\":\"mind\",\"status\":\"ok\",\"last_run\":\"2026-10-29T18:35:31.445808Z\"},{\"id\":\"collect\",\"status\":\"ok\",\"last_run\":\"2026-10-29T18:33:01.886145Z\"},{\"id\":\"ai_feed\",\"status\":\"ok\",\"last_run\":\"2026-10-29T18:18:02.790Z\"},{\"id\":\"l5\",\"status\":\"late\",\"last_run\":\"2026-10-23T12:49:44.587678+00:…",
-          "at": "2026-10-29T18:43:22.847979+00:00",
-          "izvor": "state/organizam.json"
-        }
-      ],
-      "level": null,
-      "za_gradjanina": {
-        "akcija": "Ako živiš ili radiš u Kralja Petra 19-21, proveri važenje najave pre sutrašnjih 10:00 i pripremi šta ti zavisi od struje za interval 10:00-13:00; isto važi za najavljene ulice na Zvezdari, u Rakovici i Resniku, na Voždovcu i Ripnju, u Obrenovcu i Lazarevcu u njihovim najavljenim satnicama. Ako si u delovima Grocke ili Leštana, računaj sutra sa najavljenim suvim česmama. Broj od 125 slobodnih mesta u garaži „Baba Višnjina\" ne uzimaj kao merodavan, jer zapis nema potvrđen čas merenja.",
-        "vazi_do": "2026-10-29T13:00:00.000Z",
-        "lokacija": "ОБРЕНОВАЦ",
-        "dokaz": "puls:pm25 · puls:pm10 · puls:no2 · puls:o3 · izvor:S01:temperature · izvor:S04:temperature · izvor:S04:pm25 · izvor:S04:pm10 · izvor:d74eac7b70ed7f22 · izvor:79f63d1655531b3b · izvor:0938d0b767465ff7 · izvor:29d5973963499f9e · izvor:a7ada4f610abceab · izvor:a525ad718d116829 · izvor:55bc3dfad6962876 · izvor:6f77148368c4796a · izvor:47ca78ddd995ee52 · izvor:S10:free_spaces · sistem:organi"
-      },
-      "validacija": {
-        "state": "accepted",
-        "razlog": [],
-        "at": "2026-10-29T18:51:47.009Z"
-      }
-    },
     {
       "id": "bridge:2026-10-31T18-48-50-394Z__urednik__zai_glm-5_3-flash",
       "at": "2026-10-31T18:50:44.976Z",
@@ -2601,6 +2408,103 @@
         "F8"
       ],
       "level": "veza"
+    },
+    {
+      "id": "bridge:2026-11-02T06-57-42-998Z__urednik__zai_glm-5_3-flash",
+      "at": "2026-11-02T06:57:42.998Z",
+      "origin": "bridge",
+      "entity": "bridge:zai",
+      "entity_label": "zai/glm-5.3-flash",
+      "model": "zai/glm-5.3-flash",
+      "prompt_id": null,
+      "oblik": "esej",
+      "narav": null,
+      "state": "accepted",
+      "rejection_reason": null,
+      "text_sr": "Jutarnji presek nad Beogradom pokazuje niske koncentracije lebdećih čestica u državnoj referentnoj mreži: prosečan PM2.5 iznosi 5.5 µg/m³ (medijana 4.1 µg/m³, raspon od 1.5 do 12.8 µg/m³ na 31 stanici), dok je prosečan PM10 6.3 µg/m³ (medijana 5.1 µg/m³, raspon od 1.8 do 14.2 µg/m³ na 31 stanici). Najviše vrednosti obe frakcije čestica zabeležene su na stanici Borča, gde PM2.5 dostiže 12.8 µg/m³, a PM10 14.2 µg/m³. Istovremeno, azot-dioksid (NO2) na 32 referentne stanice ima gradski prosek od 19.6 µg/m³ i medijanu 17.6 µg/m³, u rasponu od 7.6 do 44.4 µg/m³, pri čemu vršna vrednost od 44.4 µg/m³ dolazi sa stanice Leštane. Prizemni ozon (O3) na 25 stanica beleži prosek od 18.7 µg/m³ (medijana 15.6 µg/m³, od 1.8 do 35.5 µg/m³ na stanici Zeleno brdo).\n\nMeteorološki uslovi u istom preseku beleže temperaturu od 11.4 °C, relativnu vlažnost vazduha od 83.2 %, vazdušni pritisak od 1005.9 hPa i brzinu vetra od 2.6 m/s. Visoka relativna vlažnost od 83.2 % važna je za tumačenje merenja u gradu: dok referentne državne stanice suše uzorak pre merenja, građanski optički senzori pri ovako visokoj vlažnosti mogu pokazivati prividno veće vrednosti usled vezivanja vlage na česticama. Zbog toga je oslonac na 31 referentnu stanicu sa prosekom od 5.5 µg/m³ za PM2.5 i 6.3 µg/m³ za PM10 pouzdan pokazatelj da je jutarnji vazduh u većem delu grada čist.\n\nRazlika između gradskog proseka i lokalnog vrha najjasnije se vidi kod azot-dioksida: dok je medijana NO2 u gradu 17.6 µg/m³, stanica Leštane beleži 44.4 µg/m³, pa prosek od 19.6 µg/m³ ne opisuje ravnomerno sve delove grada. U domenu gradske mobilnosti, zapis za garažu „Baba Višnjina\" navodi 215 slobodnih parking mesta, ali taj podatak nosi oznaku da čas merenja nije potvrđen. Prijem samog podatka ne određuje koliko je broj od 215 mesta star u trenutku čitanja. Svi sistemski organi — prikupljanje, tok misli, mreža veza, čuvar i objava — u zapisu sistema imaju uredan radni status.\n\nGranica ovog uvida ostaje stroga: presek potvrđuje trenutne vrednosti, ali bez prognoze se ne može odrediti budući najčistiji deo dana. Takođe, iz samog preseka nije moguće utvrditi uzrok povišenog NO2 od 44.4 µg/m³ u naselju Leštane bez dodatnih prostornih i saobraćajnih merenja.",
+      "text_en": null,
+      "hypotheses_sr": [],
+      "questions_sr": [],
+      "cites": [
+        "puls:pm25",
+        "puls:pm10",
+        "puls:no2",
+        "puls:o3",
+        "puls:meteo",
+        "izvor:S10:free_spaces",
+        "sistem:organi"
+      ],
+      "pouzdanost": "visoko — čestice i gasovi počivaju na 31 do 32 referentne stanice u svežem preseku, dok je ograničenje nepotvrđenog časa za parking javno naznačeno.",
+      "naslov": "Čist jutarnji vazduh uz povišen NO2 u Leštanima i vlažnost od 83.2 %",
+      "prompt_version": 4,
+      "status_odgovora": "nalaz",
+      "odgovor_na_pitanje": null,
+      "ekspertize": null,
+      "prozor": null,
+      "kontekst_sha256": "a7c5f89388d7e3fbb1aa2aac462bb00ebd27b26575d34be064d1e9a212a7505b",
+      "oslonci": [
+        {
+          "id": "puls:pm25",
+          "naslov": "PM25",
+          "tekst": "{\"mean\":5.5,\"median\":4.1,\"min\":1.5,\"max\":12.8,\"max_station\":\"Borča\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+          "at": "2026-11-02T06:43:02.412668Z",
+          "izvor": "state/puls.json#/current_metrics/pm25"
+        },
+        {
+          "id": "puls:pm10",
+          "naslov": "PM10",
+          "tekst": "{\"mean\":6.3,\"median\":5.1,\"min\":1.8,\"max\":14.2,\"max_station\":\"Borča\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+          "at": "2026-11-02T06:43:02.412668Z",
+          "izvor": "state/puls.json#/current_metrics/pm10"
+        },
+        {
+          "id": "puls:no2",
+          "naslov": "NO2",
+          "tekst": "{\"mean\":19.6,\"median\":17.6,\"min\":7.6,\"max\":44.4,\"max_station\":\"Leštane\",\"unit\":\"µg/m³\",\"sensors_count\":32,\"network\":\"reference\"}",
+          "at": "2026-11-02T06:43:02.412668Z",
+          "izvor": "state/puls.json#/current_metrics/no2"
+        },
+        {
+          "id": "puls:o3",
+          "naslov": "O3",
+          "tekst": "{\"mean\":18.7,\"median\":15.6,\"min\":1.8,\"max\":35.5,\"max_station\":\"Zeleno brdo\",\"unit\":\"µg/m³\",\"sensors_count\":25,\"network\":\"reference\"}",
+          "at": "2026-11-02T06:43:02.412668Z",
+          "izvor": "state/puls.json#/current_metrics/o3"
+        },
+        {
+          "id": "puls:meteo",
+          "naslov": "Vremenski uslovi",
+          "tekst": "{\"temperature\":11.4,\"humidity\":83.2,\"pressure\":1005.9,\"wind_speed\":2.6,\"wind_direction\":\"50.0\"}",
+          "at": "2026-11-02T06:43:02.412668Z",
+          "izvor": "state/puls.json#/current_metrics/meteo"
+        },
+        {
+          "id": "izvor:S10:free_spaces",
+          "naslov": "Slobodnih parking mesta 215 — Garaža \"Baba Višnjina\"",
+          "tekst": "{\"naslov\":\"Slobodnih parking mesta 215 — Garaža \\\"Baba Višnjina\\\"\",\"stanje\":\"untimed\",\"vreme_merenja_ili_objave\":null,\"primljeno\":\"2026-11-02T06:18:03.878077Z\",\"napomena\":\"Čas merenja nije potvrđen; prijem ne određuje starost vrednosti.\"}",
+          "at": null,
+          "izvor": "Parking servis - displayed free spaces per lot"
+        },
+        {
+          "id": "sistem:organi",
+          "naslov": "Dostupnost izvora i procesa",
+          "tekst": "[{\"id\":\"mind\",\"status\":\"ok\",\"last_run\":\"2026-11-02T06:31:34.908204Z\"},{\"id\":\"collect\",\"status\":\"ok\",\"last_run\":\"2026-11-02T06:43:02.412668Z\"},{\"id\":\"ai_feed\",\"status\":\"ok\",\"last_run\":\"2026-11-02T05:42:37.877Z\"},{\"id\":\"l5\",\"status\":\"ok\",\"last_run\":\"2026-11-02T01:44:10.335907+00:00…",
+          "at": "2026-11-02T06:53:24.297190+00:00",
+          "izvor": "state/organizam.json"
+        }
+      ],
+      "level": null,
+      "za_gradjanina": {
+        "akcija": "Vazduh u Beogradu je jutros povoljan za boravak i aktivnosti na otvorenom (PM2.5 u proseku 5.5 µg/m³, PM10 6.3 µg/m³ na 31 referentnoj stanici), uz oprez za osetljive grupe u zoni stanice Leštane gde NO2 dostiže 44.4 µg/m³; pri vlažnosti od 83.2 % oslanjaj se na referentne stanice, a podatak o 215 slobodnih mesta u garaži „Baba Višnjina\" uzmi sa rezervom jer nema potvrđen čas merenja.",
+        "vazi_do": null,
+        "lokacija": null,
+        "dokaz": "puls:pm25 · puls:pm10 · puls:no2 · puls:o3 · puls:meteo · izvor:S10:free_spaces · sistem:organi"
+      },
+      "validacija": {
+        "state": "accepted",
+        "razlog": [],
+        "at": "2026-11-02T06:57:43.004Z"
+      }
     }
   ]
 }

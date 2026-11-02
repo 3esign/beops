@@ -233,7 +233,8 @@ function thoughtCard(t) {
   if (t.urednicka_napomena) card.appendChild(el('p', 'reading-note', t.urednicka_napomena));
   if (t.odgovor_na_pitanje) card.appendChild(el('p', 'direct-answer', t.odgovor_na_pitanje));
 
-  const txt = LANG === 'sr' ? (t.text_sr || t.text_en) : (t.text_en || t.text_sr);
+  const rawTxt = LANG === 'sr' ? (t.text_sr || t.text_en) : (t.text_en || t.text_sr);
+  const txt = (rawTxt || '').replace(/\s*(?:\[F\d+\])+/g, '');
   card.appendChild(el('p', 'tekst' + (t.state === 'rejected' ? ' rej' : ''), txt || '—'));
 
   if (t.state === 'rejected') {
@@ -355,8 +356,9 @@ function trakaMerenja() {
 }
 
 function viewDanas(root) {
-  loadIstaknuto().then(() => { if (currentRoute() === 'danas') renderDanas(root); });
-  if (!STATE.dog) jfetch('state/dogadjaji.json').then(m => { STATE.dog = m; if (currentRoute() === 'danas') renderDanas(root); }, () => {});
+  const re = () => { if (currentRoute() === 'danas') renderDanas(root); };
+  Promise.all([loadIstaknuto(), loadSerije(), loadMapa(), loadMapaNews()]).then(re);
+  if (!STATE.dog) jfetch('state/dogadjaji.json').then(m => { STATE.dog = m; re(); }, () => {});
   renderDanas(root);
 }
 function renderDanas(root) {
@@ -366,17 +368,6 @@ function renderDanas(root) {
     LANG === 'sr' ? 'Danas · ' + d.toLocaleDateString('sr-RS') : 'Today · ' + d.toLocaleDateString('en-GB'),
     T().danasTitle, T().danasSub));
 
-  const cs = STATE.puls && STATE.puls.city_status;
-  if (cs) {
-    const eq = cs.eaqi;
-    const eqTxt = eq && eq.level ? ' · EAQI ' + eq.level + '/6 (' + (LANG === 'sr' ? eq.label_sr : eq.label_en) + ')' : '';
-    const advTxt = eq && eq.level >= 3 && LANG === 'sr' && eq.advice_sensitive_sr ? ' — ' + eq.advice_sensitive_sr : '';
-    root.appendChild(banner(
-      LANG === 'sr' ? 'Vazduh:' : 'Air:',
-      'AQI ' + cs.aqi_us + eqTxt + ' · ' + (LANG === 'sr' ? cs.summary_sr : cs.summary_en) + advTxt, null,
-      STATE.puls.as_of, (cs.aqi_us || 0) <= 100
-    ));
-  }
   /* P3 — tišina grada: puls (kadenca 5 min) i um (4 min) */
   if (STATE.puls && tier(STATE.puls.as_of, 5) === 'silent') {
     root.appendChild(banner(T().gradCuti + ' —', T().gradCutiText, null, STATE.puls.as_of, false));
@@ -386,53 +377,55 @@ function renderDanas(root) {
     root.appendChild(banner(T().umCuti + ' —', T().umCutiText, null, newest, false));
   }
 
-  /* 1 — razmatranje dana: esej je nosilac strane (K4) */
-  root.appendChild(el('h2', null, T().razmatranjeTitle));
+  /* 0 — Hero kontrolna tabla: AQI/EAQI skala + 6 metričkih pločica sa 7d sparklineovima */
+  if (typeof heroPulsGrid === 'function') root.appendChild(heroPulsGrid());
+
+  /* 1 — Praktični vodič za građanina (4 kartice: Vazduh, Parking garaže, Moj kraj, Kultura) */
+  root.appendChild(el('h2', null, T().vodicTitle));
   root.appendChild(el('hr', 'rule'));
+  if (typeof vodicGrid === 'function') root.appendChild(vodicGrid());
+
+  /* 2 — Šta grad danas misli: 2 kolone (Razmatranje dana levo + Uživo iz toka misli desno) */
+  const misliGrid = el('div', 'danas-misli-grid');
+  const colL = el('div', 'danas-col');
+  colL.appendChild(el('h2', null, T().razmatranjeTitle));
+  colL.appendChild(el('hr', 'rule'));
   const eseji = ((STATE.misli && STATE.misli.thoughts) || [])
     .filter(t => t.oblik === 'esej' && t.state === 'accepted')
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
-  if (eseji.length) root.appendChild(esejCard(eseji[0]));
-  else root.appendChild(el('p', 'sub', T().razmatranjeEmpty));
+  if (eseji.length) colL.appendChild(esejCard(eseji[0]));
+  else colL.appendChild(el('p', 'sub', T().razmatranjeEmpty));
 
-  /* 2 — koraci za građanina: akcija, lokacija, rok na glas */
-  root.appendChild(el('h2', null, T().karticeTitle));
-  root.appendChild(el('hr', 'rule'));
-  const kartice = ((STATE.misli && STATE.misli.thoughts) || [])
-    .filter(t => t.state === 'accepted' && t.prompt_version === 4 && t.za_gradjanina && typeof t.za_gradjanina === 'object' && t.za_gradjanina.akcija)
+  const colR = el('div', 'danas-col');
+  colR.appendChild(el('h2', null, T().uzivoMisliTitle));
+  colR.appendChild(el('hr', 'rule'));
+  const uzivoMisli = ((STATE.misli && STATE.misli.thoughts) || [])
+    .filter(t => t.state === 'accepted' && t.oblik !== 'esej')
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
-    .slice(0, 6);
-  if (!kartice.length) root.appendChild(el('p', 'sub', T().karticeEmpty));
-  else {
-    const g = el('div', 'kartice');
-    for (const t of kartice) g.appendChild(karticaCard(t));
-    root.appendChild(g);
-  }
+    .slice(0, 3);
+  for (const t of uzivoMisli) colR.appendChild(thoughtCard(t));
+  const aMisli = el('a', 'vodic-link', T().vodicOtvoriMisli);
+  aMisli.href = '#misli';
+  colR.appendChild(aMisli);
+  misliGrid.append(colL, colR);
+  root.appendChild(misliGrid);
 
-  /* 3 — traka merenja: mono, fizički odvojena od misli */
-  root.appendChild(el('h2', null, T().trakaTitle));
+  /* 3 — Interaktivni 7-dnevni trend direktno na #danas */
+  root.appendChild(el('h2', null, T().trend7dTitle));
   root.appendChild(el('hr', 'rule'));
-  root.appendChild(trakaMerenja());
-  const cm = (STATE.puls && STATE.puls.current_metrics) || {};
-  if (cm.low_cost && cm.pm25) {
-    const lc = cm.low_cost;
-    const netNote = T().mrezaRef + (cm.pm25.sensors_count || 0) + ' (PM2.5 ' + fmtNum(cm.pm25.mean) + ' µg/m³)' +
-      T().mrezaGradj + (lc.sensors_count || 0) + ' (PM2.5 ' + fmtNum(lc.pm25_mean) + ' µg/m³)' +
-      (lc.high_humidity_flag ? ' · ' + T().rhUpozorenje : '');
-    root.appendChild(el('p', 'sub', netNote));
-  }
+  if (typeof danasTrendBlok === 'function') root.appendChild(danasTrendBlok());
 
-  /* 4 — istaknuto po relevantnosti (T1: jedna istina, šel ne boduje sam) */
+  /* 4 — Istaknuto po relevantnosti (T1: višebojna mreža kartica) */
   if (STATE.istaknuto && (STATE.istaknuto.top || []).length) {
     root.appendChild(el('h2', null, T().istaknutoTitle));
     root.appendChild(el('hr', 'rule'));
-    const list = el('div', 'istaknuto');
-    for (const st of STATE.istaknuto.top.filter(t => ['merenje', 'vest'].includes(t.vrsta)).slice(0, 5)) {
+    const list = el('div', 'istaknuto ist-grid');
+    for (const st of STATE.istaknuto.top.filter(t => ['merenje', 'vest'].includes(t.vrsta)).slice(0, 6)) {
       const row = el('article', 'ist-red');
-      row.appendChild(el('span', 'score', st.vrsta === 'merenje' ? (LANG === 'sr' ? 'Merenje' : 'Reading') : (LANG === 'sr' ? 'Najava / vest' : 'Notice / news')));
+      row.appendChild(el('span', 'tag ' + (st.vrsta === 'merenje' ? '' : 'outline'), st.vrsta === 'merenje' ? (LANG === 'sr' ? 'Merenje' : 'Reading') : (LANG === 'sr' ? 'Najava / vest' : 'Notice / news')));
       const mid = el('div', 'ist-mid');
       mid.appendChild(el('p', 'naslov', st.naslov));
-      mid.appendChild(el('p', 'meta', (st.tema_ime || st.tema || '') + ' · ' + (st.vrsta || '') + (st.t ? ' · ' + absTime(st.t) : '')));
+      mid.appendChild(el('p', 'meta', (st.tema_ime || st.tema || '') + (st.t ? ' · ' + absTime(st.t) : '')));
       row.appendChild(mid);
       const det = el('details');
       det.appendChild(el('summary', null, T().istaknutoZasto));
@@ -444,7 +437,7 @@ function renderDanas(root) {
     root.appendChild(list);
   }
 
-  /* 5 — kultura: eksplicitni termini i periodi iz zvaničnih repertoara */
+  /* 5 — Kultura: eksplicitni termini i periodi iz zvaničnih repertoara (mreža kartica) */
   const dog = STATE.dog || {}, dd = s => s.slice(8, 10) + '.' + s.slice(5, 7) + '.';
   for (const [rows, t, sub, lab, h] of [
     [dog.events, T().dogTitle, T().dogSub, e => { const l = e.tl || e.t; return dd(l) + ' ' + l.slice(11, 16); }],
@@ -452,10 +445,10 @@ function renderDanas(root) {
     if (!rows || !rows.length) continue;
     root.appendChild(el('h2', null, t));
     root.appendChild(el('hr', 'rule'));
-    const list = el('div', 'istaknuto');
-    for (const e of rows.slice(0, 12)) {
+    const list = el('div', 'istaknuto ist-grid');
+    for (const e of rows.slice(0, 9)) {
       const row = el('article', 'ist-red'), mid = el('div', 'ist-mid'), a = el('a', 'naslov', e.n);
-      row.appendChild(el('span', 'score', lab(e)));
+      row.appendChild(el('span', 'tag outline', lab(e)));
       a.href = e.u; a.rel = 'noopener';
       mid.appendChild(a);
       mid.appendChild(el('p', 'meta', [e.m, h && e.h, (dog.sources.find(x => x.id === e.i) || {}).name].filter(Boolean).join(' · ')));
@@ -464,6 +457,19 @@ function renderDanas(root) {
     }
     root.appendChild(list);
     root.appendChild(el('p', 'sub', sub));
+  }
+
+  /* 6 — Čista traka merenja (AI Act 50) + Otkucaji organizma */
+  root.appendChild(el('h2', null, T().trakaTitle));
+  root.appendChild(el('hr', 'rule'));
+  root.appendChild(trakaMerenja());
+  const cm = (STATE.puls && STATE.puls.current_metrics) || {};
+  if (cm.low_cost && cm.pm25) {
+    const lc = cm.low_cost;
+    const netNote = T().mrezaRef + (cm.pm25.sensors_count || 0) + ' (PM2.5 ' + fmtNum(cm.pm25.mean) + ' µg/m³)' +
+      T().mrezaGradj + (lc.sensors_count || 0) + ' (PM2.5 ' + fmtNum(lc.pm25_mean) + ' µg/m³)' +
+      (lc.high_humidity_flag ? ' · ' + T().rhUpozorenje : '');
+    root.appendChild(el('p', 'sub', netNote));
   }
 
   root.appendChild(el('h2', null, T().otkucaji));
