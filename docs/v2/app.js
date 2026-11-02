@@ -163,7 +163,7 @@ function mk(tag, at, text) {
 }
 function sectionHead(eyebrowText, titleText, subText) {
   const head = el('div', 'section-head');
-  head.appendChild(el('p', 'eyebrow', eyebrowText));
+  if (eyebrowText) head.appendChild(el('p', 'eyebrow', eyebrowText));
   if (titleText) head.appendChild(el('h1', null, titleText));
   if (subText) head.appendChild(el('p', 'sub', subText));
   return head;
@@ -355,7 +355,6 @@ function trakaMerenja() {
 }
 
 function viewDanas(root) {
-  loadSerije().then(() => { if (currentRoute() === 'danas') renderDanas(root); });
   loadIstaknuto().then(() => { if (currentRoute() === 'danas') renderDanas(root); });
   if (!STATE.dog) jfetch('state/dogadjaji.json').then(m => { STATE.dog = m; if (currentRoute() === 'danas') renderDanas(root); }, () => {});
   renderDanas(root);
@@ -630,10 +629,10 @@ function bigChart(id, wpx) {
     y0 = Math.min(y0, p.mean); y1 = Math.max(y1, p.mean);
   }
   if (!Number.isFinite(y0) || !Number.isFinite(y1)) { y0 = Math.min(...pts.map(p => p.mean)); y1 = Math.max(...pts.map(p => p.mean)); }
-  if (id === 'pm25' || id === 'pm10') y0 = Math.max(0, y0); /* koncentracije ne mogu biti negativne */
   if (y1 - y0 < 1e-9) y1 = y0 + 1;
   const pad = (y1 - y0) * 0.06;
   y0 -= pad; y1 += pad;
+  if (id === 'pm25' || id === 'pm10') y0 = Math.max(0, y0); /* koncentracije ne mogu biti negativne */
   const sx = t => L + (t - x0) / (x1 - x0) * (W - L - R);
   const sy = v => H - B - (v - y0) / (y1 - y0) * (H - TP - B);
 
@@ -754,7 +753,7 @@ function renderPodaci(root) {
   const id = PODACI_SERIJA;
   box.appendChild(bigChart(id, box.clientWidth || root.clientWidth || 1000));
   box.appendChild(el('p', 'sub', T().minMax + ' · ' + T().q7));
-  box.appendChild(dlRow([['state/serije/' + id + '.json', T().preuzmiSerija], ['state/kolokacija.json', T().preuzmiKolok], ['../CITATION.cff', T().preuzmiCff]]));
+  box.appendChild(dlRow([['state/serije/' + id + '.json', T().preuzmiSerija], ['state/kolokacija.json', T().preuzmiKolok], ['CITATION.cff', T().preuzmiCff]]));
 }
 function dlRow(items) {
   const p = el('p', 'kraj-feedovi');
@@ -801,7 +800,7 @@ function renderKolokacija(root) {
       pp.fleet.rh_bins.map(b => ['RH ' + b.bin, String(b.n), b.mean_bias === null ? '—' : fmtNum(b.mean_bias, 2) + ' µg/m³', b.mean_ratio === null ? '—' : '×' + fmtNum(b.mean_ratio, 3)])));
     sec.appendChild(mkTable(
       [T().koloPairCol, T().koloDist, 'n', T().koloBias, 'r'],
-      (pp.pairs || []).slice(0, 6).map(p => [p.sc.location_id + ' (' + (p.sc.sensor_type || '?') + ') ↔ ' + p.sepa.station_id, fmtNum(p.sepa.distance_km, 2) + ' km', String(p.stats.n), p.stats.mean_bias === null ? '—' : fmtNum(p.stats.mean_bias, 2) + ' µg/m³', p.stats.r === null ? '—' : fmtNum(p.stats.r, 3)])));
+      (pp.pairs || []).slice(0, 6).map(p => [p.sc.location_id + ' (' + (p.sc.sensor_type || '?') + ') ↔ ' + (p.sepa.name || p.sepa.station_id), fmtNum(p.sepa.distance_km, 2) + ' km', String(p.stats.n), p.stats.mean_bias === null ? '—' : fmtNum(p.stats.mean_bias, 2) + ' µg/m³', p.stats.r === null ? '—' : fmtNum(p.stats.r, 3)])));
     block.appendChild(sec);
   }
   block.appendChild(el('p', 'sub', k.state_note));
@@ -836,8 +835,8 @@ function cssVar(name) {
 }
 const PARAM_LABEL = {
   pm25: { sr: 'PM2.5', en: 'PM2.5' }, pm10: { sr: 'PM10', en: 'PM10' },
-  no2: { sr: 'NO₂', en: 'NO₂' }, o3: { sr: 'O₃', en: 'O₃' },
-  co: { sr: 'CO', en: 'CO' }, so2: { sr: 'SO₂', en: 'SO₂' },
+  no2: { sr: 'NO₂', en: 'NO₂' }, no: { sr: 'NO', en: 'NO' }, nox: { sr: 'NOₓ', en: 'NOₓ' },
+  o3: { sr: 'O₃', en: 'O₃' }, co: { sr: 'CO', en: 'CO' }, so2: { sr: 'SO₂', en: 'SO₂' },
   temp: { sr: 'Temperatura', en: 'Temperature' }, rh: { sr: 'Vlažnost', en: 'Humidity' },
   hpa: { sr: 'Pritisak', en: 'Pressure' }, wind: { sr: 'Vetar', en: 'Wind' },
   dir: { sr: 'Pravac vetra', en: 'Wind dir.' }, noise: { sr: 'Buka', en: 'Noise' },
@@ -1178,7 +1177,7 @@ function renderMapa(root, loading) {
           r.t ? absTime(r.t) : (r.rx ? T().prijemHint + ' ' + absTime(r.rx) : '—')];
       }), ''));
     dossier.appendChild(el('p', 'meta', T().merenoHint + ' = vreme merenja; ' + T().prijemHint + ' = vreme prijema · ' + T().mapaAsOf + ' ' + absTime(M.as_of)));
-    dossier.appendChild(dlRow([['state/mapa.json', T().preuzmiMapa], ['../CITATION.cff', T().preuzmiCff]]));
+    dossier.appendChild(dlRow([['state/mapa.json', T().preuzmiMapa], ['CITATION.cff', T().preuzmiCff]]));
   }
   function unproject(px, py) {
     const [kx, s, A, B] = projP();
