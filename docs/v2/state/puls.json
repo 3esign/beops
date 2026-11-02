@@ -1,20 +1,20 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-01T23:43:21.693132+00:00",
-  "as_of": "2026-11-01T23:23:03.763937Z",
+  "generated_at": "2026-11-02T01:03:56.840330+00:00",
+  "as_of": "2026-11-02T00:53:08.041543Z",
   "city_status": {
-    "aqi_us": 53,
+    "aqi_us": 24,
     "aqi_standard": "US EPA 2024 + EEA EAQI",
-    "category": "umeren",
-    "dominant_pollutant": "PM2.5",
-    "summary_sr": "Vazduh u Beogradu je umerenog kvaliteta; osetljive grupe mogu osetiti blagi uticaj.",
-    "summary_en": "Air quality in Belgrade is moderate; sensitive individuals may experience slight effects.",
+    "category": "dobar",
+    "dominant_pollutant": "NO2",
+    "summary_sr": "Vazduh u Beogradu je dobrog kvaliteta.",
+    "summary_en": "Air quality in Belgrade is good.",
     "eaqi": {
       "level": 2,
       "category": "prihvatljiv",
       "label_sr": "Prihvatljiv",
       "label_en": "Fair",
-      "dominant_pollutant": "PM2.5",
+      "dominant_pollutant": "NO2",
       "advice_general_sr": "Uživajte u uobičajenim aktivnostima na otvorenom.",
       "advice_sensitive_sr": "Uživajte u uobičajenim aktivnostima na otvorenom."
     },
@@ -23,9 +23,9 @@
   },
   "current_metrics": {
     "pm25": {
-      "mean": 10.0,
-      "median": 9.7,
-      "min": 4.4,
+      "mean": 4.4,
+      "median": 2.7,
+      "min": 1.5,
       "max": 26.5,
       "max_station": "Leštane",
       "unit": "µg/m³",
@@ -33,9 +33,9 @@
       "network": "reference"
     },
     "pm10": {
-      "mean": 11.0,
-      "median": 10.9,
-      "min": 5.1,
+      "mean": 5.0,
+      "median": 3.4,
+      "min": 1.6,
       "max": 28.0,
       "max_station": "Leštane",
       "unit": "µg/m³",
@@ -43,75 +43,74 @@
       "network": "reference"
     },
     "no2": {
-      "mean": 15.7,
-      "median": 16.2,
-      "min": 6.9,
-      "max": 28.6,
-      "max_station": "Ada petlja",
+      "mean": 10.7,
+      "median": 10.5,
+      "min": 3.6,
+      "max": 21.4,
+      "max_station": "Borča",
       "unit": "µg/m³",
       "sensors_count": 32,
       "network": "reference"
     },
     "o3": {
-      "mean": 13.5,
-      "median": 12.1,
+      "mean": 24.4,
+      "median": 24.9,
       "min": 3.0,
-      "max": 30.9,
-      "max_station": "Zeleno brdo",
+      "max": 38.9,
+      "max_station": "Krnjača",
       "unit": "µg/m³",
       "sensors_count": 25,
       "network": "reference"
     },
     "meteo": {
-      "temperature": 11.2,
-      "humidity": 86.4,
+      "temperature": 11.1,
+      "humidity": 85.7,
       "pressure": 1006.0,
       "wind_speed": 2.5,
-      "wind_direction": "50.0"
+      "wind_direction": "70.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 3.4,
-      "pm25_median": 2.0,
-      "pm10_mean": 4.9,
+      "pm25_mean": 3.0,
+      "pm25_median": 1.1,
+      "pm10_mean": 4.8,
       "sensors_count": 26,
       "high_humidity_flag": true,
-      "humidity_pct": 86.4,
+      "humidity_pct": 85.7,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
   "superintelligence_monologue": {
-    "id": "mind-20261101232337-0",
-    "at": "2026-11-01T23:23:37.795269Z",
+    "id": "mind-20261102003947-0",
+    "at": "2026-11-02T00:39:47.564826Z",
     "speaker": "Povezivač",
     "speaker_role": "connector",
-    "text_sr": "Vreme dolaska SEPA koje je naveo Opažač je zastarelo: zvanične stanice su se poslednji put javile pre 65 min, dok su građanski senzori i RHMZ stanice stigli pre 20 min. Zato je građanska mreža svežiji pogled na PM10 u Borči od 17 µg/m³. Pomak Obilićevog venca sa 250 na 441 slobodnih mesta stigao je u istom prijemu Parking servisa pre 20 min, ali vremena merenja nema, pa ne mogu da ga vežem ni za jedan sat. Tanjug i Danubeogradu ćute već 6 h, što je tišina izvora, ne grada. [F2][F10][F34][F4][F12][F11][F13][F17]",
-    "text_en": "The SEPA arrival time Observer gave is out of date: the official stations last reported 65 min ago [F2], while the citizen sensors and the RHMZ stations both came in 20 min ago [F10][F34]. That makes the citizen network the fresher view of Borča's PM10 of 17 µg/m³ [F4]. Obilićev venac's move from 250 to 441 free spaces [F12] came in the same Parking Servis reception 20 min ago [F11], but there is no measurement time, so I can't tie it to any hour. Tanjug and Danubeogradu have both been silent for 6 h [F13][F17], which is a silence of feeds, not of the city.",
+    "text_sr": "Skeptikovi brojevi za PM10 i NO2 su zastareli: najviša vrednost PM10 sada je pala sa 15 na 9, a NO2 sa 23 na 21, dok se PM2.5 takođe pomerio sa 14 na 9. Borča istovremeno drži vrh NO2 od 21 i vrh PM2.5 od 9, dok je Pančevo Sodara najniže i za PM10 i za NO2. Građanski senzori stigli su pre 16 min, kao i SEPA, pa je moguća unakrsna provera noćnog pada. [F5][F7][F9][F6][F8][F4][F2][F10]",
+    "text_en": "Skeptic's PM10 and NO2 figures are stale: the highest PM10 now fell from 15 to 9 [F5] and NO2 from 23 to 21 [F7], with PM2.5 also moving from 14 to 9 [F9]. Borča holds the NO2 peak of 21 and the PM2.5 peak of 9 at once [F6][F8], while Pančevo Sodara sits lowest for both PM10 and NO2 [F4][F6]. Citizen sensors arrived 16 min ago, the same as SEPA [F2][F10], so a cross-check of the night's fall is possible.",
     "hypotheses_sr": [
-      "Borča ima najviši PM10 od 17 µg/m³ i najviši PM2.5 od 16 µg/m³ [F4][F8], dok NO2 dostiže vrh na Ada petlji sa 29 µg/m³ [F6]. Noću prašina možda prati obrazac izvora odvojen od saobraćaja na petlji, što bi se moglo proveriti preko građanskih senzora blizu Borče [F10].",
-      "Pomak Obilićevog venca sa 250 na 441 [F12] u ponedeljak odmah posle ponoći [F1] možda odgovara posetiocima koji napuštaju centar, ali bez vremena merenja [F11] ovo je samo obrazac koji treba proveriti na kasnijim prijemima.",
-      "Organela je ocenila F50, F51 i F52 sa 4/5 za iznenađenje [F53], ali te veze počivaju na sličnosti od 0.74 i 0.73 između nepovezanih tema [F50][F51][F52]. Iznenađenje je verovatno u modelu, a ne u gradu."
+      "To što Borča predvodi i NO2 i PM2.5 [F6][F8] može ukazivati na jedan lokalni izvor blizu te stanice, a ne na obrazac za ceo grad.",
+      "Istovremeni pad maksimuma PM10, NO2 i PM2.5 [F5][F7][F9] može odražavati zajedničku noćnu promenu disperzije, a ne odvojene događaje."
     ],
     "questions_sr": [
-      "Da li će građanski senzori blizu Borče potvrditi da je ona maksimum za PM10 u svom sledećem prijemu [F4][F10]?",
-      "Da li će sledeći prijemi Parking servisa zadržati Obilićev venac blizu 441 [F12]?"
+      "Da li građanski senzori blizu Borče [F10] pokazuju isti pad kao SEPA [F9]?",
+      "Hoće li Borča i dalje držati maksimum NO2 u sledećem SEPA satu [F6]?"
     ],
     "cites": [
       "F10",
-      "F11",
-      "F12",
-      "F13",
-      "F17",
       "F2",
-      "F34",
-      "F4"
+      "F4",
+      "F5",
+      "F6",
+      "F7",
+      "F8",
+      "F9"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-01T23:23:37.795269Z",
+    "last_mind_step": "2026-11-02T00:39:47.564826Z",
     "active_sources_count": 37,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-01T23:23:03.763937Z"
+    "sensors_as_of": "2026-11-02T00:53:08.041543Z"
   }
 }

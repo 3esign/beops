@@ -39,6 +39,9 @@ const loadMapa = cachedLoad('mapa', 'state/mapa.json');
 const loadIstaknuto = cachedLoad('istaknuto', 'state/istaknuto.json');
 const loadBelaznica = cachedLoad('belaznica', 'state/belaznica.json');
 const loadMapaNews = cachedLoad('mapaNews', 'state/mapa_news.json');
+/* B6: stanje + renderer lenjo iz posebnog modula metodologija.js */
+const loadMeto = cachedLoad('meto', 'state/metodologija.json');
+let renderMeto = body => body.appendChild(el('p', 'sub', '…'));
 /* pun tekst oslonaca: ugovor misli nosi samo prozor (280 + …), pun tekst živi
    u oslonci.json po misli; stariji rasporedi bez fajla — prikaz ostaje na prozoru */
 function loadOslonci() {
@@ -255,6 +258,7 @@ function thoughtCard(t) {
     card.appendChild(det);
   }
   card.appendChild(oslonciEl(t));
+  card.dataset.misao = t.id || ''; /* T5: glas po id-u */
   return card;
 }
 
@@ -340,7 +344,7 @@ function trakaMerenja() {
   strip.appendChild(red('NO₂', cm.no2 && cm.no2.mean, 'µg/m³'));
   strip.appendChild(red('O₃', cm.o3 && cm.o3.mean, 'µg/m³'));
   const met = cm.meteo || {};
-  strip.appendChild(red(LANG === 'sr' ? 'temp' : 'temp', met.temperature, '°C'));
+  strip.appendChild(red('temp', met.temperature, '°C'));
   strip.appendChild(red(LANG === 'sr' ? 'vlag' : 'rh', met.humidity, '%'));
   const foot = el('span', 'tr-st');
   if (STATE.puls && STATE.puls.as_of) foot.appendChild(stampEl(STATE.puls.as_of, 5));
@@ -511,16 +515,15 @@ function viewMisli(root) {
   }
 
   const f = el('div', 'filters');
-  const mindOpts = [['all', T().umSve], ['observer', mindDisplayName('observer')], ['skeptic', mindDisplayName('skeptic')], ['connector', mindDisplayName('connector')], ['organelle', mindDisplayName('organelle')], ['ai', mindDisplayName('ai')], ['bridge', mindDisplayName('bridge')]];
-  f.appendChild(selectFilter(T().filterUm + ':', mindOpts, MISLI_F.um, v => { MISLI_F.um = v; route(); }));
+  const MIND_KEYS = ['observer', 'skeptic', 'connector', 'organelle', 'ai', 'bridge'];
+  f.appendChild(selectFilter(T().filterUm + ':', [['all', T().umSve], ...MIND_KEYS.map(k => [k, mindDisplayName(k)])], MISLI_F.um, v => { MISLI_F.um = v; route(); }));
   f.appendChild(selectFilter(T().filterStanje + ':', [
     ['acc', T().stanjeAcc], ['rej', T().stanjeRej], ['all', T().stanjeSve],
   ], MISLI_F.stanje, v => { MISLI_F.stanje = v; route(); }));
   const levels = [...new Set(((STATE.misli && STATE.misli.thoughts) || []).map(t => t.level).filter(Boolean))];
   f.appendChild(selectFilter(T().filterNivo + ':', [['all', T().nivoSve], ...levels.map(l => [l, l])], MISLI_F.nivo, v => { MISLI_F.nivo = v; route(); }));
-  /* legenda identiteta: tačke u filteru su legenda umova */
   const legend = el('span', 'legend');
-  for (const k of ['observer', 'skeptic', 'connector', 'organelle', 'ai', 'bridge']) {
+  for (const k of MIND_KEYS) {
     const lab = el('label');
     lab.appendChild(mindDot(k));
     lab.appendChild(document.createTextNode(mindDisplayName(k)));
@@ -568,15 +571,7 @@ function rejectedBox() {
     groups.get(key).push(t);
   }
   const rows = [...groups.entries()].sort((a, b) => b[1].length - a[1].length);
-  const table = el('table');
-  const thead = el('thead'); const trh = el('tr');
-  trh.appendChild(el('th', null, T().nCol)); trh.appendChild(el('th', null, T().reasonCol));
-  thead.appendChild(trh); table.appendChild(thead);
-  const tb = el('tbody');
-  for (const [reason, list] of rows.slice(0, 12)) {
-    const tr = el('tr');
-    tr.appendChild(el('td', 'n', String(list.length)));
-    const td = el('td');
+  box.appendChild(mkTable([T().nCol, T().reasonCol], rows.slice(0, 12).map(([reason, list]) => {
     const det = el('details');
     det.appendChild(el('summary', null, reason.length > 110 ? reason.slice(0, 110) + '…' : reason));
     for (const t of list) {
@@ -586,12 +581,8 @@ function rejectedBox() {
       txt.style.fontSize = '12px';
       det.appendChild(line); det.appendChild(txt);
     }
-    td.appendChild(det);
-    tr.appendChild(td);
-    tb.appendChild(tr);
-  }
-  table.appendChild(tb);
-  box.appendChild(table);
+    return [String(list.length), det];
+  }), ''));
   return box;
 }
 
@@ -663,18 +654,21 @@ function bigChart(id, wpx) {
     const lab = String(d.getUTCDate()).padStart(2, '0') + '.' + String(d.getUTCMonth() + 1).padStart(2, '0') + '.';
     svg.appendChild(mk('text', { x: x.toFixed(1), y: H - 8, 'text-anchor': 'middle' }, lab));
   }
-  /* pojas min–max */
-  let band = '';
-  const ups = pts.filter(p => p.max !== null && Number.isFinite(p.max));
-  const downs = pts.filter(p => p.min !== null && Number.isFinite(p.min));
-  if (ups.length > 1 && downs.length > 1) {
-    band = ups.map((p, i) => (i ? 'L' : 'M') + sx(p.x).toFixed(1) + ' ' + sy(p.max).toFixed(1)).join(' ');
-    band += downs.slice().reverse().map(p => 'L' + sx(p.x).toFixed(1) + ' ' + sy(p.min).toFixed(1)).join(' ');
-    band += 'Z';
-    svg.appendChild(mk('path', { d: band, 'class': 'band' }));
-  }
-  /* prosek — 2px linija */
-  const dLine = pts.map((p, i) => (i ? 'L' : 'M') + sx(p.x).toFixed(1) + ' ' + sy(p.mean).toFixed(1)).join(' ');
+  /* pojas min–max i prosek (rupa > 1.5h = n=0 praznina, ne linija) */
+  let band = '', dLine = '', run = [];
+  const flush = () => {
+    if (run.length > 1) band += run.map((p, i) => (i ? 'L' : 'M') + sx(p.x).toFixed(1) + ' ' + sy(p.max).toFixed(1)).join(' ') +
+      run.slice().reverse().map(p => 'L' + sx(p.x).toFixed(1) + ' ' + sy(p.min).toFixed(1)).join(' ') + 'Z';
+    run = [];
+  };
+  pts.forEach((p, i) => {
+    const gap = i && p.x - pts[i - 1].x > 54e5;
+    dLine += (i && !gap ? 'L' : 'M') + sx(p.x).toFixed(1) + ' ' + sy(p.mean).toFixed(1) + ' ';
+    if (gap || p.min === null || p.max === null) flush();
+    if (p.min !== null && p.max !== null) run.push(p);
+  });
+  flush();
+  if (band) svg.appendChild(mk('path', { d: band, 'class': 'band' }));
   svg.appendChild(mk('path', { d: dLine, 'class': 'meanline' }));
   /* crosshair + točka interakcija */
   const cross = mk('line', { x1: 0, x2: 0, y1: TP, y2: H - B, 'class': 'crosshair', visibility: 'hidden' });
@@ -695,7 +689,7 @@ function bigChart(id, wpx) {
     const ay = clientY !== undefined ? clientY : r.top + sy(p.mean) / H * r.height;
     const sub = absTime(new Date(p.x).toISOString()) + ' · ' +
       (p.min !== null && p.min !== undefined ? 'min ' + fmtNum(p.min) + ' / max ' + fmtNum(p.max) + ' · ' : '') +
-      p.n + ' ' + (LANG === 'sr' ? 'izvora' : 'sources');
+      p.n + ' ' + T().mapaStations;
     showTT(ax, ay, fmtNum(p.mean) + ' ' + (id === 'temperature' ? '°C' : id === 'humidity' ? '%' : 'µg/m³'), sub);
   };
   const clear = () => {
@@ -755,8 +749,16 @@ function renderPodaci(root) {
     tabs.appendChild(b);
   }
   box.textContent = '';
-  box.appendChild(bigChart(PODACI_SERIJA, box.clientWidth || root.clientWidth || 1000));
+  const id = PODACI_SERIJA;
+  box.appendChild(bigChart(id, box.clientWidth || root.clientWidth || 1000));
   box.appendChild(el('p', 'sub', T().minMax + ' · ' + T().q7));
+  box.appendChild(dlRow([['state/serije/' + id + '.json', T().preuzmiSerija], ['state/kolokacija.json', T().preuzmiKolok], ['../CITATION.cff', T().preuzmiCff]]));
+}
+function dlRow(items) {
+  const p = el('p', 'kraj-feedovi');
+  p.appendChild(el('b', null, T().preuzmiLabel));
+  for (const [h, l] of items) { const a = el('a', null, l); a.href = h; a.download = ''; p.appendChild(a); }
+  return p;
 }
 window.addEventListener('resize', () => {
   if (currentRoute() === 'podaci' && podaciRoot) renderPodaci(podaciRoot);
@@ -953,11 +955,14 @@ function renderMapa(root, loading) {
   const opstine = ((isklj && isklj.opstine) || []).map(o => ({ lat: o.lat, lon: o.lon, data: o, layer: 'iskljucenja' }));
   const rIskl = o => 6 + Math.sqrt(o.broj_mesta) * 2.2;
 
+  function projP() {
+    const kx = Math.cos(44.8 * Math.PI / 180), dLo = (W0.lo1 - W0.lo0) * kx, dLa = W0.la1 - W0.la0;
+    const s = Math.min((width - 36) / dLo, (height - 36) / dLa);
+    return [kx, s, (width - dLo * s) / 2, (height - dLa * s) / 2];
+  }
   function project(lat, lon) {
-    const kx = Math.cos(44.8 * Math.PI / 180);
-    const s = Math.min((width - 36) / ((W0.lo1 - W0.lo0) * kx), (height - 36) / (W0.la1 - W0.la0));
-    return [(width - (W0.lo1 - W0.lo0) * kx * s) / 2 + (lon - W0.lo0) * kx * s,
-            (height - (W0.la1 - W0.la0) * s) / 2 + (W0.la1 - lat) * s];
+    const [kx, s, A, B] = projP();
+    return [A + (lon - W0.lo0) * kx * s, B + (W0.la1 - lat) * s];
   }
   function geomParts(f) {
     const g = f && f.geometry;
@@ -1171,11 +1176,10 @@ function renderMapa(root, loading) {
           r.t ? absTime(r.t) : (r.rx ? T().prijemHint + ' ' + absTime(r.rx) : '—')];
       }), ''));
     dossier.appendChild(el('p', 'meta', T().merenoHint + ' = vreme merenja; ' + T().prijemHint + ' = vreme prijema · ' + T().mapaAsOf + ' ' + absTime(M.as_of)));
+    dossier.appendChild(dlRow([['state/mapa.json', T().preuzmiMapa], ['../CITATION.cff', T().preuzmiCff]]));
   }
   function unproject(px, py) {
-    const kx = Math.cos(44.8 * Math.PI / 180);
-    const s = Math.min((width - 36) / ((W0.lo1 - W0.lo0) * kx), (height - 36) / (W0.la1 - W0.la0));
-    const A = (width - (W0.lo1 - W0.lo0) * kx * s) / 2, B = (height - (W0.la1 - W0.la0) * s) / 2;
+    const [kx, s, A, B] = projP();
     return [W0.la1 - (py - B) / s, W0.lo0 + (px - A) / (kx * s)];
   }
   function kmHav(la1, lo1, la2, lo2) {
@@ -1271,16 +1275,15 @@ function viewOrganizam(root) {
 /* ── Pogled: #o ─────────────────────────────────────────── */
 function viewO(root) {
   renderO(root);
-  /* belažnica (K7) stiže posebnim ugovorom — strana se nacrta odmah, dopuni se */
+  /* K7 i B6 stižu lenjo — strana se odmah nacrta, dopuni kad moduli stignu */
   loadBelaznica().then(() => { if (currentRoute() === 'o') renderO(root); });
+  loadMeto().then(() => { if (currentRoute() === 'o') renderO(root); });
 }
 function belaznicaRed(naziv, g) {
   const tr = el('tr');
   tr.appendChild(el('td', null, naziv));
-  tr.appendChild(el('td', 'v', String(g.misli)));
-  tr.appendChild(el('td', 'v', String(g.korisno)));
-  tr.appendChild(el('td', 'v', String(g.nekorisno)));
-  tr.appendChild(el('td', 'v', g.deo_korisnih === null ? '—' : fmtNum(g.deo_korisnih, 2)));
+  for (const v of [g.misli, g.korisno, g.nekorisno, g.deo_korisnih === null ? '—' : fmtNum(g.deo_korisnih, 2)])
+    tr.appendChild(el('td', 'v', String(v)));
   return tr;
 }
 function renderO(root) {
@@ -1320,11 +1323,12 @@ function renderO(root) {
     sekcija(T().belaPoNivou, bel.po_nivou);
     bt.appendChild(tb);
     body.appendChild(bt);
-    const m = el('p', 'meta');
-    m.appendChild(document.createTextNode(bel.prihvacenih_glasova + ' ' + T().belaGlasova + ' ' + T().belaNad + ' ' + bel.ocenjenih_misli + ' ' + T().belaMisli));
-    if (bel.glasova_na_nepoznatoj_misli) m.appendChild(document.createTextNode(' · ' + bel.glasova_na_nepoznatoj_misli + ' ' + T().belaNepoznate));
-    body.appendChild(m);
+    let mt = bel.prihvacenih_glasova + ' ' + T().belaGlasova + ' ' + T().belaNad + ' ' + bel.ocenjenih_misli + ' ' + T().belaMisli;
+    if (bel.glasova_na_nepoznatoj_misli) mt += ' · ' + bel.glasova_na_nepoznatoj_misli + ' ' + T().belaNepoznate;
+    body.appendChild(el('p', 'meta', mt));
   }
+  /* B6: metodološki list crta lenji modul (naslov+brojevi su u modulu) */
+  if (STATE.meto) renderMeto(body);
   body.appendChild(el('h2', null, T().autorstvo));
   body.appendChild(el('p', null, 'prof. dr Darinka Golubović Matić · doc. dr Semir Poturak'));
   if (STATE.puls) {
