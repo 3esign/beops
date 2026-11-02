@@ -57,6 +57,84 @@ function viewMeto(body) {
   body.appendChild(tbl);
   if ((d.bez_saglasnosti || []).length)
     body.appendChild(el('p', 'razlog', T().metoBezSaglasnosti + ': ' + d.bez_saglasnosti.join(', ')));
+  body.appendChild(dlRow([
+    ['state/metodologija.json', 'metodologija (.json)'],
+    ['state/observations-hourly.csv', T().preuzmiCsv],
+    ['state/datapackage.json', 'datapackage.json'],
+    ['CITATION.cff', T().preuzmiCff],
+  ]));
 }
 renderMeto = viewMeto;
 window.BEOPS_METO = viewMeto;
+
+/* B4 + B5: pojas nesigurnosti (IQR p25–p75 + ±U 95 %) i citirani paket podataka */
+function b4Attach(s, pts) {
+  const uMap = {};
+  for (const u of (s.uncertainty && s.uncertainty.points) || []) uMap[Date.parse(u[0] + ':00:00Z')] = u;
+  const lcMap = {};
+  for (const l of (s.low_cost && s.low_cost.points) || []) lcMap[Date.parse(l[0] + ':00:00Z')] = l;
+  for (const p of pts) {
+    const u = uMap[p.x];
+    if (u) { p.p25 = u[1]; p.p75 = u[2]; p.u = u[3]; }
+    const lc = lcMap[p.x];
+    if (lc) p.lc = lc[1];
+  }
+  return pts;
+}
+function b4Bounds(id, pts, y0, y1) {
+  const s = STATE.serije[id] || {};
+  for (const l of (s.low_cost && s.low_cost.points) || []) {
+    if (Number.isFinite(l[1])) { y0 = Math.min(y0, l[1]); y1 = Math.max(y1, l[1]); }
+  }
+  return [y0, y1];
+}
+function drawB4(svg, id, pts, sx, sy) {
+  const s = STATE.serije[id] || {};
+  let iqrBand = '', run = [];
+  const lo = p => Math.max(id === 'pm25' || id === 'pm10' ? 0 : -Infinity, Math.min(p.p25 ?? p.mean, p.mean - (p.u || 0)));
+  const hi = p => Math.max(p.p75 ?? p.mean, p.mean + (p.u || 0));
+  const flush = () => {
+    if (run.length > 1) iqrBand += run.map((p, i) => (i ? 'L' : 'M') + sx(p.x).toFixed(1) + ' ' + sy(hi(p)).toFixed(1)).join(' ') +
+      run.slice().reverse().map(p => 'L' + sx(p.x).toFixed(1) + ' ' + sy(lo(p)).toFixed(1)).join(' ') + 'Z';
+    run = [];
+  };
+  pts.forEach((p, i) => {
+    if (i && p.x - pts[i - 1].x > 54e5) flush();
+    if (p.p25 !== undefined || p.u !== undefined) run.push(p);
+  });
+  flush();
+  if (iqrBand) svg.appendChild(mk('path', { d: iqrBand, 'class': 'band-iqr' }));
+  const lcPts = ((s.low_cost && s.low_cost.points) || []).map(l => ({ x: Date.parse(l[0] + ':00:00Z'), v: l[1] }))
+    .filter(l => Number.isFinite(l.x) && Number.isFinite(l.v) && l.x >= pts[0].x && l.x <= pts[pts.length - 1].x);
+  if (lcPts.length > 1) {
+    let dLc = '';
+    lcPts.forEach((l, i) => {
+      const gap = i && l.x - lcPts[i - 1].x > 54e5;
+      dLc += (i && !gap ? 'L' : 'M') + sx(l.x).toFixed(1) + ' ' + sy(l.v).toFixed(1) + ' ';
+    });
+    svg.appendChild(mk('path', { d: dLc, 'class': 'lc-line' }));
+  }
+}
+function ttB4(id, p) {
+  const unit = id === 'temperature' ? '°C' : id === 'humidity' ? '%' : 'µg/m³';
+  const head = fmtNum(p.mean) + (p.u ? ' ± ' + fmtNum(p.u) : '') + ' ' + unit;
+  const parts = [absTime(new Date(p.x).toISOString())];
+  if (p.p25 !== undefined && p.p75 !== undefined) parts.push('p25–p75 ' + fmtNum(p.p25) + '–' + fmtNum(p.p75));
+  if (p.min !== null && p.min !== undefined) parts.push('min ' + fmtNum(p.min) + ' / max ' + fmtNum(p.max));
+  parts.push(p.n + ' ' + T().mapaStations);
+  if (p.lc !== undefined) parts.push('S04 ' + fmtNum(p.lc) + ' ' + unit);
+  return [head, parts.join(' · ')];
+}
+function podaciNote(id) {
+  const s = STATE.serije[id] || {};
+  return T().minMax + ' · ' + T().iqrBand + (s.low_cost ? ' · ' + T().lcLine : '') + ' · ' + T().q7;
+}
+function podaciLinks(id) {
+  return [
+    ['state/serije/' + id + '.json', T().preuzmiSerija],
+    ['state/observations-hourly.csv', T().preuzmiCsv],
+    ['state/datapackage.json', 'datapackage.json'],
+    ['state/kolokacija.json', T().preuzmiKolok],
+    ['CITATION.cff', T().preuzmiCff],
+  ];
+}

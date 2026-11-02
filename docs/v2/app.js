@@ -598,10 +598,11 @@ const SERIES_META = {
 function seriesPoints(id) {
   const s = STATE.serije[id];
   if (!s || !Array.isArray(s.points)) return [];
-  return s.points.map(p => ({
+  const pts = s.points.map(p => ({
     x: Date.parse(p[0] + ':00:00Z'),
     mean: p[1], min: p[2], max: p[3], n: p[4],
   })).filter(p => Number.isFinite(p.x) && p.mean !== null && Number.isFinite(p.mean));
+  return b4Attach(s, pts);
 }
 function bigChart(id, wpx) {
   const wrap = el('div');
@@ -628,6 +629,7 @@ function bigChart(id, wpx) {
     if (p.max !== null && Number.isFinite(p.max)) y1 = Math.max(y1, p.max);
     y0 = Math.min(y0, p.mean); y1 = Math.max(y1, p.mean);
   }
+  [y0, y1] = b4Bounds(id, pts, y0, y1);
   if (!Number.isFinite(y0) || !Number.isFinite(y1)) { y0 = Math.min(...pts.map(p => p.mean)); y1 = Math.max(...pts.map(p => p.mean)); }
   if (y1 - y0 < 1e-9) y1 = y0 + 1;
   const pad = (y1 - y0) * 0.06;
@@ -670,6 +672,7 @@ function bigChart(id, wpx) {
   });
   flush();
   if (band) svg.appendChild(mk('path', { d: band, 'class': 'band' }));
+  drawB4(svg, id, pts, sx, sy);
   svg.appendChild(mk('path', { d: dLine, 'class': 'meanline' }));
   /* crosshair + točka interakcija */
   const cross = mk('line', { x1: 0, x2: 0, y1: TP, y2: H - B, 'class': 'crosshair', visibility: 'hidden' });
@@ -688,10 +691,8 @@ function bigChart(id, wpx) {
     const r = svg.getBoundingClientRect();
     const ax = clientX !== undefined ? clientX : r.left + px / W * r.width;
     const ay = clientY !== undefined ? clientY : r.top + sy(p.mean) / H * r.height;
-    const sub = absTime(new Date(p.x).toISOString()) + ' · ' +
-      (p.min !== null && p.min !== undefined ? 'min ' + fmtNum(p.min) + ' / max ' + fmtNum(p.max) + ' · ' : '') +
-      p.n + ' ' + T().mapaStations;
-    showTT(ax, ay, fmtNum(p.mean) + ' ' + (id === 'temperature' ? '°C' : id === 'humidity' ? '%' : 'µg/m³'), sub);
+    const [hv, hs] = ttB4(id, p);
+    showTT(ax, ay, hv, hs);
   };
   const clear = () => {
     active = -1;
@@ -752,8 +753,8 @@ function renderPodaci(root) {
   box.textContent = '';
   const id = PODACI_SERIJA;
   box.appendChild(bigChart(id, box.clientWidth || root.clientWidth || 1000));
-  box.appendChild(el('p', 'sub', T().minMax + ' · ' + T().q7));
-  box.appendChild(dlRow([['state/serije/' + id + '.json', T().preuzmiSerija], ['state/kolokacija.json', T().preuzmiKolok], ['CITATION.cff', T().preuzmiCff]]));
+  box.appendChild(el('p', 'sub', podaciNote(id)));
+  box.appendChild(dlRow(podaciLinks(id)));
 }
 function dlRow(items) {
   const p = el('p', 'kraj-feedovi');

@@ -1,0 +1,212 @@
+{
+  "profile": "tabular-data-package",
+  "name": "beops-belgrade-urban-observations",
+  "id": "beops-v2-2026-11",
+  "title": "BEOPS — Belgrade Evidence Observatory for Public Signals (Hourly Observations & Colocation Package)",
+  "description": "Verified urban environmental observations for Belgrade separating reference state monitors (SEPA S146, clock-aligned) from citizen low-cost optical sensors (Sensor.Community S04), with interquartile ranges (p25-p75), GUM expanded measurement uncertainty (k=2, 95%), colocation bias by relative humidity, and provenance ledger.",
+  "version": "2.0.0",
+  "created": "2026-11-02T03:17:35.103917+00:00",
+  "homepage": "https://3esign.github.io/beops/v2/",
+  "licenses": [
+    {
+      "name": "CC-BY-4.0",
+      "title": "Creative Commons Attribution 4.0 International",
+      "path": "https://creativecommons.org/licenses/by/4.0/"
+    }
+  ],
+  "contributors": [
+    {
+      "title": "Darinka Golubović Matić",
+      "role": "author",
+      "organization": "Univerzitet Union — Nikola Tesla, Belgrade"
+    },
+    {
+      "title": "Semir Poturak",
+      "role": "author",
+      "organization": "Univerzitet Union — Nikola Tesla, Belgrade"
+    }
+  ],
+  "spatial": {
+    "type": "Polygon",
+    "bbox": [
+      20.22,
+      44.56,
+      20.68,
+      44.96
+    ],
+    "place": "Belgrade, Serbia"
+  },
+  "temporal": {
+    "start": "2026-10-26T03:00:00Z",
+    "end": "2026-11-02T03:00:00Z"
+  },
+  "resources": [
+    {
+      "name": "observations-hourly",
+      "title": "7-day hourly aggregated urban observations by network class with IQR & GUM uncertainty",
+      "path": "observations-hourly.csv",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "bytes": 72651,
+      "hash": "sha256:1f682e281ede0cc90b078d3774bf15658b41fdb349db277114de5708935f124c",
+      "profile": "tabular-data-resource",
+      "schema": {
+        "primaryKey": [
+          "hour_utc",
+          "metric",
+          "network_class"
+        ],
+        "fields": [
+          {
+            "name": "hour_utc",
+            "type": "datetime",
+            "format": "%Y-%m-%dT%H:%M:%SZ",
+            "description": "Start of the 1-hour aggregation window in UTC (SEPA S146 clock-aligned via measured rule)."
+          },
+          {
+            "name": "metric",
+            "type": "string",
+            "constraints": {
+              "enum": [
+                "pm25",
+                "pm10",
+                "temperature",
+                "humidity"
+              ]
+            }
+          },
+          {
+            "name": "unit",
+            "type": "string",
+            "description": "Physical unit (µg/m³, °C, %)."
+          },
+          {
+            "name": "network_class",
+            "type": "string",
+            "constraints": {
+              "enum": [
+                "reference",
+                "low-cost",
+                "meteo+low-cost"
+              ]
+            }
+          },
+          {
+            "name": "sid",
+            "type": "string",
+            "description": "BEOPS collector source identifier(s)."
+          },
+          {
+            "name": "epistemic_state",
+            "type": "string",
+            "constraints": {
+              "enum": [
+                "observed",
+                "estimated",
+                "untimed",
+                "forecast",
+                "unavailable"
+              ]
+            }
+          },
+          {
+            "name": "mean",
+            "type": "number",
+            "description": "Mean of physical station means in the hour."
+          },
+          {
+            "name": "p25",
+            "type": "number",
+            "description": "25th percentile across station means in the hour."
+          },
+          {
+            "name": "p75",
+            "type": "number",
+            "description": "75th percentile across station means in the hour."
+          },
+          {
+            "name": "min",
+            "type": "number",
+            "description": "Minimum across stations in the hour."
+          },
+          {
+            "name": "max",
+            "type": "number",
+            "description": "Maximum across stations in the hour."
+          },
+          {
+            "name": "u_expanded_95",
+            "type": "number",
+            "description": "Combined expanded measurement & spatial uncertainty U (k=2, ~95% coverage, GUM JCGM 100:2008)."
+          },
+          {
+            "name": "stations_count",
+            "type": "integer",
+            "description": "Number of distinct physical stations contributing to the hour."
+          }
+        ]
+      }
+    },
+    {
+      "name": "colocation-pairs",
+      "title": "Low-cost vs reference PM colocation & RH hygroscopic bias",
+      "path": "kolokacija.json",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 37005,
+      "hash": "sha256:ee1843334079bf8f8895479f3467d5731668cf2c77d6db178851edc2519e0bf6"
+    },
+    {
+      "name": "methodology-ledger",
+      "title": "Active collector registry joined with permission ledger & publisher clock rules",
+      "path": "metodologija.json",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 12004,
+      "hash": "sha256:846d1cb0553f1ca2395456adfd7ab1d70c99f363dd51d6cde81e0d652496ec63"
+    },
+    {
+      "name": "series-pm25",
+      "title": "PM2.5 7-day hourly series (reference + low-cost + uncertainty)",
+      "path": "serije/pm25.json",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 35751,
+      "hash": "sha256:420788d8f5d8445e2157fe975be7ed2148638c1cc5caae9d008d065a4df8acf2"
+    },
+    {
+      "name": "series-pm10",
+      "title": "PM10 7-day hourly series (reference + low-cost + uncertainty)",
+      "path": "serije/pm10.json",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 36001,
+      "hash": "sha256:ae8c2e8362f6172564003555025d3b520fbfd6deb71fdb849b45c1b9e60b3202"
+    },
+    {
+      "name": "series-temperature",
+      "title": "Temperature 7-day hourly series with uncertainty",
+      "path": "serije/temperature.json",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 29412,
+      "hash": "sha256:948d0111b18523265635e3d2211ca8009ccf9900ea77ed9444eac78539faf524"
+    },
+    {
+      "name": "series-humidity",
+      "title": "Relative humidity 7-day hourly series with uncertainty",
+      "path": "serije/humidity.json",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 29837,
+      "hash": "sha256:f6616bb8429a32fbd688baf8a26de4f324e171df8fd5f4e591288a156233c8a8"
+    }
+  ]
+}
