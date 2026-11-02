@@ -13,7 +13,7 @@ function loadCore() {
     jfetch('state/puls.json'),
     jfetch('state/misli-7d.json'),
     jfetch('state/organizam.json'),
-    jfetch('state/oslonci.json').then(m => { STATE.oslonciFull = m; }, () => { STATE.oslonciFull = { oslonci: {} }; })
+    loadOslonci()
   ]).then(([puls, misli, organizam]) => {
     STATE.puls = puls; STATE.misli = misli; STATE.organizam = organizam;
   });
@@ -258,7 +258,7 @@ function thoughtCard(t) {
     card.appendChild(det);
   }
   card.appendChild(oslonciEl(t));
-  card.dataset.misao = t.id || ''; /* T5: glas po id-u */
+  card.dataset.misao = t.id || '';
   return card;
 }
 
@@ -302,11 +302,13 @@ function esejCard(t) {
   full.appendChild(body); art.appendChild(full);
   /* dokazi van proze: oslonci eseja kao čipovi, ne zagrade u rečenici */
   art.appendChild(oslonciEl(t));
+  art.dataset.misao = t.id || '';
   return art;
 }
 function karticaCard(t) {
   const z = t.za_gradjanina || {};
   const art = el('article', 'kartica');
+  art.dataset.misao = t.id || '';
   art.appendChild(el('p', 'akcija', z.akcija || '—'));
   const meta = el('div', 'kartica-meta');
   if (z.lokacija) meta.appendChild(el('span', 'lok', z.lokacija));
