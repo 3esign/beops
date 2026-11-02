@@ -138,3 +138,161 @@ function podaciLinks(id) {
     ['CITATION.cff', T().preuzmiCff],
   ];
 }
+
+function deltaEl(d, neutral, unit) {
+  const s = el('span', 'delta');
+  if (d === null || d === undefined || !Number.isFinite(d)) { s.textContent = '—'; return s; }
+  const dir = Math.abs(d) < 0.15 ? 'flat' : (d > 0 ? 'up' : 'down');
+  const cls = neutral ? 'flat' : dir;
+  const arrow = dir === 'flat' ? '→' : (d > 0 ? '▲' : '▼');
+  s.appendChild(el('span', cls, arrow + ' ' + (d > 0 ? '+' : '') + fmtNum(d, 1) + (unit ? ' ' + unit : '')));
+  s.appendChild(document.createTextNode(' ' + T().promena24h));
+  return s;
+}
+
+function sparkTile(id) {
+  const box = el('span', 'spark');
+  const pts = seriesPoints(id);
+  if (pts.length < 2) return box;
+  const W = 116, H = 32, P = 3;
+  const x0 = pts[0].x, x1 = pts[pts.length - 1].x || (x0 + 1);
+  let y0 = Infinity, y1 = -Infinity;
+  for (const p of pts) { if (p.mean < y0) y0 = p.mean; if (p.mean > y1) y1 = p.mean; }
+  if (y1 - y0 < 1e-6) { y0 -= 1; y1 += 1; }
+  const sx = t => P + (t - x0) / (x1 - x0) * (W - 2 * P);
+  const sy = v => H - P - (v - y0) / (y1 - y0) * (H - 2 * P);
+  const svg = mk('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'img' });
+  const meta = SERIES_META[id] || {};
+  svg.setAttribute('aria-label', (meta[LANG] || id) + ' 7d');
+  let dLine = '';
+  pts.forEach((p, i) => { dLine += (i ? 'L' : 'M') + sx(p.x).toFixed(1) + ' ' + sy(p.mean).toFixed(1) + ' '; });
+  const dArea = dLine + `L${sx(pts[pts.length - 1].x).toFixed(1)} ${H - P} L${sx(pts[0].x).toFixed(1)} ${H - P} Z`;
+  svg.appendChild(mk('path', { d: dArea, fill: 'var(--green)', 'fill-opacity': '0.12' }));
+  svg.appendChild(mk('path', { d: dLine, fill: 'none', stroke: 'var(--green)', 'stroke-width': '1.7', 'stroke-linecap': 'round' }));
+  const last = pts[pts.length - 1];
+  svg.appendChild(mk('circle', { cx: sx(last.x).toFixed(1), cy: sy(last.mean).toFixed(1), r: '2.6', fill: 'var(--green)' }));
+  svg.addEventListener('pointermove', ev => {
+    const r = svg.getBoundingClientRect();
+    const fx = (ev.clientX - r.left) / r.width * W;
+    let best = 0, bd = Infinity;
+    for (let i = 0; i < pts.length; i++) { const dd = Math.abs(sx(pts[i].x) - fx); if (dd < bd) { bd = dd; best = i; } }
+    const [hv, hs] = ttB4(id, pts[best]);
+    showTT(ev.clientX, ev.clientY, hv, hs);
+  });
+  svg.addEventListener('pointerleave', hideTT);
+  box.appendChild(svg);
+  return box;
+}
+
+function heroPulsGrid() {
+  const wrap = el('section', 'puls-sekcija');
+  const P = STATE.puls || {};
+  const cs = P.city_status || {};
+  const cm = P.current_metrics || {};
+  const d24 = P.deltas_24h || {};
+  const eq = cs.eaqi || {};
+  const met = cm.meteo || {};
+  const grid = el('div', 'metrics');
+
+  const hero = el('article', 'metric wide hero-card');
+  const hTop = el('div', 'hero-top');
+  hTop.appendChild(el('span', 'label', T().pulsSadaTitle));
+  if (P.as_of) hTop.appendChild(stampEl(P.as_of, 5));
+  hero.appendChild(hTop);
+
+  const mainRow = el('div', 'hero-main');
+  const bigVal = el('div', 'value');
+  bigVal.appendChild(document.createTextNode(cs.aqi_us != null ? String(cs.aqi_us) : '—'));
+  bigVal.appendChild(el('small', null, ' AQI · ' + (LANG === 'sr' ? (cs.category_sr || '') : (cs.category_en || ''))));
+  mainRow.appendChild(bigVal);
+
+  const badges = el('div', 'hero-badges');
+  if (eq.level) badges.appendChild(el('span', 'tag eaqi-tag lvl-' + eq.level, 'EAQI ' + eq.level + '/6 · ' + (LANG === 'sr' ? eq.label_sr : eq.label_en)));
+  if (cs.dominant_pollutant) {
+    const domKey = cs.dominant_pollutant;
+    const domLbl = (PARAM_LABEL[domKey] && PARAM_LABEL[domKey][LANG]) || domKey.toUpperCase();
+    badges.appendChild(el('span', 'tag outline', T().glavniZagadjivac + ': ' + domLbl));
+  }
+  mainRow.appendChild(badges);
+  hero.appendChild(mainRow);
+
+  const bar = el('div', 'eaqi-bar');
+  const eqSr = ['1 Dobar', '2 Prihvatljiv', '3 Umeren', '4 Loš', '5 Veoma loš', '6 Izuzetno loš'];
+  const eqEn = ['1 Good', '2 Fair', '3 Moderate', '4 Poor', '5 Very poor', '6 Extremely poor'];
+  for (let i = 1; i <= 6; i++) bar.appendChild(el('span', 'eaqi-seg s' + i + (eq.level === i ? ' active' : ''), (LANG === 'sr' ? eqSr : eqEn)[i - 1]));
+  hero.appendChild(bar);
+
+  const adv = LANG === 'sr'
+    ? [eq.advice_general_sr || cs.summary_sr, eq.advice_sensitive_sr].filter(Boolean).join(' ')
+    : [eq.advice_general_en || cs.summary_en, eq.advice_sensitive_en].filter(Boolean).join(' ');
+  if (adv) hero.appendChild(el('p', 'hero-advice', adv));
+
+  const pills = el('div', 'hero-pills');
+  if (met.temperature != null) pills.appendChild(el('span', 'pill', fmtNum(met.temperature, 1) + ' °C'));
+  if (met.humidity != null) pills.appendChild(el('span', 'pill', fmtNum(met.humidity, 0) + ' % RH'));
+  if (met.wind_speed != null) pills.appendChild(el('span', 'pill', fmtNum(met.wind_speed, 1) + ' m/s'));
+  if (met.pressure != null) pills.appendChild(el('span', 'pill', fmtNum(met.pressure, 0) + ' hPa'));
+  if (cm.pm25 && cm.pm25.sensors_count) pills.appendChild(el('span', 'pill ref', cm.pm25.sensors_count + ' SEPA ' + T().stanicaKratko));
+  if (cm.low_cost && cm.low_cost.sensors_count) pills.appendChild(el('span', 'pill', cm.low_cost.sensors_count + ' S04 (PM2.5 ' + fmtNum(cm.low_cost.pm25_mean, 1) + ')'));
+  hero.appendChild(pills);
+  grid.appendChild(hero);
+
+  const addMetric = (label, val, unit, subTxt, footLeft, sparkId) => {
+    const m = el('article', 'metric');
+    m.appendChild(el('span', 'label', label));
+    const v = el('div', 'value', val === null || val === undefined || !Number.isFinite(val) ? '—' : fmtNum(val, 1));
+    if (unit) v.appendChild(el('small', null, ' ' + unit));
+    m.appendChild(v);
+    m.appendChild(el('div', 'cat', subTxt || ''));
+    const f = el('div', 'foot');
+    if (footLeft) f.appendChild(footLeft);
+    if (sparkId) f.appendChild(sparkTile(sparkId));
+    m.appendChild(f);
+    grid.appendChild(m);
+  };
+  const stSub = obj => obj
+    ? T().vrhStanica + ' ' + fmtNum(obj.max, 1) + (obj.max_station ? ' · ' + obj.max_station : '') + ' · ' + (obj.sensors_count || 0) + ' ' + T().stanicaKratko
+    : '';
+  addMetric('PM2.5 · referentna mreža', cm.pm25 && cm.pm25.mean, 'µg/m³', stSub(cm.pm25), deltaEl(d24.pm25_delta, false, 'µg/m³'), 'pm25');
+  addMetric('PM10 · referentna mreža', cm.pm10 && cm.pm10.mean, 'µg/m³', stSub(cm.pm10), deltaEl(d24.pm10_delta, false, 'µg/m³'), 'pm10');
+  addMetric('NO₂ · azot-dioksid', cm.no2 && cm.no2.mean, 'µg/m³', stSub(cm.no2),
+    cm.no2 ? el('span', 'delta', T().raspon + ' ' + fmtNum(cm.no2.min, 1) + '–' + fmtNum(cm.no2.max, 1) + ' µg/m³') : null, null);
+  addMetric('O₃ · prizemni ozon', cm.o3 && cm.o3.mean, 'µg/m³', stSub(cm.o3),
+    cm.o3 ? el('span', 'delta', T().raspon + ' ' + fmtNum(cm.o3.min, 1) + '–' + fmtNum(cm.o3.max, 1) + ' µg/m³') : null, null);
+  addMetric(LANG === 'sr' ? 'Temperatura' : 'Temperature', met.temperature, '°C',
+    (met.wind_speed != null ? (LANG === 'sr' ? 'vetar ' : 'wind ') + fmtNum(met.wind_speed, 1) + ' m/s' : '') +
+    (met.pressure != null ? ' · ' + fmtNum(met.pressure, 0) + ' hPa' : ''),
+    deltaEl(d24.temp_delta, true, '°C'), 'temperature');
+  addMetric(LANG === 'sr' ? 'Relativna vlažnost' : 'Relative humidity', met.humidity, '%',
+    (cm.low_cost && cm.low_cost.high_humidity_flag) ? (LANG === 'sr' ? '≥ 75 % · oprez za optičke senzore' : '≥ 75% · optical sensor bias') : 'RHMZ / SEPA',
+    el('span', 'delta', met.humidity >= 75 ? 'RH ≥ 75 %' : 'OK'), 'humidity');
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+function danasTrendBlok() {
+  const sec = el('section', 'danas-trend-box');
+  const head = el('div', 'chart-title');
+  const tabs = el('div', 'chart-tabs');
+  const chartSlot = el('div');
+  const draw = () => {
+    tabs.textContent = '';
+    for (const id of SERIES_IDS) {
+      const b = el('button', id === DANAS_SERIJA ? 'active' : null, LANG === 'sr' ? SERIES_META[id].sr : SERIES_META[id].en);
+      b.type = 'button';
+      b.addEventListener('click', () => { DANAS_SERIJA = id; draw(); });
+      tabs.appendChild(b);
+    }
+    chartSlot.textContent = '';
+    chartSlot.appendChild(bigChart(DANAS_SERIJA, chartSlot.clientWidth || 1000));
+    chartSlot.appendChild(el('p', 'sub', podaciNote(DANAS_SERIJA)));
+  };
+  head.appendChild(tabs);
+  const aPod = el('a', 'vodic-link', T().vodicOtvoriPodatke);
+  aPod.href = '#podaci';
+  head.appendChild(aPod);
+  sec.appendChild(head);
+  sec.appendChild(chartSlot);
+  draw();
+  return sec;
+}
