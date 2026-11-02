@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-istaknuto/v1",
-  "generated_at": "2026-11-02T22:15:17.938Z",
-  "as_of": "2026-11-02T21:58:02.248Z",
+  "generated_at": "2026-11-02T22:55:15.123Z",
+  "as_of": "2026-11-02T22:43:01.021Z",
   "formula": {
     "oblik": "0.15·gate + 0.25·svezina + 0.25·magnituda + 0.20·korak + 0.15·masa (nedostajuće komponente se izbacuju, težine se normališu)",
     "gate": {
@@ -40,12 +40,11 @@
     "vreme": {
       "trakе": "sada ≤30 min / skoro ≤3 h / danas ≤12 h / starije / bez vremena",
       "brojaci": {
-        "sada": 386,
-        "skoro": 109,
-        "danas": 573,
-        "starije": 271,
-        "bez_vremena": 27,
-        "najava": null
+        "sada": 369,
+        "skoro": 100,
+        "danas": 562,
+        "starije": 317,
+        "bez_vremena": 27
       }
     },
     "prostor": {
@@ -64,15 +63,15 @@
         "n": 70,
         "najjaca": {
           "id": "S04:temperature",
-          "score": 0.6375
+          "score": 0.6236
         }
       },
       "ostalo": {
         "ime": "Ostalo",
-        "n": 735,
+        "n": 729,
         "najjaca": {
-          "id": "S04:pressure_at_sealevel",
-          "score": 0.6067
+          "id": "S146:nox",
+          "score": 0.605
         }
       },
       "vazduh": {
@@ -80,7 +79,7 @@
         "n": 274,
         "najjaca": {
           "id": "S04:pm10",
-          "score": 0.8594
+          "score": 0.8518
         }
       },
       "mobilnost": {
@@ -96,31 +95,31 @@
         "n": 9,
         "najjaca": {
           "id": "S223:water_level",
-          "score": 0.3989
+          "score": 0.4064
         }
       },
       "bezbednost": {
         "ime": "Bezbednost",
-        "n": 49,
+        "n": 46,
         "najjaca": {
           "id": "d0d1da339bd6650d",
-          "score": 0.7385
+          "score": 0.7003
         }
       },
       "van_grada": {
         "ime": "Van Beograda",
-        "n": 70,
+        "n": 71,
         "najjaca": {
-          "id": "c524430e5bfdfc9a",
-          "score": 0.4467
+          "id": "f63f962f0de8bd5d",
+          "score": 0.462
         }
       },
       "dogadjaji": {
         "ime": "Događaji, kultura, sport",
-        "n": 34,
+        "n": 35,
         "najjaca": {
           "id": "21a74df53432c7da",
-          "score": 0.6189
+          "score": 0.5901
         }
       },
       "uprava": {
@@ -128,15 +127,15 @@
         "n": 17,
         "najjaca": {
           "id": "459980e995c2029f",
-          "score": 0.6416
+          "score": 0.6054
         }
       },
       "ekonomija": {
         "ime": "Ekonomija i cene",
-        "n": 14,
+        "n": 15,
         "najjaca": {
-          "id": "618cb23068159dba",
-          "score": 0.5482
+          "id": "90e36e43404ded2d",
+          "score": 0.6811
         }
       },
       "zdravlje": {
@@ -144,7 +143,7 @@
         "n": 9,
         "najjaca": {
           "id": "14a228d41f59ade5",
-          "score": 0.5865
+          "score": 0.5599
         }
       },
       "gradnja": {
@@ -152,57 +151,57 @@
         "n": 8,
         "najjaca": {
           "id": "f760ca04506b92ab",
-          "score": 0.4764
+          "score": 0.4596
         }
       },
       "misli": {
         "ime": "Misli",
-        "n": 25,
+        "n": 38,
         "najjaca": {
-          "id": "mind-20261102210731-4",
-          "score": 0.7314
+          "id": "mind-20261102225138-0",
+          "score": 0.74
         }
       }
     },
     "svezi_izvori_max": [
       {
         "id": "S11",
-        "starost_min": 1230,
+        "starost_min": 1275,
         "status": "blocked"
       },
       {
         "id": "S224",
-        "starost_min": 625,
+        "starost_min": 670,
         "status": "active"
       },
       {
         "id": "S220",
-        "starost_min": 265,
+        "starost_min": 310,
         "status": "active"
       },
       {
         "id": "S222",
-        "starost_min": 265,
+        "starost_min": 310,
+        "status": "active"
+      },
+      {
+        "id": "S221",
+        "starost_min": 80,
+        "status": "active"
+      },
+      {
+        "id": "S78",
+        "starost_min": 25,
+        "status": "active"
+      },
+      {
+        "id": "S74",
+        "starost_min": 25,
         "status": "active"
       },
       {
         "id": "S199",
-        "starost_min": 40,
-        "status": "active"
-      },
-      {
-        "id": "S200",
-        "starost_min": 40,
-        "status": "active"
-      },
-      {
-        "id": "S201",
-        "starost_min": 40,
-        "status": "active"
-      },
-      {
-        "id": "S12",
-        "starost_min": 40,
+        "starost_min": 25,
         "status": "active"
       }
     ]
@@ -211,20 +210,20 @@
     {
       "vrsta": "merenje",
       "id": "S04:pm10",
-      "naslov": "PM10 30.23 µg/m³ — 66175",
-      "t": "2026-11-02T21:54:39Z",
-      "rx": "2026-11-02T21:58:01.483281Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
+      "naslov": "PM10 39.35 µg/m³ — 66175",
+      "t": "2026-11-02T22:35:50Z",
+      "rx": "2026-11-02T22:38:01.528206Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
       "state": "observed",
-      "score": 0.8594,
+      "score": 0.8518,
       "komponente": {
         "gate": 1,
-        "svezina": 0.972,
+        "svezina": 0.942,
         "magnituda": 1,
         "korak": 0.9,
         "masa": 0.242
       },
-      "zasto": "gate 1 (observed) · svezina 0.97 (Δ 3 min, τ=120 min) · magnituda 1.00 (30.23 protiv sat-opsega 5.1–23.8 u 21h) · korak 0.9 · masa 0.24 (hex 3451 stanovnika)",
+      "zasto": "gate 1 (observed) · svezina 0.94 (Δ 7 min, τ=120 min) · magnituda 1.00 (39.35 protiv sat-opsega 2.2–28.2 u 22h) · korak 0.9 · masa 0.24 (hex 3451 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "unutrasnja",
       "tema": "vazduh",
@@ -235,9 +234,9 @@
     {
       "vrsta": "merenje",
       "id": "S10:free_spaces",
-      "naslov": "Slobodnih parking mesta 201 — Garaža \"Baba Višnjina\"",
-      "rx": "2026-11-02T21:48:02.502444Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
+      "naslov": "Slobodnih parking mesta 204 — Garaža \"Baba Višnjina\"",
+      "rx": "2026-11-02T22:33:01.856690Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
       "state": "untimed",
       "score": 0.7925,
       "komponente": {
@@ -247,7 +246,7 @@
         "korak": 1,
         "masa": 1
       },
-      "zasto": "gate 0.7 (untimed) · svezina 0.35 (Δ null min, τ=120 min) · magnituda 1.00 (201 slobodnih mesta) · korak 1 · masa 1.00 (hex 14242 stanovnika)",
+      "zasto": "gate 0.7 (untimed) · svezina 0.35 (Δ null min, τ=120 min) · magnituda 1.00 (204 slobodnih mesta) · korak 1 · masa 1.00 (hex 14242 stanovnika)",
       "traka_vreme": "bez_vremena",
       "traka_prostor": "centar",
       "tema": "mobilnost",
@@ -258,19 +257,19 @@
     {
       "vrsta": "merenje",
       "id": "S10:free_spaces",
-      "naslov": "Slobodnih parking mesta 83 — Parkiralište \"Slavija\"",
-      "rx": "2026-11-02T21:48:02.502444Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
+      "naslov": "Slobodnih parking mesta 30 — Parkiralište \"Viška\"",
+      "rx": "2026-11-02T22:33:01.856690Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
       "state": "untimed",
-      "score": 0.7565,
+      "score": 0.7925,
       "komponente": {
         "gate": 0.7,
         "svezina": 0.35,
         "magnituda": 1,
         "korak": 1,
-        "masa": 0.76
+        "masa": 1
       },
-      "zasto": "gate 0.7 (untimed) · svezina 0.35 (Δ null min, τ=120 min) · magnituda 1.00 (83 slobodnih mesta) · korak 1 · masa 0.76 (hex 10826 stanovnika)",
+      "zasto": "gate 0.7 (untimed) · svezina 0.35 (Δ null min, τ=120 min) · magnituda 1.00 (30 slobodnih mesta) · korak 1 · masa 1.00 (hex 14242 stanovnika)",
       "traka_vreme": "bez_vremena",
       "traka_prostor": "centar",
       "tema": "mobilnost",
@@ -279,22 +278,106 @@
       "izvor": "Parking servis - displayed free spaces per lot"
     },
     {
+      "vrsta": "merenje",
+      "id": "S04:pm10",
+      "naslov": "PM10 20.92 µg/m³ — 38847",
+      "t": "2026-11-02T22:36:58Z",
+      "rx": "2026-11-02T22:38:01.528206Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
+      "state": "observed",
+      "score": 0.7544,
+      "komponente": {
+        "gate": 1,
+        "svezina": 0.951,
+        "magnituda": 0.541,
+        "korak": 0.9,
+        "masa": 0.343
+      },
+      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.54 (20.92 protiv sat-opsega 2.2–28.2 u 22h) · korak 0.9 · masa 0.34 (hex 4878 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "unutrasnja",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S04",
+      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+    },
+    {
+      "vrsta": "misao",
+      "id": "mind-20261102225138-0",
+      "naslov": "Skeptik je u pravu da NO2 nije pao svuda: njegov maksimum se pomerio sa 40 na 43 µg/m³ na Ada petlji, dok je maksimum PM10 prešao sa 22 na 16, a maksimum PM2.5 sa 16 na 14. Dakle, maksimumi čestica su se smirili, a maksimum NO2 je blago porastao u istom označenom satu, na različitim stanicama [F4, F6, F8]. Naš zapis nema istoriju za ovaj sat, pa se nijedna od ovih promena ne može nazvati uobičajenom ili visokom. [F7][F5][F9][F49]",
+      "t": "2026-11-02T22:51:38.000300Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
+      "state": "accepted",
+      "score": 0.74,
+      "komponente": {
+        "gate": 0.9,
+        "svezina": 1,
+        "magnituda": 0.8,
+        "korak": 0.4,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.9 (prihvaćena) · svezina 1.00 (Δ -9 min, τ=1440 min) · magnituda 0.80 (4 citata) · korak 0.4 (Povezivač) · masa 0.5",
+      "traka_vreme": "sada",
+      "traka_prostor": "grad",
+      "tema": "misli",
+      "tema_ime": "Misli",
+      "link": "misao:mind-20261102225138-0",
+      "izvor": "Povezivač",
+      "cites": [
+        "F49",
+        "F5",
+        "F7",
+        "F9"
+      ]
+    },
+    {
+      "vrsta": "misao",
+      "id": "mind-20261102210731-8",
+      "naslov": "Sva tri časovna maksimuma pala su zajedno: PM10 sa 42 na 34, PM2.5 sa 31 na 23 i NO2 sa 49 na 45. Oba vrha čestica sada su u Leštanima [F4, F8], a vrh NO2 na Adi petlji. Promena na Belvilu, sa 224 na 399 slobodnih mesta, nema vreme merenja, pa je ne mogu postaviti naspram ovog pada. [F5][F9][F7][F6][F12][F11]",
+      "t": "2026-11-02T21:07:31.614634Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
+      "state": "accepted",
+      "score": 0.724,
+      "komponente": {
+        "gate": 0.9,
+        "svezina": 0.936,
+        "magnituda": 0.8,
+        "korak": 0.4,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.9 (prihvaćena) · svezina 0.94 (Δ 95 min, τ=1440 min) · magnituda 0.80 (6 citata) · korak 0.4 (Povezivač) · masa 0.5",
+      "traka_vreme": "skoro",
+      "traka_prostor": "grad",
+      "tema": "misli",
+      "tema_ime": "Misli",
+      "link": "misao:mind-20261102210731-8",
+      "izvor": "Povezivač",
+      "cites": [
+        "F11",
+        "F12",
+        "F5",
+        "F6",
+        "F7",
+        "F9"
+      ]
+    },
+    {
       "vrsta": "vest",
       "id": "d0d1da339bd6650d",
       "naslov": "Ухапшен мушкарац из околине Крушевца због насиља у породици",
       "t": "2026-11-02T21:49:09Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
       "state": "estimated",
-      "score": 0.7385,
+      "score": 0.7003,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.976,
+        "svezina": 0.861,
         "magnituda": null,
         "korak": 0.8,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.98 (pre 9 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
-      "traka_vreme": "sada",
+      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.86 (pre 54 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
+      "traka_vreme": "skoro",
       "traka_prostor": "grad",
       "tema": "bezbednost",
       "tema_ime": "Bezbednost",
@@ -307,18 +390,18 @@
       "id": "47c2c55c43a66cf5",
       "naslov": "Ухапшен мушкарац код Крушевца због насиља у породици",
       "t": "2026-11-02T21:45:26Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
       "state": "estimated",
-      "score": 0.7352,
+      "score": 0.6974,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.966,
+        "svezina": 0.852,
         "magnituda": null,
         "korak": 0.8,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.97 (pre 13 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
-      "traka_vreme": "sada",
+      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.85 (pre 58 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
+      "traka_vreme": "skoro",
       "traka_prostor": "grad",
       "tema": "bezbednost",
       "tema_ime": "Bezbednost",
@@ -327,131 +410,46 @@
       "vreme_tekst": null
     },
     {
-      "vrsta": "misao",
-      "id": "mind-20261102210731-4",
-      "naslov": "Sva tri časovna maksimuma pala su zajedno: PM10 sa 42 na 34, PM2.5 sa 31 na 23 i NO2 sa 49 na 45. Oba vrha čestica sada su u Leštanima [F4, F8], a vrh NO2 na Adi petlji. Promena na Belvilu, sa 224 na 399 slobodnih mesta, nema vreme merenja, pa je ne mogu postaviti naspram ovog pada. [F5][F9][F7][F6][F12][F11]",
-      "t": "2026-11-02T21:07:31.614634Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
-      "state": "accepted",
-      "score": 0.7314,
-      "komponente": {
-        "gate": 0.9,
-        "svezina": 0.966,
-        "magnituda": 0.8,
-        "korak": 0.4,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.9 (prihvaćena) · svezina 0.97 (Δ 51 min, τ=1440 min) · magnituda 0.80 (6 citata) · korak 0.4 (Povezivač) · masa 0.5",
-      "traka_vreme": "skoro",
-      "traka_prostor": "grad",
-      "tema": "misli",
-      "tema_ime": "Misli",
-      "link": "misao:mind-20261102210731-4",
-      "izvor": "Povezivač",
-      "cites": [
-        "F11",
-        "F12",
-        "F5",
-        "F6",
-        "F7",
-        "F9"
-      ]
-    },
-    {
-      "vrsta": "misao",
-      "id": "mind-20261102203931-8",
-      "naslov": "Skeptic beleži pomeranja maksimuma, ali sada Leštane drže oba vrha čestica, sa PM10 na 34 µg/m³ i PM2.5 na 23 µg/m³. Između 20:00 i 21:00 najviša očitavanja su se smanjila za PM10 sa 42 na 34 µg/m³, za PM2.5 sa 31 na 23 µg/m³ i za NO2 sa 49 na 45 µg/m³. Istovremeno, najniže zabeležene vrednosti za PM10 i PM2.5 dele istu stanicu, Krnjaču, obe na 6 µg/m³ [F4, F8]. [F4][F8][F5][F9][F7]",
-      "t": "2026-11-02T20:39:31.563247Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
-      "state": "accepted",
-      "score": 0.7267,
-      "komponente": {
-        "gate": 0.9,
-        "svezina": 0.947,
-        "magnituda": 0.8,
-        "korak": 0.4,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.9 (prihvaćena) · svezina 0.95 (Δ 79 min, τ=1440 min) · magnituda 0.80 (5 citata) · korak 0.4 (Povezivač) · masa 0.5",
-      "traka_vreme": "skoro",
-      "traka_prostor": "grad",
-      "tema": "misli",
-      "tema_ime": "Misli",
-      "link": "misao:mind-20261102203931-8",
-      "izvor": "Povezivač",
-      "cites": [
-        "F4",
-        "F5",
-        "F7",
-        "F8",
-        "F9"
-      ]
-    },
-    {
-      "vrsta": "merenje",
-      "id": "S04:pm25",
-      "naslov": "PM2.5 1.49 µg/m³ — 97343",
-      "t": "2026-11-02T21:57:00Z",
-      "rx": "2026-11-02T21:58:01.483281Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
-      "state": "observed",
-      "score": 0.7102,
-      "komponente": {
-        "gate": 1,
-        "svezina": 0.991,
-        "magnituda": 0.017,
-        "korak": 0.9,
-        "masa": 0.854
-      },
-      "zasto": "gate 1 (observed) · svezina 0.99 (Δ 1 min, τ=120 min) · magnituda 0.02 (1.49 ispod sat-proseka (4.4–23 u 21h)) · korak 0.9 · masa 0.85 (hex 12168 stanovnika)",
-      "traka_vreme": "sada",
-      "traka_prostor": "centar",
-      "tema": "vazduh",
-      "tema_ime": "Vazduh",
-      "link": "mesto:S04",
-      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-    },
-    {
       "vrsta": "vest",
-      "id": "459980e995c2029f",
-      "naslov": "Дијана Хркаловић међу петоро помилованих Вучићевом одлуком - Виши суд у Београду објавио списак",
-      "t": "2026-11-02T21:29:55Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
+      "id": "90e36e43404ded2d",
+      "naslov": "Direktor Rajanera: Cene avionskih karata bi sledeće godine mogle da porastu i do 20 odsto",
+      "t": "2026-11-02T22:14:16Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
       "state": "estimated",
-      "score": 0.6416,
+      "score": 0.6811,
       "komponente": {
-        "gate": 0.5,
-        "svezina": 0.925,
+        "gate": 0.7,
+        "svezina": 0.923,
         "magnituda": null,
         "korak": 0.5,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.92 (pre 28 min, τ=360 min) · korak 0.5 (uprava_odluke) · masa 0.5",
+      "zasto": "gate 0.7 (estimated, potvrđen čas) · svezina 0.92 (pre 29 min, τ=360 min) · korak 0.5 (ekonomija_cene) · masa 0.5",
       "traka_vreme": "sada",
       "traka_prostor": "grad",
-      "tema": "uprava",
-      "tema_ime": "Uprava i odluke",
-      "link": "vest:S195",
+      "tema": "ekonomija",
+      "tema_ime": "Ekonomija i cene",
+      "link": "vest:S69",
       "izvor": "news-sorter",
-      "vreme_tekst": null
+      "vreme_tekst": "do 20"
     },
     {
       "vrsta": "merenje",
       "id": "S04:temperature",
-      "naslov": "Temperatura 12.6 °C — 97344",
-      "t": "2026-11-02T21:57:00Z",
-      "rx": "2026-11-02T21:58:01.483281Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
+      "naslov": "Temperatura 12.48 °C — 97344",
+      "t": "2026-11-02T22:37:00Z",
+      "rx": "2026-11-02T22:38:01.528206Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
       "state": "observed",
-      "score": 0.6375,
+      "score": 0.6236,
       "komponente": {
         "gate": 1,
-        "svezina": 0.991,
-        "magnituda": 0.126,
+        "svezina": 0.951,
+        "magnituda": 0.111,
         "korak": 0.4,
         "masa": 0.854
       },
-      "zasto": "gate 1 (observed) · svezina 0.99 (Δ 1 min, τ=120 min) · magnituda 0.13 (12.6 protiv sat-opsega 6.3–16.4 u 21h) · korak 0.4 · masa 0.85 (hex 12168 stanovnika)",
+      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.11 (12.48 protiv sat-opsega 6.1–16.9 u 22h) · korak 0.4 · masa 0.85 (hex 12168 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "centar",
       "tema": "meteo",
@@ -462,20 +460,20 @@
     {
       "vrsta": "merenje",
       "id": "S04:humidity",
-      "naslov": "Vlažnost 77.24 % — 97344",
-      "t": "2026-11-02T21:57:00Z",
-      "rx": "2026-11-02T21:58:01.483281Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
+      "naslov": "Vlažnost 75.58 % — 97344",
+      "t": "2026-11-02T22:37:00Z",
+      "rx": "2026-11-02T22:38:01.528206Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
       "state": "observed",
-      "score": 0.6248,
+      "score": 0.6223,
       "komponente": {
         "gate": 1,
-        "svezina": 0.991,
-        "magnituda": 0.075,
+        "svezina": 0.951,
+        "magnituda": 0.105,
         "korak": 0.4,
         "masa": 0.854
       },
-      "zasto": "gate 1 (observed) · svezina 0.99 (Δ 1 min, τ=120 min) · magnituda 0.08 (77.24 protiv sat-opsega 48.1–100 u 21h) · korak 0.4 · masa 0.85 (hex 12168 stanovnika)",
+      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.11 (75.58 protiv sat-opsega 49.1–100 u 22h) · korak 0.4 · masa 0.85 (hex 12168 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "centar",
       "tema": "meteo",
@@ -485,25 +483,25 @@
     },
     {
       "vrsta": "vest",
-      "id": "21a74df53432c7da",
-      "naslov": "Bibars Natho: U mojim očima Iliev je bio veoma pozitivan i veoma dobar za Partizan",
-      "t": "2026-11-02T20:08:05Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
+      "id": "459980e995c2029f",
+      "naslov": "Дијана Хркаловић међу петоро помилованих Вучићевом одлуком - Виши суд у Београду објавио списак",
+      "t": "2026-11-02T21:29:55Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
       "state": "estimated",
-      "score": 0.6189,
+      "score": 0.6054,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.737,
+        "svezina": 0.816,
         "magnituda": null,
-        "korak": 0.65,
+        "korak": 0.5,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.74 (pre 110 min, τ=360 min) · korak 0.65 (dogadjaj_kultura_sport) · masa 0.5",
+      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.82 (pre 73 min, τ=360 min) · korak 0.5 (uprava_odluke) · masa 0.5",
       "traka_vreme": "skoro",
       "traka_prostor": "grad",
-      "tema": "dogadjaji",
-      "tema_ime": "Događaji, kultura, sport",
-      "link": "vest:S69",
+      "tema": "uprava",
+      "tema_ime": "Uprava i odluke",
+      "link": "vest:S195",
       "izvor": "news-sorter",
       "vreme_tekst": null
     }
@@ -511,45 +509,21 @@
   "korak_za_gradjanina": [
     {
       "vrsta": "merenje",
-      "id": "S146:pm10",
-      "naslov": "PM10 22 µg/m³ — Obrenovac Centar",
-      "t": "2026-11-02T22:00:00Z",
-      "rx": "2026-11-02T21:23:01.239356Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
-      "state": "estimated",
-      "score": 0.6896,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 1,
-        "magnituda": 0.583,
-        "korak": 0.9,
-        "masa": 0.259
-      },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -2 min, τ=120 min) · magnituda 0.58 (22 protiv sat-opsega 2.2–28.2 u 22h) · korak 0.9 · masa 0.26 (hex 3694 stanovnika)",
-      "traka_vreme": "sada",
-      "traka_prostor": "spoljasnja",
-      "tema": "vazduh",
-      "tema_ime": "Vazduh",
-      "link": "mesto:S146",
-      "izvor": "SEPA air quality HVD API - hourly preliminary means"
-    },
-    {
-      "vrsta": "merenje",
       "id": "S146:pm25",
-      "naslov": "PM2.5 6.16 µg/m³ — Vračar",
-      "t": "2026-11-02T22:00:00Z",
-      "rx": "2026-11-02T21:23:01.239356Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
+      "naslov": "PM2.5 6.36 µg/m³ — Vračar",
+      "t": "2026-11-02T23:00:00Z",
+      "rx": "2026-11-02T22:23:01.320879Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
       "state": "estimated",
-      "score": 0.6753,
+      "score": 0.6738,
       "komponente": {
         "gate": 0.5,
         "svezina": 1,
-        "magnituda": 0.081,
+        "magnituda": 0.075,
         "korak": 0.9,
         "masa": 1
       },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -2 min, τ=120 min) · magnituda 0.08 (6.16 ispod sat-proseka (1.9–27.3 u 22h)) · korak 0.9 · masa 1.00 (hex 14242 stanovnika)",
+      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -17 min, τ=120 min) · magnituda 0.08 (6.36 ispod sat-proseka (1.5–35 u 23h)) · korak 0.9 · masa 1.00 (hex 14242 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "centar",
       "tema": "vazduh",
@@ -560,20 +534,20 @@
     {
       "vrsta": "merenje",
       "id": "S146:pm10",
-      "naslov": "PM10 6.42 µg/m³ — Vračar",
-      "t": "2026-11-02T22:00:00Z",
-      "rx": "2026-11-02T21:23:01.239356Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
+      "naslov": "PM10 6.8 µg/m³ — Vračar",
+      "t": "2026-11-02T23:00:00Z",
+      "rx": "2026-11-02T22:23:01.320879Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
       "state": "estimated",
-      "score": 0.675,
+      "score": 0.6725,
       "komponente": {
         "gate": 0.5,
         "svezina": 1,
-        "magnituda": 0.08,
+        "magnituda": 0.07,
         "korak": 0.9,
         "masa": 1
       },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -2 min, τ=120 min) · magnituda 0.08 (6.42 ispod sat-proseka (2.2–28.2 u 22h)) · korak 0.9 · masa 1.00 (hex 14242 stanovnika)",
+      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -17 min, τ=120 min) · magnituda 0.07 (6.8 ispod sat-proseka (1.6–41.7 u 23h)) · korak 0.9 · masa 1.00 (hex 14242 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "centar",
       "tema": "vazduh",
@@ -583,45 +557,69 @@
     },
     {
       "vrsta": "merenje",
-      "id": "S146:pm25",
-      "naslov": "PM2.5 16.23 µg/m³ — Obrenovac Centar",
-      "t": "2026-11-02T22:00:00Z",
-      "rx": "2026-11-02T21:23:01.239356Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
-      "state": "estimated",
-      "score": 0.6414,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 1,
-        "magnituda": 0.39,
-        "korak": 0.9,
-        "masa": 0.259
-      },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -2 min, τ=120 min) · magnituda 0.39 (16.23 protiv sat-opsega 1.9–27.3 u 22h) · korak 0.9 · masa 0.26 (hex 3694 stanovnika)",
-      "traka_vreme": "sada",
-      "traka_prostor": "spoljasnja",
-      "tema": "vazduh",
-      "tema_ime": "Vazduh",
-      "link": "mesto:S146",
-      "izvor": "SEPA air quality HVD API - hourly preliminary means"
-    },
-    {
-      "vrsta": "merenje",
       "id": "S146:pm10",
-      "naslov": "PM10 3.89 µg/m³ — Vračar Dom zdravlja",
-      "t": "2026-11-02T22:00:00Z",
-      "rx": "2026-11-02T21:23:01.239356Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
+      "naslov": "PM10 4.88 µg/m³ — Vračar Dom zdravlja",
+      "t": "2026-11-02T23:00:00Z",
+      "rx": "2026-11-02T22:23:01.320879Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
       "state": "estimated",
-      "score": 0.621,
+      "score": 0.6215,
       "komponente": {
         "gate": 0.5,
         "svezina": 1,
-        "magnituda": 0.048,
+        "magnituda": 0.05,
         "korak": 0.9,
         "masa": 0.693
       },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -2 min, τ=120 min) · magnituda 0.05 (3.89 ispod sat-proseka (2.2–28.2 u 22h)) · korak 0.9 · masa 0.69 (hex 9866 stanovnika)",
+      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -17 min, τ=120 min) · magnituda 0.05 (4.88 ispod sat-proseka (1.6–41.7 u 23h)) · korak 0.9 · masa 0.69 (hex 9866 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "centar",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S146",
+      "izvor": "SEPA air quality HVD API - hourly preliminary means"
+    },
+    {
+      "vrsta": "merenje",
+      "id": "S146:pm25",
+      "naslov": "PM2.5 4.21 µg/m³ — Vračar Dom zdravlja",
+      "t": "2026-11-02T23:00:00Z",
+      "rx": "2026-11-02T22:23:01.320879Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
+      "state": "estimated",
+      "score": 0.6213,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 1,
+        "magnituda": 0.05,
+        "korak": 0.9,
+        "masa": 0.693
+      },
+      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -17 min, τ=120 min) · magnituda 0.05 (4.21 ispod sat-proseka (1.5–35 u 23h)) · korak 0.9 · masa 0.69 (hex 9866 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "centar",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S146",
+      "izvor": "SEPA air quality HVD API - hourly preliminary means"
+    },
+    {
+      "vrsta": "merenje",
+      "id": "S146:pm25",
+      "naslov": "PM2.5 6.55 µg/m³ — Stari grad",
+      "t": "2026-11-02T23:00:00Z",
+      "rx": "2026-11-02T22:23:01.320879Z",
+      "as_of": "2026-11-02T22:43:01.021Z",
+      "state": "estimated",
+      "score": 0.6206,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 1,
+        "magnituda": 0.077,
+        "korak": 0.9,
+        "masa": 0.642
+      },
+      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -17 min, τ=120 min) · magnituda 0.08 (6.55 ispod sat-proseka (1.5–35 u 23h)) · korak 0.9 · masa 0.64 (hex 9137 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "centar",
       "tema": "vazduh",
@@ -630,1159 +628,13 @@
       "izvor": "SEPA air quality HVD API - hourly preliminary means"
     }
   ],
-  "najave": [
-    {
-      "vrsta": "vest",
-      "id": "943c313496f77b72",
-      "naslov": "Da li se era Donalda Trampa zaista bliži kraju?",
-      "t": "2026-11-02T22:01:45Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
-      "state": "najava",
-      "score": 0.5966,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 0.99,
-        "magnituda": null,
-        "korak": 0.25,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.99 (za 4 min, τ=360 min) · korak 0.25 (ostalo) · masa 0.5",
-      "traka_vreme": "najava",
-      "traka_prostor": "grad",
-      "tema": "ostalo",
-      "tema_ime": "Ostalo",
-      "link": "vest:S69",
-      "izvor": "news-sorter",
-      "vreme_tekst": null
-    },
-    {
-      "vrsta": "vest",
-      "id": "2b789333e0b10124",
-      "naslov": "Civilni odbor BCBP traži da nadležni ispitaju tvrdnje o praćenju Lazara Dinića i da ga zaštite",
-      "t": "2026-11-02T22:02:14Z",
-      "as_of": "2026-11-02T21:58:02.248Z",
-      "state": "najava",
-      "score": 0.5961,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 0.988,
-        "magnituda": null,
-        "korak": 0.25,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.99 (za 4 min, τ=360 min) · korak 0.25 (ostalo) · masa 0.5",
-      "traka_vreme": "najava",
-      "traka_prostor": "grad",
-      "tema": "ostalo",
-      "tema_ime": "Ostalo",
-      "link": "vest:S69",
-      "izvor": "news-sorter",
-      "vreme_tekst": null
-    }
-  ],
-  "prognoza": [
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102092731-74",
-      "naslov": "Odbijena formulacija (EN): SEPA has now been silent for 64 min [F2], so the PM10 maximum of 23 at Obrenovac Centar [F4][F5] and the NO2 maximum of 44 at Ada petlja [F6][F7] are the last official picture, and its labelled hour still disagrees with our true-UTC estimate [F3]. Parking Servis now shows VMA moving from 564 to 82 free spaces [F12], but with no measurement time [F11] it is a value without an age. Citizen sensors reported 19 min ago [F10], so they are the freshest air instrument we have.",
-      "t": "2026-11-02T09:27:31.248827Z",
-      "score": 0,
-      "razlog": [
-        "puts words in a source's mouth - the record holds its values, not its statements"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102093132-73",
-      "naslov": "Mali model je ocenio iznenađenje veza: F49 5/5, F50 5/5, F51 5/5, F12 4/5, F7 2/5, F9 2/5, F5 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T09:31:32.281298Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F49 5/5, F50 5/5, F51 5/5, F12 4/5, F7 2/5, F9 2/5, F5 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102094731-72",
-      "naslov": "Odbijena formulacija (EN): Observer's upward maxima and station assignments are already obsolete: in the hour ending 10:00 UTC (estimated 09:00 true UTC) [F3], the highest PM10 stayed unchanged from 23 to 23 µg/m³ at Leštane [F4] [F5], while the highest NO2 fell from 44 to 37 µg/m³ at Pančevo Cara Dušana [F6] [F7] and the highest PM2.5 fell from 20 to 18 µg/m³ at Borča [F8] [F9]. Across the 31 and 32 reporting SEPA stations, minimums sit at 2 µg/m³ for PM10 and 6 µg/m³ for NO2 in Krnjača and 2 µg/m³ for PM2.5 at Topčiderska zvezda [F4] [F6] [F8], leaving a wide gap to the peaks that a record of 0 days cannot judge as unusual [F48]. Although 32 SEPA instruments delivered 1689 values in the last 6 h with a reception 24 min ago [F2] and 45 Sensor.Community instruments delivered 8496 values in the last 6 h with a reception 9 min ago [F10], our digest carries no citizen readings at all to cross-check those official extremes.",
-      "t": "2026-11-02T09:47:31.370554Z",
-      "score": 0,
-      "razlog": [
-        "too long",
-        "states a cause the record does not carry",
-        "number 18 belongs to PM2.5, not PM10",
-        "reads a spread across stations as a change over time",
-        "number 37 belongs to NO2, not PM10",
-        "number 2 belongs to PM10/PM2.5, not NO2",
-        "number 6 belongs to NO2, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102101531-69",
-      "naslov": "Mali model je ocenio iznenađenje veza: F12 4/5, F5 1/5, F7 1/5, F9 1/5, F49 1/5, F50 1/5, F51 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T10:15:31.717437Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F12 4/5, F5 1/5, F7 1/5, F9 1/5, F49 1/5, F50 1/5, F51 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102102731-68",
-      "naslov": "Odbijena formulacija (EN): SEPA has now been silent for 64 min [F2], so the hour labelled 10:00 UTC, which our estimate puts at 09:00 [F3], is aging while the citizen sensors reported 19 min ago [F10]. Observer's \"13 min\" is stale, and the maxima did not rise: PM10 stayed 23 to 23 [F5], NO2 fell from 44 to 37 [F7], and with 0 days of record [F48] nothing here is high. The VMA drop from 564 to 125 [F12] carries no measurement time [F11], so it may be a difference between receptions, not an event.",
-      "t": "2026-11-02T10:27:31.333057Z",
-      "score": 0,
-      "razlog": [
-        "number not in the cited facts: 13"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102103132-67",
-      "naslov": "Odbijena formulacija (EN): Observer and Skeptic spoke before the latest receptions arrived: SEPA reported 8 min ago across 32 instruments [F2], and Sensor.Community reported 3 min ago across 45 instruments [F10]. Between the source-labelled hours 10:00 and 11:00 (estimated true UTC 10:00 [F3]), the highest measured values moved from 23 to 20 µg/m³ for PM10 at Novi Beograd [F4][F5], from 37 to 27 µg/m³ for NO2 at Bulevar despota Stefana [F6][F7], and from 18 to 13 µg/m³ for PM2.5 at Borča [F8][F9]. In that same hour, Krnjača, with about 11 thousand people within 1 km [F45], held the lowest values at 2 µg/m³ for PM10 [F4], 4 µg/m³ for NO2 [F6], and 1 µg/m³ for PM2.5 [F8], while the highest PM10 and NO2 values sat where about 22 thousand and 28 thousand people live within 1 km [F46][F47].",
-      "t": "2026-11-02T10:31:32.372694Z",
-      "score": 0,
-      "razlog": [
-        "number 27 belongs to NO2, not PM10",
-        "number 37 belongs to NO2, not PM10",
-        "number 2 belongs to PM10, not NO2",
-        "number 4 belongs to NO2, not PM10",
-        "number 1 belongs to PM2.5, not NO2",
-        "number 27 belongs to NO2, not PM10",
-        "number 37 belongs to NO2, not PM10",
-        "number 4 belongs to NO2, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102104334-66",
-      "naslov": "Odbijena formulacija (EN): New readings from SEPA arrived 20 min ago with 1692 values [F2], while citizen sensors sent 8231 values with reception 15 min ago [F10]. In that hour, the highest NO2 of 27 µg/m³ was recorded at Bulevar despota Stefana and the highest PM10 of 20 µg/m³ at Novi Beograd [F4][F6]. The highest PM2.5 fell from 18 to 13 µg/m³, located at Borča [F8][F9].",
-      "t": "2026-11-02T10:43:34.109683Z",
-      "score": 0,
-      "razlog": [
-        "number 27 belongs to NO2, not PM10",
-        "number 37 belongs to NO2, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102105131-65",
-      "naslov": "Odbijena formulacija (EN): Both Observer's and Connector's air claims are obsolete: in the hour labelled 11:00 UTC (our estimate of true UTC is 10:00) [F3], the highest PM10 fell from 23 to 20 µg/m³ and moved to Novi Beograd [F4][F5], while the highest NO2 fell from 37 to 27 µg/m³ at Bulevar despota Stefana [F6][F7]. The highest PM2.5 in Borča also dropped from 18 to 13 µg/m³, and Krnjača holds the lowest NO2 at 4 µg/m³, PM10 at 2 µg/m³, and PM2.5 at 1 µg/m³ [F4][F6][F8][F9]. Observer's VMA figure is no longer in the record, replaced by Garaža \"Obilićev venac\" moving from 472 to 9 displayed free spaces without any measurement time [F11][F12].",
-      "t": "2026-11-02T10:51:31.167562Z",
-      "score": 0,
-      "razlog": [
-        "number 4 belongs to NO2, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102105531-64",
-      "naslov": "Odbijena formulacija (EN): SEPA has been silent for 32 min [F2] while citizen sensors reported 17 min ago [F10], and the official label of 11:00 UTC does not match our true-UTC estimate of 10:00 [F3]. Within that labelled hour the PM10 maximum moved from 23 to 20 [F5], NO2 from 37 to 27 [F7] and PM2.5 from 18 to 13 [F9], all falling together, though our record has no usual level to compare against [F48]. The parking drop at Garaža \"Obilićev venac\" from 472 to 9 carries no measurement time [F12][F11], so I will not place it in this morning.",
-      "t": "2026-11-02T10:55:31.858792Z",
-      "score": 0,
-      "razlog": [
-        "prediction stated as fact - a claim belongs in the claim field"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102113531-61",
-      "naslov": "Odbijena formulacija (EN): While Skeptic dismisses direction, the highest measured NO2 moved from 27 to 35 µg/m³ [F7], peaking at Bulevar despota Stefana across 32 stations [F6]. Concurrently, the highest PM10 moved from 20 to 22 µg/m³ peaking at Novi Beograd [F4, F5], even as highest PM2.5 moved from 13 to 11 µg/m³ [F9]. Official instruments reported 12 min ago [F2], following citizen sensors updating 7 min ago with 8450 values [F10].",
-      "t": "2026-11-02T11:35:31.759097Z",
-      "score": 0,
-      "razlog": [
-        "unsupported number in hypotheses: 35"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102115131-60",
-      "naslov": "Odbijena formulacija (EN): Connector's earlier picture is overtaken by the 6 h haul of 1699 values from 32 SEPA instruments (last reception 28 min ago) and 8236 values from 45 Sensor.Community instruments (last reception 13 min ago) [F2][F10]. Between the source-labelled hours 11:00 and 12:00, the highest PM10 moved from 20 to 22 µg/m³ at Novi Beograd across 31 stations and the highest NO2 moved from 27 to 35 µg/m³ at Bulevar despota Stefana across 32 stations, whereas the highest PM2.5 moved from 13 to 11 µg/m³ at Leštane across 31 stations [F4][F5][F6][F7][F8][F9]. Across that spread, the highest readings sit near denser modelled 1 km populations of 28 thousand at Bulevar despota Stefana and 22 thousand at Novi Beograd, while the lowest readings of 2 µg/m³ for PM10 and 1 µg/m³ for PM2.5 sit at Krnjača (11 thousand) and 8 µg/m³ for NO2 at Pančevo Sodara (6 thousand) [F4][F6][F8][F46][F47][F48][F49].",
-      "t": "2026-11-02T11:51:31.352336Z",
-      "score": 0,
-      "razlog": [
-        "number 22 belongs to PM10, not PM2.5",
-        "number 1 belongs to PM2.5, not NO2",
-        "number 1 belongs to PM2.5, not PM10",
-        "number 8 belongs to NO2, not PM2.5",
-        "number 1 belongs to PM2.5, not PM10",
-        "number 8 belongs to NO2, not PM2.5"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102115531-59",
-      "naslov": "Mali model je ocenio iznenađenje veza: F51 5/5, F52 5/5, F53 5/5, F12 4/5, F7 2/5, F5 1/5, F9 1/5, F45 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T11:55:31.266034Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F51 5/5, F52 5/5, F53 5/5, F12 4/5, F7 2/5, F5 1/5, F9 1/5, F45 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102115941-58",
-      "naslov": "Odbijena formulacija (EN): Connector's picture of falling maxima no longer holds: the NO2 peak moved from 27 to 35 µg/m³ and now sits at Bulevar despota Stefana [F6][F7], and the PM10 peak moved from 20 to 22 at Novi Beograd [F4][F5]. Only PM2.5 eased, from 13 to 11 [F9], and with 0 days of record none of these values can be called 'high' [F50]. The 5/5 surprise given to the headline links [F54] comes from pairing a cable-theft headline with a medal ceremony and editor appointments at similarity 0.74 [F51][F52][F53]. That is an echo of the embedding model, not an event, especially since Blic delivered nothing in the last 6 h [F32].",
-      "t": "2026-11-02T11:59:41.134963Z",
-      "score": 0,
-      "razlog": [
-        "reads a spread across stations as a change over time"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102123531-55",
-      "naslov": "Mali model je ocenio iznenađenje veza: F12 5/5, F50 4/5, F51 4/5, F52 4/5, F45 2/5, F5 1/5, F7 1/5, F9 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T12:35:31.775223Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F12 5/5, F50 4/5, F51 4/5, F52 4/5, F45 2/5, F5 1/5, F7 1/5, F9 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102125131-53",
-      "naslov": "Odbijena formulacija (EN): Observer's timing and Skeptic's garage count are stale: SEPA last reported 28 min ago across 32 instruments with 1699 values in the last 6 h [F2], citizen sensors on Sensor.Community reported 13 min ago across 45 instruments with 8218 values in the last 6 h [F10], and displayed free spaces at Garaža \"Obilićev venac\" moved from 398 to 4 [F12]. Between the source-labelled hours 12:00 and 13:00 (estimated 12:00 UTC) on Monday at 13:51 local time (12:51 UTC) [F1][F3], the highest measured PM10 moved from 22 to 24 µg/m³ at Novi Beograd [F4][F5] and NO2 moved from 35 to 36 µg/m³ at Bulevar despota Stefana [F6][F7], while PM2.5 stayed from 11 to 11 µg/m³ at Borča [F8][F9], connections the helper model rates 1/5 in surprise [F53]. Even though our record has 0 days of the 30 days and 20 values per hour needed [F49], Krnjača holding the lowest values across 31 stations—2 µg/m³ for PM10 [F4], 7 µg/m³ for NO2 [F6], and 2 µg/m³ for PM2.5 [F8]—aligns with modelled 1 km population estimates (Kontur 2022) of 11 thousand around Krnjača [F46] versus 22 thousand around Novi Beograd [F47] and 28 thousand around Bulevar despota Stefana [F48].",
-      "t": "2026-11-02T12:51:31.567723Z",
-      "score": 0,
-      "razlog": [
-        "too long",
-        "number 11 belongs to PM2.5, not NO2",
-        "number 24 belongs to PM10, not PM2.5",
-        "number 36 belongs to NO2, not PM10",
-        "number 22 belongs to PM10, not PM2.5",
-        "number 7 belongs to NO2, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102132731-51",
-      "naslov": "Mali model je ocenio iznenađenje veza: F12 4/5, F50 4/5, F51 4/5, F52 4/5, F5 1/5, F7 1/5, F9 1/5, F45 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T13:27:31.755457Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F12 4/5, F50 4/5, F51 4/5, F52 4/5, F5 1/5, F7 1/5, F9 1/5, F45 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102133531-49",
-      "naslov": "Odbijena formulacija (EN): Skeptic and Observer rely on stale reception timings: SEPA now shows 1700 values across 32 instruments from 12 min ago [F2], while Sensor.Community reached 8442 values across 45 instruments 7 min ago [F10]. Neither noticed that between 13:00 and 14:00 the highest measured PM2.5 moved from 11 to 13 µg/m³ [F9], with the highest PM2.5 at 13 µg/m³ in Borča [F8], the highest PM10 at 25 µg/m³ in Leštane [F4], and the highest NO2 at 34 µg/m³ at Bulevar despota Stefana [F6]. Meanwhile, Krnjača, with about 11 thousand people within 1 km [F45], held the lowest readings across 31 stations for both PM10 at 3 µg/m³ [F4] and PM2.5 at 2 µg/m³ [F8].",
-      "t": "2026-11-02T13:35:31.942612Z",
-      "score": 0,
-      "razlog": [
-        "unsupported number in hypotheses: 36",
-        "unsupported number in hypotheses: 34",
-        "number 11 belongs to PM2.5, not PM10",
-        "number 13 belongs to PM2.5, not PM10",
-        "number 3 belongs to PM10, not PM2.5"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102135131-48",
-      "naslov": "Odbijena formulacija (EN): SEPA now sits 28 min from its last reception with 1700 values across 32 instruments [F2], while Sensor.Community arrived 13 min ago with 8216 values across 45 instruments [F10], and the largest parking shift is no longer the garage Skeptic and Connector debate, but Parkiralište \"VMA\" moving from 64 to 415 displayed free spaces [F12]. Across 31 stations in that hour, Krnjača holds the lowest readings for both PM10 at 3 µg/m³ and PM2.5 at 2 µg/m³ [F4][F8], whereas the highest measured PM2.5 moved from 11 to 13 µg/m³ at Borča [F8][F9], splitting away from the PM10 maximum of 25 µg/m³ at Leštane [F4]. Meanwhile, the 32-station NO2 spread runs from 8 µg/m³ at Zeleno brdo to 34 µg/m³ at Bulevar despota Stefana, even though both stations have about 28 thousand people living within 1 km [F6][F47][F48].",
-      "t": "2026-11-02T13:51:31.654956Z",
-      "score": 0,
-      "razlog": [
-        "number 13 belongs to PM2.5, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102135531-47",
-      "naslov": "Mali model je ocenio iznenađenje veza: F12 4/5, F5 1/5, F7 1/5, F9 1/5, F50 1/5, F51 1/5, F52 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T13:55:31.714261Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F12 4/5, F5 1/5, F7 1/5, F9 1/5, F50 1/5, F51 1/5, F52 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102135944-46",
-      "naslov": "Odbijena formulacija (EN): The drop to zero at Garaža Obilićev venac that both of the others relied on is no longer the biggest move. The largest change in the window is Parkiralište \"VMA\", from 64 to 434 [F12]. Parking Servis publishes no measurement time [F11], so neither shift can be placed in time, and \"within the reception window\" says nothing about when cars came or went. SEPA's silence is now 36 min [F2], while Sensor.Community reported 1 min ago [F10]. What they described as official absence looks like the normal lag of an hourly feed whose own hour labels are shifted [F3].",
-      "t": "2026-11-02T13:59:44.975429Z",
-      "score": 0,
-      "razlog": [
-        "puts words in a source's mouth - the record holds its values, not its statements"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102142731-44",
-      "naslov": "Odbijena formulacija (EN): SEPA now sits 64 min from its last reception across 32 instruments [F2], so the earlier \"8 min\" and \"44 min\" figures are both stale, and its last labelled hour ends 14:00 [F3]. Parkiralište \"VMA\" moved from 60 to 455 displayed free spaces with no measurement time [F12], which replaces the Obilićev venac swing both others discussed. Sensor.Community reported 19 min ago from 45 instruments [F10], while Blic and Vecernje novosti delivered nothing in the last 6 h [F32][F22].",
-      "t": "2026-11-02T14:27:31.874369Z",
-      "score": 0,
-      "razlog": [
-        "number not in the cited facts: 8",
-        "number not in the cited facts: 44",
-        "puts words in a source's mouth - the record holds its values, not its statements"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102143132-43",
-      "naslov": "Mali model je ocenio iznenađenje veza: F12 4/5, F51 4/5, F52 4/5, F53 3/5, F5 2/5, F45 2/5, F7 1/5, F9 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T14:31:32.737904Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F12 4/5, F51 4/5, F52 4/5, F53 3/5, F5 2/5, F45 2/5, F7 1/5, F9 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102145938-40",
-      "naslov": "Odbijena formulacija (EN): While Connector and Skeptic focus on the peaks, the lows across 31 stations anchor at Krnjača with 2 µg/m³ for both PM10 and PM2.5, whereas across 32 stations the NO2 low sits at Pančevo Sodara at 9 µg/m³ and the PM2.5 high at Borča stands at 14 µg/m³ [F4, F6, F8]. SEPA's 32 instruments reported 36 min ago with 1700 values over the last 6 h under the 15:00 UTC label that we estimate as 14:00 true UTC, while Sensor.Community's 45 instruments updated 21 min ago with 8024 values in the last 6 h [F2, F3, F10]. The un-timestamped Parkiralište VMA swing that Skeptic noted moved from 82 to 481 displayed free spaces, alongside the peaks of 29 µg/m³ for PM10 at Novi Beograd and 34 µg/m³ for NO2 at Bulevar despota Stefana [F4, F6, F12]. [F2][F10][F4][F6]",
-      "t": "2026-11-02T14:59:38.463198Z",
-      "score": 0,
-      "razlog": [
-        "reads a spread across stations as a change over time",
-        "puts words in a source's mouth - the record holds its values, not its statements",
-        "number 34 belongs to NO2, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102150741-39",
-      "naslov": "Mali model je ocenio iznenađenje veza: F12 4/5, F51 2/5, F52 2/5, F53 2/5, F5 1/5, F7 1/5, F9 1/5, F45 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T15:07:41.497298Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F12 4/5, F51 2/5, F52 2/5, F53 2/5, F5 1/5, F7 1/5, F9 1/5, F45 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102151931-38",
-      "naslov": "Odbijena formulacija (EN): The Parkiralište VMA jump from 89 to 499 [F12] is not a real event: the source publishes no measurement time [F11], so we know the value but not its age, and a window-wide change could be a display reset. The PM10 maximum moving from 25 to 29 [F5] is only a small shift at one end of the spread [F4], and the record has 0 days of history, so 'rose' is unsupported [F50]. Even the hour label is doubtful, because SEPA's last labelled hour ends 15:00 UTC while the estimated true UTC is 14:00 [F3], and SEPA last reported 56 min ago [F2].",
-      "t": "2026-11-02T15:19:31.060782Z",
-      "score": 0,
-      "razlog": [
-        "puts words in a source's mouth - the record holds its values, not its statements"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102153530-37",
-      "naslov": "Odbijena formulacija (EN): The highest NO2 moved from 34 to 42 [F7] and the highest PM2.5 from 14 to 22 [F9], while the highest PM10 went down from 29 to 25 [F5], so the two fine-particle and gas peaks rose while the coarse peak fell. The PM2.5 and PM10 peaks both sit at Borča [F8][F4], where about 5 thousand people live nearby [F46], and the NO2 peak is at Ada petlja [F6], with about 9 thousand nearby [F47]. Without a usual-hour baseline [F48] I will not call any of this high, and SEPA is still reporting, 12 min ago [F2].",
-      "t": "2026-11-02T15:35:30.917421Z",
-      "score": 0,
-      "razlog": [
-        "prediction stated as fact - a claim belongs in the claim field"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102155942-35",
-      "naslov": "Mali model je ocenio iznenađenje veza: F9 2/5, F12 2/5, F49 2/5, F50 2/5, F51 2/5, F5 1/5, F7 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T15:59:42.444661Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F9 2/5, F12 2/5, F49 2/5, F50 2/5, F51 2/5, F5 1/5, F7 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102161131-34",
-      "naslov": "Odbijena formulacija (EN): Connector has the PM10 direction backwards: the highest value moved from 29 to 25 [F5], and that peak sits at Borča, not Novi Beograd [F4]. NO2 did not stay put either; it moved from 34 to 42 at Ada petlja [F6][F7]. Even the hour is not what its label says, because the hour labelled 16:00 is by our estimate 15:00 UTC [F3], and with no record of what is usual, Observer's word 'rose' for PM2.5 has nothing to stand on [F48].",
-      "t": "2026-11-02T16:11:31.256675Z",
-      "score": 0,
-      "razlog": [
-        "states a cause the record does not carry"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102162731-33",
-      "naslov": "Odbijena formulacija (EN): Skeptic notes the lack of a measurement time for the swing at Parkiralište VMA, where displayed free spaces moved from 168 to 525 [F11, F12]. Official SEPA stations logged 1458 values across the past 6 h, but their last reception was 64 min ago [F2].",
-      "t": "2026-11-02T16:27:31.224525Z",
-      "score": 0,
-      "razlog": [
-        "puts words in a source's mouth - the record holds its values, not its statements"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102163931-32",
-      "naslov": "Odbijena formulacija (EN): The SEPA maximum for PM10 climbed from 25 to 38 µg/m³ [F5] and for PM2.5 from 22 to 36 [F9], both at Borča [F4][F8]. The NO2 maximum moved only from 42 to 46 [F7], and it sits at Ada petlja [F6]. That corrects Skeptic's single-step reading of PM2.5. The rise is still only a comparison of two source-labelled hours, because the record has no usual values yet [F49].",
-      "t": "2026-11-02T16:39:31.050808Z",
-      "score": 0,
-      "razlog": [
-        "states a cause the record does not carry"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102164332-31",
-      "naslov": "Mali model je ocenio iznenađenje veza: F50 5/5, F51 5/5, F52 5/5, F12 4/5, F5 3/5, F9 3/5, F7 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T16:43:32.835344Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F50 5/5, F51 5/5, F52 5/5, F12 4/5, F5 3/5, F9 3/5, F7 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102164731-30",
-      "naslov": "Odbijena formulacija (EN): Connector and Observer rely on outdated numbers: in the new 17:00 UTC labelled window (estimated 16:00 true UTC) [F3], the highest PM10 actually moved from 25 to 38 µg/m³ at Borča across 31 stations [F4, F5], while peak PM2.5 moved from 22 to 36 µg/m³ at Borča [F8, F9]. Connector's claim that particles and traffic gas are not moving together fails because the highest NO2 also moved upward from 42 to 46 µg/m³ at Ada petlja across 32 stations between source labels 16:00 and 17:00 [F6, F7], not at Bulevar despota Stefana. Although Sensor.Community delivered 8642 values from 45 instruments 9 min ago [F10], the facts carry zero pollutant values or locations from that source to corroborate these trends.",
-      "t": "2026-11-02T16:47:31.177909Z",
-      "score": 0,
-      "razlog": [
-        "unsupported number in hypotheses: 36",
-        "unsupported number in hypotheses: 46",
-        "unsupported number in hypotheses: 38",
-        "unsupported clock in hypotheses",
-        "unsupported number in questions: 31",
-        "unsupported clock in questions",
-        "puts words in a source's mouth - the record holds its values, not its statements",
-        "states a cause the record does not carry"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102165531-29",
-      "naslov": "Odbijena formulacija (EN): Observer's earlier figures and Skeptic's claim that the NO2 peak did not move are overtaken by the SEPA reception 32 min ago from 32 instruments [F2], as between the source-labelled hours 16:00 and 17:00 [F3] the highest measured PM10 value moved from 25 to 38 µg/m³ [F5] and PM2.5 moved from 22 to 36 µg/m³ at Borča [F8] [F9], while the lowest values across 31 stations stood at 3 µg/m³ at Topčiderska zvezda [F4] [F8]. Over that same 16:00 to 17:00 window before 17:55 local time on Monday [F1] [F7], the highest measured NO2 value across 32 stations moved from 42 to 46 µg/m³ at Ada petlja against a lowest value of 8 µg/m³ at Stojčino brdo [F6] [F7], with the small model rating the particulate connections at 3/5 surprise and the NO2 connection at 1/5 [F53]. Although our record has 0 days of the 30 days and 20 values per hour needed to know what is usual [F49], pairing the 5 thousand people within 1 km of Borča [F46] and 9 thousand within 1 km of Ada petlja [F48] with the 8401 values received 17 min ago from 45 Sensor.Community instruments [F10] connects the late-afternoon shifts across distinct parts of the city.",
-      "t": "2026-11-02T16:55:31.016971Z",
-      "score": 0,
-      "razlog": [
-        "too long",
-        "number 3 belongs to PM10/PM2.5, not NO2"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102172731-28",
-      "naslov": "Odbijena formulacija (EN): Connector's Novi Beograd peak is not in the facts now: the PM10 maximum sits at Borča with 38 [F4], the PM2.5 maximum is also at Borča [F8], and the NO2 maximum is at Ada petlja [F6], so particles and traffic gas peak at different stations. SEPA has been silent for 64 min [F2], but the citizen sensors reported 19 min ago across 45 instruments [F10], and right now they are the freshest view of particles I have. At Parkiralište VMA the displayed free spaces went from 250 to 541 [F12], but with no measurement time [F11] I cannot place that change inside any SEPA hour.",
-      "t": "2026-11-02T17:27:31.161238Z",
-      "score": 0,
-      "razlog": [
-        "puts words in a source's mouth - the record holds its values, not its statements",
-        "presents a value with no measurement time as the present state"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102173132-27",
-      "naslov": "Mali model je ocenio iznenađenje veza: F50 5/5, F51 5/5, F52 5/5, F12 4/5, F5 2/5, F9 2/5, F7 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T17:31:32.139501Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F50 5/5, F51 5/5, F52 5/5, F12 4/5, F5 2/5, F9 2/5, F7 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102174336-26",
-      "naslov": "Odbijena formulacija (EN): Observer and Connector rely on outdated locations and numbers: between the 17:00 and 18:00 source-labelled hours (estimated 17:00 true UTC) [F3], the maximum measured PM10 moved from 38 to 34 µg/m³ at Borča across 31 stations [F4, F5], while the maximum PM2.5 moved down from 36 to 30 µg/m³ at Borča rather than increasing [F8, F9]. At the same time, the maximum NO2 across 32 stations moved from 46 to 48 µg/m³ and sits at Leštane, not at Ada petlja or Bulevar despota Stefana [F6, F7]. Because our record holds 0 days out of the needed 30 days and 20 values per hour, none of these readings support claims of unusual spikes [F49].",
-      "t": "2026-11-02T17:43:36.870407Z",
-      "score": 0,
-      "razlog": [
-        "unsupported clock in hypotheses",
-        "states a cause the record does not carry",
-        "number 46 belongs to NO2, not PM10",
-        "unsupported number in questions: 32",
-        "number 36 belongs to PM2.5, not PM10",
-        "states a cause the record does not carry"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102174731-25",
-      "naslov": "Odbijena formulacija (EN): Both particle peaks sit at Borča and both fell: PM10 from 38 to 34 µg/m³ [F5, F4] and PM2.5 from 36 to 30 µg/m³ [F9, F8]. NO2, which Skeptic called unmoved, went from 46 to 48 µg/m³, with its top at Leštane [F7, F6]. So the particles and the gas peak at different stations this Monday evening [F1], but without a record of usual values neither step can be called high [F49].",
-      "t": "2026-11-02T17:47:31.343289Z",
-      "score": 0,
-      "razlog": [
-        "claims coverage the instruments do not have"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102175939-24",
-      "naslov": "Odbijena formulacija (EN): Skeptic and Connector cite earlier SEPA figures, whereas in the hour labelled 18:00 UTC (estimated true UTC 17:00) [F3] the highest measured values moved between 17:00 and 18:00 from 38 to 34 µg/m³ for PM10 [F5] at Borča [F4], from 36 to 30 µg/m³ for PM2.5 [F9] at Borča [F8], and from 46 to 48 µg/m³ for NO2 [F7] at Leštane [F6]. Across 31 stations in that hour, the lowest values are 4 µg/m³ for PM10 [F4] and 3 µg/m³ for PM2.5 at Topčiderska zvezda [F8], while across 32 stations the lowest NO2 is 14 µg/m³ at Zeleno brdo [F6]. In the last 6 h, 32 SEPA instruments reported 1701 values with the last reception 36 min ago [F2], and 45 Sensor.Community instruments reported 8260 values with the last reception 21 min ago [F10].",
-      "t": "2026-11-02T17:59:39.177486Z",
-      "score": 0,
-      "razlog": [
-        "number 3 belongs to PM2.5, not PM10",
-        "number 3 belongs to PM2.5, not PM10",
-        "number 30 belongs to PM2.5, not PM10",
-        "number 36 belongs to PM2.5, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102182731-22",
-      "naslov": "Odbijena formulacija (EN): While Skeptic notes the absence of measurement timestamps, Parking Servis records a shift in displayed free spaces at Garaža Masarikova from 12 to 256 [F11, F12]. Meanwhile, SEPA stations pause after a reception 64 min ago with 1458 values [F2], alongside Sensor.Community providing 8504 values received 19 min ago [F10].",
-      "t": "2026-11-02T18:27:31.515340Z",
-      "score": 0,
-      "razlog": [
-        "unsupported number in next_check: 90",
-        "puts words in a source's mouth - the record holds its values, not its statements"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102185131-19",
-      "naslov": "Odbijena formulacija (EN): Borča holds both particle maxima, PM10 at 53 [F4] and PM2.5 at 51 [F8], while the NO2 maximum of 45 sits at Obrenovac Centar [F6], so particles and traffic gas peak at different stations. The parking jump at Garaža \"Masarikova\" is from 33 to 251 [F12], not from 28 as said earlier, and it still has no measurement time. With 0 days of history [F49], none of these maxima can be called a rise.",
-      "t": "2026-11-02T18:51:31.362939Z",
-      "score": 0,
-      "razlog": [
-        "number not in the cited facts: 28"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102191131-18",
-      "naslov": "Odbijena formulacija (EN): SEPA's last data came in 48 min ago [F2]. The citizen sensors reported 13 min ago from 45 instruments [F10], so right now the freshest picture of the air is not the official one. Connector's Novi Beograd and Bulevar despota Stefana peaks are not in the facts now: the NO2 maximum is at Obrenovac Centar with 45 [F6], while both particle maxima are at Borča [F4][F8]. At Parkiralište \"Belvil\" the free spaces shown went from 177 to 383 [F12], but the source gives no measurement time [F11], so I cannot place that change in the evening.",
-      "t": "2026-11-02T19:11:31.383350Z",
-      "score": 0,
-      "razlog": [
-        "presents a value with no measurement time as the present state"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102191931-17",
-      "naslov": "Mali model je ocenio iznenađenje veza: F50 4/5, F51 4/5, F52 4/5, F5 3/5, F9 3/5, F12 3/5, F7 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T19:19:31.546334Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F50 4/5, F51 4/5, F52 4/5, F5 3/5, F9 3/5, F12 3/5, F7 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102195948-13",
-      "naslov": "Odbijena formulacija (EN): Connector's contrast between where people live and where the maxima sit rests on only a handful of the 31 and 32 compared stations [F4, F6]. Its populations are modelled estimates, not a census [F45, F46, F47], and the facts give no population for any other station. The new swing at Parkiralište \"Belvil\" from 191 to 391 free spaces [F12] has no measurement time at all [F11], so I cannot place it on this evening's clock or tie it to anything else in the city.",
-      "t": "2026-11-02T19:59:48.695027Z",
-      "score": 0,
-      "razlog": [
-        "states a cause the record does not carry",
-        "unsupported number in next_check: 45",
-        "puts words in a source's mouth - the record holds its values, not its statements"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102203132-10",
-      "naslov": "Mali model je ocenio iznenađenje veza: F50 4/5, F51 4/5, F52 4/5, F12 3/5, F5 2/5, F9 2/5, F7 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T20:31:32.715377Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F50 4/5, F51 4/5, F52 4/5, F12 3/5, F5 2/5, F9 2/5, F7 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102203531-9",
-      "naslov": "Odbijena formulacija (EN): Connector's claim that the air maxima sit across Leštane, Ada petlja and Borča is refuted by the latest hour ending at 21:00 source label (20:00 estimated UTC) [F3], where Leštane holds the highest values for both PM10 at 34 µg/m³ across 31 stations and PM2.5 at 23 µg/m³ across 31 stations while Ada petlja holds the highest NO2 at 45 µg/m³ across 32 stations [F4, F6, F8]. Between the 20:00 and 21:00 source-labelled hours, the highest measured PM10 moved from 42 to 34 µg/m³ [F5], PM2.5 from 31 to 23 µg/m³ [F9], and NO2 from 49 to 45 µg/m³ [F7], though whether the earlier maxima sat at the same stations remains unrecorded. Observer's stale counts are likewise superseded by 8714 values from 45 Sensor.Community instruments with last reception 7 min ago [F10], 1702 values from 32 SEPA instruments with last reception 12 min ago [F2], and displayed free spaces at Parkiralište \"Belvil\" shifting from 203 to 396 without measurement times [F11, F12].",
-      "t": "2026-11-02T20:35:31.731051Z",
-      "score": 0,
-      "razlog": [
-        "too long",
-        "unsupported number in hypotheses: 34",
-        "unsupported number in hypotheses: 31",
-        "unsupported number in hypotheses: 23",
-        "number 31 belongs to PM2.5, not PM10",
-        "number 31 belongs to PM2.5, not NO2",
-        "number 31 belongs to PM2.5, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102205131-7",
-      "naslov": "Odbijena formulacija (EN): Connector already placed the particle extremes, but the gas does not follow them: the NO2 top is at Ada petlja and its floor at Stojčino brdo [F6], and neither station is a particle extreme [F4, F8]. Blic delivered nothing in the last 6 h, 0 of 96 slots [F32], yet its cable-theft headline is the anchor of all three links the organelle pairs with unrelated items [F50, F51, F52], so the most 'surprising' connections rest on a source that is silent.",
-      "t": "2026-11-02T20:51:31.607893Z",
-      "score": 0,
-      "razlog": [
-        "unsupported clock in hypotheses"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102205531-6",
-      "naslov": "Mali model je ocenio iznenađenje veza: F50 4/5, F51 4/5, F52 4/5, F12 3/5, F5 2/5, F9 2/5, F7 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T20:55:31.615385Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F50 4/5, F51 4/5, F52 4/5, F12 3/5, F5 2/5, F9 2/5, F7 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102205953-5",
-      "naslov": "Odbijena formulacija (EN): Connector's convergence of lows at Krnjača is real [F4, F8], but it is a minimum across 31 stations, not evidence of a shared cause, and our record has no usual level to compare against [F49]. The maxima falling from 42 to 34 and from 31 to 23 [F5, F9] are label-hour differences from a source that labels local time as Z [F3], so I will not call them a decline of anything beyond that. Observer's Belvil jump from 210 to 399 [F12] comes from a source that publishes no measurement time [F11], so the two receptions may be an arbitrary distance apart and the jump says nothing about when it happened.",
-      "t": "2026-11-02T20:59:53.693689Z",
-      "score": 0,
-      "razlog": [
-        "unsupported number in hypotheses: 1",
-        "puts words in a source's mouth - the record holds its values, not its statements"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102212731-3",
-      "naslov": "Odbijena formulacija (EN): Connector noted the Belvil shift to 399 free spaces, and the record now shows that largest movement went from 242 to 399 across 621 values from 27 locations received 24 min ago without measurement time [F11, F12]. SEPA has not reported for 64 min across its 32 instruments and 1459 values in the last 6 h [F2], while citizen sensors reported 19 min ago from 45 instruments with 8520 values [F10]. The lowest readings in that last hour sit at 6 µg/m³ in Krnjača for both PM10 and PM2.5 [F4, F8] and 7 µg/m³ at Stojčino brdo for NO2 [F6].",
-      "t": "2026-11-02T21:27:31.645192Z",
-      "score": 0,
-      "razlog": [
-        "unsupported number in hypotheses: 6",
-        "unsupported number in hypotheses: 5",
-        "unsupported number in hypotheses: 9",
-        "puts words in a source's mouth - the record holds its values, not its statements",
-        "number 7 belongs to NO2, not PM2.5"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102213132-2",
-      "naslov": "Mali model je ocenio iznenađenje veza: F50 5/5, F51 5/5, F52 5/5, F12 4/5, F5 3/5, F7 2/5, F9 2/5. Procena, ne merenje.",
-      "t": "2026-11-02T21:31:32.898515Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F50 5/5, F51 5/5, F52 5/5, F12 4/5, F5 3/5, F7 2/5, F9 2/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102213931-1",
-      "naslov": "Odbijena formulacija (EN): Connector claims both particle tops sit at Leštane, yet the record now places both the PM10 maximum of 22 µg/m³ and the PM2.5 maximum of 16 µg/m³ at Obrenovac Centar, while both minima of 4 µg/m³ and 3 µg/m³ sit at Vračar Dom zdravlja [F4, F8]. The highest measured values moved from 34 to 22 µg/m³ for PM10 [F5], from 23 to 16 µg/m³ for PM2.5 [F9], and from 45 to 40 µg/m³ for NO2 at Ada petlja [F6, F7] between the source-labelled hours 21:00 and 22:00, but with 0 days out of the needed 30 days in our record we cannot call these shifts unusual or evidence of broad clearing [F49]. Although SEPA logged 1703 values across 32 instruments [F2] and Sensor.Community delivered 8487 values across 45 instruments in the last 6 h [F10], those totals do not show whether concentrations at Leštane fell or were merely surpassed at Obrenovac Centar [F4, F8].",
-      "t": "2026-11-02T21:39:31.702807Z",
-      "score": 0,
-      "razlog": [
-        "number 16 belongs to PM2.5, not PM10",
-        "unsupported number in next_check: 31",
-        "number 16 belongs to PM2.5, not PM10",
-        "number 23 belongs to PM2.5, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102215531-0",
-      "naslov": "Odbijena formulacija (EN): While Observer attends to parking spaces, official stations record declining particle peaks: PM10 moved from 34 to 22 µg/m³ [F5] and PM2.5 from 23 to 16 µg/m³ [F9], with both maxima resting at Obrenovac Centar [F4, F8]. Concurrently, the NO2 maximum shifted from 45 to 40 µg/m³ at Ada petlja [F6, F7].",
-      "t": "2026-11-02T21:55:31.684217Z",
-      "score": 0,
-      "razlog": [
-        "unsupported clock in next_check"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    }
-  ],
+  "najave": [],
+  "prognoza": [],
   "odbijene_misli": [
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261102092731-74",
-      "naslov": "Odbijena formulacija (EN): SEPA has now been silent for 64 min [F2], so the PM10 maximum of 23 at Obrenovac Centar [F4][F5] and the NO2 maximum of 44 at Ada petlja [F6][F7] are the last official picture, and its labelled hour still disagrees with our true-UTC estimate [F3]. Parking Servis now shows VMA moving from 564 to 82 free spaces [F12], but with no measurement time [F11] it is a value without an age. Citizen sensors reported 19 min ago [F10], so they are the freshest air instrument we have.",
-      "t": "2026-11-02T09:27:31.248827Z",
-      "score": 0,
-      "razlog": [
-        "puts words in a source's mouth - the record holds its values, not its statements"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102093132-73",
-      "naslov": "Mali model je ocenio iznenađenje veza: F49 5/5, F50 5/5, F51 5/5, F12 4/5, F7 2/5, F9 2/5, F5 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T09:31:32.281298Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F49 5/5, F50 5/5, F51 5/5, F12 4/5, F7 2/5, F9 2/5, F5 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102094731-72",
-      "naslov": "Odbijena formulacija (EN): Observer's upward maxima and station assignments are already obsolete: in the hour ending 10:00 UTC (estimated 09:00 true UTC) [F3], the highest PM10 stayed unchanged from 23 to 23 µg/m³ at Leštane [F4] [F5], while the highest NO2 fell from 44 to 37 µg/m³ at Pančevo Cara Dušana [F6] [F7] and the highest PM2.5 fell from 20 to 18 µg/m³ at Borča [F8] [F9]. Across the 31 and 32 reporting SEPA stations, minimums sit at 2 µg/m³ for PM10 and 6 µg/m³ for NO2 in Krnjača and 2 µg/m³ for PM2.5 at Topčiderska zvezda [F4] [F6] [F8], leaving a wide gap to the peaks that a record of 0 days cannot judge as unusual [F48]. Although 32 SEPA instruments delivered 1689 values in the last 6 h with a reception 24 min ago [F2] and 45 Sensor.Community instruments delivered 8496 values in the last 6 h with a reception 9 min ago [F10], our digest carries no citizen readings at all to cross-check those official extremes.",
-      "t": "2026-11-02T09:47:31.370554Z",
-      "score": 0,
-      "razlog": [
-        "too long",
-        "states a cause the record does not carry",
-        "number 18 belongs to PM2.5, not PM10",
-        "reads a spread across stations as a change over time",
-        "number 37 belongs to NO2, not PM10",
-        "number 2 belongs to PM10/PM2.5, not NO2",
-        "number 6 belongs to NO2, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102101531-69",
-      "naslov": "Mali model je ocenio iznenađenje veza: F12 4/5, F5 1/5, F7 1/5, F9 1/5, F49 1/5, F50 1/5, F51 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T10:15:31.717437Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F12 4/5, F5 1/5, F7 1/5, F9 1/5, F49 1/5, F50 1/5, F51 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102102731-68",
-      "naslov": "Odbijena formulacija (EN): SEPA has now been silent for 64 min [F2], so the hour labelled 10:00 UTC, which our estimate puts at 09:00 [F3], is aging while the citizen sensors reported 19 min ago [F10]. Observer's \"13 min\" is stale, and the maxima did not rise: PM10 stayed 23 to 23 [F5], NO2 fell from 44 to 37 [F7], and with 0 days of record [F48] nothing here is high. The VMA drop from 564 to 125 [F12] carries no measurement time [F11], so it may be a difference between receptions, not an event.",
-      "t": "2026-11-02T10:27:31.333057Z",
-      "score": 0,
-      "razlog": [
-        "number not in the cited facts: 13"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102103132-67",
-      "naslov": "Odbijena formulacija (EN): Observer and Skeptic spoke before the latest receptions arrived: SEPA reported 8 min ago across 32 instruments [F2], and Sensor.Community reported 3 min ago across 45 instruments [F10]. Between the source-labelled hours 10:00 and 11:00 (estimated true UTC 10:00 [F3]), the highest measured values moved from 23 to 20 µg/m³ for PM10 at Novi Beograd [F4][F5], from 37 to 27 µg/m³ for NO2 at Bulevar despota Stefana [F6][F7], and from 18 to 13 µg/m³ for PM2.5 at Borča [F8][F9]. In that same hour, Krnjača, with about 11 thousand people within 1 km [F45], held the lowest values at 2 µg/m³ for PM10 [F4], 4 µg/m³ for NO2 [F6], and 1 µg/m³ for PM2.5 [F8], while the highest PM10 and NO2 values sat where about 22 thousand and 28 thousand people live within 1 km [F46][F47].",
-      "t": "2026-11-02T10:31:32.372694Z",
-      "score": 0,
-      "razlog": [
-        "number 27 belongs to NO2, not PM10",
-        "number 37 belongs to NO2, not PM10",
-        "number 2 belongs to PM10, not NO2",
-        "number 4 belongs to NO2, not PM10",
-        "number 1 belongs to PM2.5, not NO2",
-        "number 27 belongs to NO2, not PM10",
-        "number 37 belongs to NO2, not PM10",
-        "number 4 belongs to NO2, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102104334-66",
-      "naslov": "Odbijena formulacija (EN): New readings from SEPA arrived 20 min ago with 1692 values [F2], while citizen sensors sent 8231 values with reception 15 min ago [F10]. In that hour, the highest NO2 of 27 µg/m³ was recorded at Bulevar despota Stefana and the highest PM10 of 20 µg/m³ at Novi Beograd [F4][F6]. The highest PM2.5 fell from 18 to 13 µg/m³, located at Borča [F8][F9].",
-      "t": "2026-11-02T10:43:34.109683Z",
-      "score": 0,
-      "razlog": [
-        "number 27 belongs to NO2, not PM10",
-        "number 37 belongs to NO2, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102105131-65",
-      "naslov": "Odbijena formulacija (EN): Both Observer's and Connector's air claims are obsolete: in the hour labelled 11:00 UTC (our estimate of true UTC is 10:00) [F3], the highest PM10 fell from 23 to 20 µg/m³ and moved to Novi Beograd [F4][F5], while the highest NO2 fell from 37 to 27 µg/m³ at Bulevar despota Stefana [F6][F7]. The highest PM2.5 in Borča also dropped from 18 to 13 µg/m³, and Krnjača holds the lowest NO2 at 4 µg/m³, PM10 at 2 µg/m³, and PM2.5 at 1 µg/m³ [F4][F6][F8][F9]. Observer's VMA figure is no longer in the record, replaced by Garaža \"Obilićev venac\" moving from 472 to 9 displayed free spaces without any measurement time [F11][F12].",
-      "t": "2026-11-02T10:51:31.167562Z",
-      "score": 0,
-      "razlog": [
-        "number 4 belongs to NO2, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102105531-64",
-      "naslov": "Odbijena formulacija (EN): SEPA has been silent for 32 min [F2] while citizen sensors reported 17 min ago [F10], and the official label of 11:00 UTC does not match our true-UTC estimate of 10:00 [F3]. Within that labelled hour the PM10 maximum moved from 23 to 20 [F5], NO2 from 37 to 27 [F7] and PM2.5 from 18 to 13 [F9], all falling together, though our record has no usual level to compare against [F48]. The parking drop at Garaža \"Obilićev venac\" from 472 to 9 carries no measurement time [F12][F11], so I will not place it in this morning.",
-      "t": "2026-11-02T10:55:31.858792Z",
-      "score": 0,
-      "razlog": [
-        "prediction stated as fact - a claim belongs in the claim field"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102113531-61",
-      "naslov": "Odbijena formulacija (EN): While Skeptic dismisses direction, the highest measured NO2 moved from 27 to 35 µg/m³ [F7], peaking at Bulevar despota Stefana across 32 stations [F6]. Concurrently, the highest PM10 moved from 20 to 22 µg/m³ peaking at Novi Beograd [F4, F5], even as highest PM2.5 moved from 13 to 11 µg/m³ [F9]. Official instruments reported 12 min ago [F2], following citizen sensors updating 7 min ago with 8450 values [F10].",
-      "t": "2026-11-02T11:35:31.759097Z",
-      "score": 0,
-      "razlog": [
-        "unsupported number in hypotheses: 35"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102115131-60",
-      "naslov": "Odbijena formulacija (EN): Connector's earlier picture is overtaken by the 6 h haul of 1699 values from 32 SEPA instruments (last reception 28 min ago) and 8236 values from 45 Sensor.Community instruments (last reception 13 min ago) [F2][F10]. Between the source-labelled hours 11:00 and 12:00, the highest PM10 moved from 20 to 22 µg/m³ at Novi Beograd across 31 stations and the highest NO2 moved from 27 to 35 µg/m³ at Bulevar despota Stefana across 32 stations, whereas the highest PM2.5 moved from 13 to 11 µg/m³ at Leštane across 31 stations [F4][F5][F6][F7][F8][F9]. Across that spread, the highest readings sit near denser modelled 1 km populations of 28 thousand at Bulevar despota Stefana and 22 thousand at Novi Beograd, while the lowest readings of 2 µg/m³ for PM10 and 1 µg/m³ for PM2.5 sit at Krnjača (11 thousand) and 8 µg/m³ for NO2 at Pančevo Sodara (6 thousand) [F4][F6][F8][F46][F47][F48][F49].",
-      "t": "2026-11-02T11:51:31.352336Z",
-      "score": 0,
-      "razlog": [
-        "number 22 belongs to PM10, not PM2.5",
-        "number 1 belongs to PM2.5, not NO2",
-        "number 1 belongs to PM2.5, not PM10",
-        "number 8 belongs to NO2, not PM2.5",
-        "number 1 belongs to PM2.5, not PM10",
-        "number 8 belongs to NO2, not PM2.5"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102115531-59",
-      "naslov": "Mali model je ocenio iznenađenje veza: F51 5/5, F52 5/5, F53 5/5, F12 4/5, F7 2/5, F5 1/5, F9 1/5, F45 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T11:55:31.266034Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F51 5/5, F52 5/5, F53 5/5, F12 4/5, F7 2/5, F5 1/5, F9 1/5, F45 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102115941-58",
-      "naslov": "Odbijena formulacija (EN): Connector's picture of falling maxima no longer holds: the NO2 peak moved from 27 to 35 µg/m³ and now sits at Bulevar despota Stefana [F6][F7], and the PM10 peak moved from 20 to 22 at Novi Beograd [F4][F5]. Only PM2.5 eased, from 13 to 11 [F9], and with 0 days of record none of these values can be called 'high' [F50]. The 5/5 surprise given to the headline links [F54] comes from pairing a cable-theft headline with a medal ceremony and editor appointments at similarity 0.74 [F51][F52][F53]. That is an echo of the embedding model, not an event, especially since Blic delivered nothing in the last 6 h [F32].",
-      "t": "2026-11-02T11:59:41.134963Z",
-      "score": 0,
-      "razlog": [
-        "reads a spread across stations as a change over time"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102123531-55",
-      "naslov": "Mali model je ocenio iznenađenje veza: F12 5/5, F50 4/5, F51 4/5, F52 4/5, F45 2/5, F5 1/5, F7 1/5, F9 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T12:35:31.775223Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F12 5/5, F50 4/5, F51 4/5, F52 4/5, F45 2/5, F5 1/5, F7 1/5, F9 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102125131-53",
-      "naslov": "Odbijena formulacija (EN): Observer's timing and Skeptic's garage count are stale: SEPA last reported 28 min ago across 32 instruments with 1699 values in the last 6 h [F2], citizen sensors on Sensor.Community reported 13 min ago across 45 instruments with 8218 values in the last 6 h [F10], and displayed free spaces at Garaža \"Obilićev venac\" moved from 398 to 4 [F12]. Between the source-labelled hours 12:00 and 13:00 (estimated 12:00 UTC) on Monday at 13:51 local time (12:51 UTC) [F1][F3], the highest measured PM10 moved from 22 to 24 µg/m³ at Novi Beograd [F4][F5] and NO2 moved from 35 to 36 µg/m³ at Bulevar despota Stefana [F6][F7], while PM2.5 stayed from 11 to 11 µg/m³ at Borča [F8][F9], connections the helper model rates 1/5 in surprise [F53]. Even though our record has 0 days of the 30 days and 20 values per hour needed [F49], Krnjača holding the lowest values across 31 stations—2 µg/m³ for PM10 [F4], 7 µg/m³ for NO2 [F6], and 2 µg/m³ for PM2.5 [F8]—aligns with modelled 1 km population estimates (Kontur 2022) of 11 thousand around Krnjača [F46] versus 22 thousand around Novi Beograd [F47] and 28 thousand around Bulevar despota Stefana [F48].",
-      "t": "2026-11-02T12:51:31.567723Z",
-      "score": 0,
-      "razlog": [
-        "too long",
-        "number 11 belongs to PM2.5, not NO2",
-        "number 24 belongs to PM10, not PM2.5",
-        "number 36 belongs to NO2, not PM10",
-        "number 22 belongs to PM10, not PM2.5",
-        "number 7 belongs to NO2, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102132731-51",
-      "naslov": "Mali model je ocenio iznenađenje veza: F12 4/5, F50 4/5, F51 4/5, F52 4/5, F5 1/5, F7 1/5, F9 1/5, F45 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T13:27:31.755457Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F12 4/5, F50 4/5, F51 4/5, F52 4/5, F5 1/5, F7 1/5, F9 1/5, F45 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102133531-49",
-      "naslov": "Odbijena formulacija (EN): Skeptic and Observer rely on stale reception timings: SEPA now shows 1700 values across 32 instruments from 12 min ago [F2], while Sensor.Community reached 8442 values across 45 instruments 7 min ago [F10]. Neither noticed that between 13:00 and 14:00 the highest measured PM2.5 moved from 11 to 13 µg/m³ [F9], with the highest PM2.5 at 13 µg/m³ in Borča [F8], the highest PM10 at 25 µg/m³ in Leštane [F4], and the highest NO2 at 34 µg/m³ at Bulevar despota Stefana [F6]. Meanwhile, Krnjača, with about 11 thousand people within 1 km [F45], held the lowest readings across 31 stations for both PM10 at 3 µg/m³ [F4] and PM2.5 at 2 µg/m³ [F8].",
-      "t": "2026-11-02T13:35:31.942612Z",
-      "score": 0,
-      "razlog": [
-        "unsupported number in hypotheses: 36",
-        "unsupported number in hypotheses: 34",
-        "number 11 belongs to PM2.5, not PM10",
-        "number 13 belongs to PM2.5, not PM10",
-        "number 3 belongs to PM10, not PM2.5"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102135131-48",
-      "naslov": "Odbijena formulacija (EN): SEPA now sits 28 min from its last reception with 1700 values across 32 instruments [F2], while Sensor.Community arrived 13 min ago with 8216 values across 45 instruments [F10], and the largest parking shift is no longer the garage Skeptic and Connector debate, but Parkiralište \"VMA\" moving from 64 to 415 displayed free spaces [F12]. Across 31 stations in that hour, Krnjača holds the lowest readings for both PM10 at 3 µg/m³ and PM2.5 at 2 µg/m³ [F4][F8], whereas the highest measured PM2.5 moved from 11 to 13 µg/m³ at Borča [F8][F9], splitting away from the PM10 maximum of 25 µg/m³ at Leštane [F4]. Meanwhile, the 32-station NO2 spread runs from 8 µg/m³ at Zeleno brdo to 34 µg/m³ at Bulevar despota Stefana, even though both stations have about 28 thousand people living within 1 km [F6][F47][F48].",
-      "t": "2026-11-02T13:51:31.654956Z",
-      "score": 0,
-      "razlog": [
-        "number 13 belongs to PM2.5, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102135531-47",
-      "naslov": "Mali model je ocenio iznenađenje veza: F12 4/5, F5 1/5, F7 1/5, F9 1/5, F50 1/5, F51 1/5, F52 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T13:55:31.714261Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F12 4/5, F5 1/5, F7 1/5, F9 1/5, F50 1/5, F51 1/5, F52 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102135944-46",
-      "naslov": "Odbijena formulacija (EN): The drop to zero at Garaža Obilićev venac that both of the others relied on is no longer the biggest move. The largest change in the window is Parkiralište \"VMA\", from 64 to 434 [F12]. Parking Servis publishes no measurement time [F11], so neither shift can be placed in time, and \"within the reception window\" says nothing about when cars came or went. SEPA's silence is now 36 min [F2], while Sensor.Community reported 1 min ago [F10]. What they described as official absence looks like the normal lag of an hourly feed whose own hour labels are shifted [F3].",
-      "t": "2026-11-02T13:59:44.975429Z",
-      "score": 0,
-      "razlog": [
-        "puts words in a source's mouth - the record holds its values, not its statements"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102142731-44",
-      "naslov": "Odbijena formulacija (EN): SEPA now sits 64 min from its last reception across 32 instruments [F2], so the earlier \"8 min\" and \"44 min\" figures are both stale, and its last labelled hour ends 14:00 [F3]. Parkiralište \"VMA\" moved from 60 to 455 displayed free spaces with no measurement time [F12], which replaces the Obilićev venac swing both others discussed. Sensor.Community reported 19 min ago from 45 instruments [F10], while Blic and Vecernje novosti delivered nothing in the last 6 h [F32][F22].",
-      "t": "2026-11-02T14:27:31.874369Z",
-      "score": 0,
-      "razlog": [
-        "number not in the cited facts: 8",
-        "number not in the cited facts: 44",
-        "puts words in a source's mouth - the record holds its values, not its statements"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102143132-43",
-      "naslov": "Mali model je ocenio iznenađenje veza: F12 4/5, F51 4/5, F52 4/5, F53 3/5, F5 2/5, F45 2/5, F7 1/5, F9 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T14:31:32.737904Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F12 4/5, F51 4/5, F52 4/5, F53 3/5, F5 2/5, F45 2/5, F7 1/5, F9 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102145938-40",
-      "naslov": "Odbijena formulacija (EN): While Connector and Skeptic focus on the peaks, the lows across 31 stations anchor at Krnjača with 2 µg/m³ for both PM10 and PM2.5, whereas across 32 stations the NO2 low sits at Pančevo Sodara at 9 µg/m³ and the PM2.5 high at Borča stands at 14 µg/m³ [F4, F6, F8]. SEPA's 32 instruments reported 36 min ago with 1700 values over the last 6 h under the 15:00 UTC label that we estimate as 14:00 true UTC, while Sensor.Community's 45 instruments updated 21 min ago with 8024 values in the last 6 h [F2, F3, F10]. The un-timestamped Parkiralište VMA swing that Skeptic noted moved from 82 to 481 displayed free spaces, alongside the peaks of 29 µg/m³ for PM10 at Novi Beograd and 34 µg/m³ for NO2 at Bulevar despota Stefana [F4, F6, F12]. [F2][F10][F4][F6]",
-      "t": "2026-11-02T14:59:38.463198Z",
-      "score": 0,
-      "razlog": [
-        "reads a spread across stations as a change over time",
-        "puts words in a source's mouth - the record holds its values, not its statements",
-        "number 34 belongs to NO2, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102150741-39",
-      "naslov": "Mali model je ocenio iznenađenje veza: F12 4/5, F51 2/5, F52 2/5, F53 2/5, F5 1/5, F7 1/5, F9 1/5, F45 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T15:07:41.497298Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F12 4/5, F51 2/5, F52 2/5, F53 2/5, F5 1/5, F7 1/5, F9 1/5, F45 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102151931-38",
-      "naslov": "Odbijena formulacija (EN): The Parkiralište VMA jump from 89 to 499 [F12] is not a real event: the source publishes no measurement time [F11], so we know the value but not its age, and a window-wide change could be a display reset. The PM10 maximum moving from 25 to 29 [F5] is only a small shift at one end of the spread [F4], and the record has 0 days of history, so 'rose' is unsupported [F50]. Even the hour label is doubtful, because SEPA's last labelled hour ends 15:00 UTC while the estimated true UTC is 14:00 [F3], and SEPA last reported 56 min ago [F2].",
-      "t": "2026-11-02T15:19:31.060782Z",
-      "score": 0,
-      "razlog": [
-        "puts words in a source's mouth - the record holds its values, not its statements"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102153530-37",
-      "naslov": "Odbijena formulacija (EN): The highest NO2 moved from 34 to 42 [F7] and the highest PM2.5 from 14 to 22 [F9], while the highest PM10 went down from 29 to 25 [F5], so the two fine-particle and gas peaks rose while the coarse peak fell. The PM2.5 and PM10 peaks both sit at Borča [F8][F4], where about 5 thousand people live nearby [F46], and the NO2 peak is at Ada petlja [F6], with about 9 thousand nearby [F47]. Without a usual-hour baseline [F48] I will not call any of this high, and SEPA is still reporting, 12 min ago [F2].",
-      "t": "2026-11-02T15:35:30.917421Z",
-      "score": 0,
-      "razlog": [
-        "prediction stated as fact - a claim belongs in the claim field"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102155942-35",
-      "naslov": "Mali model je ocenio iznenađenje veza: F9 2/5, F12 2/5, F49 2/5, F50 2/5, F51 2/5, F5 1/5, F7 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T15:59:42.444661Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F9 2/5, F12 2/5, F49 2/5, F50 2/5, F51 2/5, F5 1/5, F7 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102161131-34",
-      "naslov": "Odbijena formulacija (EN): Connector has the PM10 direction backwards: the highest value moved from 29 to 25 [F5], and that peak sits at Borča, not Novi Beograd [F4]. NO2 did not stay put either; it moved from 34 to 42 at Ada petlja [F6][F7]. Even the hour is not what its label says, because the hour labelled 16:00 is by our estimate 15:00 UTC [F3], and with no record of what is usual, Observer's word 'rose' for PM2.5 has nothing to stand on [F48].",
-      "t": "2026-11-02T16:11:31.256675Z",
-      "score": 0,
-      "razlog": [
-        "states a cause the record does not carry"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102162731-33",
-      "naslov": "Odbijena formulacija (EN): Skeptic notes the lack of a measurement time for the swing at Parkiralište VMA, where displayed free spaces moved from 168 to 525 [F11, F12]. Official SEPA stations logged 1458 values across the past 6 h, but their last reception was 64 min ago [F2].",
-      "t": "2026-11-02T16:27:31.224525Z",
-      "score": 0,
-      "razlog": [
-        "puts words in a source's mouth - the record holds its values, not its statements"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102163931-32",
-      "naslov": "Odbijena formulacija (EN): The SEPA maximum for PM10 climbed from 25 to 38 µg/m³ [F5] and for PM2.5 from 22 to 36 [F9], both at Borča [F4][F8]. The NO2 maximum moved only from 42 to 46 [F7], and it sits at Ada petlja [F6]. That corrects Skeptic's single-step reading of PM2.5. The rise is still only a comparison of two source-labelled hours, because the record has no usual values yet [F49].",
-      "t": "2026-11-02T16:39:31.050808Z",
-      "score": 0,
-      "razlog": [
-        "states a cause the record does not carry"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102164332-31",
-      "naslov": "Mali model je ocenio iznenađenje veza: F50 5/5, F51 5/5, F52 5/5, F12 4/5, F5 3/5, F9 3/5, F7 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T16:43:32.835344Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F50 5/5, F51 5/5, F52 5/5, F12 4/5, F5 3/5, F9 3/5, F7 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102164731-30",
-      "naslov": "Odbijena formulacija (EN): Connector and Observer rely on outdated numbers: in the new 17:00 UTC labelled window (estimated 16:00 true UTC) [F3], the highest PM10 actually moved from 25 to 38 µg/m³ at Borča across 31 stations [F4, F5], while peak PM2.5 moved from 22 to 36 µg/m³ at Borča [F8, F9]. Connector's claim that particles and traffic gas are not moving together fails because the highest NO2 also moved upward from 42 to 46 µg/m³ at Ada petlja across 32 stations between source labels 16:00 and 17:00 [F6, F7], not at Bulevar despota Stefana. Although Sensor.Community delivered 8642 values from 45 instruments 9 min ago [F10], the facts carry zero pollutant values or locations from that source to corroborate these trends.",
-      "t": "2026-11-02T16:47:31.177909Z",
-      "score": 0,
-      "razlog": [
-        "unsupported number in hypotheses: 36",
-        "unsupported number in hypotheses: 46",
-        "unsupported number in hypotheses: 38",
-        "unsupported clock in hypotheses",
-        "unsupported number in questions: 31",
-        "unsupported clock in questions",
-        "puts words in a source's mouth - the record holds its values, not its statements",
-        "states a cause the record does not carry"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102165531-29",
-      "naslov": "Odbijena formulacija (EN): Observer's earlier figures and Skeptic's claim that the NO2 peak did not move are overtaken by the SEPA reception 32 min ago from 32 instruments [F2], as between the source-labelled hours 16:00 and 17:00 [F3] the highest measured PM10 value moved from 25 to 38 µg/m³ [F5] and PM2.5 moved from 22 to 36 µg/m³ at Borča [F8] [F9], while the lowest values across 31 stations stood at 3 µg/m³ at Topčiderska zvezda [F4] [F8]. Over that same 16:00 to 17:00 window before 17:55 local time on Monday [F1] [F7], the highest measured NO2 value across 32 stations moved from 42 to 46 µg/m³ at Ada petlja against a lowest value of 8 µg/m³ at Stojčino brdo [F6] [F7], with the small model rating the particulate connections at 3/5 surprise and the NO2 connection at 1/5 [F53]. Although our record has 0 days of the 30 days and 20 values per hour needed to know what is usual [F49], pairing the 5 thousand people within 1 km of Borča [F46] and 9 thousand within 1 km of Ada petlja [F48] with the 8401 values received 17 min ago from 45 Sensor.Community instruments [F10] connects the late-afternoon shifts across distinct parts of the city.",
-      "t": "2026-11-02T16:55:31.016971Z",
-      "score": 0,
-      "razlog": [
-        "too long",
-        "number 3 belongs to PM10/PM2.5, not NO2"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102172731-28",
-      "naslov": "Odbijena formulacija (EN): Connector's Novi Beograd peak is not in the facts now: the PM10 maximum sits at Borča with 38 [F4], the PM2.5 maximum is also at Borča [F8], and the NO2 maximum is at Ada petlja [F6], so particles and traffic gas peak at different stations. SEPA has been silent for 64 min [F2], but the citizen sensors reported 19 min ago across 45 instruments [F10], and right now they are the freshest view of particles I have. At Parkiralište VMA the displayed free spaces went from 250 to 541 [F12], but with no measurement time [F11] I cannot place that change inside any SEPA hour.",
-      "t": "2026-11-02T17:27:31.161238Z",
-      "score": 0,
-      "razlog": [
-        "puts words in a source's mouth - the record holds its values, not its statements",
-        "presents a value with no measurement time as the present state"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102173132-27",
-      "naslov": "Mali model je ocenio iznenađenje veza: F50 5/5, F51 5/5, F52 5/5, F12 4/5, F5 2/5, F9 2/5, F7 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T17:31:32.139501Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F50 5/5, F51 5/5, F52 5/5, F12 4/5, F5 2/5, F9 2/5, F7 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102174336-26",
-      "naslov": "Odbijena formulacija (EN): Observer and Connector rely on outdated locations and numbers: between the 17:00 and 18:00 source-labelled hours (estimated 17:00 true UTC) [F3], the maximum measured PM10 moved from 38 to 34 µg/m³ at Borča across 31 stations [F4, F5], while the maximum PM2.5 moved down from 36 to 30 µg/m³ at Borča rather than increasing [F8, F9]. At the same time, the maximum NO2 across 32 stations moved from 46 to 48 µg/m³ and sits at Leštane, not at Ada petlja or Bulevar despota Stefana [F6, F7]. Because our record holds 0 days out of the needed 30 days and 20 values per hour, none of these readings support claims of unusual spikes [F49].",
-      "t": "2026-11-02T17:43:36.870407Z",
-      "score": 0,
-      "razlog": [
-        "unsupported clock in hypotheses",
-        "states a cause the record does not carry",
-        "number 46 belongs to NO2, not PM10",
-        "unsupported number in questions: 32",
-        "number 36 belongs to PM2.5, not PM10",
-        "states a cause the record does not carry"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102174731-25",
-      "naslov": "Odbijena formulacija (EN): Both particle peaks sit at Borča and both fell: PM10 from 38 to 34 µg/m³ [F5, F4] and PM2.5 from 36 to 30 µg/m³ [F9, F8]. NO2, which Skeptic called unmoved, went from 46 to 48 µg/m³, with its top at Leštane [F7, F6]. So the particles and the gas peak at different stations this Monday evening [F1], but without a record of usual values neither step can be called high [F49].",
-      "t": "2026-11-02T17:47:31.343289Z",
-      "score": 0,
-      "razlog": [
-        "claims coverage the instruments do not have"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102175939-24",
-      "naslov": "Odbijena formulacija (EN): Skeptic and Connector cite earlier SEPA figures, whereas in the hour labelled 18:00 UTC (estimated true UTC 17:00) [F3] the highest measured values moved between 17:00 and 18:00 from 38 to 34 µg/m³ for PM10 [F5] at Borča [F4], from 36 to 30 µg/m³ for PM2.5 [F9] at Borča [F8], and from 46 to 48 µg/m³ for NO2 [F7] at Leštane [F6]. Across 31 stations in that hour, the lowest values are 4 µg/m³ for PM10 [F4] and 3 µg/m³ for PM2.5 at Topčiderska zvezda [F8], while across 32 stations the lowest NO2 is 14 µg/m³ at Zeleno brdo [F6]. In the last 6 h, 32 SEPA instruments reported 1701 values with the last reception 36 min ago [F2], and 45 Sensor.Community instruments reported 8260 values with the last reception 21 min ago [F10].",
-      "t": "2026-11-02T17:59:39.177486Z",
-      "score": 0,
-      "razlog": [
-        "number 3 belongs to PM2.5, not PM10",
-        "number 3 belongs to PM2.5, not PM10",
-        "number 30 belongs to PM2.5, not PM10",
-        "number 36 belongs to PM2.5, not PM10"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102182731-22",
-      "naslov": "Odbijena formulacija (EN): While Skeptic notes the absence of measurement timestamps, Parking Servis records a shift in displayed free spaces at Garaža Masarikova from 12 to 256 [F11, F12]. Meanwhile, SEPA stations pause after a reception 64 min ago with 1458 values [F2], alongside Sensor.Community providing 8504 values received 19 min ago [F10].",
-      "t": "2026-11-02T18:27:31.515340Z",
-      "score": 0,
-      "razlog": [
-        "unsupported number in next_check: 90",
-        "puts words in a source's mouth - the record holds its values, not its statements"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102185131-19",
-      "naslov": "Odbijena formulacija (EN): Borča holds both particle maxima, PM10 at 53 [F4] and PM2.5 at 51 [F8], while the NO2 maximum of 45 sits at Obrenovac Centar [F6], so particles and traffic gas peak at different stations. The parking jump at Garaža \"Masarikova\" is from 33 to 251 [F12], not from 28 as said earlier, and it still has no measurement time. With 0 days of history [F49], none of these maxima can be called a rise.",
-      "t": "2026-11-02T18:51:31.362939Z",
-      "score": 0,
-      "razlog": [
-        "number not in the cited facts: 28"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102191131-18",
-      "naslov": "Odbijena formulacija (EN): SEPA's last data came in 48 min ago [F2]. The citizen sensors reported 13 min ago from 45 instruments [F10], so right now the freshest picture of the air is not the official one. Connector's Novi Beograd and Bulevar despota Stefana peaks are not in the facts now: the NO2 maximum is at Obrenovac Centar with 45 [F6], while both particle maxima are at Borča [F4][F8]. At Parkiralište \"Belvil\" the free spaces shown went from 177 to 383 [F12], but the source gives no measurement time [F11], so I cannot place that change in the evening.",
-      "t": "2026-11-02T19:11:31.383350Z",
-      "score": 0,
-      "razlog": [
-        "presents a value with no measurement time as the present state"
-      ],
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102191931-17",
-      "naslov": "Mali model je ocenio iznenađenje veza: F50 4/5, F51 4/5, F52 4/5, F5 3/5, F9 3/5, F12 3/5, F7 1/5. Procena, ne merenje.",
-      "t": "2026-11-02T19:19:31.546334Z",
-      "score": 0,
-      "razlog": "A small model rated the connections by surprise: F50 4/5, F51 4/5, F52 4/5, F5 3/5, F9 3/5, F12 3/5, F7 1/5. An estimate, not a measurement.",
-      "zasto": "odbijena — javna, van rang-liste"
-    },
-    {
-      "vrsta": "misao_odbijena",
-      "id": "mind-20261102195948-13",
-      "naslov": "Odbijena formulacija (EN): Connector's contrast between where people live and where the maxima sit rests on only a handful of the 31 and 32 compared stations [F4, F6]. Its populations are modelled estimates, not a census [F45, F46, F47], and the facts give no population for any other station. The new swing at Parkiralište \"Belvil\" from 191 to 391 free spaces [F12] has no measurement time at all [F11], so I cannot place it on this evening's clock or tie it to anything else in the city.",
+      "id": "mind-20261102195948-17",
+      "naslov": "Odbijena formulacija (EN): Connector's contrast between where people live and where the maxima sit rests on only a handful of the 31 and 32 compared stations [F4, F6]. Its populations are modelled estimates, not a census [F45, F46, F47], and the facts give no population for any o",
       "t": "2026-11-02T19:59:48.695027Z",
       "score": 0,
       "razlog": [
@@ -1794,7 +646,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261102203132-10",
+      "id": "mind-20261102203132-14",
       "naslov": "Mali model je ocenio iznenađenje veza: F50 4/5, F51 4/5, F52 4/5, F12 3/5, F5 2/5, F9 2/5, F7 1/5. Procena, ne merenje.",
       "t": "2026-11-02T20:31:32.715377Z",
       "score": 0,
@@ -1803,8 +655,8 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261102203531-9",
-      "naslov": "Odbijena formulacija (EN): Connector's claim that the air maxima sit across Leštane, Ada petlja and Borča is refuted by the latest hour ending at 21:00 source label (20:00 estimated UTC) [F3], where Leštane holds the highest values for both PM10 at 34 µg/m³ across 31 stations and PM2.5 at 23 µg/m³ across 31 stations while Ada petlja holds the highest NO2 at 45 µg/m³ across 32 stations [F4, F6, F8]. Between the 20:00 and 21:00 source-labelled hours, the highest measured PM10 moved from 42 to 34 µg/m³ [F5], PM2.5 from 31 to 23 µg/m³ [F9], and NO2 from 49 to 45 µg/m³ [F7], though whether the earlier maxima sat at the same stations remains unrecorded. Observer's stale counts are likewise superseded by 8714 values from 45 Sensor.Community instruments with last reception 7 min ago [F10], 1702 values from 32 SEPA instruments with last reception 12 min ago [F2], and displayed free spaces at Parkiralište \"Belvil\" shifting from 203 to 396 without measurement times [F11, F12].",
+      "id": "mind-20261102203531-13",
+      "naslov": "Odbijena formulacija (EN): Connector's claim that the air maxima sit across Leštane, Ada petlja and Borča is refuted by the latest hour ending at 21:00 source label (20:00 estimated UTC) [F3], where Leštane holds the highest values for both PM10 at 34 µg/m³ across 31 stations and",
       "t": "2026-11-02T20:35:31.731051Z",
       "score": 0,
       "razlog": [
@@ -1820,8 +672,8 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261102205131-7",
-      "naslov": "Odbijena formulacija (EN): Connector already placed the particle extremes, but the gas does not follow them: the NO2 top is at Ada petlja and its floor at Stojčino brdo [F6], and neither station is a particle extreme [F4, F8]. Blic delivered nothing in the last 6 h, 0 of 96 slots [F32], yet its cable-theft headline is the anchor of all three links the organelle pairs with unrelated items [F50, F51, F52], so the most 'surprising' connections rest on a source that is silent.",
+      "id": "mind-20261102205131-11",
+      "naslov": "Odbijena formulacija (EN): Connector already placed the particle extremes, but the gas does not follow them: the NO2 top is at Ada petlja and its floor at Stojčino brdo [F6], and neither station is a particle extreme [F4, F8]. Blic delivered nothing in the last 6 h, 0 of 96 slots",
       "t": "2026-11-02T20:51:31.607893Z",
       "score": 0,
       "razlog": [
@@ -1831,7 +683,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261102205531-6",
+      "id": "mind-20261102205531-10",
       "naslov": "Mali model je ocenio iznenađenje veza: F50 4/5, F51 4/5, F52 4/5, F12 3/5, F5 2/5, F9 2/5, F7 1/5. Procena, ne merenje.",
       "t": "2026-11-02T20:55:31.615385Z",
       "score": 0,
@@ -1840,8 +692,8 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261102205953-5",
-      "naslov": "Odbijena formulacija (EN): Connector's convergence of lows at Krnjača is real [F4, F8], but it is a minimum across 31 stations, not evidence of a shared cause, and our record has no usual level to compare against [F49]. The maxima falling from 42 to 34 and from 31 to 23 [F5, F9] are label-hour differences from a source that labels local time as Z [F3], so I will not call them a decline of anything beyond that. Observer's Belvil jump from 210 to 399 [F12] comes from a source that publishes no measurement time [F11], so the two receptions may be an arbitrary distance apart and the jump says nothing about when it happened.",
+      "id": "mind-20261102205953-9",
+      "naslov": "Odbijena formulacija (EN): Connector's convergence of lows at Krnjača is real [F4, F8], but it is a minimum across 31 stations, not evidence of a shared cause, and our record has no usual level to compare against [F49]. The maxima falling from 42 to 34 and from 31 to 23 [F5, F9] ",
       "t": "2026-11-02T20:59:53.693689Z",
       "score": 0,
       "razlog": [
@@ -1852,8 +704,8 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261102212731-3",
-      "naslov": "Odbijena formulacija (EN): Connector noted the Belvil shift to 399 free spaces, and the record now shows that largest movement went from 242 to 399 across 621 values from 27 locations received 24 min ago without measurement time [F11, F12]. SEPA has not reported for 64 min across its 32 instruments and 1459 values in the last 6 h [F2], while citizen sensors reported 19 min ago from 45 instruments with 8520 values [F10]. The lowest readings in that last hour sit at 6 µg/m³ in Krnjača for both PM10 and PM2.5 [F4, F8] and 7 µg/m³ at Stojčino brdo for NO2 [F6].",
+      "id": "mind-20261102212731-7",
+      "naslov": "Odbijena formulacija (EN): Connector noted the Belvil shift to 399 free spaces, and the record now shows that largest movement went from 242 to 399 across 621 values from 27 locations received 24 min ago without measurement time [F11, F12]. SEPA has not reported for 64 min across",
       "t": "2026-11-02T21:27:31.645192Z",
       "score": 0,
       "razlog": [
@@ -1867,7 +719,7 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261102213132-2",
+      "id": "mind-20261102213132-6",
       "naslov": "Mali model je ocenio iznenađenje veza: F50 5/5, F51 5/5, F52 5/5, F12 4/5, F5 3/5, F7 2/5, F9 2/5. Procena, ne merenje.",
       "t": "2026-11-02T21:31:32.898515Z",
       "score": 0,
@@ -1876,8 +728,8 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261102213931-1",
-      "naslov": "Odbijena formulacija (EN): Connector claims both particle tops sit at Leštane, yet the record now places both the PM10 maximum of 22 µg/m³ and the PM2.5 maximum of 16 µg/m³ at Obrenovac Centar, while both minima of 4 µg/m³ and 3 µg/m³ sit at Vračar Dom zdravlja [F4, F8]. The highest measured values moved from 34 to 22 µg/m³ for PM10 [F5], from 23 to 16 µg/m³ for PM2.5 [F9], and from 45 to 40 µg/m³ for NO2 at Ada petlja [F6, F7] between the source-labelled hours 21:00 and 22:00, but with 0 days out of the needed 30 days in our record we cannot call these shifts unusual or evidence of broad clearing [F49]. Although SEPA logged 1703 values across 32 instruments [F2] and Sensor.Community delivered 8487 values across 45 instruments in the last 6 h [F10], those totals do not show whether concentrations at Leštane fell or were merely surpassed at Obrenovac Centar [F4, F8].",
+      "id": "mind-20261102213931-5",
+      "naslov": "Odbijena formulacija (EN): Connector claims both particle tops sit at Leštane, yet the record now places both the PM10 maximum of 22 µg/m³ and the PM2.5 maximum of 16 µg/m³ at Obrenovac Centar, while both minima of 4 µg/m³ and 3 µg/m³ sit at Vračar Dom zdravlja [F4, F8]. The high",
       "t": "2026-11-02T21:39:31.702807Z",
       "score": 0,
       "razlog": [
@@ -1890,18 +742,38 @@
     },
     {
       "vrsta": "misao_odbijena",
-      "id": "mind-20261102215531-0",
-      "naslov": "Odbijena formulacija (EN): While Observer attends to parking spaces, official stations record declining particle peaks: PM10 moved from 34 to 22 µg/m³ [F5] and PM2.5 from 23 to 16 µg/m³ [F9], with both maxima resting at Obrenovac Centar [F4, F8]. Concurrently, the NO2 maximum shifted from 45 to 40 µg/m³ at Ada petlja [F6, F7].",
+      "id": "mind-20261102215531-4",
+      "naslov": "Odbijena formulacija (EN): While Observer attends to parking spaces, official stations record declining particle peaks: PM10 moved from 34 to 22 µg/m³ [F5] and PM2.5 from 23 to 16 µg/m³ [F9], with both maxima resting at Obrenovac Centar [F4, F8]. Concurrently, the NO2 maximum shi",
       "t": "2026-11-02T21:55:31.684217Z",
       "score": 0,
       "razlog": [
         "unsupported clock in next_check"
       ],
+      "zasto": "odbijena — javna, van rang-liste"
+    },
+    {
+      "vrsta": "misao_odbijena",
+      "id": "mind-20261102221932-3",
+      "naslov": "Odbijena formulacija (EN): The particle tops did not stay at Leštane: in the hour ending 22:00 by the source label, both PM10 and PM2.5 peak at Obrenovac Centar, 22 and 16 µg/m³ [F4, F8], while PM10 fell from 34 to 22 [F5] and PM2.5 from 23 to 16 [F9]. The NO2 top is still at Ada",
+      "t": "2026-11-02T22:19:32.067732Z",
+      "score": 0,
+      "razlog": [
+        "number 22 belongs to PM10, not PM2.5"
+      ],
+      "zasto": "odbijena — javna, van rang-liste"
+    },
+    {
+      "vrsta": "misao_odbijena",
+      "id": "mind-20261102222731-2",
+      "naslov": "Mali model je ocenio iznenađenje veza: F5 2/5, F9 2/5, F12 2/5, F7 1/5, F50 1/5, F51 1/5, F52 1/5. Procena, ne merenje.",
+      "t": "2026-11-02T22:27:31.882407Z",
+      "score": 0,
+      "razlog": "A small model rated the connections by surprise: F5 2/5, F9 2/5, F12 2/5, F7 1/5, F50 1/5, F51 1/5, F52 1/5. An estimate, not a measurement.",
       "zasto": "odbijena — javna, van rang-liste"
     }
   ],
   "dedup_najave_uklonjeno": 0,
   "vesti_van_grada_po_sadrzaju": 0,
   "najave_prepravljene_po_naslovu": 0,
-  "ukupno": 1368
+  "ukupno": 1375
 }
