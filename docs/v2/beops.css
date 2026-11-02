@@ -579,7 +579,8 @@ table.kv td.sec { font-weight: 700; font-size: 12px; text-transform: uppercase; 
 }
 .danas-trend-box {
   border: 1px solid var(--line); border-radius: 8px;
-  padding: 14px 18px; margin-top: 12px; background: var(--paper);
+  padding: 16px 20px; margin-top: 16px; background: var(--paper);
+  box-shadow: 0 8px 24px rgba(31, 41, 37, 0.06);
 }
 
 .istaknuto.ist-grid {
@@ -606,3 +607,34 @@ table.kv td.sec { font-weight: 700; font-size: 12px; text-transform: uppercase; 
   .vodic-grid, .istaknuto.ist-grid { grid-template-columns: 1fr; }
   .eaqi-bar { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* Vizuelni sloj #danas: .hc hero u boji EAQI nivoa; beli tekst na svakoj
+   bazi ≥ 4.5:1; pločice dišu; vodič broji korake; naslovi nose liniju. */
+.metrics { box-shadow: 0 10px 30px #13644d14, 0 1px 0 #13644d0a; }
+.metric { position: relative; }
+.metric::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--green); opacity: 0; transition: opacity .15s ease; }
+.metric:hover::before { opacity: .9; }
+.metric .label { color: var(--green); font-size: 10.5px; letter-spacing: .04em; }
+.metric .value { font-size: 33px; letter-spacing: -.5px; }
+.metric.hc { border-left: 0; color: #fff; }
+.metric.hc .label { color: #ffffffeb; }
+.metric.hc .value { color: #fff; font-size: 44px; text-shadow: 0 1px 0 #0000002e; }
+.metric.hc .value small { color: #fffffff2; font-size: 13px; }
+.metric.hc :is(.stamp,.cat,.delta) { color: #ffffffd9; }
+.metric.hc .delta .up { color: #ffe1d6; }
+.metric.hc .delta .down { color: #c9f3dd; }
+.metric.hc .delta .flat { color: #ffffffb8; }
+.metric.hc .pill { background: #ffffff24; border-color: #ffffff73; color: #fff; }
+.metric.hc .pill.ref { border-color: #fff; }
+.metric.hc .eaqi-seg { background: #ffffff1f; border-color: #ffffff4d; color: #ffffffcc; }
+.metric.hc .eaqi-seg.active { background: #fff; border-color: #fff; color: #23352e; box-shadow: none; font-weight: 700; }
+.metric.hc .eaqi-tag { background: #ffffffeb; color: #23352e; border-color: transparent; }
+.metric.hc::before { background: #ffffff73; }
+:root[data-theme=dark] .metric.hc :is(.eaqi-seg.active,.eaqi-tag) { color: #161a18; }
+
+.vodic-grid { counter-reset: vodic; }
+.vodic-card { position: relative; overflow: hidden; box-shadow: 0 6px 20px #1f29250d; transition: transform .12s ease, box-shadow .12s ease; }
+.vodic-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px #1f29251a; }
+.vodic-card::after { counter-increment: vodic; content: counter(vodic, decimal-leading-zero); position: absolute; right: 10px; top: 0; font: italic 42px Georgia, "Times New Roman", serif; color: var(--green); opacity: .15; pointer-events: none; }
+h2 { display: flex; align-items: center; gap: 10px; }
+h2::after { content: ""; flex: 1; height: 1px; background: var(--grid); }

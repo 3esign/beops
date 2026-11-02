@@ -194,7 +194,11 @@ function heroPulsGrid() {
   const met = cm.meteo || {};
   const grid = el('div', 'metrics');
 
-  const hero = el('article', 'metric wide hero-card');
+  const hero = el('article', 'metric wide hero-card hc');
+  const C = { 1: ['#0e5440', '#13644d', '#279e63'], 2: ['#0d5f4c', '#17806a', '#2f9e7d'], 3: ['#5f4a00', '#7d6100', '#9d7b00'], 4: ['#8a3d12', '#a54a17', '#c05a1e'], 5: ['#8f3322', '#aa3f2a', '#c24b31'], 6: ['#6e1f3d', '#8c284d', '#a52e5d'] };
+  const c = C[Math.min(6, Math.max(1, eq.level || 1))];
+  hero.style.background = 'linear-gradient(135deg,' + c[0] + ',' + c[1] + ' 55%,' + c[2] + ')';
+  hero.style.boxShadow = '0 12px 32px ' + c[1] + '59';
   const hTop = el('div', 'hero-top');
   hTop.appendChild(el('span', 'label', T().pulsSadaTitle));
   if (P.as_of) hTop.appendChild(stampEl(P.as_of, 5));
