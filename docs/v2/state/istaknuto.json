@@ -1,6 +1,6 @@
 {
   "schema": "beops-v2-istaknuto/v1",
-  "generated_at": "2026-11-02T06:45:22.851Z",
+  "generated_at": "2026-11-02T06:53:15.490Z",
   "as_of": "2026-11-02T06:28:05.549Z",
   "formula": {
     "oblik": "0.15·gate + 0.25·svezina + 0.25·magnituda + 0.20·korak + 0.15·masa (nedostajuće komponente se izbacuju, težine se normališu)",
@@ -79,8 +79,8 @@
         "ime": "Vazduh",
         "n": 276,
         "najjaca": {
-          "id": "S04:pm10",
-          "score": 0.8648
+          "id": "f58ccfd5b15215b5",
+          "score": 0.7117
         }
       },
       "mobilnost": {
@@ -208,54 +208,6 @@
     ]
   },
   "top": [
-    {
-      "vrsta": "merenje",
-      "id": "S04:pm10",
-      "naslov": "PM10 0 µg/m³ — 97343",
-      "t": "2026-11-02T06:27:00Z",
-      "rx": "2026-11-02T06:28:02.827834Z",
-      "as_of": "2026-11-02T06:28:05.549Z",
-      "state": "observed",
-      "score": 0.8648,
-      "komponente": {
-        "gate": 1,
-        "svezina": 0.991,
-        "magnituda": 0.636,
-        "korak": 0.9,
-        "masa": 0.854
-      },
-      "zasto": "gate 1 (observed) · svezina 0.99 (Δ 1 min, τ=120 min) · magnituda 0.64 (0 protiv sat-opsega 9.5–43.8 u 6h) · korak 0.9 · masa 0.85 (hex 12168 stanovnika)",
-      "traka_vreme": "sada",
-      "traka_prostor": "centar",
-      "tema": "vazduh",
-      "tema_ime": "Vazduh",
-      "link": "mesto:S04",
-      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-    },
-    {
-      "vrsta": "merenje",
-      "id": "S04:pm25",
-      "naslov": "PM2.5 0 µg/m³ — 97343",
-      "t": "2026-11-02T06:27:00Z",
-      "rx": "2026-11-02T06:28:02.827834Z",
-      "as_of": "2026-11-02T06:28:05.549Z",
-      "state": "observed",
-      "score": 0.8478,
-      "komponente": {
-        "gate": 1,
-        "svezina": 0.991,
-        "magnituda": 0.568,
-        "korak": 0.9,
-        "masa": 0.854
-      },
-      "zasto": "gate 1 (observed) · svezina 0.99 (Δ 1 min, τ=120 min) · magnituda 0.57 (0 protiv sat-opsega 8.8–42.8 u 6h) · korak 0.9 · masa 0.85 (hex 12168 stanovnika)",
-      "traka_vreme": "sada",
-      "traka_prostor": "centar",
-      "tema": "vazduh",
-      "tema_ime": "Vazduh",
-      "link": "mesto:S04",
-      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-    },
     {
       "vrsta": "merenje",
       "id": "S10:free_spaces",
@@ -390,6 +342,54 @@
     },
     {
       "vrsta": "vest",
+      "id": "f58ccfd5b15215b5",
+      "naslov": "Sneg će zavejati ove delove Srbije; Od ovog datuma se sve menja",
+      "t": "2026-11-02T06:19:00Z",
+      "as_of": "2026-11-02T06:28:05.549Z",
+      "state": "estimated",
+      "score": 0.7117,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 0.975,
+        "magnituda": null,
+        "korak": 0.7,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.98 (pre 9 min, τ=360 min) · korak 0.7 (vreme_i_vazduh) · masa 0.5",
+      "traka_vreme": "sada",
+      "traka_prostor": "grad",
+      "tema": "vazduh",
+      "tema_ime": "Vreme i vazduh",
+      "link": "vest:S198",
+      "izvor": "news-sorter",
+      "vreme_tekst": null
+    },
+    {
+      "vrsta": "merenje",
+      "id": "S04:pm10",
+      "naslov": "PM10 3.03 µg/m³ — 47427",
+      "t": "2026-11-02T06:26:15Z",
+      "rx": "2026-11-02T06:28:02.827834Z",
+      "as_of": "2026-11-02T06:28:05.549Z",
+      "state": "observed",
+      "score": 0.7096,
+      "komponente": {
+        "gate": 1,
+        "svezina": 0.985,
+        "magnituda": 0.021,
+        "korak": 0.9,
+        "masa": 0.854
+      },
+      "zasto": "gate 1 (observed) · svezina 0.98 (Δ 2 min, τ=120 min) · magnituda 0.02 (3.03 ispod sat-proseka (9.5–43.8 u 6h)) · korak 0.9 · masa 0.85 (hex 12168 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "centar",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S04",
+      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+    },
+    {
+      "vrsta": "vest",
       "id": "65495477899a48da",
       "naslov": "Zelenski uslovljava prekid napada na ruske rafinerije isporukom američkih raketa",
       "t": "2026-11-02T05:40:10Z",
@@ -512,21 +512,45 @@
   "korak_za_gradjanina": [
     {
       "vrsta": "merenje",
+      "id": "S146:pm25",
+      "naslov": "PM2.5 3.65 µg/m³ — Vračar",
+      "t": "2026-11-02T07:00:00Z",
+      "rx": "2026-11-02T06:23:02.051994Z",
+      "as_of": "2026-11-02T06:28:05.549Z",
+      "state": "estimated",
+      "score": 0.6624,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 1,
+        "magnituda": 0.03,
+        "korak": 0.9,
+        "masa": 1
+      },
+      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -32 min, τ=120 min) · magnituda 0.03 (3.65 ispod sat-proseka (7.7–39.2 u 7h)) · korak 0.9 · masa 1.00 (hex 14242 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "centar",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S146",
+      "izvor": "SEPA air quality HVD API - hourly preliminary means"
+    },
+    {
+      "vrsta": "merenje",
       "id": "S146:pm10",
       "naslov": "PM10 3.96 µg/m³ — Vračar",
       "t": "2026-11-02T07:00:00Z",
       "rx": "2026-11-02T06:23:02.051994Z",
       "as_of": "2026-11-02T06:28:05.549Z",
       "state": "estimated",
-      "score": 0.7803,
+      "score": 0.6619,
       "komponente": {
         "gate": 0.5,
         "svezina": 1,
-        "magnituda": 0.501,
+        "magnituda": 0.028,
         "korak": 0.9,
         "masa": 1
       },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -32 min, τ=120 min) · magnituda 0.50 (3.96 protiv sat-opsega 8.8–43.8 u 7h) · korak 0.9 · masa 1.00 (hex 14242 stanovnika)",
+      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -32 min, τ=120 min) · magnituda 0.03 (3.96 ispod sat-proseka (8.8–43.8 u 7h)) · korak 0.9 · masa 1.00 (hex 14242 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "centar",
       "tema": "vazduh",
@@ -537,20 +561,44 @@
     {
       "vrsta": "merenje",
       "id": "S146:pm25",
-      "naslov": "PM2.5 3.65 µg/m³ — Vračar",
+      "naslov": "PM2.5 7.37 µg/m³ — Stari grad",
       "t": "2026-11-02T07:00:00Z",
       "rx": "2026-11-02T06:23:02.051994Z",
       "as_of": "2026-11-02T06:28:05.549Z",
       "state": "estimated",
-      "score": 0.7726,
+      "score": 0.6162,
       "komponente": {
         "gate": 0.5,
         "svezina": 1,
-        "magnituda": 0.47,
+        "magnituda": 0.06,
         "korak": 0.9,
-        "masa": 1
+        "masa": 0.642
       },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -32 min, τ=120 min) · magnituda 0.47 (3.65 protiv sat-opsega 7.7–39.2 u 7h) · korak 0.9 · masa 1.00 (hex 14242 stanovnika)",
+      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -32 min, τ=120 min) · magnituda 0.06 (7.37 ispod sat-proseka (7.7–39.2 u 7h)) · korak 0.9 · masa 0.64 (hex 9137 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "centar",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S146",
+      "izvor": "SEPA air quality HVD API - hourly preliminary means"
+    },
+    {
+      "vrsta": "merenje",
+      "id": "S146:pm10",
+      "naslov": "PM10 8.46 µg/m³ — Stari grad",
+      "t": "2026-11-02T07:00:00Z",
+      "rx": "2026-11-02T06:23:02.051994Z",
+      "as_of": "2026-11-02T06:28:05.549Z",
+      "state": "estimated",
+      "score": 0.616,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 1,
+        "magnituda": 0.059,
+        "korak": 0.9,
+        "masa": 0.642
+      },
+      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -32 min, τ=120 min) · magnituda 0.06 (8.46 ispod sat-proseka (8.8–43.8 u 7h)) · korak 0.9 · masa 0.64 (hex 9137 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "centar",
       "tema": "vazduh",
@@ -566,65 +614,17 @@
       "rx": "2026-11-02T06:23:02.051994Z",
       "as_of": "2026-11-02T06:28:05.549Z",
       "state": "estimated",
-      "score": 0.7467,
+      "score": 0.6128,
       "komponente": {
         "gate": 0.5,
         "svezina": 1,
-        "magnituda": 0.551,
+        "magnituda": 0.015,
         "korak": 0.9,
         "masa": 0.693
       },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -32 min, τ=120 min) · magnituda 0.55 (2.21 protiv sat-opsega 8.8–43.8 u 7h) · korak 0.9 · masa 0.69 (hex 9866 stanovnika)",
+      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -32 min, τ=120 min) · magnituda 0.02 (2.21 ispod sat-proseka (8.8–43.8 u 7h)) · korak 0.9 · masa 0.69 (hex 9866 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "centar",
-      "tema": "vazduh",
-      "tema_ime": "Vazduh",
-      "link": "mesto:S146",
-      "izvor": "SEPA air quality HVD API - hourly preliminary means"
-    },
-    {
-      "vrsta": "merenje",
-      "id": "S146:pm25",
-      "naslov": "PM2.5 1.81 µg/m³ — Vračar Dom zdravlja",
-      "t": "2026-11-02T07:00:00Z",
-      "rx": "2026-11-02T06:23:02.051994Z",
-      "as_of": "2026-11-02T06:28:05.549Z",
-      "state": "estimated",
-      "score": 0.7411,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 1,
-        "magnituda": 0.529,
-        "korak": 0.9,
-        "masa": 0.693
-      },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -32 min, τ=120 min) · magnituda 0.53 (1.81 protiv sat-opsega 7.7–39.2 u 7h) · korak 0.9 · masa 0.69 (hex 9866 stanovnika)",
-      "traka_vreme": "sada",
-      "traka_prostor": "centar",
-      "tema": "vazduh",
-      "tema_ime": "Vazduh",
-      "link": "mesto:S146",
-      "izvor": "SEPA air quality HVD API - hourly preliminary means"
-    },
-    {
-      "vrsta": "merenje",
-      "id": "S146:pm10",
-      "naslov": "PM10 3.99 µg/m³ — Mirijevo",
-      "t": "2026-11-02T07:00:00Z",
-      "rx": "2026-11-02T06:23:02.051994Z",
-      "as_of": "2026-11-02T06:28:05.549Z",
-      "state": "estimated",
-      "score": 0.7083,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 1,
-        "magnituda": 0.5,
-        "korak": 0.9,
-        "masa": 0.521
-      },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -32 min, τ=120 min) · magnituda 0.50 (3.99 protiv sat-opsega 8.8–43.8 u 7h) · korak 0.9 · masa 0.52 (hex 7424 stanovnika)",
-      "traka_vreme": "sada",
-      "traka_prostor": "unutrasnja",
       "tema": "vazduh",
       "tema_ime": "Vazduh",
       "link": "mesto:S146",
