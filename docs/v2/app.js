@@ -6,7 +6,7 @@ const SERIES_IDS = ['pm25', 'pm10', 'temperature', 'humidity'];
 let serijePromise = null;
 
 function jfetch(path) {
-  return fetch(path).then(r => { if (!r.ok) throw new Error(path + ' ' + r.status); return r.json(); });
+  return fetch(path, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(path + ' ' + r.status); return r.json(); });
 }
 function loadCore() {
   return Promise.all([
@@ -1407,7 +1407,7 @@ function boot() {
   window.addEventListener('hashchange', route);
   const root = document.getElementById('view');
   root.appendChild(el('p', 'sub', T().tangierUcitavanje));
-  loadCore().then(() => { applyTopStamp(); route(); }, err => {
+  loadCore().then(() => { applyTopStamp(); route(); }).catch(err => {
     root.textContent = '';
     root.appendChild(el('p', 'razlog', T().nemaPodataka + ' (' + err.message + ')'));
   });
