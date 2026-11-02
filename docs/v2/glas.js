@@ -54,7 +54,7 @@
   }
   function redGlasa(art, id) {
     const g = mojiGlasovi();
-    if (g[id]) return; // jedan glas po misli u ovom brauzeru — bez ponavljanja
+    if (!id || g[id] || art.querySelector('.glas-red')) return; // jedan glas po misli u ovom brauzeru — bez ponavljanja
     const P = POR[sk()], red = el('div', 'glas-red');
     const p = el('span', 'glas-pitanje', P.pitanje);
     const poruka = el('span', 'glas-poruka');
@@ -72,8 +72,8 @@
     const g = mojiGlasovi();
     for (const art of document.querySelectorAll('article[data-misao]')) {
       const id = art.getAttribute('data-misao');
+      if (!id || art.querySelector('.glas-red')) continue;
       if (!g[id]) { redGlasa(art, id); continue; }
-      if (art.querySelector('.glas-red')) continue;
       const red = el('div', 'glas-red glasano'), P = POR[sk()];
       red.append(el('span', 'glas-pitanje', P.M + ' · ' + (g[id].odluka === 'korisno' ? P.korisno : P.nekorisno)), el('span', 'glas-poruka', P.poslato));
       art.appendChild(red);
