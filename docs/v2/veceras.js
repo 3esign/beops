@@ -49,6 +49,23 @@
     return row;
   }
 
+  function prazna(sl) {
+    const row = el('article', 'ist-red');
+    row.appendChild(el('span', 'tag outline vc-vreme', T().vecerasPraznoTag));
+    const mid = el('div', 'ist-mid');
+    mid.appendChild(el('p', 'meta', T().vecerasPrazno));
+    if (sl) {
+      const tl = String(sl.tl || sl.t || '');
+      const a = el('a', 'naslov', T().vecerasSledeci + tl.slice(8, 10) + '.' + tl.slice(5, 7) + '. ' + tl.slice(11, 16) + ' · ' + sl.n);
+      a.href = sl.u || '#';
+      a.rel = 'noopener';
+      mid.appendChild(a);
+      mid.appendChild(el('p', 'meta', sl.m || ''));
+    }
+    row.appendChild(mid);
+    return row;
+  }
+
   function napravi() {
     if (!data || typeof el !== 'function' || typeof T !== 'function') return false;
     const view = document.getElementById('view');
@@ -57,14 +74,18 @@
     if (view.querySelector('section.veceras')) return true; // idempotentno
 
     const dan = lokalniDatum();
-    const veceras = (data.events || []).filter(e => String(e.tl || e.t || '').slice(0, 10) === dan);
+    const evts = data.events || [];
+    const veceras = evts.filter(e => String(e.tl || e.t || '').slice(0, 10) === dan);
     const tokovi = (data.runs || []).slice(0, 3);
-    if (!veceras.length && !tokovi.length) return true; // tišina je iskren odgovor
+    const sledeci = evts.filter(e => String(e.tl || e.t || '').slice(0, 10) > dan)
+      .sort((a, b) => String(a.tl || a.t).localeCompare(String(b.tl || b.t)))[0] || null;
+    if (!veceras.length && !tokovi.length && !sledeci) return true; // ugovor bez termina — tišina je iskren odgovor
 
     const sec = el('section', 'veceras');
     sec.appendChild(el('h2', null, T().vecerasTitle));
     sec.appendChild(el('hr', 'rule'));
     const list = el('div', 'istaknuto ist-grid');
+    if (!veceras.length) list.appendChild(prazna(sledeci));
     for (const e of veceras.slice(0, 6)) {
       list.appendChild(kartica(e, { klasa: 'vc-vreme', tekst: (e.tl || e.t).slice(11, 16) }));
     }
