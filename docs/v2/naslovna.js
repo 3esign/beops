@@ -64,8 +64,9 @@
     document.head.appendChild(s);
   }
 
-  function sparkline(pts, w, h, ref) {
-    const xs = pts.map(p => p[1]).filter(v => typeof v === 'number');
+  function sparkline(rawPts, w, h, ref) {
+    const pts = rawPts.filter(p => p && typeof p[1] === 'number');
+    const xs = pts.map(p => p[1]);
     const svg = sv('svg', { viewBox: '0 0 ' + w + ' ' + h, 'aria-hidden': 'true' });
     if (xs.length < 2) return svg;
     const min = Math.min.apply(null, xs), max = Math.max.apply(null, xs);
@@ -224,23 +225,26 @@
       const treba = { puls: 'state/puls.json', lite: 'state/mapa-lite.json', kvorum: 'state/organizam.json' };
       const keys = Object.keys(treba).filter(k => !data[k]);
       if (keys.length) {
-        keys.forEach(k => { if (k === 'kvorum') treba[k] = treba[k]; });
         Promise.allSettled(keys.map(k => jf(treba[k]))).then(rs => {
           rs.forEach((r, i) => {
             const k = keys[i];
             if (r.status === 'fulfilled') data[k] = (k === 'kvorum') ? (r.value.kvorum || null) : r.value;
           });
           napravi(view);
+          traziSerije();
         });
         return;
       }
       napravi(view);
-      if (!data.serije._trazio) {
-        data.serije._trazio = true;
-        const ime = { pm25: 'serije/pm25.json', pm10: 'serije/pm10.json', temperature: 'serije/temperature.json', humidity: 'serije/humidity.json' };
-        Object.keys(ime).forEach(k => jf(ime[k]).then(m => { data.serije[k] = m; osvezi(); }, () => { }));
-      }
+      traziSerije();
     });
+  }
+
+  function traziSerije() {
+    if (data.serije._trazio) return;
+    data.serije._trazio = true;
+    const ime = { pm25: 'serije/pm25.json', pm10: 'serije/pm10.json', temperature: 'serije/temperature.json', humidity: 'serije/humidity.json' };
+    Object.keys(ime).forEach(k => jf(ime[k]).then(m => { data.serije[k] = m; osvezi(); }, () => { }));
   }
 
   function osvezi() {
