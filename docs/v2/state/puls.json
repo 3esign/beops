@@ -1,9 +1,9 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-04T05:17:08.736716+00:00",
-  "as_of": "2026-11-04T05:03:02.255489Z",
+  "generated_at": "2026-11-04T05:33:22.616737+00:00",
+  "as_of": "2026-11-04T05:18:05.593978Z",
   "city_status": {
-    "aqi_us": 71,
+    "aqi_us": 69,
     "aqi_standard": "US EPA 2024 + EEA EAQI",
     "category": "umeren",
     "dominant_pollutant": "PM2.5",
@@ -23,77 +23,130 @@
   },
   "current_metrics": {
     "pm25": {
-      "mean": 19.8,
-      "median": 19.4,
-      "min": 15.3,
-      "max": 28.0,
+      "mean": 18.7,
+      "median": 17.9,
+      "min": 13.8,
+      "max": 26.0,
       "max_station": "Zeleno brdo",
       "unit": "µg/m³",
       "sensors_count": 31,
       "network": "reference"
     },
     "pm10": {
-      "mean": 21.8,
-      "median": 21.3,
-      "min": 16.7,
-      "max": 30.3,
-      "max_station": "Zeleno brdo",
+      "mean": 20.3,
+      "median": 19.5,
+      "min": 15.2,
+      "max": 29.0,
+      "max_station": "Leštane",
       "unit": "µg/m³",
       "sensors_count": 31,
       "network": "reference"
     },
     "no2": {
-      "mean": 9.8,
-      "median": 9.1,
-      "min": 5.8,
-      "max": 21.3,
+      "mean": 12.5,
+      "median": 12.1,
+      "min": 6.1,
+      "max": 24.7,
       "max_station": "Pančevo Vatrogasni dom",
       "unit": "µg/m³",
       "sensors_count": 32,
       "network": "reference"
     },
     "o3": {
-      "mean": 14.2,
-      "median": 15.5,
-      "min": 3.9,
-      "max": 21.9,
-      "max_station": "Dragiša Mišović",
+      "mean": 12.1,
+      "median": 11.9,
+      "min": 3.4,
+      "max": 19.9,
+      "max_station": "Zeleno brdo",
       "unit": "µg/m³",
       "sensors_count": 26,
       "network": "reference"
     },
     "meteo": {
       "temperature": 9.0,
-      "humidity": 90.5,
-      "pressure": 1008.9,
-      "wind_speed": 2.2,
+      "humidity": 90.4,
+      "pressure": 1009.0,
+      "wind_speed": 2.5,
       "wind_direction": "320.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 15.5,
-      "pm25_median": 16.3,
-      "pm10_mean": 23.8,
+      "pm25_mean": 15.4,
+      "pm25_median": 16.1,
+      "pm10_mean": 26.8,
       "sensors_count": 26,
       "high_humidity_flag": true,
-      "humidity_pct": 90.5,
+      "humidity_pct": 90.4,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
+  "danas_saveti": [
+    {
+      "aktivnost": "napolje_sa_decom",
+      "odluka": "DA",
+      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
+      "dokaz": {
+        "sid": "S146",
+        "param": "PM2.5",
+        "as_of": "2026-11-04T05:18:05.593978Z"
+      }
+    },
+    {
+      "aktivnost": "trcanje",
+      "odluka": "OPREZ",
+      "razlog_sr": "Intenzivan napor produbljuje udah — proceni simptome.",
+      "dokaz": {
+        "sid": "S146",
+        "param": "PM2.5",
+        "as_of": "2026-11-04T05:18:05.593978Z"
+      }
+    },
+    {
+      "aktivnost": "provetravanje",
+      "odluka": "DA",
+      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
+      "dokaz": {
+        "sid": "S146",
+        "param": "PM2.5",
+        "as_of": "2026-11-04T05:18:05.593978Z"
+      }
+    },
+    {
+      "aktivnost": "bicikl",
+      "odluka": "DA",
+      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
+      "dokaz": {
+        "sid": "S146",
+        "param": "PM2.5",
+        "as_of": "2026-11-04T05:18:05.593978Z"
+      }
+    },
+    {
+      "aktivnost": "ves_na_terasi",
+      "odluka": "OPREZ",
+      "razlog_sr": "Vlaga je 90 % — veš se teško suši napolju.",
+      "dokaz": {
+        "sid": "S146+S01,S03,S04",
+        "param": "PM2.5+vlaga",
+        "as_of": "2026-11-04T05:18:05.593978Z"
+      }
+    }
+  ],
   "superintelligence_monologue": {
-    "id": "mind-20261104045141-1",
-    "at": "2026-11-04T04:51:41.073125Z",
-    "speaker": "Posmatrač",
-    "speaker_role": "observer",
-    "text_sr": "Najnoviji SEPA presek postavlja maksimume PM10 i PM2.5 na Zelenom brdu, dok su njihovi minimumi drugde; NO2 umesto toga dostiže maksimum na Pančevu Vatrogasni dom. Između sati označenih izvorom, maksimumi PM10 i PM2.5 su se smanjili, dok se maksimum NO2 nije promenio. [F4][F8][F6][F5][F7][F9]",
-    "text_en": "The latest SEPA slice places the PM10 and PM2.5 maxima at Zeleno brdo, while their minima are elsewhere [F4][F8]; NO2 instead peaks at Pančevo Vatrogasni dom [F6]. Across the source-labelled hours, PM10 and PM2.5 maxima decreased, while the NO2 maximum did not change [F5][F7][F9].",
+    "id": "mind-20261104052732-0",
+    "at": "2026-11-04T05:27:32.963174Z",
+    "speaker": "Povezivač",
+    "speaker_role": "connector",
+    "text_sr": "Najnoviji SEPA sat završava se u 06:00 UTC: PM10 je pao na 29 µg/m³, dok je PM2.5 pao na 26 µg/m³, ali je NO2 porastao na 25 µg/m³ u Pančevu Vatrogasnom domu. To razdvaja obrazac čestica od obrasca azot-dioksida, umesto da podrži jednu promenu na nivou celog grada. [F3][F4][F5][F8][F9][F6][F7]",
+    "text_en": "The latest SEPA hour ends at 06:00 UTC: PM10 fell to 29 µg/m³ while PM2.5 fell to 26 µg/m³ [F3][F4][F5][F8][F9], but NO2 rose to 25 µg/m³ at Pančevo Vatrogasni dom [F6][F7]. This separates the particle pattern from the nitrogen-dioxide pattern rather than supporting a single city-wide change.",
     "hypotheses_sr": [
-      "Polje čestica može biti prostorno strukturisano, a ne jednoliko: oba maksimuma čestica su na Zelenom brdu, dok je PM10 najniži na Zemun TB, a PM2.5 najniži na Vračar Dom zdravlja [F4][F8]. Ovo ostaje prostorna hipoteza, a ne dokaz neuobičajenog nivoa, jer zapis nema utvrđenu satnu osnovu za poređenje [F49]."
+      "Maksimumi čestica možda odražavaju drugačiji prostorni obrazac od NO2: PM10 dostiže maksimum u Leštanima, a PM2.5 na Zelenom brdu, dok NO2 dostiže maksimum u Pančevu Vatrogasnom domu [F4][F6][F8]."
     ],
     "questions_sr": [
-      "Da li će naredni SEPA prijemi zadržati razdvajanje između maksimuma čestica na Zelenom brdu i odvojenih minimuma čestica, dok maksimum NO2 ostaje na Pančevu Vatrogasni dom? [F4][F6][F8]"
+      "Da li će naredni označeni sati zadržati razdvajanje maksimuma čestica od maksimuma NO2? [F4][F6][F8]"
     ],
     "cites": [
+      "F3",
       "F4",
       "F5",
       "F6",
@@ -104,9 +157,9 @@
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-04T04:51:41.073125Z",
+    "last_mind_step": "2026-11-04T05:27:32.963174Z",
     "active_sources_count": 37,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-04T05:03:02.255489Z"
+    "sensors_as_of": "2026-11-04T05:18:05.593978Z"
   }
 }
