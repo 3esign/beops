@@ -21,6 +21,10 @@
     mapa: 'Grad na mapi',
     legendaStanja: { observed: 'izmereno', estimated: 'procenjeno', untimed: 'bez sata', unavailable: 'nema podatka' },
     kvorum: 'Koliko grada javlja (prozor 60 min)',
+    moqli: 'Mogu li danas',
+    odluke: { DA: 'DA', OPREZ: 'OPREZ', NE: 'NE', NEZNAM: 'Ne znam' },
+    boje: { DA: '#50ccaa', OPREZ: '#f0e641', NE: '#ff5050', NEZNAM: '#e6e6e6' },
+    imena: { napolje_sa_decom: 'Napolje sa decom', trcanje: 'Trčanje', provetravanje: 'Provetravanje', bicikl: 'Bicikl', ves_na_terasi: 'Ves na terasi' },
     napomena: 'Eksperimentalni pregled (?naslovna=2). Podrazumevana naslovna ostaje kao i do sada; brojevi nose vreme merenja, ne prognozu.',
     izvor: 'izvor',
     nema: 'Podatak još ne postoji — pišemo to umesto prazne slike.',
@@ -55,6 +59,10 @@
       '.nv-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:.72rem;color:#444;margin-top:6px}' +
       '.nv-legend .k{display:inline-flex;align-items:center;gap:4px}' +
       '.nv-legend .tocka{width:8px;height:8px;border-radius:50%;display:inline-block}' +
+      '.nv-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-top:10px}' +
+      '.nv-card{border:1px solid rgba(0,0,0,.15);border-radius:10px;padding:8px;background:#fff}' +
+      '.nv-card .nv-odluka{font-size:1.3rem;font-weight:700;line-height:1.2}' +
+      '.nv-card .nv-razlog{font-size:.72rem;color:#333;margin-top:4px}' +
       '.nv-kvorum{margin-top:10px;font-size:.8rem}' +
       '.nv-kvorum .bar{height:8px;border-radius:6px;background:#e6e6e6;overflow:hidden;display:inline-block;width:90px;vertical-align:middle}' +
       '.nv-kvorum .bar i{display:block;height:100%}' +
@@ -107,6 +115,43 @@
       t.appendChild(r);
     }
     return t;
+  }
+
+  /* U3 „Mogu li danas" — pet kartica iz puls.json → danas_saveti (★1 ugovor).
+     Svaka kartica: ime, odluka (boja), razlog + dokaz as_of. Bez kartice ako
+     podatak ne postoji — nikad prazan savet (pravilo NEZNAM je na builderu). */
+  function moqliDanas(puls) {
+    const d = puls && Array.isArray(puls.danas_saveti) ? puls.danas_saveti : null;
+    if (!d || !d.length) return null;
+    const wrap = document.createElement('div');
+    wrap.id = 'moqli';
+    const h = document.createElement('h3');
+    h.textContent = STR.moqli;
+    h.className = 'nv-h3';
+    wrap.appendChild(h);
+    const grid = document.createElement('div');
+    grid.className = 'nv-cards';
+    d.forEach(function (k) {
+      const c = document.createElement('div');
+      c.className = 'nv-card';
+      const boja = STR.boje[k.odluka] || STR.boje.NEZNAM;
+      c.style.background = boja;
+      const ime = document.createElement('div');
+      ime.className = 'nv-lbl';
+      ime.textContent = STR.imena[k.aktivnost] || k.aktivnost;
+      const o = document.createElement('div');
+      o.className = 'nv-odluka';
+      o.textContent = STR.odluke[k.odluka] || STR.odluke.NEZNAM;
+      const r = document.createElement('div');
+      r.className = 'nv-razlog';
+      const asOf = k.dokaz && k.dokaz.as_of ? String(k.dokaz.as_of).slice(11, 16) + ' UTC' : '';
+      r.textContent = (k.razlog || '') + (asOf ? ' · mereno ' + asOf : '');
+      c.title = k.dokaz ? 'dokaz: ' + JSON.stringify(k.dokaz) : '';
+      c.appendChild(ime); c.appendChild(o); c.appendChild(r);
+      grid.appendChild(c);
+    });
+    wrap.appendChild(grid);
+    return wrap;
   }
 
   function gradSada(puls) {
@@ -207,6 +252,8 @@
     const sec = el('section', 'naslovna-v2');
     sec.appendChild(el('h2', null, STR.naslov));
     sec.appendChild(gradSada(data.puls));
+    const mq = moqliDanas(data.puls);
+    if (mq) sec.appendChild(mq);
     sec.appendChild(mapa(data.lite));
     if (data.kvorum) sec.appendChild(kvorumTraka(data.kvorum));
     sec.appendChild(el('p', 'napomena', STR.napomena));
