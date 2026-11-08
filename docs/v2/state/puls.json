@@ -1,79 +1,79 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-08T19:03:25.574156+00:00",
-  "as_of": "2026-11-08T18:58:07.671898Z",
+  "generated_at": "2026-11-08T19:23:25.924012+00:00",
+  "as_of": "2026-11-08T19:13:03.745691Z",
   "city_status": {
-    "aqi_us": 134,
+    "aqi_us": 151,
     "aqi_standard": "US EPA 2024 + EEA EAQI",
-    "category": "nezdrav_za_osetljive",
+    "category": "nezdrav",
     "dominant_pollutant": "PM2.5",
-    "summary_sr": "Vazduh je nezdrav za osetljive grupe građana.",
-    "summary_en": "Air is unhealthy for sensitive groups.",
+    "summary_sr": "Vazduh je nezdrav za celokupnu populaciju; preporučuje se smanjenje fizičkih aktivnosti na otvorenom.",
+    "summary_en": "Air is unhealthy for the general public; reduce outdoor exertion.",
     "eaqi": {
-      "level": 3,
-      "category": "umeren",
-      "label_sr": "Umeren",
-      "label_en": "Moderate",
+      "level": 4,
+      "category": "los",
+      "label_sr": "Loš",
+      "label_en": "Poor",
       "dominant_pollutant": "PM2.5",
-      "advice_general_sr": "Uživajte u uobičajenim aktivnostima na otvorenom.",
-      "advice_sensitive_sr": "Razmotrite smanjenje intenzivnih aktivnosti na otvorenom ako osetite simptome."
+      "advice_general_sr": "Razmotrite smanjenje intenzivnih aktivnosti na otvorenom ako osetite iritaciju grla ili kašalj.",
+      "advice_sensitive_sr": "Smanjite intenzivne aktivnosti na otvorenom (deca, stariji, hronični bolesnici)."
     },
     "reference_stations_count": 30,
     "citizen_sensors_count": 26
   },
   "current_metrics": {
     "pm25": {
-      "mean": 48.9,
-      "median": 47.4,
-      "min": 18.6,
-      "max": 104.3,
+      "mean": 55.9,
+      "median": 52.3,
+      "min": 21.1,
+      "max": 112.4,
       "max_station": "Leštane",
       "unit": "µg/m³",
       "sensors_count": 30,
       "network": "reference"
     },
     "pm10": {
-      "mean": 60.7,
-      "median": 54.7,
-      "min": 21.4,
-      "max": 131.0,
+      "mean": 66.7,
+      "median": 60.9,
+      "min": 24.1,
+      "max": 137.6,
       "max_station": "Leštane",
       "unit": "µg/m³",
       "sensors_count": 30,
       "network": "reference"
     },
     "no2": {
-      "mean": 49.8,
-      "median": 51.3,
-      "min": 13.9,
-      "max": 86.4,
-      "max_station": "Mostar",
+      "mean": 51.8,
+      "median": 50.7,
+      "min": 17.8,
+      "max": 81.2,
+      "max_station": "Franše d’Epere",
       "unit": "µg/m³",
       "sensors_count": 31,
       "network": "reference"
     },
     "o3": {
-      "mean": 17.9,
-      "median": 12.9,
-      "min": 1.0,
-      "max": 44.8,
+      "mean": 13.7,
+      "median": 10.0,
+      "min": 1.1,
+      "max": 43.3,
       "max_station": "Vinča",
       "unit": "µg/m³",
       "sensors_count": 25,
       "network": "reference"
     },
     "meteo": {
-      "temperature": 9.5,
+      "temperature": 9.4,
       "humidity": 73.2,
       "pressure": 1011.7,
-      "wind_speed": 0.5,
+      "wind_speed": 0.6,
       "wind_direction": "0.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 38.4,
-      "pm25_median": 35.8,
-      "pm10_mean": 56.2,
+      "pm25_mean": 35.1,
+      "pm25_median": 30.8,
+      "pm10_mean": 51.8,
       "sensors_count": 26,
       "high_humidity_flag": false,
       "humidity_pct": 73.2,
@@ -83,85 +83,79 @@
   "danas_saveti": [
     {
       "aktivnost": "napolje_sa_decom",
-      "odluka": "DA",
-      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Za decu se preporučuje smanjenje napora napolju.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-08T18:58:07.671898Z"
+        "as_of": "2026-11-08T19:13:03.745691Z"
       }
     },
     {
       "aktivnost": "trcanje",
-      "odluka": "OPREZ",
-      "razlog_sr": "Intenzivan napor produbljuje udah — proceni simptome.",
+      "odluka": "NE",
+      "razlog_sr": "Izdržljivi napor napolju nije preporučljiv.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-08T18:58:07.671898Z"
+        "as_of": "2026-11-08T19:13:03.745691Z"
       }
     },
     {
       "aktivnost": "provetravanje",
-      "odluka": "DA",
-      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Kratko provetravanje — do 10 minuta.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-08T18:58:07.671898Z"
+        "as_of": "2026-11-08T19:13:03.745691Z"
       }
     },
     {
       "aktivnost": "bicikl",
-      "odluka": "DA",
-      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Duže vožnje povećavaju udah prašine — razmisli o kraćoj relaciji.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-08T18:58:07.671898Z"
+        "as_of": "2026-11-08T19:13:03.745691Z"
       }
     },
     {
       "aktivnost": "ves_na_terasi",
-      "odluka": "DA",
-      "razlog_sr": "Vazduh je čist i meteo je povoljan za sušenje.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Prašina se taloži na veš — presvuči ga ili suši u stanu.",
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "PM2.5+vlaga",
-        "as_of": "2026-11-08T18:58:07.671898Z"
+        "as_of": "2026-11-08T19:13:03.745691Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261108171932-7",
-    "at": "2026-11-08T17:19:32.757256Z",
-    "speaker": "Sumnjalo",
-    "speaker_role": "skeptic",
-    "text_sr": "Connectorova tvrdnja o razmaku u prijemu je nestala: SEPA i građanski senzori su poslednji put pristigli pre 11 min. Observerovi maksimumi usmereni na Obrenovac su opovrgnuti Borčom za PM10 261 i PM2.5 236, i Mostarom za NO2 90; neslaganje oznaka izvora me sprečava da pomeranja između 16:00 i 17:00 tretiram kao vremenski sled grada. [F2][F10][F3][F4][F6][F8][F5][F7][F9]",
-    "text_en": "Connector’s claimed reception gap has vanished: SEPA and citizen sensors both last arrived 11 min ago [F2][F10]. Observer’s Obrenovac-centred maxima are contradicted by Borča for PM10 261 and PM2.5 236, and Mostar for NO2 90; the source-label discrepancy prevents me from treating shifts between 16:00 and 17:00 as a city-time sequence [F3][F4][F6][F8][F5][F7][F9].",
+    "id": "mind-20261108190732-0",
+    "at": "2026-11-08T19:07:32.622221Z",
+    "speaker": "Povezivač",
+    "speaker_role": "connector",
+    "text_sr": "Preispitao bih Skeptikovo prostorno tumačenje: Leštane sada beleže maksimume čestica, dok Mostar zadržava maksimum NO2. Primećujem da Pančevo Sodara beleži minimume za te zagađujuće materije, pa zajedničke krajnje tačke za čestice vredi ispitati bez pretpostavke o zajedničkom uzroku. [F4][F6][F8]",
+    "text_en": "I would refine Skeptic’s spatial reading: Leštane now holds the particulate maxima, while Mostar retains the NO2 maximum [F4][F6][F8]. I notice that Pančevo Sodara anchors the minima across those pollutants, making the shared particulate endpoints worth examining without assuming a shared cause [F4][F6][F8].",
     "hypotheses_sr": [
-      "Upareni maksimumi PM10 i PM2.5 u Borči mogu biti lokalizovani, a ne gradski, jer su njihovi minimumi u Krnjači i na Topčiderskoj zvezdi [F4][F8]."
+      "Zajedničke krajnje tačke za čestice u Leštanima i na stanici Pančevo Sodara možda odražavaju prostorni obrazac, a ne izolovano ponašanje stanica [F4][F8]."
     ],
     "questions_sr": [
-      "Da li su vrednosti iz Borče potvrđene ili označene u zvaničnom toku stanice [F2][F4][F8]?"
+      "Da li stanice između Leštana i stanice Pančevo Sodara potvrđuju kontrast u vrednostima čestica [F4][F8]?"
     ],
     "cites": [
-      "F10",
-      "F2",
-      "F3",
       "F4",
-      "F5",
       "F6",
-      "F7",
-      "F8",
-      "F9"
+      "F8"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-08T17:19:32.757256Z",
+    "last_mind_step": "2026-11-08T19:07:32.622221Z",
     "active_sources_count": 36,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-08T18:58:07.671898Z"
+    "sensors_as_of": "2026-11-08T19:13:03.745691Z"
   }
 }
