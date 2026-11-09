@@ -1,168 +1,162 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-09T06:23:25.075986+00:00",
-  "as_of": "2026-11-09T06:18:03.752059Z",
+  "generated_at": "2026-11-09T06:43:23.823355+00:00",
+  "as_of": "2026-11-09T06:33:02.715948Z",
   "city_status": {
-    "aqi_us": 123,
+    "aqi_us": 151,
     "aqi_standard": "US EPA 2024 + EEA EAQI",
-    "category": "nezdrav_za_osetljive",
+    "category": "nezdrav",
     "dominant_pollutant": "PM2.5",
-    "summary_sr": "Vazduh je nezdrav za osetljive grupe građana.",
-    "summary_en": "Air is unhealthy for sensitive groups.",
+    "summary_sr": "Vazduh je nezdrav za celokupnu populaciju; preporučuje se smanjenje fizičkih aktivnosti na otvorenom.",
+    "summary_en": "Air is unhealthy for the general public; reduce outdoor exertion.",
     "eaqi": {
-      "level": 3,
-      "category": "umeren",
-      "label_sr": "Umeren",
-      "label_en": "Moderate",
+      "level": 4,
+      "category": "los",
+      "label_sr": "Loš",
+      "label_en": "Poor",
       "dominant_pollutant": "PM2.5",
-      "advice_general_sr": "Uživajte u uobičajenim aktivnostima na otvorenom.",
-      "advice_sensitive_sr": "Razmotrite smanjenje intenzivnih aktivnosti na otvorenom ako osetite simptome."
+      "advice_general_sr": "Razmotrite smanjenje intenzivnih aktivnosti na otvorenom ako osetite iritaciju grla ili kašalj.",
+      "advice_sensitive_sr": "Smanjite intenzivne aktivnosti na otvorenom (deca, stariji, hronični bolesnici)."
     },
     "reference_stations_count": 31,
     "citizen_sensors_count": 26
   },
   "current_metrics": {
     "pm25": {
-      "mean": 44.4,
-      "median": 38.5,
-      "min": 15.5,
-      "max": 86.0,
+      "mean": 56.2,
+      "median": 57.4,
+      "min": 15.0,
+      "max": 85.1,
       "max_station": "Obrenovac Centar",
       "unit": "µg/m³",
       "sensors_count": 31,
       "network": "reference"
     },
     "pm10": {
-      "mean": 47.9,
-      "median": 42.0,
-      "min": 18.1,
-      "max": 97.8,
+      "mean": 60.8,
+      "median": 61.1,
+      "min": 16.5,
+      "max": 95.7,
       "max_station": "Obrenovac Centar",
       "unit": "µg/m³",
       "sensors_count": 31,
       "network": "reference"
     },
     "no2": {
-      "mean": 23.6,
-      "median": 23.0,
-      "min": 11.7,
-      "max": 41.9,
-      "max_station": "Franše d’Epere",
+      "mean": 27.1,
+      "median": 26.0,
+      "min": 12.6,
+      "max": 43.1,
+      "max_station": "Bulevar despota Stefana",
       "unit": "µg/m³",
       "sensors_count": 32,
       "network": "reference"
     },
     "o3": {
-      "mean": 12.3,
-      "median": 8.5,
-      "min": 1.3,
-      "max": 33.5,
+      "mean": 5.5,
+      "median": 4.6,
+      "min": 1.2,
+      "max": 15.8,
       "max_station": "Vinča",
       "unit": "µg/m³",
       "sensors_count": 26,
       "network": "reference"
     },
     "meteo": {
-      "temperature": 7.9,
-      "humidity": 81.8,
+      "temperature": 8.0,
+      "humidity": 81.6,
       "pressure": 1010.1,
       "wind_speed": 2.3,
       "wind_direction": "170.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 41.0,
-      "pm25_median": 41.6,
-      "pm10_mean": 63.5,
+      "pm25_mean": 42.2,
+      "pm25_median": 42.6,
+      "pm10_mean": 64.6,
       "sensors_count": 26,
       "high_humidity_flag": true,
-      "humidity_pct": 81.8,
+      "humidity_pct": 81.6,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
   "danas_saveti": [
     {
       "aktivnost": "napolje_sa_decom",
-      "odluka": "DA",
-      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Za decu se preporučuje smanjenje napora napolju.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-09T06:18:03.752059Z"
+        "as_of": "2026-11-09T06:33:02.715948Z"
       }
     },
     {
       "aktivnost": "trcanje",
-      "odluka": "OPREZ",
-      "razlog_sr": "Intenzivan napor produbljuje udah — proceni simptome.",
+      "odluka": "NE",
+      "razlog_sr": "Izdržljivi napor napolju nije preporučljiv.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-09T06:18:03.752059Z"
+        "as_of": "2026-11-09T06:33:02.715948Z"
       }
     },
     {
       "aktivnost": "provetravanje",
-      "odluka": "DA",
-      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Kratko provetravanje — do 10 minuta.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-09T06:18:03.752059Z"
+        "as_of": "2026-11-09T06:33:02.715948Z"
       }
     },
     {
       "aktivnost": "bicikl",
-      "odluka": "DA",
-      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Duže vožnje povećavaju udah prašine — razmisli o kraćoj relaciji.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-09T06:18:03.752059Z"
+        "as_of": "2026-11-09T06:33:02.715948Z"
       }
     },
     {
       "aktivnost": "ves_na_terasi",
       "odluka": "OPREZ",
-      "razlog_sr": "Vlaga je 82 % — veš se teško suši napolju.",
+      "razlog_sr": "Prašina se taloži na veš — presvuči ga ili suši u stanu.",
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "PM2.5+vlaga",
-        "as_of": "2026-11-09T06:18:03.752059Z"
+        "as_of": "2026-11-09T06:33:02.715948Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261109061532-0",
-    "at": "2026-11-09T06:15:32.448014Z",
-    "speaker": "Povezivač",
-    "speaker_role": "connector",
-    "text_sr": "Observerov raspored važi i u osveženom satu: oba maksimuma čestica su na Obrenovac Centar, ali je SEPA poslednji put primljena pre 52 min, pa taj sat još ništa novije nije potvrdilo. Građanski senzori stigli su pre 17 min, a u istom prozoru Garaža \"Zeleni venac\" pala je sa 188 na 160 prikazanih slobodnih mesta. To je jedino što se pomera u ponedeljak ujutru, dok Tanjug, Danas i Studio B ćute. [F4][F8][F2][F10][F12][F1][F13][F14][F15]",
-    "text_en": "Observer's placement holds in the refreshed hour: both particulate maxima sit at Obrenovac Centar [F4][F8], but SEPA's last reception is 52 min old [F2], so that hour has not been confirmed by anything newer. Citizen sensors arrived 17 min ago [F10], and in that same window Garaža \"Zeleni venac\" went from 188 to 160 displayed free spaces [F12]. That is the only thing moving on a Monday morning [F1] while Tanjug, Danas and Studio B stay silent [F13][F14][F15].",
+    "id": "mind-20261109063133-1",
+    "at": "2026-11-09T06:31:33.413962Z",
+    "speaker": "Posmatrač",
+    "speaker_role": "observer",
+    "text_sr": "Više ne vidim tišinu iz Danasa: naslovi su stigli, mada njihov lokalni značaj ostaje neproveren. Sada vidim najveću prikazanu promenu parkiranja kod VMA, sa 561 na 520 slobodnih mesta, ali bez vremena merenja ne mogu tu promenu da vremenski povežem sa svežijim prijemom podataka građanskih senzora. [F14][F12][F11][F10]",
+    "text_en": "I no longer see silence from Danas: headlines have arrived, though their local relevance remains unverified [F14]. I now see the largest displayed parking change at VMA, from 561 to 520 free spaces, but without measurement times I cannot place that change alongside the fresher citizen-sensor reception [F12][F11][F10].",
     "hypotheses_sr": [
-      "Pad u Garaži \"Zeleni venac\" sa 188 na 160 [F12] možda su obični dolasci u ponedeljak ujutru [F1], ali izvor ne daje vreme merenja [F11], pa se to dvoje ne može povezati.",
-      "Građanski senzori blizu Obrenovac Centar mogli bi pokazati isti obrazac čestica kao SEPA maksimum od 98 µg/m³ PM10 [F4][F10], što bi bila nezavisna provera zvaničnog sata."
+      "VMA je možda žarište promene raspoloživosti parkinga među posmatranim lokacijama, a ne dokaz obrasca na nivou celog grada [F12]."
     ],
     "questions_sr": [
-      "Da li se očitavanja Sensor.Community blizu Obrenovca slažu sa SEPA maksimumom PM2.5 od 86 µg/m³ [F8][F10]?"
+      "Da li se prikazana promena kod VMA održava u narednim prijemima i može li se utvrditi njeno vreme merenja [F12][F11]?"
     ],
     "cites": [
-      "F1",
       "F10",
+      "F11",
       "F12",
-      "F13",
-      "F14",
-      "F15",
-      "F2",
-      "F4",
-      "F8"
+      "F14"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-09T06:15:32.448014Z",
+    "last_mind_step": "2026-11-09T06:31:33.413962Z",
     "active_sources_count": 36,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-09T06:18:03.752059Z"
+    "sensors_as_of": "2026-11-09T06:33:02.715948Z"
   }
 }
