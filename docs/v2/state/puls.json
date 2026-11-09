@@ -1,162 +1,157 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-09T12:23:24.641137+00:00",
-  "as_of": "2026-11-09T12:13:16.091621Z",
+  "generated_at": "2026-11-09T12:33:23.327796+00:00",
+  "as_of": "2026-11-09T12:28:10.613771Z",
   "city_status": {
-    "aqi_us": 152,
+    "aqi_us": 136,
     "aqi_standard": "US EPA 2024 + EEA EAQI",
-    "category": "nezdrav",
+    "category": "nezdrav_za_osetljive",
     "dominant_pollutant": "PM2.5",
-    "summary_sr": "Vazduh je nezdrav za celokupnu populaciju; preporučuje se smanjenje fizičkih aktivnosti na otvorenom.",
-    "summary_en": "Air is unhealthy for the general public; reduce outdoor exertion.",
+    "summary_sr": "Vazduh je nezdrav za osetljive grupe građana.",
+    "summary_en": "Air is unhealthy for sensitive groups.",
     "eaqi": {
-      "level": 4,
-      "category": "los",
-      "label_sr": "Loš",
-      "label_en": "Poor",
+      "level": 3,
+      "category": "umeren",
+      "label_sr": "Umeren",
+      "label_en": "Moderate",
       "dominant_pollutant": "PM2.5",
-      "advice_general_sr": "Razmotrite smanjenje intenzivnih aktivnosti na otvorenom ako osetite iritaciju grla ili kašalj.",
-      "advice_sensitive_sr": "Smanjite intenzivne aktivnosti na otvorenom (deca, stariji, hronični bolesnici)."
+      "advice_general_sr": "Uživajte u uobičajenim aktivnostima na otvorenom.",
+      "advice_sensitive_sr": "Razmotrite smanjenje intenzivnih aktivnosti na otvorenom ako osetite simptome."
     },
     "reference_stations_count": 31,
     "citizen_sensors_count": 26
   },
   "current_metrics": {
     "pm25": {
-      "mean": 56.4,
-      "median": 55.3,
-      "min": 41.8,
-      "max": 86.1,
-      "max_station": "Vinča",
+      "mean": 49.8,
+      "median": 50.3,
+      "min": 36.6,
+      "max": 65.4,
+      "max_station": "Zeleno brdo",
       "unit": "µg/m³",
       "sensors_count": 31,
       "network": "reference"
     },
     "pm10": {
-      "mean": 58.2,
-      "median": 57.3,
-      "min": 43.0,
-      "max": 88.2,
-      "max_station": "Vinča",
+      "mean": 51.5,
+      "median": 51.9,
+      "min": 37.7,
+      "max": 68.9,
+      "max_station": "Zeleno brdo",
       "unit": "µg/m³",
       "sensors_count": 31,
       "network": "reference"
     },
     "no2": {
-      "mean": 30.9,
-      "median": 29.3,
-      "min": 19.0,
-      "max": 64.8,
+      "mean": 29.3,
+      "median": 27.4,
+      "min": 12.9,
+      "max": 59.8,
       "max_station": "Bulevar despota Stefana",
       "unit": "µg/m³",
       "sensors_count": 32,
       "network": "reference"
     },
     "o3": {
-      "mean": 14.0,
-      "median": 15.4,
-      "min": 1.9,
-      "max": 28.6,
+      "mean": 20.1,
+      "median": 22.5,
+      "min": 2.1,
+      "max": 39.0,
       "max_station": "Dragiša Mišović",
       "unit": "µg/m³",
       "sensors_count": 26,
       "network": "reference"
     },
     "meteo": {
-      "temperature": 9.8,
-      "humidity": 85.7,
-      "pressure": 1009.8,
+      "temperature": 10.0,
+      "humidity": 85.2,
+      "pressure": 1009.7,
       "wind_speed": 3.1,
       "wind_direction": "250.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 51.1,
-      "pm25_median": 55.9,
-      "pm10_mean": 80.4,
+      "pm25_mean": 48.7,
+      "pm25_median": 54.0,
+      "pm10_mean": 77.4,
       "sensors_count": 26,
       "high_humidity_flag": true,
-      "humidity_pct": 85.7,
+      "humidity_pct": 85.2,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
   "danas_saveti": [
     {
       "aktivnost": "napolje_sa_decom",
-      "odluka": "OPREZ",
-      "razlog_sr": "Za decu se preporučuje smanjenje napora napolju.",
+      "odluka": "DA",
+      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-09T12:13:16.091621Z"
+        "as_of": "2026-11-09T12:28:10.613771Z"
       }
     },
     {
       "aktivnost": "trcanje",
-      "odluka": "NE",
-      "razlog_sr": "Izdržljivi napor napolju nije preporučljiv.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Intenzivan napor produbljuje udah — proceni simptome.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-09T12:13:16.091621Z"
+        "as_of": "2026-11-09T12:28:10.613771Z"
       }
     },
     {
       "aktivnost": "provetravanje",
-      "odluka": "OPREZ",
-      "razlog_sr": "Kratko provetravanje — do 10 minuta.",
+      "odluka": "DA",
+      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-09T12:13:16.091621Z"
+        "as_of": "2026-11-09T12:28:10.613771Z"
       }
     },
     {
       "aktivnost": "bicikl",
-      "odluka": "OPREZ",
-      "razlog_sr": "Duže vožnje povećavaju udah prašine — razmisli o kraćoj relaciji.",
+      "odluka": "DA",
+      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-09T12:13:16.091621Z"
+        "as_of": "2026-11-09T12:28:10.613771Z"
       }
     },
     {
       "aktivnost": "ves_na_terasi",
       "odluka": "OPREZ",
-      "razlog_sr": "Prašina se taloži na veš — presvuči ga ili suši u stanu.",
+      "razlog_sr": "Vlaga je 85 % — veš se teško suši napolju.",
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "PM2.5+vlaga",
-        "as_of": "2026-11-09T12:13:16.091621Z"
+        "as_of": "2026-11-09T12:28:10.613771Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261109121931-0",
-    "at": "2026-11-09T12:19:31.589471Z",
-    "speaker": "Posmatrač",
-    "speaker_role": "observer",
-    "text_sr": "Sada vidim da se prikaz slobodnih mesta na Obilićevom vencu promenio sa 454 na 0, zamenjujući raniju krajnju vrednost o kojoj je Skeptic govorio; bez vremena merenja ne mogu tu promenu da pretvorim u događaj popunjenosti. Vidim da su podaci Parking servisa i građanskih senzora primljeni pre 6 min, a podaci SEPA pre 56 min, pa ti prijemi ne uspostavljaju sinhronizovan pogled na grad. [F12][F11][F10][F2]",
-    "text_en": "I now see Obilićev venac's displayed free spaces move from 454 to 0, replacing the earlier endpoint Skeptic discussed; without measurement times, I cannot turn that change into an occupancy event [F12][F11]. I see Parking Servis and citizen sensors received 6 min ago, but SEPA received 56 min ago, so these arrivals do not establish a synchronized view of the city [F11][F10][F2].",
-    "hypotheses_sr": [
-      "Najveća prikazana promena možda je ograničena na Obilićev venac, umesto da je zajednička parking lokacijama; za proveru tog obrasca potrebne su putanje ostalih lokacija [F12][F11]."
-    ],
-    "questions_sr": [
-      "Da li druge parking lokacije pokazuju podudarnu promenu prikaza ili se Obilićev venac izdvaja [F12][F11]?"
-    ],
+    "id": "mind-20261109123132-0",
+    "at": "2026-11-09T12:31:32.498600Z",
+    "speaker": "Sumnjalo",
+    "speaker_role": "skeptic",
+    "text_sr": "Ne mogu Connectorov mogući zajednički signal čestica da proglasim slaganjem između mreža: prijem građanskih senzora ovde ne daje koncentracije. Nalazim podudarne ekstreme čestica na Zelenom brdu i kod Doma zdravlja Vračar, ali te krajnje vrednosti ne mogu da potvrde da se stanice između njih menjaju zajedno. [F10][F4][F8]",
+    "text_en": "I cannot promote Connector’s possible common particulate signal into cross-network agreement: citizen-sensor reception supplies no concentrations here [F10]. I find matching particulate extrema at Zeleno brdo and Vračar Dom zdravlja, but those endpoints cannot establish that the stations between them move together [F4][F8].",
+    "hypotheses_sr": [],
+    "questions_sr": [],
     "cites": [
       "F10",
-      "F11",
-      "F12",
-      "F2"
+      "F4",
+      "F8"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-09T12:19:31.589471Z",
+    "last_mind_step": "2026-11-09T12:31:32.498600Z",
     "active_sources_count": 36,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-09T12:13:16.091621Z"
+    "sensors_as_of": "2026-11-09T12:28:10.613771Z"
   }
 }
