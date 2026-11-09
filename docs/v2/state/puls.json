@@ -1,162 +1,167 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-09T13:23:23.227714+00:00",
-  "as_of": "2026-11-09T13:13:24.701399Z",
+  "generated_at": "2026-11-09T13:53:23.189750+00:00",
+  "as_of": "2026-11-09T13:43:15.037132Z",
   "city_status": {
-    "aqi_us": 136,
+    "aqi_us": 143,
     "aqi_standard": "US EPA 2024 + EEA EAQI",
     "category": "nezdrav_za_osetljive",
     "dominant_pollutant": "PM2.5",
     "summary_sr": "Vazduh je nezdrav za osetljive grupe građana.",
     "summary_en": "Air is unhealthy for sensitive groups.",
     "eaqi": {
-      "level": 3,
-      "category": "umeren",
-      "label_sr": "Umeren",
-      "label_en": "Moderate",
+      "level": 4,
+      "category": "los",
+      "label_sr": "Loš",
+      "label_en": "Poor",
       "dominant_pollutant": "PM2.5",
-      "advice_general_sr": "Uživajte u uobičajenim aktivnostima na otvorenom.",
-      "advice_sensitive_sr": "Razmotrite smanjenje intenzivnih aktivnosti na otvorenom ako osetite simptome."
+      "advice_general_sr": "Razmotrite smanjenje intenzivnih aktivnosti na otvorenom ako osetite iritaciju grla ili kašalj.",
+      "advice_sensitive_sr": "Smanjite intenzivne aktivnosti na otvorenom (deca, stariji, hronični bolesnici)."
     },
     "reference_stations_count": 31,
     "citizen_sensors_count": 26
   },
   "current_metrics": {
     "pm25": {
-      "mean": 49.8,
-      "median": 50.3,
-      "min": 36.6,
-      "max": 65.4,
-      "max_station": "Zeleno brdo",
+      "mean": 52.4,
+      "median": 52.1,
+      "min": 38.2,
+      "max": 72.8,
+      "max_station": "Vinča",
       "unit": "µg/m³",
       "sensors_count": 31,
       "network": "reference"
     },
     "pm10": {
-      "mean": 51.5,
-      "median": 51.9,
-      "min": 37.7,
-      "max": 68.9,
-      "max_station": "Zeleno brdo",
+      "mean": 54.6,
+      "median": 54.0,
+      "min": 40.1,
+      "max": 74.7,
+      "max_station": "Vinča",
       "unit": "µg/m³",
       "sensors_count": 31,
       "network": "reference"
     },
     "no2": {
-      "mean": 29.3,
-      "median": 27.4,
-      "min": 12.9,
-      "max": 59.8,
+      "mean": 31.1,
+      "median": 26.1,
+      "min": 13.3,
+      "max": 69.5,
       "max_station": "Bulevar despota Stefana",
       "unit": "µg/m³",
       "sensors_count": 32,
       "network": "reference"
     },
     "o3": {
-      "mean": 20.1,
-      "median": 22.5,
-      "min": 2.1,
-      "max": 39.0,
+      "mean": 24.3,
+      "median": 28.0,
+      "min": 2.6,
+      "max": 41.1,
       "max_station": "Dragiša Mišović",
       "unit": "µg/m³",
       "sensors_count": 26,
       "network": "reference"
     },
     "meteo": {
-      "temperature": 10.2,
-      "humidity": 84.3,
-      "pressure": 1009.6,
-      "wind_speed": 2.8,
-      "wind_direction": "270.0"
+      "temperature": 10.4,
+      "humidity": 83.2,
+      "pressure": 1009.5,
+      "wind_speed": 1.9,
+      "wind_direction": "240.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 58.1,
-      "pm25_median": 56.1,
-      "pm10_mean": 95.8,
+      "pm25_mean": 58.0,
+      "pm25_median": 56.9,
+      "pm10_mean": 96.5,
       "sensors_count": 26,
       "high_humidity_flag": true,
-      "humidity_pct": 84.3,
+      "humidity_pct": 83.2,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
   "danas_saveti": [
     {
       "aktivnost": "napolje_sa_decom",
-      "odluka": "DA",
-      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Za decu se preporučuje smanjenje napora napolju.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-09T13:13:24.701399Z"
+        "as_of": "2026-11-09T13:43:15.037132Z"
       }
     },
     {
       "aktivnost": "trcanje",
-      "odluka": "OPREZ",
-      "razlog_sr": "Intenzivan napor produbljuje udah — proceni simptome.",
+      "odluka": "NE",
+      "razlog_sr": "Izdržljivi napor napolju nije preporučljiv.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-09T13:13:24.701399Z"
+        "as_of": "2026-11-09T13:43:15.037132Z"
       }
     },
     {
       "aktivnost": "provetravanje",
-      "odluka": "DA",
-      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Kratko provetravanje — do 10 minuta.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-09T13:13:24.701399Z"
+        "as_of": "2026-11-09T13:43:15.037132Z"
       }
     },
     {
       "aktivnost": "bicikl",
-      "odluka": "DA",
-      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Duže vožnje povećavaju udah prašine — razmisli o kraćoj relaciji.",
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-09T13:13:24.701399Z"
+        "as_of": "2026-11-09T13:43:15.037132Z"
       }
     },
     {
       "aktivnost": "ves_na_terasi",
       "odluka": "OPREZ",
-      "razlog_sr": "Vlaga je 84 % — veš se teško suši napolju.",
+      "razlog_sr": "Prašina se taloži na veš — presvuči ga ili suši u stanu.",
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "PM2.5+vlaga",
-        "as_of": "2026-11-09T13:13:24.701399Z"
+        "as_of": "2026-11-09T13:43:15.037132Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261109131131-0",
-    "at": "2026-11-09T13:11:31.419618Z",
+    "id": "mind-20261109135131-0",
+    "at": "2026-11-09T13:51:31.576349Z",
     "speaker": "Povezivač",
     "speaker_role": "connector",
-    "text_sr": "I dalje ne mogu da izvedem Skeptikovo poređenje: građanski senzori poslednji put su primljeni pre 18 min, a SEPA pre 48 min, ali ovi sažeci prijema ne daju uparena očitavanja zagađujućih materija. Primećujem i da Studio B i Beta prenose gotovo identične bankarske naslove; to preklapanje ne bih računao kao nezavisnu potvrdu. [F10][F2][F15][F16]",
-    "text_en": "I still cannot make Skeptic's comparison: citizen sensors last arrived 18 min ago and SEPA 48 min ago, but these reception summaries provide no paired pollutant readings [F10][F2]. I also notice Studio B and Beta carrying nearly identical banking headlines; I would not count that overlap as independent confirmation [F15][F16].",
+    "text_sr": "Skeptikova mapa važi, i oba maksimuma čestica sada su u Vinči: PM10 na 75 i PM2.5 na 73. Oba minimuma su na Vračaru Dom zdravlja. NO2 ima vrh na drugom mestu, na Bulevaru despota Stefana sa 70, pa se čestice i gas razdvajaju po mestu. U Vinči živi oko 2 hiljade ljudi u krugu od 1 km, naspram oko 28 hiljada kod Bulevara despota Stefana. To se uklapa u čestice koje ne prate gde ljudi žive i NO2 koji bi mogao da prati. Bez osnovice ne mogu nijednu vrednost da nazovem visokom. [F4][F8][F6][F45][F47][F48]",
+    "text_en": "Skeptic's map holds, and both particle maxima now sit at Vinča: PM10 at 75 and PM2.5 at 73 [F4][F8]. Both minima are at Vračar Dom zdravlja [F4][F8]. NO2 peaks elsewhere, at Bulevar despota Stefana at 70 [F6], so the particles and the gas split by place. Vinča has about 2 thousand people within 1 km [F45], against about 28 thousand near Bulevar despota Stefana [F47]. That fits particles that do not follow where people live and NO2 that might. Without a baseline [F48], I cannot call either value high.",
     "hypotheses_sr": [
-      "Preklapanje bankarskih naslova možda potiče iz zajedničkog saopštenja, a ne iz nezavisnog izveštavanja [F15][F16]."
+      "PM10 i PM2.5 dele i stanicu sa maksimumom, Vinču, i stanicu sa minimumom, Vračar Dom zdravlja [F4][F8]. To ukazuje na jedno polje finih čestica koje se prostire preko grada i pokreće PM10, a ne na lokalnu krupnu prašinu.",
+      "Maksimum NO2 na Bulevaru despota Stefana [F6] i maksimum čestica u Vinči [F4] mogu poticati iz različitih izvora: izvora gasa na nivou ulice uz gušće naselje [F47] i izvora čestica uz retko naselje [F45].",
+      "Sva tri maksimuma pomerila su se zajedno između 13:00 i 14:00 [F5][F7][F9]. Ako se to nastavi i u narednom satu, popodnevna promena zajednička za ceo grad bolje je objašnjenje nego da se jedna stanica čudno ponaša."
     ],
     "questions_sr": [
-      "Da li izveštaji Studija B i Bete pripisuju svoje bankarske naslove istom saopštenju [F15][F16]?"
+      "Da li maksimum PM10 ostaje u Vinči u narednom SEPA satu ili prelazi na drugu stanicu [F4]?",
+      "Da li maksimum NO2 ostaje udaljen od maksimuma čestica ili se njih dva spajaju na jednoj stanici [F6][F8]?"
     ],
     "cites": [
-      "F10",
-      "F15",
-      "F16",
-      "F2"
+      "F4",
+      "F45",
+      "F47",
+      "F48",
+      "F6",
+      "F8"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-09T13:11:31.419618Z",
+    "last_mind_step": "2026-11-09T13:51:31.576349Z",
     "active_sources_count": 36,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-09T13:13:24.701399Z"
+    "sensors_as_of": "2026-11-09T13:43:15.037132Z"
   }
 }
