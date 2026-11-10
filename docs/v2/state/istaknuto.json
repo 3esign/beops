@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-istaknuto/v1",
-  "generated_at": "2026-11-10T19:47:32.443Z",
-  "as_of": "2026-11-10T19:38:05.288Z",
+  "generated_at": "2026-11-10T20:18:57.531Z",
+  "as_of": "2026-11-10T20:08:04.787Z",
   "formula": {
     "oblik": "0.15·gate + 0.25·svezina + 0.25·magnituda + 0.20·korak + 0.15·masa (nedostajuće komponente se izbacuju, težine se normališu)",
     "gate": {
@@ -40,10 +40,10 @@
     "vreme": {
       "trakе": "sada ≤30 min / skoro ≤3 h / danas ≤12 h / starije / bez vremena",
       "brojaci": {
-        "sada": 22,
-        "skoro": 505,
-        "danas": 574,
-        "starije": 210,
+        "sada": 278,
+        "skoro": 252,
+        "danas": 575,
+        "starije": 214,
         "bez_vremena": 27,
         "najava": null
       }
@@ -64,28 +64,28 @@
         "n": 70,
         "najjaca": {
           "id": "S04:temperature",
-          "score": 0.6199
+          "score": 0.6663
         }
       },
       "ostalo": {
         "ime": "Ostalo",
-        "n": 666,
+        "n": 671,
         "najjaca": {
-          "id": "03944811d372d973",
-          "score": 0.6398
+          "id": "8be85ae9064c5796",
+          "score": 0.6332
         }
       },
       "vazduh": {
         "ime": "Vazduh",
-        "n": 274,
+        "n": 269,
         "najjaca": {
           "id": "S04:pm10",
-          "score": 0.7731
+          "score": 0.8032
         }
       },
       "mobilnost": {
         "ime": "Mobilnost i parking",
-        "n": 111,
+        "n": 112,
         "najjaca": {
           "id": "S10:free_spaces",
           "score": 0.7925
@@ -96,31 +96,23 @@
         "n": 10,
         "najjaca": {
           "id": "1a590a4fc1669c86",
-          "score": 0.5752
-        }
-      },
-      "bezbednost": {
-        "ime": "Bezbednost",
-        "n": 34,
-        "najjaca": {
-          "id": "654f58131a297bcd",
-          "score": 0.7703
-        }
-      },
-      "van_grada": {
-        "ime": "Van Beograda",
-        "n": 75,
-        "najjaca": {
-          "id": "88418dfd3adae174",
-          "score": 0.4649
+          "score": 0.558
         }
       },
       "dogadjaji": {
         "ime": "Događaji, kultura, sport",
         "n": 31,
         "najjaca": {
-          "id": "132de4c969a6a022",
-          "score": 0.7049
+          "id": "f56d380e00a9163a",
+          "score": 0.7066
+        }
+      },
+      "van_grada": {
+        "ime": "Van Beograda",
+        "n": 76,
+        "najjaca": {
+          "id": "9b9236dd11e1b81a",
+          "score": 0.5099
         }
       },
       "uprava": {
@@ -128,7 +120,15 @@
         "n": 22,
         "najjaca": {
           "id": "863d5dd944d72f22",
-          "score": 0.6643
+          "score": 0.6422
+        }
+      },
+      "bezbednost": {
+        "ime": "Bezbednost",
+        "n": 32,
+        "najjaca": {
+          "id": "654f58131a297bcd",
+          "score": 0.745
         }
       },
       "zdravlje": {
@@ -136,7 +136,7 @@
         "n": 11,
         "najjaca": {
           "id": "9cdc300dfb4a644e",
-          "score": 0.4741
+          "score": 0.465
         }
       },
       "gradnja": {
@@ -144,7 +144,7 @@
         "n": 10,
         "najjaca": {
           "id": "5db4af0e91761ccf",
-          "score": 0.59
+          "score": 0.5695
         }
       },
       "ekonomija": {
@@ -152,37 +152,37 @@
         "n": 17,
         "najjaca": {
           "id": "9faa13a7f1d515b7",
-          "score": 0.5467
+          "score": 0.5297
         }
       },
       "misli": {
         "ime": "Misli",
         "n": 35,
         "najjaca": {
-          "id": "mind-20261110185931-4",
-          "score": 0.7334
+          "id": "mind-20261110201135-0",
+          "score": 0.74
         }
       }
     },
     "svezi_izvori_max": [
       {
         "id": "S224",
-        "starost_min": 630,
+        "starost_min": 690,
         "status": "active"
       },
       {
         "id": "S220",
-        "starost_min": 270,
+        "starost_min": 330,
         "status": "active"
       },
       {
         "id": "S222",
-        "starost_min": 270,
+        "starost_min": 330,
         "status": "active"
       },
       {
         "id": "S221",
-        "starost_min": 90,
+        "starost_min": 150,
         "status": "active"
       },
       {
@@ -210,10 +210,34 @@
   "top": [
     {
       "vrsta": "merenje",
+      "id": "S04:pm10",
+      "naslov": "PM10 221.7 µg/m³ — 90579",
+      "t": "2026-11-10T19:30:43Z",
+      "rx": "2026-11-10T19:33:02.926585Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "observed",
+      "score": 0.8032,
+      "komponente": {
+        "gate": 1,
+        "svezina": 0.732,
+        "magnituda": 1,
+        "korak": 0.9,
+        "masa": 0.268
+      },
+      "zasto": "gate 1 (observed) · svezina 0.73 (Δ 37 min, τ=120 min) · magnituda 1.00 (221.7 protiv sat-opsega 20.9–185.9 u 19h) · korak 0.9 · masa 0.27 (hex 3810 stanovnika)",
+      "traka_vreme": "skoro",
+      "traka_prostor": "centar",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S04",
+      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+    },
+    {
+      "vrsta": "merenje",
       "id": "S10:free_spaces",
-      "naslov": "Slobodnih parking mesta 185 — Garaža \"Baba Višnjina\"",
-      "rx": "2026-11-10T18:28:02.173495Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
+      "naslov": "Slobodnih parking mesta 188 — Garaža \"Baba Višnjina\"",
+      "rx": "2026-11-10T19:28:02.193352Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
       "state": "untimed",
       "score": 0.7925,
       "komponente": {
@@ -223,7 +247,7 @@
         "korak": 1,
         "masa": 1
       },
-      "zasto": "gate 0.7 (untimed) · svezina 0.35 (Δ null min, τ=120 min) · magnituda 1.00 (185 slobodnih mesta) · korak 1 · masa 1.00 (hex 14242 stanovnika)",
+      "zasto": "gate 0.7 (untimed) · svezina 0.35 (Δ null min, τ=120 min) · magnituda 1.00 (188 slobodnih mesta) · korak 1 · masa 1.00 (hex 14242 stanovnika)",
       "traka_vreme": "bez_vremena",
       "traka_prostor": "centar",
       "tema": "mobilnost",
@@ -232,275 +256,252 @@
       "izvor": "Parking servis - displayed free spaces per lot"
     },
     {
-      "vrsta": "merenje",
-      "id": "S04:pm10",
-      "naslov": "PM10 722.47 µg/m³ — 81170",
-      "t": "2026-11-10T18:29:45Z",
-      "rx": "2026-11-10T18:33:03.117735Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "observed",
-      "score": 0.7731,
+      "vrsta": "vest",
+      "id": "5d287f72232ca947",
+      "naslov": "Poznati svi detalji nove deonice auto-puta: Pet tunela, 34 mosta i tri petlje",
+      "t": "2026-11-10T19:57:00Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "estimated",
+      "score": 0.7632,
       "komponente": {
-        "gate": 1,
-        "svezina": 0.566,
-        "magnituda": 1,
+        "gate": 0.5,
+        "svezina": 0.97,
+        "magnituda": null,
         "korak": 0.9,
-        "masa": 0.344
+        "masa": 0.5
       },
-      "zasto": "gate 1 (observed) · svezina 0.57 (Δ 68 min, τ=120 min) · magnituda 1.00 (722.47 protiv sat-opsega 19.4–156.4 u 18h) · korak 0.9 · masa 0.34 (hex 4904 stanovnika)",
-      "traka_vreme": "skoro",
-      "traka_prostor": "centar",
-      "tema": "vazduh",
-      "tema_ime": "Vazduh",
-      "link": "mesto:S04",
-      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-    },
-    {
-      "vrsta": "merenje",
-      "id": "S04:pm25",
-      "naslov": "PM2.5 385.48 µg/m³ — 81170",
-      "t": "2026-11-10T18:29:45Z",
-      "rx": "2026-11-10T18:33:03.117735Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "observed",
-      "score": 0.7731,
-      "komponente": {
-        "gate": 1,
-        "svezina": 0.566,
-        "magnituda": 1,
-        "korak": 0.9,
-        "masa": 0.344
-      },
-      "zasto": "gate 1 (observed) · svezina 0.57 (Δ 68 min, τ=120 min) · magnituda 1.00 (385.48 protiv sat-opsega 18.1–132.5 u 18h) · korak 0.9 · masa 0.34 (hex 4904 stanovnika)",
-      "traka_vreme": "skoro",
-      "traka_prostor": "centar",
-      "tema": "vazduh",
-      "tema_ime": "Vazduh",
-      "link": "mesto:S04",
-      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.97 (pre 11 min, τ=360 min) · korak 0.9 (saobracaj) · masa 0.5",
+      "traka_vreme": "sada",
+      "traka_prostor": "grad",
+      "tema": "mobilnost",
+      "tema_ime": "Saobraćaj",
+      "link": "vest:S198",
+      "izvor": "news-sorter",
+      "vreme_tekst": null
     },
     {
       "vrsta": "vest",
       "id": "654f58131a297bcd",
       "naslov": "Ukrajina gori: Crni bilans napada; \"Rusija samo razume jezik sile\"; Više od 30 udara za 24 sata FOTO/VIDEO",
       "t": "2026-11-10T19:20:00Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
       "state": "estimated",
-      "score": 0.7703,
+      "score": 0.745,
       "komponente": {
         "gate": 0.7,
-        "svezina": 0.951,
+        "svezina": 0.875,
         "magnituda": null,
         "korak": 0.8,
         "masa": 0.5
       },
-      "zasto": "gate 0.7 (estimated, potvrđen čas) · svezina 0.95 (pre 18 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
+      "zasto": "gate 0.7 (estimated, potvrđen čas) · svezina 0.87 (pre 48 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
+      "traka_vreme": "skoro",
+      "traka_prostor": "grad",
+      "tema": "bezbednost",
+      "tema_ime": "Bezbednost",
+      "link": "vest:S198",
+      "izvor": "news-sorter",
+      "vreme_tekst": "od 30"
+    },
+    {
+      "vrsta": "vest",
+      "id": "aa17decd4f7e9306",
+      "naslov": "„Krenuli su na Vučića“: Ruski list o demontaži bivšeg sistema u Srbiji i vezama sa kriminalom",
+      "t": "2026-11-10T20:01:23Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "estimated",
+      "score": 0.7405,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 0.982,
+        "magnituda": null,
+        "korak": 0.8,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.98 (pre 7 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
       "traka_vreme": "sada",
       "traka_prostor": "grad",
       "tema": "bezbednost",
       "tema_ime": "Bezbednost",
-      "link": "vest:S198",
+      "link": "vest:S69",
       "izvor": "news-sorter",
-      "vreme_tekst": "od 30"
-    },
-    {
-      "vrsta": "merenje",
-      "id": "S10:free_spaces",
-      "naslov": "Slobodnih parking mesta 57 — Parkiralište \"Slavija\"",
-      "rx": "2026-11-10T18:28:02.173495Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "untimed",
-      "score": 0.7565,
-      "komponente": {
-        "gate": 0.7,
-        "svezina": 0.35,
-        "magnituda": 1,
-        "korak": 1,
-        "masa": 0.76
-      },
-      "zasto": "gate 0.7 (untimed) · svezina 0.35 (Δ null min, τ=120 min) · magnituda 1.00 (57 slobodnih mesta) · korak 1 · masa 0.76 (hex 10826 stanovnika)",
-      "traka_vreme": "bez_vremena",
-      "traka_prostor": "centar",
-      "tema": "mobilnost",
-      "tema_ime": "Mobilnost i parking",
-      "link": "mesto:S10",
-      "izvor": "Parking servis - displayed free spaces per lot"
-    },
-    {
-      "vrsta": "vest",
-      "id": "53f52482ffb6acab",
-      "naslov": "Ukrajina gori: Crni bilans napada; \"Rusija samo razume jezik sile\"; Više od 30 udara za 24 sata FOTO/VIDEO",
-      "t": "2026-11-10T18:45:00Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "estimated",
-      "score": 0.741,
-      "komponente": {
-        "gate": 0.7,
-        "svezina": 0.863,
-        "magnituda": null,
-        "korak": 0.8,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.7 (estimated, potvrđen čas) · svezina 0.86 (pre 53 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
-      "traka_vreme": "skoro",
-      "traka_prostor": "grad",
-      "tema": "bezbednost",
-      "tema_ime": "Bezbednost",
-      "link": "vest:S198",
-      "izvor": "news-sorter",
-      "vreme_tekst": "od 30"
+      "vreme_tekst": null
     },
     {
       "vrsta": "misao",
-      "id": "mind-20261110185931-4",
-      "naslov": "I reject Observer's Danijelova placement: the reported particulate maxima are at Stojčino brdo, with PM10 at 73 µg/m³ and PM2.5 at 66 µg/m³ [F4][F8]. Connector's spatial pairing survives, with the NO2 maximum at Omladinskih brigada at 55 µg/m³, but these station rankings establish neither a shared cause nor unusual conditions [F6][F48].",
-      "t": "2026-11-10T18:59:31.677832Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
+      "id": "mind-20261110201135-0",
+      "naslov": "Ne mogu da pretvorim Connectorove različite putanje u aktuelno poređenje: poslednji prijem SEPA bio je pre 48 min, dok su podaci građanskih senzora primljeni pre 8 min, a sam prijem ne potvrđuje njihovu međusobnu saglasnost. Takođe ne mogu da nazovem promenu prikaza za Belvil sa 165 na 399 talasom odlazaka: izvor podataka o parkiranju ne daje vreme merenja. [F2][F10][F12][F11]",
+      "t": "2026-11-10T20:11:35.085912Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
       "state": "accepted",
-      "score": 0.7334,
+      "score": 0.74,
       "komponente": {
         "gate": 0.9,
-        "svezina": 0.974,
+        "svezina": 1,
         "magnituda": 0.8,
         "korak": 0.4,
         "masa": 0.5
       },
-      "zasto": "gate 0.9 (prihvaćena) · svezina 0.97 (Δ 39 min, τ=1440 min) · magnituda 0.80 (4 citata) · korak 0.4 (Sumnjalo) · masa 0.5",
-      "traka_vreme": "skoro",
+      "zasto": "gate 0.9 (prihvaćena) · svezina 1.00 (Δ -4 min, τ=1440 min) · magnituda 0.80 (4 citata) · korak 0.4 (Sumnjalo) · masa 0.5",
+      "traka_vreme": "sada",
       "traka_prostor": "grad",
       "tema": "misli",
       "tema_ime": "Misli",
-      "link": "misao:mind-20261110185931-4",
+      "link": "misao:mind-20261110201135-0",
       "izvor": "Sumnjalo",
       "cites": [
-        "F4",
-        "F48",
-        "F6",
-        "F8"
+        "F10",
+        "F11",
+        "F12",
+        "F2"
       ]
     },
     {
       "vrsta": "misao",
-      "id": "mind-20261110171131-13",
-      "naslov": "Leštane se više ne pojavljuje kao maksimum čestica: u poslednjem označenom satu Danijelova drži i najvišu vrednost PM10 od 52 i najvišu vrednost PM2.5 od 51, a najviša vrednost NO2 prešla je na Mostar sa 53. Gornja granica za PM10 pala je sa 60 na 52, dok je gornja granica za PM2.5 porasla sa 47 na 51, pa na vodećoj stanici fina frakcija gotovo ispunjava grubu. Pančevo Vatrogasni dom je na dnu oba poretka čestica, sa 17 i 16. [F4][F8][F6][F5][F9]",
-      "t": "2026-11-10T17:11:31.249114Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
+      "id": "mind-20261110195936-1",
+      "naslov": "Skeptic and Connector settled the NO2 question between them, but neither noticed that the particulate field has the same two ends in both size fractions: Stojčino brdo has both the PM10 and PM2.5 maxima, and Topčiderska zvezda has both minima [F4][F8]. The PM10 maximum climbed from 73 to 84 µg/m³ while the PM2.5 maximum moved only from 66 to 68 µg/m³ [F5][F9], and the hour labelled 20:00 is, by our estimate, really 19:00 UTC [F3].",
+      "t": "2026-11-10T19:59:36.355036Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
       "state": "accepted",
-      "score": 0.7158,
+      "score": 0.7385,
       "komponente": {
         "gate": 0.9,
-        "svezina": 0.903,
+        "svezina": 0.994,
         "magnituda": 0.8,
         "korak": 0.4,
         "masa": 0.5
       },
-      "zasto": "gate 0.9 (prihvaćena) · svezina 0.90 (Δ 147 min, τ=1440 min) · magnituda 0.80 (5 citata) · korak 0.4 (Posmatrač) · masa 0.5",
-      "traka_vreme": "skoro",
+      "zasto": "gate 0.9 (prihvaćena) · svezina 0.99 (Δ 8 min, τ=1440 min) · magnituda 0.80 (5 citata) · korak 0.4 (Posmatrač) · masa 0.5",
+      "traka_vreme": "sada",
       "traka_prostor": "grad",
       "tema": "misli",
       "tema_ime": "Misli",
-      "link": "misao:mind-20261110171131-13",
+      "link": "misao:mind-20261110195936-1",
       "izvor": "Posmatrač",
       "cites": [
+        "F3",
         "F4",
         "F5",
-        "F6",
         "F8",
         "F9"
       ]
     },
     {
       "vrsta": "vest",
-      "id": "b651949dc89d0286",
-      "naslov": "Šta bi se desilo da se strankama ukine budžetsko finansiranje?",
-      "t": "2026-11-10T19:35:20Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
+      "id": "f56d380e00a9163a",
+      "naslov": "Partizanu stigle vesti iz Alimpijevićevog tabora",
+      "t": "2026-11-10T20:08:00Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
       "state": "estimated",
-      "score": 0.6641,
+      "score": 0.7066,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.992,
-        "magnituda": null,
-        "korak": 0.5,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.99 (pre 3 min, τ=360 min) · korak 0.5 (uprava_odluke) · masa 0.5",
-      "traka_vreme": "sada",
-      "traka_prostor": "grad",
-      "tema": "uprava",
-      "tema_ime": "Uprava i odluke",
-      "link": "vest:S69",
-      "izvor": "news-sorter",
-      "vreme_tekst": null
-    },
-    {
-      "vrsta": "vest",
-      "id": "f41012e9d2411b23",
-      "naslov": "Kad i gde možete da gledate meč Evrolige Real Madrid – Crvena zvezda?",
-      "t": "2026-11-10T18:32:26Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "estimated",
-      "score": 0.6511,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 0.833,
+        "svezina": 1,
         "magnituda": null,
         "korak": 0.65,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.83 (pre 66 min, τ=360 min) · korak 0.65 (dogadjaj_kultura_sport) · masa 0.5",
-      "traka_vreme": "skoro",
+      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 1.00 (pre 0 min, τ=360 min) · korak 0.65 (dogadjaj_kultura_sport) · masa 0.5",
+      "traka_vreme": "sada",
       "traka_prostor": "grad",
       "tema": "dogadjaji",
       "tema_ime": "Događaji, kultura, sport",
-      "link": "vest:S69",
+      "link": "vest:S198",
       "izvor": "news-sorter",
       "vreme_tekst": null
     },
     {
-      "vrsta": "vest",
-      "id": "ccd0329b33e33e99",
-      "naslov": "Одлуке техничке владе под лупом – Транспарентност Србија издвојила 152 акта за додатну проверу",
-      "t": "2026-11-10T19:09:33Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "estimated",
-      "score": 0.6413,
+      "vrsta": "merenje",
+      "id": "S04:pm25",
+      "naslov": "PM2.5 108.2 µg/m³ — 90579",
+      "t": "2026-11-10T19:30:43Z",
+      "rx": "2026-11-10T19:33:02.926585Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "observed",
+      "score": 0.6831,
       "komponente": {
-        "gate": 0.5,
-        "svezina": 0.924,
-        "magnituda": null,
-        "korak": 0.5,
-        "masa": 0.5
+        "gate": 1,
+        "svezina": 0.732,
+        "magnituda": 0.52,
+        "korak": 0.9,
+        "masa": 0.268
       },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.92 (pre 29 min, τ=360 min) · korak 0.5 (uprava_odluke) · masa 0.5",
-      "traka_vreme": "sada",
-      "traka_prostor": "grad",
-      "tema": "uprava",
-      "tema_ime": "Uprava i odluke",
-      "link": "vest:S195",
-      "izvor": "news-sorter",
-      "vreme_tekst": null
+      "zasto": "gate 1 (observed) · svezina 0.73 (Δ 37 min, τ=120 min) · magnituda 0.52 (108.2 protiv sat-opsega 20–140.3 u 19h) · korak 0.9 · masa 0.27 (hex 3810 stanovnika)",
+      "traka_vreme": "skoro",
+      "traka_prostor": "centar",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S04",
+      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
     },
     {
       "vrsta": "vest",
-      "id": "69ff29a421dae49a",
-      "naslov": "Sziget 2027: Najveći festival u našem okruženju je izbacio svoja prva imena",
-      "t": "2026-11-10T18:02:53Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
+      "id": "132de4c969a6a022",
+      "naslov": "Linta: Da se utvrdi odgovornost za ustaški pozdrav na Tompsonovom koncertu u Štutgartu",
+      "t": "2026-11-10T19:40:00Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
       "state": "estimated",
-      "score": 0.6292,
+      "score": 0.6817,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.768,
+        "svezina": 0.925,
         "magnituda": null,
         "korak": 0.65,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.77 (pre 95 min, τ=360 min) · korak 0.65 (dogadjaj_kultura_sport) · masa 0.5",
-      "traka_vreme": "skoro",
+      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.92 (pre 28 min, τ=360 min) · korak 0.65 (dogadjaj_kultura_sport) · masa 0.5",
+      "traka_vreme": "sada",
       "traka_prostor": "grad",
       "tema": "dogadjaji",
       "tema_ime": "Događaji, kultura, sport",
+      "link": "vest:S197",
+      "izvor": "news-sorter",
+      "vreme_tekst": null
+    },
+    {
+      "vrsta": "merenje",
+      "id": "S04:temperature",
+      "naslov": "Temperatura 14.5 °C — 47428",
+      "t": "2026-11-10T19:31:20Z",
+      "rx": "2026-11-10T19:33:02.926585Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "observed",
+      "score": 0.6663,
+      "komponente": {
+        "gate": 1,
+        "svezina": 0.736,
+        "magnituda": 0.496,
+        "korak": 0.4,
+        "masa": 0.854
+      },
+      "zasto": "gate 1 (observed) · svezina 0.74 (Δ 37 min, τ=120 min) · magnituda 0.50 (14.5 protiv sat-opsega 5.8–14.6 u 19h) · korak 0.4 · masa 0.85 (hex 12168 stanovnika)",
+      "traka_vreme": "skoro",
+      "traka_prostor": "centar",
+      "tema": "meteo",
+      "tema_ime": "Meteo",
+      "link": "mesto:S04",
+      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+    },
+    {
+      "vrsta": "vest",
+      "id": "863d5dd944d72f22",
+      "naslov": "„Znam da neće svi razumeti moju odluku“: Najuspešnija južnoafrička olimpijka okreće novi list u karijeri",
+      "t": "2026-11-10T19:40:38Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "estimated",
+      "score": 0.6422,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 0.927,
+        "magnituda": null,
+        "korak": 0.5,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.93 (pre 27 min, τ=360 min) · korak 0.5 (uprava_odluke) · masa 0.5",
+      "traka_vreme": "sada",
+      "traka_prostor": "grad",
+      "tema": "uprava",
+      "tema_ime": "Uprava i odluke",
       "link": "vest:S69",
       "izvor": "news-sorter",
       "vreme_tekst": null
@@ -509,276 +510,132 @@
   "korak_za_gradjanina": [
     {
       "vrsta": "vest",
-      "id": "654f58131a297bcd",
-      "naslov": "Ukrajina gori: Crni bilans napada; \"Rusija samo razume jezik sile\"; Više od 30 udara za 24 sata FOTO/VIDEO",
-      "t": "2026-11-10T19:20:00Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
+      "id": "5d287f72232ca947",
+      "naslov": "Poznati svi detalji nove deonice auto-puta: Pet tunela, 34 mosta i tri petlje",
+      "t": "2026-11-10T19:57:00Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
       "state": "estimated",
-      "score": 0.7703,
-      "komponente": {
-        "gate": 0.7,
-        "svezina": 0.951,
-        "magnituda": null,
-        "korak": 0.8,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.7 (estimated, potvrđen čas) · svezina 0.95 (pre 18 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
-      "traka_vreme": "sada",
-      "traka_prostor": "grad",
-      "tema": "bezbednost",
-      "tema_ime": "Bezbednost",
-      "link": "vest:S198",
-      "izvor": "news-sorter",
-      "vreme_tekst": "od 30"
-    },
-    {
-      "vrsta": "vest",
-      "id": "53f52482ffb6acab",
-      "naslov": "Ukrajina gori: Crni bilans napada; \"Rusija samo razume jezik sile\"; Više od 30 udara za 24 sata FOTO/VIDEO",
-      "t": "2026-11-10T18:45:00Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "estimated",
-      "score": 0.741,
-      "komponente": {
-        "gate": 0.7,
-        "svezina": 0.863,
-        "magnituda": null,
-        "korak": 0.8,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.7 (estimated, potvrđen čas) · svezina 0.86 (pre 53 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
-      "traka_vreme": "skoro",
-      "traka_prostor": "grad",
-      "tema": "bezbednost",
-      "tema_ime": "Bezbednost",
-      "link": "vest:S198",
-      "izvor": "news-sorter",
-      "vreme_tekst": "od 30"
-    },
-    {
-      "vrsta": "vest",
-      "id": "3ddaeb89262fad7e",
-      "naslov": "Skoro 500 požara od početka grejne sezone: Stručnjaci upozoravaju na najčešće greške",
-      "t": "2026-11-10T18:40:00Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "estimated",
-      "score": 0.697,
+      "score": 0.7632,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.851,
-        "magnituda": null,
-        "korak": 0.8,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.85 (pre 58 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
-      "traka_vreme": "skoro",
-      "traka_prostor": "grad",
-      "tema": "bezbednost",
-      "tema_ime": "Bezbednost",
-      "link": "vest:S197",
-      "izvor": "news-sorter",
-      "vreme_tekst": null
-    },
-    {
-      "vrsta": "vest",
-      "id": "7c921f946fc34b57",
-      "naslov": "Dve osobe uhapšene zbog pretnji Brankici Stanković na utakmici, traga se za još troje",
-      "t": "2026-11-10T18:34:23Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "estimated",
-      "score": 0.6926,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 0.838,
-        "magnituda": null,
-        "korak": 0.8,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.84 (pre 64 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
-      "traka_vreme": "skoro",
-      "traka_prostor": "grad",
-      "tema": "bezbednost",
-      "tema_ime": "Bezbednost",
-      "link": "vest:S69",
-      "izvor": "news-sorter",
-      "vreme_tekst": null
-    },
-    {
-      "vrsta": "vest",
-      "id": "00842688c1fadeba",
-      "naslov": "Totalni kolaps u Beogradu – kilometarske kolone na više lokacija, sve stoji FOTO",
-      "t": "2026-11-10T17:51:00Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "estimated",
-      "score": 0.6876,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 0.743,
+        "svezina": 0.97,
         "magnituda": null,
         "korak": 0.9,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.74 (pre 107 min, τ=360 min) · korak 0.9 (saobracaj) · masa 0.5",
-      "traka_vreme": "skoro",
+      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.97 (pre 11 min, τ=360 min) · korak 0.9 (saobracaj) · masa 0.5",
+      "traka_vreme": "sada",
       "traka_prostor": "grad",
       "tema": "mobilnost",
       "tema_ime": "Saobraćaj",
       "link": "vest:S198",
       "izvor": "news-sorter",
       "vreme_tekst": null
+    },
+    {
+      "vrsta": "merenje",
+      "id": "S146:pm25",
+      "naslov": "PM2.5 39 µg/m³ — Vračar",
+      "t": "2026-11-10T20:00:00Z",
+      "rx": "2026-11-10T19:23:02.466256Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "estimated",
+      "score": 0.6633,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 0.935,
+        "magnituda": 0.098,
+        "korak": 0.9,
+        "masa": 1
+      },
+      "zasto": "gate 0.5 (estimated) · svezina 0.93 (Δ 8 min, τ=120 min) · magnituda 0.10 (39 ispod sat-proseka (18.2–137.9 u 20h)) · korak 0.9 · masa 1.00 (hex 14242 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "centar",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S146",
+      "izvor": "SEPA air quality HVD API - hourly preliminary means"
+    },
+    {
+      "vrsta": "merenje",
+      "id": "S146:pm10",
+      "naslov": "PM10 40.11 µg/m³ — Vračar",
+      "t": "2026-11-10T20:00:00Z",
+      "rx": "2026-11-10T19:23:02.466256Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "estimated",
+      "score": 0.6608,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 0.935,
+        "magnituda": 0.088,
+        "korak": 0.9,
+        "masa": 1
+      },
+      "zasto": "gate 0.5 (estimated) · svezina 0.93 (Δ 8 min, τ=120 min) · magnituda 0.09 (40.11 ispod sat-proseka (19.3–146.5 u 20h)) · korak 0.9 · masa 1.00 (hex 14242 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "centar",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S146",
+      "izvor": "SEPA air quality HVD API - hourly preliminary means"
+    },
+    {
+      "vrsta": "merenje",
+      "id": "S146:pm10",
+      "naslov": "PM10 84.28 µg/m³ — Stojčino brdo",
+      "t": "2026-11-10T20:00:00Z",
+      "rx": "2026-11-10T19:23:02.466256Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "estimated",
+      "score": 0.6302,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 0.935,
+        "magnituda": 0.327,
+        "korak": 0.9,
+        "masa": 0.398
+      },
+      "zasto": "gate 0.5 (estimated) · svezina 0.93 (Δ 8 min, τ=120 min) · magnituda 0.33 (84.28 protiv sat-opsega 19.3–146.5 u 20h) · korak 0.9 · masa 0.40 (hex 5666 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "unutrasnja",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S146",
+      "izvor": "SEPA air quality HVD API - hourly preliminary means"
+    },
+    {
+      "vrsta": "merenje",
+      "id": "S146:pm25",
+      "naslov": "PM2.5 67.88 µg/m³ — Stojčino brdo",
+      "t": "2026-11-10T20:00:00Z",
+      "rx": "2026-11-10T19:23:02.466256Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "estimated",
+      "score": 0.616,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 0.935,
+        "magnituda": 0.27,
+        "korak": 0.9,
+        "masa": 0.398
+      },
+      "zasto": "gate 0.5 (estimated) · svezina 0.93 (Δ 8 min, τ=120 min) · magnituda 0.27 (67.88 protiv sat-opsega 18.2–137.9 u 20h) · korak 0.9 · masa 0.40 (hex 5666 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "unutrasnja",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S146",
+      "izvor": "SEPA air quality HVD API - hourly preliminary means"
     }
   ],
   "najave": [
     {
       "vrsta": "vest",
-      "id": "132de4c969a6a022",
-      "naslov": "Linta: Da se utvrdi odgovornost za ustaški pozdrav na Tompsonovom koncertu u Štutgartu",
-      "t": "2026-11-10T19:40:00Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "najava",
-      "score": 0.7049,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 0.995,
-        "magnituda": null,
-        "korak": 0.65,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.99 (za 2 min, τ=360 min) · korak 0.65 (dogadjaj_kultura_sport) · masa 0.5",
-      "traka_vreme": "najava",
-      "traka_prostor": "grad",
-      "tema": "dogadjaji",
-      "tema_ime": "Događaji, kultura, sport",
-      "link": "vest:S197",
-      "izvor": "news-sorter",
-      "vreme_tekst": null
-    },
-    {
-      "vrsta": "vest",
-      "id": "863d5dd944d72f22",
-      "naslov": "„Znam da neće svi razumeti moju odluku“: Najuspešnija južnoafrička olimpijka okreće novi list u karijeri",
-      "t": "2026-11-10T19:40:38Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "najava",
-      "score": 0.6643,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 0.993,
-        "magnituda": null,
-        "korak": 0.5,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.99 (za 3 min, τ=360 min) · korak 0.5 (uprava_odluke) · masa 0.5",
-      "traka_vreme": "najava",
-      "traka_prostor": "grad",
-      "tema": "uprava",
-      "tema_ime": "Uprava i odluke",
-      "link": "vest:S69",
-      "izvor": "news-sorter",
-      "vreme_tekst": null
-    },
-    {
-      "vrsta": "vest",
-      "id": "03944811d372d973",
-      "naslov": "Pošte Srbije: Sutra će dežurati 66 objekata, biće dovoljno gotovine za isplatu penzija",
-      "t": "2026-11-10T19:38:18Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "najava",
-      "score": 0.6398,
-      "komponente": {
-        "gate": 0.7,
-        "svezina": 0.999,
-        "magnituda": null,
-        "korak": 0.25,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.7 (najava, plan, potvrđen čas) · svezina 1.00 (za 0 min, τ=360 min) · korak 0.25 (ostalo) · masa 0.5",
-      "traka_vreme": "najava",
-      "traka_prostor": "grad",
-      "tema": "ostalo",
-      "tema_ime": "Ostalo",
-      "link": "vest:S69",
-      "izvor": "news-sorter",
-      "vreme_tekst": "Sutra"
-    },
-    {
-      "vrsta": "vest",
-      "id": "dbdb95de6633b4e1",
-      "naslov": "Наложено задржавање пет осумњичених за угрожавање сигурности Бранкице Станковић",
-      "t": "2026-11-10T19:39:02Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "najava",
-      "score": 0.5991,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 0.997,
-        "magnituda": null,
-        "korak": 0.25,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 1.00 (za 1 min, τ=360 min) · korak 0.25 (ostalo) · masa 0.5",
-      "traka_vreme": "najava",
-      "traka_prostor": "grad",
-      "tema": "ostalo",
-      "tema_ime": "Ostalo",
-      "link": "vest:S195",
-      "izvor": "news-sorter",
-      "vreme_tekst": null
-    },
-    {
-      "vrsta": "vest",
-      "id": "0460216cd0569f34",
-      "naslov": "Ajzenkot: Netanjahu nije podoban da na funkciji ostane ni minut duže",
-      "t": "2026-11-10T19:39:48Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "najava",
-      "score": 0.5984,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 0.995,
-        "magnituda": null,
-        "korak": 0.25,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 1.00 (za 2 min, τ=360 min) · korak 0.25 (ostalo) · masa 0.5",
-      "traka_vreme": "najava",
-      "traka_prostor": "grad",
-      "tema": "ostalo",
-      "tema_ime": "Ostalo",
-      "link": "vest:S69",
-      "izvor": "news-sorter",
-      "vreme_tekst": null
-    },
-    {
-      "vrsta": "vest",
-      "id": "4f4214ab14d45f9c",
-      "naslov": "Mađari ostali bez Soboslaja",
-      "t": "2026-11-10T19:40:00Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
-      "state": "najava",
-      "score": 0.5982,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 0.995,
-        "magnituda": null,
-        "korak": 0.25,
-        "masa": 0.5
-      },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.99 (za 2 min, τ=360 min) · korak 0.25 (ostalo) · masa 0.5",
-      "traka_vreme": "najava",
-      "traka_prostor": "grad",
-      "tema": "ostalo",
-      "tema_ime": "Ostalo",
-      "link": "vest:S198",
-      "izvor": "news-sorter",
-      "vreme_tekst": null
-    },
-    {
-      "vrsta": "vest",
-      "id": "bf70aa28ca216e79",
-      "naslov": "Puna slepih miševa i nakita: Hadži-Prodanova pećina obavijena velom misterije ponovo zasijala FOTO",
-      "t": "2026-11-10T19:41:00Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
+      "id": "502463cab52ec297",
+      "naslov": "Vratila se Arijana Grande i nikad bolje nije izgledala: Drastično je promenila imidž FOTO",
+      "t": "2026-11-10T20:11:00Z",
+      "as_of": "2026-11-10T20:08:04.787Z",
       "state": "najava",
       "score": 0.5973,
       "komponente": {
@@ -799,25 +656,169 @@
     },
     {
       "vrsta": "vest",
-      "id": "f514cbdfd67a39b3",
-      "naslov": "Najbizarnije nezgode koje su se dogodile parovima tokom seksa: Pojedine šokiraju",
-      "t": "2026-11-10T19:41:00Z",
-      "as_of": "2026-11-10T19:38:05.288Z",
+      "id": "0ef604cb0813fe8b",
+      "naslov": "Планирано искључење струје 2026-11-12 · Лазаревац · 09:00 - 13:00 · Насеље Шушњар (засеок Живановићи).",
+      "t": "2026-11-12",
+      "as_of": "2026-11-10T20:08:04.787Z",
       "state": "najava",
-      "score": 0.5973,
+      "score": 0.4565,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.992,
+        "svezina": 0.01,
         "magnituda": null,
-        "korak": 0.25,
+        "korak": 0.95,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.99 (za 3 min, τ=360 min) · korak 0.25 (ostalo) · masa 0.5",
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.01 (za 1672 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
       "traka_vreme": "najava",
       "traka_prostor": "grad",
-      "tema": "ostalo",
-      "tema_ime": "Ostalo",
-      "link": "vest:S198",
+      "tema": "mobilnost",
+      "tema_ime": "Isključenja",
+      "link": "vest:S54",
+      "izvor": "news-sorter",
+      "vreme_tekst": null
+    },
+    {
+      "vrsta": "vest",
+      "id": "1eeaa2e7c10a55c8",
+      "naslov": "Планирано искључење струје 2026-11-12 · Чукарица · 09:00 - 15:00 · Насеље ЖАРКОВО: ВЕЉКА ПЕТРОВИЋА: 58-64,73-79",
+      "t": "2026-11-12",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "najava",
+      "score": 0.4565,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 0.01,
+        "magnituda": null,
+        "korak": 0.95,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.01 (za 1672 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "traka_vreme": "najava",
+      "traka_prostor": "grad",
+      "tema": "mobilnost",
+      "tema_ime": "Isključenja",
+      "link": "vest:S54",
+      "izvor": "news-sorter",
+      "vreme_tekst": null
+    },
+    {
+      "vrsta": "vest",
+      "id": "1fd608beba7254d1",
+      "naslov": "Планирано искључење струје 2026-11-12 · Савски венац · 12:00 - 14:00 · БИРЧАНИНОВА: 2-2А, ХАЈДУК-ВЕЉКОВ ВЕНАЦ: ББ,ББ,7, РИСАНСКА: 3, САРАЈЕВСКА: 2-6,1-9",
+      "t": "2026-11-12",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "najava",
+      "score": 0.4565,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 0.01,
+        "magnituda": null,
+        "korak": 0.95,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.01 (za 1672 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "traka_vreme": "najava",
+      "traka_prostor": "grad",
+      "tema": "mobilnost",
+      "tema_ime": "Isključenja",
+      "link": "vest:S54",
+      "izvor": "news-sorter",
+      "vreme_tekst": null
+    },
+    {
+      "vrsta": "vest",
+      "id": "27604e613b13ab5c",
+      "naslov": "Планирано искључење струје 2026-11-12 · Земун · 08:30 - 17:00 · АУТОПУТ ЗА ЗАГРЕБ: 26г-26Х,32,300Г",
+      "t": "2026-11-12",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "najava",
+      "score": 0.4565,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 0.01,
+        "magnituda": null,
+        "korak": 0.95,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.01 (za 1672 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "traka_vreme": "najava",
+      "traka_prostor": "grad",
+      "tema": "mobilnost",
+      "tema_ime": "Isključenja",
+      "link": "vest:S54",
+      "izvor": "news-sorter",
+      "vreme_tekst": null
+    },
+    {
+      "vrsta": "vest",
+      "id": "556b924b6337d49e",
+      "naslov": "Планирано искључење струје 2026-11-12 · Палилула · 09:00 - 14:00 · Насеље БОРЧА: БИЛОГОРСКА: 16-34,15-21,25,29, БОРЧАНСКИХ ЖРТАВА 1914: 52-52А,56-64,68-76,82-106,112А,122-136,47-55,61-101Б,133М, БОРИС",
+      "t": "2026-11-12",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "najava",
+      "score": 0.4565,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 0.01,
+        "magnituda": null,
+        "korak": 0.95,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.01 (za 1672 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "traka_vreme": "najava",
+      "traka_prostor": "grad",
+      "tema": "mobilnost",
+      "tema_ime": "Isključenja",
+      "link": "vest:S54",
+      "izvor": "news-sorter",
+      "vreme_tekst": null
+    },
+    {
+      "vrsta": "vest",
+      "id": "5d836965026ec23b",
+      "naslov": "Планирано искључење струје 2026-11-12 · Палилула · 08:30 - 14:00 · ЈАХОРИНСКА: 2-12,16-20,7, ЛЕСНОВСКА: 2-6,12-16А, ЛЕВСКОГА: 2-14,1-11, ПРИБОЈСКА: 23, ТИНА УЈЕВИЋА: 2-8,1-5,9-17, ВЛАДЕ ИЛИЋА: 3-5, ВО",
+      "t": "2026-11-12",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "najava",
+      "score": 0.4565,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 0.01,
+        "magnituda": null,
+        "korak": 0.95,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.01 (za 1672 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "traka_vreme": "najava",
+      "traka_prostor": "grad",
+      "tema": "mobilnost",
+      "tema_ime": "Isključenja",
+      "link": "vest:S54",
+      "izvor": "news-sorter",
+      "vreme_tekst": null
+    },
+    {
+      "vrsta": "vest",
+      "id": "68bb7256384cd38e",
+      "naslov": "Планирано искључење струје 2026-11-12 · Лазаревац · 10:30 - 12:30 · Лајковац: насеље Словац (засеок према Степању).",
+      "t": "2026-11-12",
+      "as_of": "2026-11-10T20:08:04.787Z",
+      "state": "najava",
+      "score": 0.4565,
+      "komponente": {
+        "gate": 0.5,
+        "svezina": 0.01,
+        "magnituda": null,
+        "korak": 0.95,
+        "masa": 0.5
+      },
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.01 (za 1672 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "traka_vreme": "najava",
+      "traka_prostor": "grad",
+      "tema": "mobilnost",
+      "tema_ime": "Isključenja",
+      "link": "vest:S54",
       "izvor": "news-sorter",
       "vreme_tekst": null
     }
