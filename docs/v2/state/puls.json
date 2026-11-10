@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-10T14:05:34.940380+00:00",
-  "as_of": "2026-11-10T14:03:02.296847Z",
+  "generated_at": "2026-11-10T14:23:23.631561+00:00",
+  "as_of": "2026-11-10T14:18:02.716482Z",
   "city_status": {
     "aqi_us": 83,
     "aqi_standard": "US EPA 2024 + EEA EAQI",
@@ -64,19 +64,19 @@
     },
     "meteo": {
       "temperature": 12.7,
-      "humidity": 89.4,
-      "pressure": 999.0,
-      "wind_speed": 3.4,
-      "wind_direction": "110.0"
+      "humidity": 89.6,
+      "pressure": 998.9,
+      "wind_speed": 3.5,
+      "wind_direction": "100.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 28.4,
-      "pm25_median": 18.2,
-      "pm10_mean": 46.9,
+      "pm25_mean": 29.4,
+      "pm25_median": 19.1,
+      "pm10_mean": 49.7,
       "sensors_count": 26,
       "high_humidity_flag": true,
-      "humidity_pct": 89.4,
+      "humidity_pct": 89.6,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
@@ -88,7 +88,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-10T14:03:02.296847Z"
+        "as_of": "2026-11-10T14:18:02.716482Z"
       }
     },
     {
@@ -98,7 +98,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-10T14:03:02.296847Z"
+        "as_of": "2026-11-10T14:18:02.716482Z"
       }
     },
     {
@@ -108,7 +108,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-10T14:03:02.296847Z"
+        "as_of": "2026-11-10T14:18:02.716482Z"
       }
     },
     {
@@ -118,45 +118,53 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-10T14:03:02.296847Z"
+        "as_of": "2026-11-10T14:18:02.716482Z"
       }
     },
     {
       "aktivnost": "ves_na_terasi",
       "odluka": "OPREZ",
-      "razlog_sr": "Vlaga je 89 % — veš se teško suši napolju.",
+      "razlog_sr": "Vlaga je 90 % — veš se teško suši napolju.",
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "PM2.5+vlaga",
-        "as_of": "2026-11-10T14:03:02.296847Z"
+        "as_of": "2026-11-10T14:18:02.716482Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261110135131-0",
-    "at": "2026-11-10T13:51:31.281295Z",
-    "speaker": "Povezivač",
-    "speaker_role": "connector",
-    "text_sr": "Vrhovi čestica se razilaze: PM10 je ostao na 59, dok je PM2.5 porastao na 54, a NO2 pao na 53. Mala ocena takođe smatra da je kretanje PM2.5 najiznenađujuće od ove tri veze. [F5][F7][F9][F52]",
-    "text_en": "The particulate peaks diverge: PM10 held at 59 while PM2.5 rose to 54, and NO2 fell to 53 [F5][F7][F9]. The small rating also treats the PM2.5 movement as the most surprising of these three connections [F52].",
+    "id": "mind-20261110141131-0",
+    "at": "2026-11-10T14:11:31.367458Z",
+    "speaker": "Posmatrač",
+    "speaker_role": "observer",
+    "text_sr": "SEPA je poslednji put javio pre 48 min, dok je Sensor.Community javio pre 8 min. Najsvežiji SEPA sat je označen kao 14:00, a naša procena stvarnog UTC-a je 13:00. Borča drži vrh i za PM10 sa 59 i za PM2.5 sa 54. Maksimum PM10 je ostao 59 do 59, dok se maksimum PM2.5 pomerio sa 35 na 54. Maksimum NO2 pomerio se sa 65 na 53 i nalazi se u Leštanima, na drugom mestu nego vrh čestica. [F2][F10][F3][F4][F8][F5][F9][F6][F7]",
+    "text_en": "SEPA's last reception was 48 min ago [F2], while Sensor.Community reported 8 min ago [F10]. The freshest SEPA hour is labelled 14:00 and our true-UTC estimate is 13:00 [F3]. Borča holds the top of both PM10 at 59 and PM2.5 at 54 [F4][F8]. PM10's maximum stayed at 59 to 59 [F5] while PM2.5's maximum moved from 35 to 54 [F9]. The NO2 maximum moved from 65 to 53 and sits at Leštane, a different place from the particulate peak [F6][F7].",
     "hypotheses_sr": [
-      "Zajednički lokalni uticaj možda različito deluje na merenja čestica i NO2, ali sledeći SEPA prijem treba da proveri da li se ovo razdvajanje održava [F5][F7][F9]."
+      "Oba maksimuma čestica nalaze se u Borči [F4][F8], dok se maksimum NO2 nalazi u Leštanima [F6]. To upućuje na to da vrhovi čestica i azot-dioksida imaju različite prostorne tragove, a ne jedan gradski obrazac.",
+      "Maksimum PM2.5 pomerio se sa 35 na 54 dok je maksimum PM10 ostao 59 do 59 [F9][F5]. Ako je to stvarno, promena u Borči bila bi samo u sitnoj frakciji. Zapis nema osnovnu liniju da to potvrdi [F48].",
+      "Borča i Leštane imaju po oko 5 hiljada ljudi u krugu od 1 km [F45][F47]. Zato oba vrha pogađaju sličan modelovani broj stanovnika, pa broj stanovnika ne objašnjava razliku među njima."
     ],
     "questions_sr": [
-      "Da li će sledeći SEPA prozor zadržati razliku između PM10 i PM2.5, dok NO2 ostaje niži? [F5][F7][F9]"
+      "Hoće li Borča i u sledećem SEPA satu držati vrh za PM2.5 [F8]?",
+      "Slažu li se instrumenti Sensor.Community blizu Borče sa SEPA stanicom tamo [F10][F4]?"
     ],
     "cites": [
+      "F10",
+      "F2",
+      "F3",
+      "F4",
       "F5",
-      "F52",
+      "F6",
       "F7",
+      "F8",
       "F9"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-10T13:51:31.281295Z",
+    "last_mind_step": "2026-11-10T14:11:31.367458Z",
     "active_sources_count": 36,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-10T14:03:02.296847Z"
+    "sensors_as_of": "2026-11-10T14:18:02.716482Z"
   }
 }
