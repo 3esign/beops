@@ -258,9 +258,10 @@
     sec.appendChild(mapa(data.lite));
     if (data.kvorum) sec.appendChild(kvorumTraka(data.kvorum));
     sec.appendChild(el('p', 'napomena', STR.napomena));
-    const kg = view.querySelector('section.kg');
-    const hero = (kg && kg.nextElementSibling) || view.querySelector('section.puls-sekcija') || view.firstElementChild;
-    if (hero && hero !== sec) hero.parentNode.insertBefore(sec, hero);
+    // Fixed order regardless of which module loads first: Komentar grada (komentar.js always
+    // takes the top), then this view, then the essay. Without the commentary: this view on top.
+    const kg = view.querySelector(':scope > section.kg');
+    if (kg) kg.after(sec);
     else view.insertBefore(sec, view.firstChild);
   }
 
@@ -292,7 +293,7 @@
   function traziSerije() {
     if (data.serije._trazio) return;
     data.serije._trazio = true;
-    const ime = { pm25: 'serije/pm25.json', pm10: 'serije/pm10.json', temperature: 'serije/temperature.json', humidity: 'serije/humidity.json' };
+    const ime = { pm25: 'state/serije/pm25.json', pm10: 'state/serije/pm10.json', temperature: 'state/serije/temperature.json', humidity: 'state/serije/humidity.json' };
     Object.keys(ime).forEach(k => jf(ime[k]).then(m => { data.serije[k] = m; osvezi(); }, () => { }));
   }
 

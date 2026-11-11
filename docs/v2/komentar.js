@@ -44,6 +44,7 @@
       '.kg .kg-dg{margin-top:12px;padding:10px 12px;border:1px dashed var(--line,#d5ded9);border-radius:8px;font-size:.88rem}',
       '.kg details{margin-top:12px;font-size:.85rem}.kg summary{cursor:pointer;color:var(--blue,#326d98)}',
       '.kg .ok{color:var(--green,#13644d)}.kg .ne{color:var(--red,#b74732)}',
+      '.kg .kg-isp{margin:10px 0;padding:8px 12px;border-left:4px solid var(--amber,#b7791f);background:#fff8e6;font-size:.9rem}',
       '.kg .kg-ai{font-size:.7rem;color:var(--muted,#68766e);margin-top:12px}'
     ].join('');
     document.head.appendChild(s);
@@ -118,6 +119,12 @@
     meta.appendChild(document.createTextNode(' · ' + (k.dokaza || 0) + ' dokaza iz paketa · svaki broj proveren programom'));
     sec.appendChild(meta);
     sec.appendChild(el('div', 'kg-tekst', k.komentar));
+    (k.ispravke || []).forEach(i => {
+      const b = el('div', 'kg-isp');
+      b.appendChild(el('b', null, 'Ispravka (' + kad(i.at) + '): '));
+      b.appendChild(document.createTextNode(i.tekst));
+      sec.appendChild(b);
+    });
     if (k.za_gradjanina) sec.appendChild(el('div', 'kg-gr', k.za_gradjanina));
     lista(sec, 'Opažanja', k.opazanja, k.dokazi);
     lista(sec, 'Veze', k.veze, k.dokazi, 'vrsta');
