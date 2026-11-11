@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-11T12:33:23.676152+00:00",
-  "as_of": "2026-11-11T12:28:00.978790Z",
+  "generated_at": "2026-11-11T12:53:23.132159+00:00",
+  "as_of": "2026-11-11T12:43:02.674098Z",
   "city_status": {
     "aqi_us": 80,
     "aqi_standard": "US EPA 2024 + EEA EAQI",
@@ -63,20 +63,20 @@
       "network": "reference"
     },
     "meteo": {
-      "temperature": 16.9,
-      "humidity": 89.2,
-      "pressure": 994.9,
-      "wind_speed": 3.3,
+      "temperature": 17.1,
+      "humidity": 88.3,
+      "pressure": 994.8,
+      "wind_speed": 3.2,
       "wind_direction": "140.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 28.7,
-      "pm25_median": 16.0,
-      "pm10_mean": 48.5,
+      "pm25_mean": 22.6,
+      "pm25_median": 14.4,
+      "pm10_mean": 38.3,
       "sensors_count": 26,
       "high_humidity_flag": true,
-      "humidity_pct": 89.2,
+      "humidity_pct": 88.3,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
@@ -88,7 +88,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-11T12:28:00.978790Z"
+        "as_of": "2026-11-11T12:43:02.674098Z"
       }
     },
     {
@@ -98,7 +98,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-11T12:28:00.978790Z"
+        "as_of": "2026-11-11T12:43:02.674098Z"
       }
     },
     {
@@ -108,7 +108,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-11T12:28:00.978790Z"
+        "as_of": "2026-11-11T12:43:02.674098Z"
       }
     },
     {
@@ -118,48 +118,43 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-11T12:28:00.978790Z"
+        "as_of": "2026-11-11T12:43:02.674098Z"
       }
     },
     {
       "aktivnost": "ves_na_terasi",
       "odluka": "OPREZ",
-      "razlog_sr": "Vlaga je 89 % — veš se teško suši napolju.",
+      "razlog_sr": "Vlaga je 88 % — veš se teško suši napolju.",
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "PM2.5+vlaga",
-        "as_of": "2026-11-11T12:28:00.978790Z"
+        "as_of": "2026-11-11T12:43:02.674098Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261111120732-1",
-    "at": "2026-11-11T12:07:32.631722Z",
+    "id": "mind-20261111123931-0",
+    "at": "2026-11-11T12:39:31.382799Z",
     "speaker": "Povezivač",
     "speaker_role": "connector",
-    "text_sr": "Svežina nije usklađena: SEPA je stigla pre 44 min, dok je Sensor.Community stigao pre 14 min. Najnoviji označeni sat završava se u 12:00 UTC, iako je procenjeno stvarno UTC vreme 11:00, a njegovi maksimumi čestica su opali dok je NO2 porastao, bez podržane uobičajene vrednosti za ovaj sat. [F2][F10][F3][F5][F7][F9][F47]",
-    "text_en": "Freshness is not synchronized: SEPA arrived 44 min ago, while Sensor.Community arrived 14 min ago [F2][F10]. The latest labelled hour ends at 12:00 UTC although the estimated true UTC is 11:00 [F3], and its particulate maxima fell while NO2 rose [F5][F7][F9], without a supported usual-hour baseline [F47].",
+    "text_sr": "SEPA i Sensor.Community ponovo dele isto vreme prijema od pre 16 min [F2, F10]. Za to vreme, PM10 i PM2.5 pokazuju identičan prostorni raspored sa najnižim vrednostima na Topčiderskoj zvezdi i najvišim na Zelenom brdu [F4, F8]. Istovremeno, najviša vrednost NO2 locirana je na Bežanijskoj kosi sa 85 µg/m³. [F6]",
+    "text_en": "SEPA and Sensor.Community now share matching reception timestamps from 16 min ago [F2, F10]. Across the official network, PM10 and PM2.5 share identical spatial extrema, lowest at Topčiderska zvezda and highest at Zeleno brdo [F4, F8]. Meanwhile, the peak NO2 reading of 85 µg/m³ appears separately at Bežanijska kosa [F6].",
     "hypotheses_sr": [
-      "Zajednički maksimumi PM10 i PM2.5 na Zelenom brdu, uz zaseban maksimum NO2 u Obrenovac Centru, predstavljaju prostornu podelu koju vredi proveriti u odnosu na vremenski usklađena građanska očitavanja, umesto da se tretira kao jedinstven gradski signal [F4][F6][F8][F10]."
+      "Obe frakcije čestica dele svoj minimum na stanici Topčiderska zvezda i maksimum na stanici Zeleno brdo među zvaničnim stanicama [F4, F8].",
+      "Zvanična i građanska mreža dele identično vreme prijema dok prate distribuciju čestica u gradu [F2, F10]."
     ],
     "questions_sr": [
-      "Da li građanski senzori blizu Zelenog brda i Obrenovac Centra pokazuju istu prostornu podelu po zagađivačima kada se usklade sa razlikom između oznake izvora i stvarnog vremena [F3][F4][F6][F8][F10]?"
+      "Da li će prostorni ekstremi za PM10 i PM2.5 ostati na istim lokacijama na Topčiderskoj zvezdi i Zelenom brdu u sledećem satu merenja [F4, F8]?"
     ],
     "cites": [
-      "F10",
-      "F2",
-      "F3",
-      "F47",
-      "F5",
-      "F7",
-      "F9"
+      "F6"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-11T12:07:32.631722Z",
+    "last_mind_step": "2026-11-11T12:39:31.382799Z",
     "active_sources_count": 36,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-11T12:28:00.978790Z"
+    "sensors_as_of": "2026-11-11T12:43:02.674098Z"
   }
 }
