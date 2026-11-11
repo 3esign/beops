@@ -1,6 +1,6 @@
 /* BEOPS v2 naslovna.js — „Grad u jednom pogledu" (koncept U1+U2+U10, v1).
-   Eksperimentalna naslovna iza zastavice ?naslovna=2 — bez zastavice modul
-   ne radi ništa, živi sajt ostaje netaknut. Sve se crta iz postojećih malih
+   Podrazumevana naslovna od 11.11.2026 (Semir: „ok grad u jednom pogledu"),
+   ispod Komentara grada (komentar.js); ?naslovna=0 je isključuje. Sve se crta iz postojećih malih
    JSON ugovora (puls, mapa-lite, organizam.kvorum, serije/*) — nula novih
    izvora. Bez innerHTML (el + createElementNS); rAF gard umesto petlje
    (pouka iz glas.js); idempotentno (obrazac veceras.js). Tekstovi su
@@ -8,7 +8,8 @@
 'use strict';
 (function () {
   const q = new URLSearchParams(location.search);
-  if (q.get('naslovna') !== '2') return; // zastavica
+  if (q.get('naslovna') === '0') return; // isključenje
+  function ruta() { const h = (location.hash || '').replace('#', ''); return h === '' || h === 'danas'; }
 
   const STR = {
     naslov: 'Grad u jednom pogledu',
@@ -25,7 +26,7 @@
     odluke: { DA: 'DA', OPREZ: 'OPREZ', NE: 'NE', NEZNAM: 'Ne znam' },
     boje: { DA: '#50ccaa', OPREZ: '#f0e641', NE: '#ff5050', NEZNAM: '#e6e6e6' },
     imena: { napolje_sa_decom: 'Napolje sa decom', trcanje: 'Trčanje', provetravanje: 'Provetravanje', bicikl: 'Bicikl', ves_na_terasi: 'Ves na terasi' },
-    napomena: 'Eksperimentalni pregled (?naslovna=2). Podrazumevana naslovna ostaje kao i do sada; brojevi nose vreme merenja, ne prognozu.',
+    napomena: 'Brojevi nose vreme merenja, ne prognozu. Gde nema senzora, pišemo da ne znamo.',
     izvor: 'izvor',
     nema: 'Podatak još ne postoji — pišemo to umesto prazne slike.',
     grRef: 'WHO-ova granica',
@@ -247,7 +248,7 @@
   }
 
   function napravi(view) {
-    if (view.querySelector('section.naslovna-v2')) return; // idempotentno
+    if (view.querySelector('section.naslovna-v2') || !ruta()) return; // idempotentno, samo #danas
     if (!data.puls || !data.lite) return;
     const sec = el('section', 'naslovna-v2');
     sec.appendChild(el('h2', null, STR.naslov));
@@ -257,7 +258,8 @@
     sec.appendChild(mapa(data.lite));
     if (data.kvorum) sec.appendChild(kvorumTraka(data.kvorum));
     sec.appendChild(el('p', 'napomena', STR.napomena));
-    const hero = view.querySelector('section.puls-sekcija') || view.firstElementChild;
+    const kg = view.querySelector('section.kg');
+    const hero = (kg && kg.nextElementSibling) || view.querySelector('section.puls-sekcija') || view.firstElementChild;
     if (hero && hero !== sec) hero.parentNode.insertBefore(sec, hero);
     else view.insertBefore(sec, view.firstChild);
   }
@@ -265,7 +267,7 @@
   function jf(p) { return (typeof jfetch === 'function') ? jfetch(p) : fetch(p).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }); }
 
   function zakazi(view) {
-    if (raf) return;
+    if (raf || !ruta()) return;
     raf = requestAnimationFrame(() => {
       raf = 0;
       stilovi();
