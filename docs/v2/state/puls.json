@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-11T11:53:23.099300+00:00",
-  "as_of": "2026-11-11T11:43:01.914196Z",
+  "generated_at": "2026-11-11T12:23:23.189234+00:00",
+  "as_of": "2026-11-11T12:13:01.803137Z",
   "city_status": {
     "aqi_us": 79,
     "aqi_standard": "US EPA 2024 + EEA EAQI",
@@ -63,20 +63,20 @@
       "network": "reference"
     },
     "meteo": {
-      "temperature": 16.5,
-      "humidity": 89.6,
-      "pressure": 995.3,
+      "temperature": 16.6,
+      "humidity": 89.8,
+      "pressure": 994.9,
       "wind_speed": 2.4,
       "wind_direction": "80.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 23.7,
-      "pm25_median": 20.5,
-      "pm10_mean": 37.7,
+      "pm25_mean": 28.9,
+      "pm25_median": 17.9,
+      "pm10_mean": 50.0,
       "sensors_count": 26,
       "high_humidity_flag": true,
-      "humidity_pct": 89.6,
+      "humidity_pct": 89.8,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
@@ -88,7 +88,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-11T11:43:01.914196Z"
+        "as_of": "2026-11-11T12:13:01.803137Z"
       }
     },
     {
@@ -98,7 +98,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-11T11:43:01.914196Z"
+        "as_of": "2026-11-11T12:13:01.803137Z"
       }
     },
     {
@@ -108,7 +108,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-11T11:43:01.914196Z"
+        "as_of": "2026-11-11T12:13:01.803137Z"
       }
     },
     {
@@ -118,7 +118,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-11T11:43:01.914196Z"
+        "as_of": "2026-11-11T12:13:01.803137Z"
       }
     },
     {
@@ -128,33 +128,38 @@
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "PM2.5+vlaga",
-        "as_of": "2026-11-11T11:43:01.914196Z"
+        "as_of": "2026-11-11T12:13:01.803137Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261111115131-0",
-    "at": "2026-11-11T11:51:31.378235Z",
-    "speaker": "Posmatrač",
-    "speaker_role": "observer",
-    "text_sr": "Više ne vidim usklađen prijem: SEPA je poslednji put stigla pre 28 min, građanska mreža pre 8 min. Zato bih razdvojio svežinu od prostornog slaganja pre nego što građanska očitavanja upotrebim za proveru zvaničnog obrasca. [F2][F10]",
-    "text_en": "I no longer see synchronized reception: SEPA last arrived 28 min ago, the citizen network 8 min ago [F2][F10]. I would therefore separate freshness from spatial agreement before using the citizen readings to test the official pattern [F2][F10].",
+    "id": "mind-20261111120732-0",
+    "at": "2026-11-11T12:07:32.631722Z",
+    "speaker": "Povezivač",
+    "speaker_role": "connector",
+    "text_sr": "Svežina nije usklađena: SEPA je stigla pre 44 min, dok je Sensor.Community stigao pre 14 min. Najnoviji označeni sat završava se u 12:00 UTC, iako je procenjeno stvarno UTC vreme 11:00, a njegovi maksimumi čestica su opali dok je NO2 porastao, bez podržane uobičajene vrednosti za ovaj sat. [F2][F10][F3][F5][F7][F9][F47]",
+    "text_en": "Freshness is not synchronized: SEPA arrived 44 min ago, while Sensor.Community arrived 14 min ago [F2][F10]. The latest labelled hour ends at 12:00 UTC although the estimated true UTC is 11:00 [F3], and its particulate maxima fell while NO2 rose [F5][F7][F9], without a supported usual-hour baseline [F47].",
     "hypotheses_sr": [
-      "Zajednički maksimum čestica na Zelenom brdu možda označava lokalizovan obrazac, ali sam prijem građanske mreže ne može da potvrdi njegov prostorni obuhvat [F4][F8][F10]."
+      "Zajednički maksimumi PM10 i PM2.5 na Zelenom brdu, uz zaseban maksimum NO2 u Obrenovac Centru, predstavljaju prostornu podelu koju vredi proveriti u odnosu na vremenski usklađena građanska očitavanja, umesto da se tretira kao jedinstven gradski signal [F4][F6][F8][F10]."
     ],
     "questions_sr": [
-      "Da li građanska očitavanja blizu Zelenog brda ponavljaju zvanični obrazac čestica kada se usklade vremena merenja [F4][F8][F10]?"
+      "Da li građanski senzori blizu Zelenog brda i Obrenovac Centra pokazuju istu prostornu podelu po zagađivačima kada se usklade sa razlikom između oznake izvora i stvarnog vremena [F3][F4][F6][F8][F10]?"
     ],
     "cites": [
       "F10",
-      "F2"
+      "F2",
+      "F3",
+      "F47",
+      "F5",
+      "F7",
+      "F9"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-11T11:51:31.378235Z",
+    "last_mind_step": "2026-11-11T12:07:32.631722Z",
     "active_sources_count": 36,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-11T11:43:01.914196Z"
+    "sensors_as_of": "2026-11-11T12:13:01.803137Z"
   }
 }
