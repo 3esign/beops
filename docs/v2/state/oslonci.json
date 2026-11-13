@@ -1,10 +1,33 @@
 {
   "schema": "beops-v2-oslonci/v1",
-  "generated_at": "2026-11-13T11:13:27.164Z",
-  "as_of": "2026-11-13T11:11:31.288630Z",
+  "generated_at": "2026-11-13T11:23:28.477Z",
+  "as_of": "2026-11-13T11:16:28.026Z",
   "zakon": "pun tekst dokaza; ugovor misli nosi samo prozor teksta (280 znakova + …)",
-  "ukupno": 13,
+  "ukupno": 12,
   "oslonci": {
+    "bridge:2026-11-13T11-16-15-638Z__claude-auto": [
+      {
+        "id": "puls:pm25",
+        "naslov": "PM25",
+        "tekst": "{\"mean\":6.6,\"median\":6.1,\"min\":3.9,\"max\":11.9,\"max_station\":\"Leštane\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+        "at": "2026-11-13T11:03:14.388237Z",
+        "izvor": "state/puls.json#/current_metrics/pm25"
+      },
+      {
+        "id": "izvor:S04:pm10",
+        "naslov": "PM10 123.15 µg/m³ — 81170",
+        "tekst": "{\"naslov\":\"PM10 123.15 µg/m³ — 81170\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-13T10:25:54Z\",\"primljeno\":\"2026-11-13T10:28:03.362009Z\",\"napomena\":null}",
+        "at": "2026-11-13T10:25:54Z",
+        "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+      },
+      {
+        "id": "izvor:S04:pm25",
+        "naslov": "PM2.5 43.72 µg/m³ — 81170",
+        "tekst": "{\"naslov\":\"PM2.5 43.72 µg/m³ — 81170\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-13T10:25:54Z\",\"primljeno\":\"2026-11-13T10:28:03.362009Z\",\"napomena\":null}",
+        "at": "2026-11-13T10:25:54Z",
+        "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+      }
+    ],
     "bridge:2026-11-13T06-15-10-512Z__claude-auto": [
       {
         "id": "puls:pm10",
@@ -301,115 +324,69 @@
         "izvor": "state/kontekst-vazduh-dnevno.json#/monthly_climatology"
       }
     ],
-    "bridge:2026-11-12T10-45-08-155Z__claude-auto": [
+    "bridge:2026-11-13T11-15-49-690Z__urednik__claude_auto": [
       {
         "id": "puls:pm25",
         "naslov": "PM25",
-        "tekst": "{\"mean\":22.4,\"median\":20,\"min\":11.9,\"max\":56.4,\"max_station\":\"Borča\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-        "at": "2026-11-12T10:28:04.722440Z",
+        "tekst": "{\"mean\":6.6,\"median\":6.1,\"min\":3.9,\"max\":11.9,\"max_station\":\"Leštane\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+        "at": "2026-11-13T11:03:14.388237Z",
         "izvor": "state/puls.json#/current_metrics/pm25"
       },
       {
         "id": "puls:pm10",
         "naslov": "PM10",
-        "tekst": "{\"mean\":30,\"median\":29.1,\"min\":15.7,\"max\":65.3,\"max_station\":\"Borča\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-        "at": "2026-11-12T10:28:04.722440Z",
+        "tekst": "{\"mean\":24.6,\"median\":20.2,\"min\":13,\"max\":66.4,\"max_station\":\"Omladinskih brigada\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+        "at": "2026-11-13T11:03:14.388237Z",
         "izvor": "state/puls.json#/current_metrics/pm10"
       },
       {
         "id": "puls:no2",
         "naslov": "NO2",
-        "tekst": "{\"mean\":40.7,\"median\":39.5,\"min\":16.5,\"max\":70.1,\"max_station\":\"Bulevar despota Stefana\",\"unit\":\"µg/m³\",\"sensors_count\":32,\"network\":\"reference\"}",
-        "at": "2026-11-12T10:28:04.722440Z",
-        "izvor": "state/puls.json#/current_metrics/no2"
-      },
-      {
-        "id": "izvor:S04:pm10",
-        "naslov": "PM10 152.05 µg/m³ — 81170",
-        "tekst": "{\"naslov\":\"PM10 152.05 µg/m³ — 81170\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-12T09:56:43Z\",\"primljeno\":\"2026-11-12T09:58:02.819087Z\",\"napomena\":null}",
-        "at": "2026-11-12T09:56:43Z",
-        "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-      },
-      {
-        "id": "izvor:S146:pm10",
-        "naslov": "PM10 65.33 µg/m³ — Borča",
-        "tekst": "{\"naslov\":\"PM10 65.33 µg/m³ — Borča\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-11-12T10:00:00Z\",\"primljeno\":\"2026-11-12T09:58:01.571425Z\",\"napomena\":null}",
-        "at": "2026-11-12T10:00:00Z",
-        "izvor": "SEPA air quality HVD API - hourly preliminary means"
-      },
-      {
-        "id": "istorija:vazduh-2024",
-        "naslov": "Godina 2024 po stanicama (SEPA verifikovano)",
-        "tekst": "{\"godina\":2024,\"granica_pm10_dnevno\":50,\"stanice\":[{\"stanica\":\"mostar\",\"zagadjivac\":\"pm10\",\"prosek\":32.3,\"dana_preko_granice\":69},{\"stanica\":\"mostar\",\"zagadjivac\":\"pm25\",\"prosek\":21,\"dana_preko_granice\":null},{\"stanica\":\"novi-beograd\",\"zagadjivac\":\"pm10\",\"prosek\":32.1,\"dana_preko_granice\":55},{\"stanica\":\"novi-beograd\",\"zagadjivac\":\"pm25\",\"prosek\":20.8,\"dana_preko_granice\":null},{\"stanica\":\"obrenovac-centar\",\"zagadjivac\":\"pm10\",\"prosek\":45.8,\"dana_preko_granice\":110},{\"stanica\":\"obrenovac-centar\",\"zagadjivac\":\"pm25\",\"prosek\":26.7,\"dana_preko_granice\":null},{\"stanica\":\"stari-grad\",\"zagadjivac\":\"pm10\",\"prosek\":33.6,\"dana_preko_granice\":58},{\"stanica\":\"stari-grad\",\"zagadjivac\":\"pm25\",\"prosek\":21.6,\"dana_preko_granice\":null},{\"stanica\":\"vracar\",\"zagadjivac\":\"pm25\",\"prosek\":22.2,\"dana_preko_granice\":null},{\"stanica\":\"vracar-gradska-mreza\",\"zagadjivac\":\"pm10\",\"prosek\":29.1,\"dana_preko_granice\":41},{\"stanica\":\"zeleno-brdo\",\"zagadjivac\":\"pm10\",\"prosek\":29.1,\"dana_preko_granice\":34},{\"stanica\":\"zeleno-brdo\",\"zagadjivac\":\"pm25\",\"prosek\":21.1,\"dana_preko_granice\":null}]}",
-        "at": "2024-12-31",
-        "izvor": "state/kontekst-vazduh-dnevno.json#/annual"
-      }
-    ],
-    "bridge:2026-11-12T08-16-29-128Z__claude-auto": [
-      {
-        "id": "puls:no2",
-        "naslov": "NO2",
-        "tekst": "{\"mean\":34.8,\"median\":32.2,\"min\":15.2,\"max\":70.7,\"max_station\":\"Mostar\",\"unit\":\"µg/m³\",\"sensors_count\":32,\"network\":\"reference\"}",
-        "at": "2026-11-12T08:08:04.750075Z",
-        "izvor": "state/puls.json#/current_metrics/no2"
-      },
-      {
-        "id": "istorija:vazduh-mesec-11",
-        "naslov": "Uobičajeno za ovaj mesec (SEPA verifikovano, 2011–2024)",
-        "tekst": "{\"mesec\":11,\"jedinica\":\"µg/m³, dnevni prosek\",\"stanice\":{\"mostar\":{\"s146_id\":\"10\",\"no2\":{\"p50\":40.6,\"p90\":71.3,\"dana\":385},\"pm10\":{\"p50\":31,\"p90\":74.5,\"dana\":270},\"pm25\":{\"p50\":25,\"p90\":47.2,\"dana\":180}},\"novi-beograd\":{\"s146_id\":\"9\",\"no2\":{\"p50\":28.9,\"p90\":52.3,\"dana\":355},\"pm10\":{\"p50\":30.1,\"p90\":59,\"dana\":277},\"pm25\":{\"p50\":22.7,\"p90\":46,\"dana\":179}},\"obrenovac-centar\":{\"s146_id\":\"16\",\"no2\":{\"p50\":31.2,\"p90\":46.4,\"dana\":270},\"pm10\":{\"p50\":30.1,\"p90\":100.8,\"dana\":239},\"pm25\":{\"p50\":26.4,\"p90\":67.9,\"dana\":150}},\"obrenovac-deponija-pepela\":{\"s146_id\":null,\"no2\":{\"p50\":17,\"p90\":32.3,\"dana\":60}},\"pancevo-sodara\":{\"s146_id\":\"6\",\"no2\":{\"p50\":20.2,\"p90\":33,\"dana\":180}},\"stari-grad\":{\"s146_id\":\"7\",\"no2\":{\"p50\":30.4,\"p90\":65.3,\"dana\":348},\"pm10\":{\"p50\":31.3,\"p90\":75.9,\"dana\":329},\"pm25\":{\"p50\":25.5,\"p90\":52.5,\"dana\":210}},\"vracar\":{\"s146_id\":\"11\",\"no2\":{\"p50\":30,\"p90\":59.7,\"dana\":390},\"pm10\":{\"p50\":35.2,\"p90\":81.2,\"dana\":299},\"pm25\":{\"p50\":29.6,\"p90\":50.1,\"dana\":150}},\"zeleno-brdo\":{\"s146_id\":\"12\",\"no2\":{\"p50\":21.6,\"p90\":42.1,\"dana\":349},\"pm10\":{\"p50\":34,\"p90\":91.4,\"dana\":210},\"pm25\":{\"p50\":26.9,\"p90\":49.7,\"dana\":90}}}}",
-        "at": "2024-12-31",
-        "izvor": "state/kontekst-vazduh-dnevno.json#/monthly_climatology"
-      }
-    ],
-    "bridge:2026-11-13T08-45-48-799Z__urednik__claude_auto": [
-      {
-        "id": "puls:pm25",
-        "naslov": "PM25",
-        "tekst": "{\"mean\":8.1,\"median\":7.2,\"min\":5,\"max\":14.3,\"max_station\":\"Leštane\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-        "at": "2026-11-13T08:33:12.469462Z",
-        "izvor": "state/puls.json#/current_metrics/pm25"
-      },
-      {
-        "id": "puls:pm10",
-        "naslov": "PM10",
-        "tekst": "{\"mean\":21.4,\"median\":19.1,\"min\":10.1,\"max\":55.2,\"max_station\":\"Surčin\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-        "at": "2026-11-13T08:33:12.469462Z",
-        "izvor": "state/puls.json#/current_metrics/pm10"
-      },
-      {
-        "id": "puls:no2",
-        "naslov": "NO2",
-        "tekst": "{\"mean\":29.5,\"median\":26.1,\"min\":8.9,\"max\":73.9,\"max_station\":\"Franše d’Epere\",\"unit\":\"µg/m³\",\"sensors_count\":32,\"network\":\"reference\"}",
-        "at": "2026-11-13T08:33:12.469462Z",
+        "tekst": "{\"mean\":19.7,\"median\":18.4,\"min\":5.3,\"max\":59.3,\"max_station\":\"Bulevar despota Stefana\",\"unit\":\"µg/m³\",\"sensors_count\":32,\"network\":\"reference\"}",
+        "at": "2026-11-13T11:03:14.388237Z",
         "izvor": "state/puls.json#/current_metrics/no2"
       },
       {
         "id": "puls:o3",
         "naslov": "O3",
-        "tekst": "{\"mean\":37.3,\"median\":43.6,\"min\":9,\"max\":53,\"max_station\":\"Novi Beograd\",\"unit\":\"µg/m³\",\"sensors_count\":26,\"network\":\"reference\"}",
-        "at": "2026-11-13T08:33:12.469462Z",
+        "tekst": "{\"mean\":52.2,\"median\":52.7,\"min\":29.8,\"max\":70,\"max_station\":\"Vinča\",\"unit\":\"µg/m³\",\"sensors_count\":26,\"network\":\"reference\"}",
+        "at": "2026-11-13T11:03:14.388237Z",
         "izvor": "state/puls.json#/current_metrics/o3"
       },
       {
         "id": "puls:meteo",
         "naslov": "Vremenski uslovi",
-        "tekst": "{\"temperature\":22,\"humidity\":56.3,\"pressure\":980.5,\"wind_speed\":5.9,\"wind_direction\":\"190.0\"}",
-        "at": "2026-11-13T08:33:12.469462Z",
+        "tekst": "{\"temperature\":14.6,\"humidity\":82.7,\"pressure\":985.8,\"wind_speed\":9.5,\"wind_direction\":\"330.0\"}",
+        "at": "2026-11-13T11:03:14.388237Z",
         "izvor": "state/puls.json#/current_metrics/meteo"
       },
       {
         "id": "izvor:S04:pm10",
-        "naslov": "PM10 134.07 µg/m³ — 81170",
-        "tekst": "{\"naslov\":\"PM10 134.07 µg/m³ — 81170\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-13T07:54:57Z\",\"primljeno\":\"2026-11-13T07:58:03.600265Z\",\"napomena\":null}",
-        "at": "2026-11-13T07:54:57Z",
+        "naslov": "PM10 123.15 µg/m³ — 81170",
+        "tekst": "{\"naslov\":\"PM10 123.15 µg/m³ — 81170\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-13T10:25:54Z\",\"primljeno\":\"2026-11-13T10:28:03.362009Z\",\"napomena\":null}",
+        "at": "2026-11-13T10:25:54Z",
         "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
       },
       {
-        "id": "izvor:S01:humidity",
-        "naslov": "Vlažnost 47 % — Beograd",
-        "tekst": "{\"naslov\":\"Vlažnost 47 % — Beograd\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-13T08:00:00Z\",\"primljeno\":\"2026-11-13T08:03:08.761816Z\",\"napomena\":null}",
-        "at": "2026-11-13T08:00:00Z",
-        "izvor": "RHMZ automatic stations - Belgrade (Beograd, Košutnjak)"
+        "id": "izvor:S04:pm25",
+        "naslov": "PM2.5 43.72 µg/m³ — 81170",
+        "tekst": "{\"naslov\":\"PM2.5 43.72 µg/m³ — 81170\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-13T10:25:54Z\",\"primljeno\":\"2026-11-13T10:28:03.362009Z\",\"napomena\":null}",
+        "at": "2026-11-13T10:25:54Z",
+        "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+      },
+      {
+        "id": "izvor:S04:temperature",
+        "naslov": "Temperatura 21 °C — 47428",
+        "tekst": "{\"naslov\":\"Temperatura 21 °C — 47428\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-13T10:25:41Z\",\"primljeno\":\"2026-11-13T10:28:03.362009Z\",\"napomena\":null}",
+        "at": "2026-11-13T10:25:41Z",
+        "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+      },
+      {
+        "id": "izvor:S146:pm10",
+        "naslov": "PM10 66.41 µg/m³ — Omladinskih brigada",
+        "tekst": "{\"naslov\":\"PM10 66.41 µg/m³ — Omladinskih brigada\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-11-13T11:00:00Z\",\"primljeno\":\"2026-11-13T10:28:01.377619Z\",\"napomena\":null}",
+        "at": "2026-11-13T11:00:00Z",
+        "izvor": "SEPA air quality HVD API - hourly preliminary means"
       },
       {
         "id": "istorija:vazduh-mesec-11",
