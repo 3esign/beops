@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-15T02:06:25.970328+00:00",
-  "as_of": "2026-11-15T01:57:24.496742Z",
+  "generated_at": "2026-11-15T02:16:25.966478+00:00",
+  "as_of": "2026-11-15T02:12:25.757164Z",
   "city_status": {
     "aqi_us": 97,
     "aqi_us_category": "umeren",
@@ -67,20 +67,20 @@
       "network": "reference"
     },
     "meteo": {
-      "temperature": 4.8,
-      "humidity": 81.3,
-      "pressure": 1011.0,
-      "wind_speed": 3.2,
+      "temperature": 4.5,
+      "humidity": 82.0,
+      "pressure": 1010.8,
+      "wind_speed": 3.0,
       "wind_direction": "90.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 39.5,
-      "pm25_median": 29.1,
-      "pm10_mean": 68.2,
+      "pm25_mean": 33.6,
+      "pm25_median": 28.6,
+      "pm10_mean": 57.7,
       "sensors_count": 27,
       "high_humidity_flag": true,
-      "humidity_pct": 81.3,
+      "humidity_pct": 82.0,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
@@ -92,7 +92,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-15T01:57:24.496742Z"
+        "as_of": "2026-11-15T02:12:25.757164Z"
       }
     },
     {
@@ -102,7 +102,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-15T01:57:24.496742Z"
+        "as_of": "2026-11-15T02:12:25.757164Z"
       }
     },
     {
@@ -112,7 +112,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-15T01:57:24.496742Z"
+        "as_of": "2026-11-15T02:12:25.757164Z"
       }
     },
     {
@@ -122,47 +122,50 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-15T01:57:24.496742Z"
+        "as_of": "2026-11-15T02:12:25.757164Z"
       }
     },
     {
       "aktivnost": "ves_na_terasi",
       "odluka": "OPREZ",
-      "razlog_sr": "Vlaga je 81 % — veš se teško suši napolju.",
+      "razlog_sr": "Vlaga je 82 % — veš se teško suši napolju.",
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "PM2.5+vlaga",
-        "as_of": "2026-11-15T01:57:24.496742Z"
+        "as_of": "2026-11-15T02:12:25.757164Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261115020125-1",
-    "at": "2026-11-15T02:01:25.514823Z",
-    "speaker": "Posmatrač",
-    "speaker_role": "observer",
-    "text_sr": "Najnoviji SEPA sat postavlja oba maksimuma čestica u Borču: PM10 61 i PM2.5 58 µg/m³, dok NO2 dostiže maksimum u Franše d’Epereu sa 48 µg/m³. Njihove promene nisu paralelne: PM10 je ostao na 61, PM2.5 se pomerio sa 56 na 58, a NO2 sa 53 na 48 kroz označene sate. [F4][F8][F6][F5][F7][F9]",
-    "text_en": "The latest SEPA hour places both particle maxima at Borča: PM10 61 and PM2.5 58 µg/m³ [F4][F8], while NO2 peaks at Franše d’Epere at 48 µg/m³ [F6]. Their changes are not parallel: PM10 stayed 61, PM2.5 moved from 56 to 58, and NO2 moved from 53 to 48 across the labelled hours [F5][F7][F9].",
+    "id": "mind-20261115020925-0",
+    "at": "2026-11-15T02:09:25.522787Z",
+    "speaker": "Sumnjalo",
+    "speaker_role": "skeptic",
+    "text_sr": "Connectorov „opadajući“ maksimum PM10 ne postoji u zapisu: išao je od 61 do 61 µg/m³ kroz sate označene od strane izvora, a te oznake su i same pomerene u odnosu na našu procenu pravog UTC. Ni ni ne kažu gde su bili raniji maksimumi, pa „oba u Borči“ važi samo za poslednji sat, a bez osnovne linije ni 61 ni 58 ne mogu se nazvati visokim. [F5][F3][F9][F4][F8][F48]",
+    "text_en": "Connector's 'declining' PM10 maximum is not in the record: it went from 61 to 61 µg/m³ across the source-labelled hours [F5], and those labels are themselves offset from our true-UTC estimate [F3]. Neither [F5] nor [F9] names where the earlier maxima sat, so 'both at Borča' holds only for the latest hour [F4][F8], and without a baseline neither 61 nor 58 can be called high [F48].",
     "hypotheses_sr": [
-      "Borča može biti zajednička žarišna tačka za čestice, ali različite promene PM10 i PM2.5 ukazuju da ta dva pokazatelja tamo ne reaguju isto [F4][F5][F8][F9]."
+      "Maksimum PM2.5 od 58 gotovo u ravni sa maksimumom PM10 od 61 u Borči [F4][F8] može ukazivati na izvor finih čestica kao što je noćno sagorevanje pre nego na prašinu, mada ništa u zapisu ne identifikuje izvor.",
+      "Maksimum čestica je tamo gde u krugu od 1 km živi oko 5 hiljada ljudi [F45], dok je minimum čestica na Vračar Dom zdravlja sa oko 39 hiljada [F44], pa najgore očitavanje možda se ne poklapa sa najvećom izloženošću.",
+      "Pomeranje maksimuma NO2 sa 53 na 48 [F7] dok maksimumi čestica nisu pali [F5][F9] može značiti da se izvori saobraćaja i čestica noću razdvajaju, ali maksimum može i da promeni stanicu između sati."
     ],
     "questions_sr": [
-      "Da li će sledeće SEPA ažuriranje zadržati Borču kao lokaciju maksimuma i za PM10 i za PM2.5 [F4][F8]?"
+      "Koja stanica je imala maksimume PM10 i PM2.5 u satu označenom 01:00 [F5][F9]?",
+      "Da li je maksimum NO2 od 48 na Franše d’Epere [F6] ista stanica koja je dala 53 u prethodnom satu [F7]?"
     ],
     "cites": [
+      "F3",
       "F4",
+      "F48",
       "F5",
-      "F6",
-      "F7",
       "F8",
       "F9"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-15T02:01:25.514823Z",
+    "last_mind_step": "2026-11-15T02:09:25.522787Z",
     "active_sources_count": 36,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-15T01:57:24.496742Z"
+    "sensors_as_of": "2026-11-15T02:12:25.757164Z"
   }
 }
