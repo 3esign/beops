@@ -1,18 +1,18 @@
 {
   "schema": "beops-v2-misli/v1.1",
-  "generated_at": "2026-11-16T08:06:38.019Z",
-  "as_of": "2026-11-16T08:05:27.025744Z",
-  "total_thoughts": 52,
+  "generated_at": "2026-11-16T08:16:31.398Z",
+  "as_of": "2026-11-16T08:12:41.841Z",
+  "total_thoughts": 51,
   "filter_counts": {
-    "accepted": 51,
+    "accepted": 50,
     "rejected": 1,
     "observer": 14,
     "skeptic": 11,
     "connector": 10,
     "organelle": 0,
     "ai_feed": 0,
-    "bridge": 17,
-    "kartice": 15,
+    "bridge": 16,
+    "kartice": 14,
     "eseji": 3
   },
   "thoughts": [
@@ -120,87 +120,6 @@
           }
         ],
         "at": "2026-11-13T22:46:31.243Z"
-      }
-    },
-    {
-      "id": "bridge:2026-11-15T00-41-38-939Z__claude-auto",
-      "at": "2026-11-15T00:41:54.451Z",
-      "origin": "bridge",
-      "entity": "bridge:claude",
-      "entity_label": "claude/auto",
-      "model": "claude/auto",
-      "prompt_id": null,
-      "oblik": "misao",
-      "narav": null,
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "U 00:27 UTC referentna mreža od 31 senzora za PM2.5 pokazuje gradski prosek 44,5 µg/m³ i medijanu 42,3 µg/m³. Najviša vrednost je 104,7 µg/m³, u Zemunu TB. Građanski senzor 81170 je u 23:50 UTC prijavio PM2.5 322 µg/m³ i PM10 734,13 µg/m³. To je višestruko iznad najviše referentne vrednosti za PM10, koja je u tom preseku 105,9 µg/m³, takođe u Zemunu TB. Ne znam da li je to stvarno lokalno žarište ili greška jednog uređaja. Paket ne kaže gde je taj senzor, a jedan zapis ne može da potvrdi ni jedno ni drugo. Za novembar SEPA beleži dnevnu medijanu PM2.5 od 22,7 µg/m³ na Novom Beogradu do 29,6 µg/m³ na Vračaru. Noćni satni gradski prosek je iznad toga. To poređenje je samo orijentir, jer se satni preliminarni podatak upoređuje sa verifikovanim dnevnim prosekom. Ne govori da je granica prekoračena.",
-      "text_en": null,
-      "hypotheses_sr": [],
-      "questions_sr": [],
-      "cites": [
-        "puls:pm25",
-        "puls:pm10",
-        "izvor:S04:pm25",
-        "izvor:S04:pm10",
-        "istorija:vazduh-mesec-11"
-      ],
-      "pouzdanost": "srednje — referentni presek ima široku pokrivenost, ali satni podatak je preliminaran, a vrednost građanskog senzora potiče od jednog uređaja čija lokacija u paketu nije navedena.",
-      "naslov": null,
-      "prompt_version": 4,
-      "status_odgovora": "nalaz",
-      "odgovor_na_pitanje": null,
-      "ekspertize": null,
-      "prozor": null,
-      "kontekst_sha256": "21eda0c465677bb98b92b0077825e8352931a03738b3153413ecb510baf85b21",
-      "oslonci": [
-        {
-          "id": "puls:pm25",
-          "naslov": "PM25",
-          "tekst": "{\"mean\":44.5,\"median\":42.3,\"min\":9.8,\"max\":104.7,\"max_station\":\"Zemun TB\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-          "at": "2026-11-15T00:27:24.009716Z",
-          "izvor": "state/puls.json#/current_metrics/pm25"
-        },
-        {
-          "id": "puls:pm10",
-          "naslov": "PM10",
-          "tekst": "{\"mean\":50.6,\"median\":48.2,\"min\":11.3,\"max\":105.9,\"max_station\":\"Zemun TB\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-          "at": "2026-11-15T00:27:24.009716Z",
-          "izvor": "state/puls.json#/current_metrics/pm10"
-        },
-        {
-          "id": "izvor:S04:pm10",
-          "naslov": "PM10 734.13 µg/m³ — 81170",
-          "tekst": "{\"naslov\":\"PM10 734.13 µg/m³ — 81170\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-14T23:50:56Z\",\"primljeno\":\"2026-11-14T23:52:29.741105Z\",\"napomena\":null}",
-          "at": "2026-11-14T23:50:56Z",
-          "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-        },
-        {
-          "id": "izvor:S04:pm25",
-          "naslov": "PM2.5 322 µg/m³ — 81170",
-          "tekst": "{\"naslov\":\"PM2.5 322 µg/m³ — 81170\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-14T23:50:56Z\",\"primljeno\":\"2026-11-14T23:52:29.741105Z\",\"napomena\":null}",
-          "at": "2026-11-14T23:50:56Z",
-          "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-        },
-        {
-          "id": "istorija:vazduh-mesec-11",
-          "naslov": "Uobičajeno za ovaj mesec (SEPA verifikovano, 2011–2024)",
-          "tekst": "{\"mesec\":11,\"jedinica\":\"µg/m³, dnevni prosek\",\"stanice\":{\"mostar\":{\"s146_id\":\"10\",\"no2\":{\"p50\":40.6,\"p90\":71.3,\"dana\":385},\"pm10\":{\"p50\":31,\"p90\":74.5,\"dana\":270},\"pm25\":{\"p50\":25,\"p90\":47.2,\"dana\":180}},\"novi-beograd\":{\"s146_id\":\"9\",\"no2\":{\"p50\":28.9,\"p90\":52.3,\"dana\":355},\"pm10…",
-          "at": "2024-12-31",
-          "izvor": "state/kontekst-vazduh-dnevno.json#/monthly_climatology"
-        }
-      ],
-      "level": "veza",
-      "za_gradjanina": {
-        "akcija": "Jedna ekstremna vrednost sa građanskog senzora nije slika celog grada. Za procenu vazduha u svom kraju uzmite najbližu referentnu stanicu, ne pojedinačni amaterski uređaj.",
-        "vazi_do": null,
-        "lokacija": null,
-        "dokaz": "puls:pm25 · puls:pm10 · izvor:S04:pm25 · izvor:S04:pm10 · istorija:vazduh-mesec-11"
-      },
-      "validacija": {
-        "state": "accepted",
-        "razlog": [],
-        "at": "2026-11-15T00:41:55.857Z"
       }
     },
     {
@@ -350,119 +269,6 @@
         "state": "accepted",
         "razlog": [],
         "at": "2026-11-15T05:41:57.900Z"
-      }
-    },
-    {
-      "id": "bridge:2026-11-15T08-12-21-727Z__urednik__claude_auto",
-      "at": "2026-11-15T08:12:50.420Z",
-      "origin": "bridge",
-      "entity": "bridge:claude",
-      "entity_label": "claude/auto",
-      "model": "claude/auto",
-      "prompt_id": null,
-      "oblik": "esej",
-      "narav": null,
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "Referentna mreža u jutarnjem preseku u 07:57 UTC pokazuje miran vazduh nad Beogradom. Prosek PM2.5 je 13.3 µg/m³ na 31 senzoru, a najviše je izmereno na Zelenom brdu, 19.6 µg/m³. PM10 je u proseku 14.8 µg/m³, a najviša vrednost je 20.5 µg/m³, na istom mestu. Azot-dioksid je u proseku 10.9 µg/m³, a najviše ga je u Borči, 23.4 µg/m³. Ozon je u proseku 36.6 µg/m³, a najviše ga je na Adi Ciganliji, 45.7 µg/m³. Temperatura je 8, vlažnost 75.5 %, pritisak 1008.8, a vetar 8.7 iz pravca 140.0. Paket ne navodi jedinicu za vetar. Jedino veliko odstupanje dolazi od građanskog senzora 81170, koji u 07:26 UTC beleži PM10 382.08 µg/m³ i PM2.5 153.35 µg/m³.\n\nReferentni presek ne pokazuje izražen skok čestica u gradu. To je ipak slika jednog trenutka, a ne prognoza za ostatak dana. Za sutra postoji jedna konkretna stvar: za Zemun je najavljeno planirano isključenje struje 2026-11-16 od 08:30 do 10:30, za navedene adrese u ulici Braće Fogl. Vremenska zona nije navedena. To je najava iz naslova vesti i ne potvrđuje da će isključenje biti sprovedeno. Prikaz slobodnih mesta u garaži „Baba Višnjina” nema potvrđen čas merenja, pa ne kaže koliko će mesta biti slobodno kad stignete.\n\nNajzanimljiviji je raskorak između jednog uređaja i cele mreže. Očitavanja senzora 81170 daleko su iznad celog raspona koji beleži referentna mreža. Paket ne navodi gde je taj senzor postavljen. Pretpostavljam da je reč o lokalnom izvoru uz sam uređaj ili o grešci uređaja. Ništa u paketu ne pokazuje da se ta vrednost odnosi na širi deo grada. Građanska mreža može da posluži kao rani signal, ali jedno očitavanje ne govori o celom gradu dok ga ne potvrde drugi uređaji ili lokacija.\n\nGranice ovog znanja su jasne. Paket nema seriju poslednjih dana, padavine ni prognozu, pa ne možemo reći kako će izgledati popodne ili sutrašnji vazduh. Presek ne potvrđuje čas merenja svakog senzora. Živi satni podaci su preliminarni, pa se ne mogu pošteno porediti sa verifikovanim dnevnim prosecima za novembar.",
-      "text_en": null,
-      "hypotheses_sr": [],
-      "questions_sr": [],
-      "cites": [
-        "puls:pm25",
-        "puls:pm10",
-        "puls:no2",
-        "puls:o3",
-        "puls:meteo",
-        "izvor:S04:pm10",
-        "izvor:S04:pm25",
-        "izvor:b4249971013eeeef",
-        "izvor:S10:free_spaces"
-      ],
-      "pouzdanost": "srednje — referentna mreža je široka, ali presek ne potvrđuje čas svakog senzora, nema padavina ni jedinice za vetar, a isključenje je samo najava.",
-      "naslov": "Miran jutarnji vazduh, a jedan senzor odstupa",
-      "prompt_version": 4,
-      "status_odgovora": "nalaz",
-      "odgovor_na_pitanje": null,
-      "ekspertize": null,
-      "prozor": null,
-      "kontekst_sha256": "3dd143f0091de2f3efe9d1b123726f773ce409c6ac61d0e49b2e2e5887417d8e",
-      "oslonci": [
-        {
-          "id": "puls:pm25",
-          "naslov": "PM25",
-          "tekst": "{\"mean\":13.3,\"median\":13.1,\"min\":8.7,\"max\":19.6,\"max_station\":\"Zeleno brdo\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-          "at": "2026-11-15T07:57:25.093341Z",
-          "izvor": "state/puls.json#/current_metrics/pm25"
-        },
-        {
-          "id": "puls:pm10",
-          "naslov": "PM10",
-          "tekst": "{\"mean\":14.8,\"median\":14.9,\"min\":9.7,\"max\":20.5,\"max_station\":\"Zeleno brdo\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-          "at": "2026-11-15T07:57:25.093341Z",
-          "izvor": "state/puls.json#/current_metrics/pm10"
-        },
-        {
-          "id": "puls:no2",
-          "naslov": "NO2",
-          "tekst": "{\"mean\":10.9,\"median\":10,\"min\":4.1,\"max\":23.4,\"max_station\":\"Borča\",\"unit\":\"µg/m³\",\"sensors_count\":32,\"network\":\"reference\"}",
-          "at": "2026-11-15T07:57:25.093341Z",
-          "izvor": "state/puls.json#/current_metrics/no2"
-        },
-        {
-          "id": "puls:o3",
-          "naslov": "O3",
-          "tekst": "{\"mean\":36.6,\"median\":38,\"min\":15.3,\"max\":45.7,\"max_station\":\"Ada Ciganlija\",\"unit\":\"µg/m³\",\"sensors_count\":26,\"network\":\"reference\"}",
-          "at": "2026-11-15T07:57:25.093341Z",
-          "izvor": "state/puls.json#/current_metrics/o3"
-        },
-        {
-          "id": "puls:meteo",
-          "naslov": "Vremenski uslovi",
-          "tekst": "{\"temperature\":8,\"humidity\":75.5,\"pressure\":1008.8,\"wind_speed\":8.7,\"wind_direction\":\"140.0\"}",
-          "at": "2026-11-15T07:57:25.093341Z",
-          "izvor": "state/puls.json#/current_metrics/meteo"
-        },
-        {
-          "id": "izvor:S04:pm10",
-          "naslov": "PM10 382.08 µg/m³ — 81170",
-          "tekst": "{\"naslov\":\"PM10 382.08 µg/m³ — 81170\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-15T07:26:02Z\",\"primljeno\":\"2026-11-15T07:27:25.101819Z\",\"napomena\":null}",
-          "at": "2026-11-15T07:26:02Z",
-          "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-        },
-        {
-          "id": "izvor:S04:pm25",
-          "naslov": "PM2.5 153.35 µg/m³ — 81170",
-          "tekst": "{\"naslov\":\"PM2.5 153.35 µg/m³ — 81170\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-15T07:26:02Z\",\"primljeno\":\"2026-11-15T07:27:25.101819Z\",\"napomena\":null}",
-          "at": "2026-11-15T07:26:02Z",
-          "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-        },
-        {
-          "id": "izvor:S10:free_spaces",
-          "naslov": "Slobodnih parking mesta 216 — Garaža \"Baba Višnjina\"",
-          "tekst": "{\"naslov\":\"Slobodnih parking mesta 216 — Garaža \\\"Baba Višnjina\\\"\",\"stanje\":\"untimed\",\"vreme_merenja_ili_objave\":null,\"primljeno\":\"2026-11-15T07:17:28.541671Z\",\"napomena\":\"Čas merenja nije potvrđen; prijem ne određuje starost vrednosti.\"}",
-          "at": null,
-          "izvor": "Parking servis - displayed free spaces per lot"
-        },
-        {
-          "id": "izvor:b4249971013eeeef",
-          "naslov": "Планирано искључење струје 2026-11-16 · Земун · 08:30 - 10:30 · БРАЋЕ ФОГЛ: 2-8,1-7, КОСТЕ ДРАГИЋЕВИЋА: 34-48,35-37, МОМЧИЛА РАДИВОЈЕВИЋА: 34-36А,17-53, НИКОЛЕ РИБАРИЋА: ББ,2-8,12д-12ф,1-9д, ПЕТРА ЈОВ",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-16 · Земун · 08:30 - 10:30 · БРАЋЕ ФОГЛ: 2-8,1-7, КОСТЕ ДРАГИЋЕВИЋА: 34-48,35-37, МОМЧИЛА РАДИВОЈЕВИЋА: 34-36А,17-53, НИКОЛЕ РИБАРИЋА: ББ,2-8,12д-12ф,1-9д, ПЕТРА…",
-          "at": "2026-11-16",
-          "izvor": "news-sorter"
-        }
-      ],
-      "level": null,
-      "za_gradjanina": {
-        "akcija": "Ako stanujete na navedenim adresama u ulici Braće Fogl u Zemunu, pre najavljenog prozora 2026-11-16 od 08:30 do 10:30 proverite kod distributera da li su vaša adresa i termin obuhvaćeni planom. Ako negde vidite očitavanje senzora 81170, uporedite ga sa referentnim stanicama pre nego što zaključite nešto o vazduhu u svom kraju.",
-        "vazi_do": null,
-        "lokacija": null,
-        "dokaz": "puls:pm25 · puls:pm10 · puls:no2 · puls:o3 · puls:meteo · izvor:S04:pm10 · izvor:S04:pm25 · izvor:b4249971013eeeef · izvor:S10:free_spaces"
-      },
-      "validacija": {
-        "state": "accepted",
-        "razlog": [],
-        "at": "2026-11-15T08:12:50.428Z"
       }
     },
     {
@@ -2593,6 +2399,143 @@
         "F8"
       ],
       "level": "povrsinsko"
+    },
+    {
+      "id": "bridge:2026-11-16T08-12-14-470Z__urednik__claude_auto",
+      "at": "2026-11-16T08:12:41.841Z",
+      "origin": "bridge",
+      "entity": "bridge:claude",
+      "entity_label": "claude/auto",
+      "model": "claude/auto",
+      "prompt_id": null,
+      "oblik": "esej",
+      "narav": null,
+      "state": "accepted",
+      "rejection_reason": null,
+      "text_sr": "U preseku referentne mreže od 2026-11-16T07:57Z Beograd beleži prosečan PM2.5 od 10.4 µg/m³, PM10 od 11.1 µg/m³ i NO2 od 22.3 µg/m³. Najviše vrednosti za sve tri veličine potiču sa iste stanice, u Leštanu. Tamo je PM2.5 21.3 µg/m³, PM10 25.6 µg/m³, a NO2 50.9 µg/m³. Ozon je najviši u Krnjači, sa 29.9 µg/m³. Isti presek beleži 9.6 °C, vlažnost 88.3 % i pritisak 999.3 hPa. Odudara građanski senzor 81170. On je u 07:21Z javio PM10 378.98 µg/m³ i PM2.5 161.88 µg/m³, daleko iznad svih vrednosti referentne mreže.\n\nPrema referentnoj mreži, vazduh je u ovom preseku informativno na niskom do umerenom nivou. Leštane je izuzetak i po česticama i po NO2. Za sutra postoji jedna konkretna najava. U Novom Beogradu, na adresi Milutina Milankovića 27, isključenje struje je najavljeno za 2026-11-17 od 09:00 do 16:00. Izvor ne navodi vremensku zonu, a najava još nije događaj. Garaža „Baba Višnjina“ prikazuje 179 slobodnih mesta. Čas tog podatka nije potvrđen, pa se iz njega ne može zaključiti da će mesto biti slobodno kada stignete.\n\nPažnju zaslužuje razlika između dva sloja merenja. Senzor 81170 i referentna mreža opisuju potpuno različit vazduh, a paket ne daje lokaciju senzora. Pretpostavljam da je reč o lokalnom izvoru ili o grešci merenja. RHMZ za Beograd u 07:20Z daje vlažnost 100 % i pritisak 998.8 hPa. Takav vazduh, blizu zasićenja, pretpostavljam da može da zbuni jeftiniji senzor, ali paket to ne dokazuje. Ni dve vrednosti vlažnosti ne treba direktno porediti. Jedna je merenje RHMZ sa potvrđenim časom, a druga je deo preseka mreže pola sata kasnije.\n\nNe znamo kako će se vazduh menjati tokom dana: paket nema vremensku seriju, prognozu ni nedeljni trend. Čas merenja nije potvrđen za svaki senzor posebno. Uz brzinu vetra nije navedena jedinica, pa iz vetra ne izvodim zaključak. Podaci o padavinama ne postoje. Mesečni percentili iz SEPA arhive su verifikovani dnevni proseci. Oni služe kao orijentir, a nisu merilo za ovaj preliminarni satni presek.",
+      "text_en": null,
+      "hypotheses_sr": [],
+      "questions_sr": [],
+      "cites": [
+        "puls:pm25",
+        "puls:pm10",
+        "puls:no2",
+        "puls:o3",
+        "puls:meteo",
+        "izvor:S01:humidity",
+        "izvor:S01:pressure",
+        "izvor:S04:pm10",
+        "izvor:S04:pm25",
+        "istorija:vazduh-mesec-11",
+        "izvor:3350208270b9089e",
+        "izvor:S10:free_spaces"
+      ],
+      "pouzdanost": "srednje — referentna mreža ima svež presek sa više desetina senzora, ali čas svakog senzora nije potvrđen, a najava i parking podatak su slabi signali.",
+      "naslov": "Leštane se izdvaja, a jedan građanski senzor odudara od mreže",
+      "prompt_version": 4,
+      "status_odgovora": "nalaz",
+      "odgovor_na_pitanje": null,
+      "ekspertize": null,
+      "prozor": null,
+      "kontekst_sha256": "19a41fd28f947bc88005aa5a9460ac585d5377ef902b98dc60a821c0e582e1d8",
+      "oslonci": [
+        {
+          "id": "puls:pm25",
+          "naslov": "PM25",
+          "tekst": "{\"mean\":10.4,\"median\":9.4,\"min\":5.4,\"max\":21.3,\"max_station\":\"Leštane\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+          "at": "2026-11-16T07:57:35.014692Z",
+          "izvor": "state/puls.json#/current_metrics/pm25"
+        },
+        {
+          "id": "puls:pm10",
+          "naslov": "PM10",
+          "tekst": "{\"mean\":11.1,\"median\":9.8,\"min\":5.5,\"max\":25.6,\"max_station\":\"Leštane\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+          "at": "2026-11-16T07:57:35.014692Z",
+          "izvor": "state/puls.json#/current_metrics/pm10"
+        },
+        {
+          "id": "puls:no2",
+          "naslov": "NO2",
+          "tekst": "{\"mean\":22.3,\"median\":19.9,\"min\":9.7,\"max\":50.9,\"max_station\":\"Leštane\",\"unit\":\"µg/m³\",\"sensors_count\":32,\"network\":\"reference\"}",
+          "at": "2026-11-16T07:57:35.014692Z",
+          "izvor": "state/puls.json#/current_metrics/no2"
+        },
+        {
+          "id": "puls:o3",
+          "naslov": "O3",
+          "tekst": "{\"mean\":15.9,\"median\":14,\"min\":4.6,\"max\":29.9,\"max_station\":\"Krnjača\",\"unit\":\"µg/m³\",\"sensors_count\":26,\"network\":\"reference\"}",
+          "at": "2026-11-16T07:57:35.014692Z",
+          "izvor": "state/puls.json#/current_metrics/o3"
+        },
+        {
+          "id": "puls:meteo",
+          "naslov": "Vremenski uslovi",
+          "tekst": "{\"temperature\":9.6,\"humidity\":88.3,\"pressure\":999.3,\"wind_speed\":5.2,\"wind_direction\":\"130.0\"}",
+          "at": "2026-11-16T07:57:35.014692Z",
+          "izvor": "state/puls.json#/current_metrics/meteo"
+        },
+        {
+          "id": "izvor:S04:pm10",
+          "naslov": "PM10 378.98 µg/m³ — 81170",
+          "tekst": "{\"naslov\":\"PM10 378.98 µg/m³ — 81170\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-16T07:21:51Z\",\"primljeno\":\"2026-11-16T07:22:25.061838Z\",\"napomena\":null}",
+          "at": "2026-11-16T07:21:51Z",
+          "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+        },
+        {
+          "id": "izvor:S04:pm25",
+          "naslov": "PM2.5 161.88 µg/m³ — 81170",
+          "tekst": "{\"naslov\":\"PM2.5 161.88 µg/m³ — 81170\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-16T07:21:51Z\",\"primljeno\":\"2026-11-16T07:22:25.061838Z\",\"napomena\":null}",
+          "at": "2026-11-16T07:21:51Z",
+          "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+        },
+        {
+          "id": "izvor:S10:free_spaces",
+          "naslov": "Slobodnih parking mesta 179 — Garaža \"Baba Višnjina\"",
+          "tekst": "{\"naslov\":\"Slobodnih parking mesta 179 — Garaža \\\"Baba Višnjina\\\"\",\"stanje\":\"untimed\",\"vreme_merenja_ili_objave\":null,\"primljeno\":\"2026-11-16T07:27:24.692114Z\",\"napomena\":\"Čas merenja nije potvrđen; prijem ne određuje starost vrednosti.\"}",
+          "at": null,
+          "izvor": "Parking servis - displayed free spaces per lot"
+        },
+        {
+          "id": "izvor:S01:humidity",
+          "naslov": "Vlažnost 100 % — Beograd",
+          "tekst": "{\"naslov\":\"Vlažnost 100 % — Beograd\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-16T07:20:00Z\",\"primljeno\":\"2026-11-16T07:27:34.878173Z\",\"napomena\":null}",
+          "at": "2026-11-16T07:20:00Z",
+          "izvor": "RHMZ automatic stations - Belgrade (Beograd, Košutnjak)"
+        },
+        {
+          "id": "izvor:S01:pressure",
+          "naslov": "Pritisak 998.8 hPa — Beograd",
+          "tekst": "{\"naslov\":\"Pritisak 998.8 hPa — Beograd\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-16T07:20:00Z\",\"primljeno\":\"2026-11-16T07:27:34.878173Z\",\"napomena\":null}",
+          "at": "2026-11-16T07:20:00Z",
+          "izvor": "RHMZ automatic stations - Belgrade (Beograd, Košutnjak)"
+        },
+        {
+          "id": "izvor:3350208270b9089e",
+          "naslov": "Планирано искључење струје 2026-11-17 · Нови Београд · 09:00 - 16:00 · МИЛУТИНА МИЛАНКОВИЋА: 27",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-17 · Нови Београд · 09:00 - 16:00 · МИЛУТИНА МИЛАНКОВИЋА: 27\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-11-17\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-11-17",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "istorija:vazduh-mesec-11",
+          "naslov": "Uobičajeno za ovaj mesec (SEPA verifikovano, 2011–2024)",
+          "tekst": "{\"mesec\":11,\"jedinica\":\"µg/m³, dnevni prosek\",\"stanice\":{\"mostar\":{\"s146_id\":\"10\",\"no2\":{\"p50\":40.6,\"p90\":71.3,\"dana\":385},\"pm10\":{\"p50\":31,\"p90\":74.5,\"dana\":270},\"pm25\":{\"p50\":25,\"p90\":47.2,\"dana\":180}},\"novi-beograd\":{\"s146_id\":\"9\",\"no2\":{\"p50\":28.9,\"p90\":52.3,\"dana\":355},\"pm10…",
+          "at": "2024-12-31",
+          "izvor": "state/kontekst-vazduh-dnevno.json#/monthly_climatology"
+        }
+      ],
+      "level": null,
+      "za_gradjanina": {
+        "akcija": "Ako na mapi građanskih senzora vidite vrednost senzora 81170, pre odluke je uporedite sa referentnom mrežom za isti trenutak. Ako boravite ili radite u Ulici Milutina Milankovića 27 u Novom Beogradu, proverite najavu i napunite telefon pre najavljenog početka isključenja, 2026-11-17 u 09:00.",
+        "vazi_do": null,
+        "lokacija": "МИЛУТИНА МИЛАНКОВИЋА",
+        "dokaz": "puls:pm25 · puls:pm10 · puls:no2 · puls:o3 · puls:meteo · izvor:S01:humidity · izvor:S01:pressure · izvor:S04:pm10 · izvor:S04:pm25 · istorija:vazduh-mesec-11 · izvor:3350208270b9089e · izvor:S10:free_spaces"
+      },
+      "validacija": {
+        "state": "accepted",
+        "razlog": [],
+        "at": "2026-11-16T08:12:41.843Z"
+      }
     }
   ]
 }
