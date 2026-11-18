@@ -1,127 +1,21 @@
 {
   "schema": "beops-v2-misli/v1.1",
-  "generated_at": "2026-11-18T18:36:33.346Z",
-  "as_of": "2026-11-18T18:25:24.508197Z",
-  "total_thoughts": 48,
+  "generated_at": "2026-11-18T18:46:31.678Z",
+  "as_of": "2026-11-18T18:42:47.569Z",
+  "total_thoughts": 47,
   "filter_counts": {
     "accepted": 38,
-    "rejected": 10,
-    "observer": 13,
+    "rejected": 9,
+    "observer": 14,
     "skeptic": 9,
-    "connector": 10,
+    "connector": 9,
     "organelle": 3,
     "ai_feed": 0,
-    "bridge": 13,
-    "kartice": 9,
+    "bridge": 12,
+    "kartice": 8,
     "eseji": 3
   },
   "thoughts": [
-    {
-      "id": "bridge:2026-11-13T22-45-59-235Z__urednik__claude_auto",
-      "at": "2026-11-13T22:46:31.241Z",
-      "origin": "bridge",
-      "entity": "bridge:claude",
-      "entity_label": "claude/auto",
-      "model": "claude/auto",
-      "prompt_id": null,
-      "oblik": "esej",
-      "narav": null,
-      "state": "rejected",
-      "rejection_reason": "brojevi izvan citiranih zapisa: 2011",
-      "text_sr": "U preseku referentne mreže od 13. novembra u 22:38 UTC Beograd meri srednju vrednost PM2.5 od 12.6 µg/m³ na 31 senzoru i srednju vrednost PM10 od 14 µg/m³. Najviše vrednosti obe frakcije beleži Zeleno brdo: 18.9 µg/m³ za PM2.5 i 21 µg/m³ za PM10. Srednja vrednost NO2 je 20.6 µg/m³, a stanica Franše d'Epere meri 49.3 µg/m³. To je najveći raskorak između jedne stanice i ostatka mreže u ovom preseku. Srednja vrednost O3 je 26.4 µg/m³. U istom preseku je 8.5 °C, a vlažnost 84.3 %. RHMZ je za Beograd u 21:50 UTC izmerio 6.5 °C. To je drugi izvor i drugi čas, pa razlika ne govori o promeni temperature.\n\nŠta će ovo značiti za ostatak večeri i za sutra, paket ne kaže. Nema vremenske serije ni prognoze, pa ne mogu da tvrdim da će ovakav vazduh potrajati ili da će se promeniti. Prema referentnoj mreži, vazduh je sada informativno na niskom do umerenom nivou. To opisuje jedan trenutak i nije savet o tome kada izaći niti koliko ostati napolju.\n\nVredna je pažnje jedna protivrečnost. Građanski senzor 81170 je u 21:59 UTC pokazao PM10 od 128 µg/m³, daleko iznad najviše vrednosti referentne mreže u kasnijem preseku. Pretpostavljam da je reč o lokalnom izvoru ili o grešci uređaja, a ne o stanju grada, ali paket ne potvrđuje nijedno od toga. Građanska mreža može da vidi ulicu na kojoj referentna stanica ne stoji. Ipak, jedan uređaj ne može da preglasa tridesetak referentnih senzora. Ni za NO2 na Franše d'Epere paket ne nudi objašnjenje, pa ga ni ja ne izmišljam.\n\nGranice ovog znanja su konkretne. Presek ne potvrđuje čas merenja svakog senzora. Pritisak od 1001.2 i vetar od 3.7 iz pravca 280.0 dolaze bez navedenih jedinica, a podataka o padavinama nema. Istorija za novembar sastoji se od SEPA verifikovanih dnevnih proseka za 2011–2024. Zato se večerašnji satni presek ne može valjano porediti sa njom niti se može nazvati prekoračenjem.",
-      "text_en": null,
-      "hypotheses_sr": [],
-      "questions_sr": [],
-      "cites": [
-        "puls:pm25",
-        "puls:pm10",
-        "puls:no2",
-        "puls:o3",
-        "puls:meteo",
-        "izvor:S01:temperature",
-        "izvor:S04:pm10",
-        "istorija:vazduh-mesec-11"
-      ],
-      "pouzdanost": "srednje — referentni presek je svež i širok, ali nema potvrđenog časa po senzoru, jedinica za vetar i pritisak ni serije, a 128 µg/m³ beleži samo jedan građanski senzor.",
-      "naslov": "Večernji presek: umeren vazduh i jedno usamljeno visoko očitavanje",
-      "prompt_version": 4,
-      "status_odgovora": "nalaz",
-      "odgovor_na_pitanje": null,
-      "ekspertize": null,
-      "prozor": null,
-      "kontekst_sha256": "638a72b030f6a93f51fb1e11a4e6bd2532063314a181c809f915cc13d51a2c02",
-      "oslonci": [
-        {
-          "id": "puls:pm25",
-          "naslov": "PM25",
-          "tekst": "{\"mean\":12.6,\"median\":12.1,\"min\":7.6,\"max\":18.9,\"max_station\":\"Zeleno brdo\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-          "at": "2026-11-13T22:38:01.373947Z",
-          "izvor": "state/puls.json#/current_metrics/pm25"
-        },
-        {
-          "id": "puls:pm10",
-          "naslov": "PM10",
-          "tekst": "{\"mean\":14,\"median\":14.2,\"min\":8.7,\"max\":21,\"max_station\":\"Zeleno brdo\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-          "at": "2026-11-13T22:38:01.373947Z",
-          "izvor": "state/puls.json#/current_metrics/pm10"
-        },
-        {
-          "id": "puls:no2",
-          "naslov": "NO2",
-          "tekst": "{\"mean\":20.6,\"median\":20,\"min\":9.5,\"max\":49.3,\"max_station\":\"Franše d’Epere\",\"unit\":\"µg/m³\",\"sensors_count\":32,\"network\":\"reference\"}",
-          "at": "2026-11-13T22:38:01.373947Z",
-          "izvor": "state/puls.json#/current_metrics/no2"
-        },
-        {
-          "id": "puls:o3",
-          "naslov": "O3",
-          "tekst": "{\"mean\":26.4,\"median\":25.9,\"min\":9.9,\"max\":41.9,\"max_station\":\"Dragiša Mišović\",\"unit\":\"µg/m³\",\"sensors_count\":26,\"network\":\"reference\"}",
-          "at": "2026-11-13T22:38:01.373947Z",
-          "izvor": "state/puls.json#/current_metrics/o3"
-        },
-        {
-          "id": "puls:meteo",
-          "naslov": "Vremenski uslovi",
-          "tekst": "{\"temperature\":8.5,\"humidity\":84.3,\"pressure\":1001.2,\"wind_speed\":3.7,\"wind_direction\":\"280.0\"}",
-          "at": "2026-11-13T22:38:01.373947Z",
-          "izvor": "state/puls.json#/current_metrics/meteo"
-        },
-        {
-          "id": "izvor:S04:pm10",
-          "naslov": "PM10 128 µg/m³ — 81170",
-          "tekst": "{\"naslov\":\"PM10 128 µg/m³ — 81170\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-13T21:59:56Z\",\"primljeno\":\"2026-11-13T22:03:02.182095Z\",\"napomena\":null}",
-          "at": "2026-11-13T21:59:56Z",
-          "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-        },
-        {
-          "id": "izvor:S01:temperature",
-          "naslov": "Temperatura 6.5 °C — Beograd",
-          "tekst": "{\"naslov\":\"Temperatura 6.5 °C — Beograd\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-13T21:50:00Z\",\"primljeno\":\"2026-11-13T21:58:10.024145Z\",\"napomena\":null}",
-          "at": "2026-11-13T21:50:00Z",
-          "izvor": "RHMZ automatic stations - Belgrade (Beograd, Košutnjak)"
-        },
-        {
-          "id": "istorija:vazduh-mesec-11",
-          "naslov": "Uobičajeno za ovaj mesec (SEPA verifikovano, 2011–2024)",
-          "tekst": "{\"mesec\":11,\"jedinica\":\"µg/m³, dnevni prosek\",\"stanice\":{\"mostar\":{\"s146_id\":\"10\",\"no2\":{\"p50\":40.6,\"p90\":71.3,\"dana\":385},\"pm10\":{\"p50\":31,\"p90\":74.5,\"dana\":270},\"pm25\":{\"p50\":25,\"p90\":47.2,\"dana\":180}},\"novi-beograd\":{\"s146_id\":\"9\",\"no2\":{\"p50\":28.9,\"p90\":52.3,\"dana\":355},\"pm10…",
-          "at": "2024-12-31",
-          "izvor": "state/kontekst-vazduh-dnevno.json#/monthly_climatology"
-        }
-      ],
-      "level": null,
-      "za_gradjanina": null,
-      "validacija": {
-        "state": "rejected",
-        "razlog": [
-          {
-            "pravilo": "brojevi_iz_dokaza",
-            "stanje": "rejected",
-            "razlog": "brojevi izvan citiranih zapisa: 2011"
-          }
-        ],
-        "at": "2026-11-13T22:46:31.243Z"
-      }
-    },
     {
       "id": "bridge:2026-11-17T18-41-56-393Z__urednik__claude_auto",
       "at": "2026-11-17T18:42:14.932Z",
@@ -217,151 +111,6 @@
         "state": "accepted",
         "razlog": [],
         "at": "2026-11-17T18:42:14.933Z"
-      }
-    },
-    {
-      "id": "bridge:2026-11-17T20-41-37-431Z__antigravity_gemini-4-argon-medium",
-      "at": "2026-11-17T20:41:56.014Z",
-      "origin": "bridge",
-      "entity": "bridge:antigravity",
-      "entity_label": "antigravity/gemini-4-argon-medium",
-      "model": "antigravity/gemini-4-argon-medium",
-      "prompt_id": null,
-      "oblik": "misao",
-      "narav": null,
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "Presek referentne mreže u 2026-11-17T20:32:24.808713Z beleži srednju vrednost PM2.5 od 8.9 µg/m³ (medijana 7.5 µg/m³, maksimum 27.3 µg/m³ na stanici Vinča) i srednju vrednost PM10 od 16.1 µg/m³ (medijana 13.4 µg/m³, maksimum 39.3 µg/m³ na stanici Leštane), dok je za NO2 maksimum 64.6 µg/m³ na stanici Franše d’Epere uz srednju vrednost od 24.3 µg/m³. Istovremeno su u 2026-11-17T19:44:00Z i 2026-11-17T19:51:31Z objavljeni naslovi vesti o velikom požaru i dimu u blizini Hrama Svetog Save, ali kako naslov vesti nije potvrda događaja ni uticaja, a presek vazduha u 2026-11-17T20:32:24.808713Z izdvaja maksimume čestica u Vinči i Leštanima, u dostupnim zapisima nema traga tog dima na referentnim merenjima za Vračar. Za 2026-11-18 objavljene su i najave planiranih isključenja struje u više opština, uključujući Palilulu (08:00 - 14:00), Čukaricu (08:00 - 12:00 i 08:30 - 16:00), Zvezdaru (09:00 - 13:00), Surčin (09:00 - 15:00), Voždovac (09:00 - 11:00) i Obrenovac (09:00 - 10:30 i 10:30 - 12:00).",
-      "text_en": null,
-      "hypotheses_sr": [],
-      "questions_sr": [],
-      "cites": [
-        "puls:pm25",
-        "puls:pm10",
-        "puls:no2",
-        "izvor:5be3a7384bbaa843",
-        "izvor:f0097c53c1035df3",
-        "izvor:1371daf00a50ccc5",
-        "izvor:2b099489184bea67",
-        "izvor:3daea23b0f8d0fd5",
-        "izvor:3f37827e468eb7ed",
-        "izvor:4411e07ca2f5e4b8",
-        "izvor:649c826c591fb79f",
-        "izvor:6a452582d5f80efe",
-        "izvor:6b7fc24616b3b651"
-      ],
-      "pouzdanost": "srednje — presek referentne mreže ima vremensku oznaku 2026-11-17T20:32:24.808713Z na 31 do 32 senzora bez potvrđenog časa svakog senzora, dok su vesti o požaru procenjenog stanja a isključenja struje najave za 2026-11-18.",
-      "naslov": null,
-      "prompt_version": 4,
-      "status_odgovora": "nalaz",
-      "odgovor_na_pitanje": null,
-      "ekspertize": null,
-      "prozor": null,
-      "kontekst_sha256": "a5b63588fe2551527d21c5e9e612f287562899eaf515caed572b6add0ed652b1",
-      "oslonci": [
-        {
-          "id": "puls:pm25",
-          "naslov": "PM25",
-          "tekst": "{\"mean\":8.9,\"median\":7.5,\"min\":4.7,\"max\":27.3,\"max_station\":\"Vinča\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-          "at": "2026-11-17T20:32:24.808713Z",
-          "izvor": "state/puls.json#/current_metrics/pm25"
-        },
-        {
-          "id": "puls:pm10",
-          "naslov": "PM10",
-          "tekst": "{\"mean\":16.1,\"median\":13.4,\"min\":7.2,\"max\":39.3,\"max_station\":\"Leštane\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-          "at": "2026-11-17T20:32:24.808713Z",
-          "izvor": "state/puls.json#/current_metrics/pm10"
-        },
-        {
-          "id": "puls:no2",
-          "naslov": "NO2",
-          "tekst": "{\"mean\":24.3,\"median\":23.1,\"min\":7.9,\"max\":64.6,\"max_station\":\"Franše d’Epere\",\"unit\":\"µg/m³\",\"sensors_count\":32,\"network\":\"reference\"}",
-          "at": "2026-11-17T20:32:24.808713Z",
-          "izvor": "state/puls.json#/current_metrics/no2"
-        },
-        {
-          "id": "izvor:5be3a7384bbaa843",
-          "naslov": "(VIDEO) Veliki požar u blizini Hrama Svetog Save: Dim kulja na sve strane, vatrogasci na terenu",
-          "tekst": "{\"naslov\":\"(VIDEO) Veliki požar u blizini Hrama Svetog Save: Dim kulja na sve strane, vatrogasci na terenu\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-11-17T19:51:31Z\",\"primljeno\":null,\"napomena\":null}",
-          "at": "2026-11-17T19:51:31Z",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:f0097c53c1035df3",
-          "naslov": "Veliki požar kod Hrama Svetog Save; Vatrogasci na terenu VIDEO",
-          "tekst": "{\"naslov\":\"Veliki požar kod Hrama Svetog Save; Vatrogasci na terenu VIDEO\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-11-17T19:44:00Z\",\"primljeno\":null,\"napomena\":null}",
-          "at": "2026-11-17T19:44:00Z",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:1371daf00a50ccc5",
-          "naslov": "Планирано искључење струје 2026-11-18 · Палилула · 08:00 - 14:00 · ПАНЧЕВАЧКИ ПУТ: 200, Насеље БГ-КРЊАЧА: ДУНАВСКИХ АЛАСА: 5-77,83-93,97-103, ГРАДАШНИЧКА: ББ,40-78,82-98,102-122, Насеље Крњача: ПАНЧЕВ",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-18 · Палилула · 08:00 - 14:00 · ПАНЧЕВАЧКИ ПУТ: 200, Насеље БГ-КРЊАЧА: ДУНАВСКИХ АЛАСА: 5-77,83-93,97-103, ГРАДАШНИЧКА: ББ,40-78,82-98,102-122, Насеље Крњача:…",
-          "at": "2026-11-18",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:2b099489184bea67",
-          "naslov": "Планирано искључење струје 2026-11-18 · Чукарица · 08:30 - 16:00 · Насеље РУШАЊ: ДРАГЕ ВУКИЋЕВИЋА 2 ДЕО: 4-16,20,24-28,1-9",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-18 · Чукарица · 08:30 - 16:00 · Насеље РУШАЊ: ДРАГЕ ВУКИЋЕВИЋА 2 ДЕО: 4-16,20,24-28,1-9\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-11-18\",\"primljeno\":null,\"napomena\":null}",
-          "at": "2026-11-18",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:3daea23b0f8d0fd5",
-          "naslov": "Планирано искључење струје 2026-11-18 · Обреновац · 09:00 - 10:30 · Насеље КОНАТИЦЕ: ДОЊИ КРАЈ: 8А,24-28А,38,252А,310,332,27,31,35,215,225,271,347, ДУМАЧА: 408А, ГОРЊИ КРАЈ: 38А,58Ц,252Б,15А,61, КАРАШ",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-18 · Обреновац · 09:00 - 10:30 · Насеље КОНАТИЦЕ: ДОЊИ КРАЈ: 8А,24-28А,38,252А,310,332,27,31,35,215,225,271,347, ДУМАЧА: 408А, ГОРЊИ КРАЈ: 38А,58Ц,252Б,15А,61,…",
-          "at": "2026-11-18",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:3f37827e468eb7ed",
-          "naslov": "Планирано искључење струје 2026-11-18 · Чукарица · 08:00 - 12:00 · Насеље ЖАРКОВО: ДИМИТРИЈА АВРАМОВИЋА: бб,22-32,17, ЈОВАНА МИКИЋА: 1-7, РАДА ДРАИНЦА: 10-22,5-17, ВЕЉКА ПЕТРОВИЋА: 84,90-94,102-110,12",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-18 · Чукарица · 08:00 - 12:00 · Насеље ЖАРКОВО: ДИМИТРИЈА АВРАМОВИЋА: бб,22-32,17, ЈОВАНА МИКИЋА: 1-7, РАДА ДРАИНЦА: 10-22,5-17, ВЕЉКА ПЕТРОВИЋА:…",
-          "at": "2026-11-18",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:4411e07ca2f5e4b8",
-          "naslov": "Планирано искључење струје 2026-11-18 · Звездара · 09:00 - 13:00 · Насеље М.МОКРИ ЛУГ: БЕКЕРЕЛОВА: 1А",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-18 · Звездара · 09:00 - 13:00 · Насеље М.МОКРИ ЛУГ: БЕКЕРЕЛОВА: 1А\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-11-18\",\"primljeno\":null,\"napomena\":null}",
-          "at": "2026-11-18",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:649c826c591fb79f",
-          "naslov": "Планирано искључење струје 2026-11-18 · Сурчин · 09:00 - 15:00 · Насеље ДОБАНОВЦИ: ДУШАНОВА: 24-26,32,36-50,56-96,100-102,110-118,122-134,33-59,63-91,95-111,115-123,127-139, ЈАНКА ЧМЕЛИКА: ББ,30-74,31",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-18 · Сурчин · 09:00 - 15:00 · Насеље ДОБАНОВЦИ: ДУШАНОВА: 24-26,32,36-50,56-96,100-102,110-118,122-134,33-59,63-91,95-111,115-123,127-139, ЈАНКА ЧМЕЛИКА:…",
-          "at": "2026-11-18",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:6a452582d5f80efe",
-          "naslov": "Планирано искључење струје 2026-11-18 · Обреновац · 10:30 - 12:00 · Насеље ПОЉАНЕ: БРГУЛЕ: 77, ЦЕНТАР: 72Б,98А-100А,71Б,163, ПОЉАНЕ: 4,10-12,68-70,74,80-86,94,100,108,1-3,7-11,15,85, ПОЉАНЕ ДОЊИ КРАЈ:",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-18 · Обреновац · 10:30 - 12:00 · Насеље ПОЉАНЕ: БРГУЛЕ: 77, ЦЕНТАР: 72Б,98А-100А,71Б,163, ПОЉАНЕ: 4,10-12,68-70,74,80-86,94,100,108,1-3,7-11,15,85, ПОЉАНЕ ДОЊИ…",
-          "at": "2026-11-18",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:6b7fc24616b3b651",
-          "naslov": "Планирано искључење струје 2026-11-18 · Вождовац · 09:00 - 11:00 · БИЛЕЋКА: 28А, КАПЕТАНА ЗАВИШИЋА: 4",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-18 · Вождовац · 09:00 - 11:00 · БИЛЕЋКА: 28А, КАПЕТАНА ЗАВИШИЋА: 4\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-11-18\",\"primljeno\":null,\"napomena\":null}",
-          "at": "2026-11-18",
-          "izvor": "news-sorter"
-        }
-      ],
-      "level": "veza",
-      "za_gradjanina": {
-        "akcija": "Ako ste u delovima Palilule, Čukarice, Obrenovca, Zvezdare, Surčina ili Voždovca sa spiska najava za 2026-11-18, pretpostavljam da će doći do planiranog isključenja struje u navedenim terminima između 08:00 i 16:00, pa na vreme prilagodite obaveze.",
-        "vazi_do": null,
-        "lokacija": "ОБРЕНОВАЦ, СУРЧИН",
-        "dokaz": "puls:pm25 · puls:pm10 · puls:no2 · izvor:5be3a7384bbaa843 · izvor:f0097c53c1035df3 · izvor:1371daf00a50ccc5 · izvor:2b099489184bea67 · izvor:3daea23b0f8d0fd5 · izvor:3f37827e468eb7ed · izvor:4411e07ca2f5e4b8 · izvor:649c826c591fb79f · izvor:6a452582d5f80efe · izvor:6b7fc24616b3b651"
-      },
-      "validacija": {
-        "state": "accepted",
-        "razlog": [],
-        "at": "2026-11-17T20:41:56.280Z"
       }
     },
     {
@@ -723,7 +472,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118074928-73",
+      "id": "mind-20261118074928-74",
       "at": "2026-11-18T07:49:28.974744Z",
       "origin": "organ_mind",
       "entity": "skeptic",
@@ -748,7 +497,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118080524-71",
+      "id": "mind-20261118080524-72",
       "at": "2026-11-18T08:05:24.474220Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -1016,7 +765,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118090124-63",
+      "id": "mind-20261118090124-64",
       "at": "2026-11-18T09:01:24.464444Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -1054,7 +803,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118090924-62",
+      "id": "mind-20261118090924-63",
       "at": "2026-11-18T09:09:24.284913Z",
       "origin": "organ_mind",
       "entity": "skeptic",
@@ -1087,7 +836,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118091324-61",
+      "id": "mind-20261118091324-62",
       "at": "2026-11-18T09:13:24.288098Z",
       "origin": "organ_mind",
       "entity": "connector",
@@ -1122,7 +871,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118092924-60",
+      "id": "mind-20261118092924-61",
       "at": "2026-11-18T09:29:24.554893Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -1156,7 +905,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118093724-58",
+      "id": "mind-20261118093724-59",
       "at": "2026-11-18T09:37:24.603605Z",
       "origin": "organ_mind",
       "entity": "skeptic",
@@ -1191,7 +940,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118094124-57",
+      "id": "mind-20261118094124-58",
       "at": "2026-11-18T09:41:24.528430Z",
       "origin": "organ_mind",
       "entity": "connector",
@@ -1228,7 +977,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118100524-54",
+      "id": "mind-20261118100524-55",
       "at": "2026-11-18T10:05:24.499825Z",
       "origin": "organ_mind",
       "entity": "connector",
@@ -1259,7 +1008,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118102124-53",
+      "id": "mind-20261118102124-54",
       "at": "2026-11-18T10:21:24.492736Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -1290,7 +1039,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118102924-51",
+      "id": "mind-20261118102924-52",
       "at": "2026-11-18T10:29:24.663697Z",
       "origin": "organ_mind",
       "entity": "skeptic",
@@ -1322,7 +1071,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118110942-49",
+      "id": "mind-20261118110942-50",
       "at": "2026-11-18T11:09:42.582179Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -1403,7 +1152,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118115324-45",
+      "id": "mind-20261118115324-46",
       "at": "2026-11-18T11:53:24.698702Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -1438,7 +1187,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118122524-41",
+      "id": "mind-20261118122524-42",
       "at": "2026-11-18T12:25:24.689245Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -1470,7 +1219,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118130125-38",
+      "id": "mind-20261118130125-39",
       "at": "2026-11-18T13:01:25.191969Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -1506,7 +1255,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118130924-36",
+      "id": "mind-20261118130924-37",
       "at": "2026-11-18T13:09:24.973286Z",
       "origin": "organ_mind",
       "entity": "skeptic",
@@ -1535,7 +1284,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118134924-31",
+      "id": "mind-20261118134924-32",
       "at": "2026-11-18T13:49:24.094431Z",
       "origin": "organ_mind",
       "entity": "connector",
@@ -1642,7 +1391,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118145324-23",
+      "id": "mind-20261118145324-24",
       "at": "2026-11-18T14:53:24.099763Z",
       "origin": "organ_mind",
       "entity": "connector",
@@ -1678,7 +1427,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118150924-22",
+      "id": "mind-20261118150924-23",
       "at": "2026-11-18T15:09:24.232842Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -1714,7 +1463,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118155324-16",
+      "id": "mind-20261118155324-17",
       "at": "2026-11-18T15:53:24.407281Z",
       "origin": "organ_mind",
       "entity": "connector",
@@ -1752,7 +1501,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118160924-15",
+      "id": "mind-20261118160924-16",
       "at": "2026-11-18T16:09:24.714120Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -1788,7 +1537,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118162210-13",
+      "id": "mind-20261118162210-14",
       "at": "2026-11-18T16:22:10.651228Z",
       "origin": "organ_mind",
       "entity": "skeptic",
@@ -1812,61 +1561,13 @@
       "level": "srednje"
     },
     {
-      "model": "gemini-4-argon-low",
-      "prompt_id": null,
-      "oblik": "misao",
-      "narav": null,
-      "za_gradjanina": null,
-      "validacija": null,
-      "id": "mind-20261118162552-12",
-      "at": "2026-11-18T16:25:52.537329Z",
-      "origin": "organ_mind",
-      "entity": "connector",
-      "entity_label": "Povezivač",
-      "state": "rejected",
-      "rejection_reason": [
-        "too long",
-        "number 36 belongs to PM10, not PM2.5",
-        "unsupported number in hypotheses: 40",
-        "unsupported number in hypotheses: 36",
-        "unsupported number in hypotheses: 33",
-        "unsupported number in hypotheses: 34",
-        "unsupported number in hypotheses: 1",
-        "unsupported number in hypotheses: 2",
-        "unsupported number in hypotheses: 70",
-        "unsupported number in hypotheses: 5",
-        "states a cause the record does not carry"
-      ],
-      "text_sr": "Odbijena formulacija (EN): Observer and Skeptic rely on outdated reception times: on this Wednesday at 17:25 local time [F1], the freshness gap has reopened because Sensor.Community arrived 8 min ago with 8466 values across 46 instruments [F10] while SEPA arrived 28 min ago with 1700 values across 32 instruments [F2]. I agree with Skeptic that our record has 0 days of the needed 30 days [F48], yet inside SEPA's hour labelled 16:00 UTC [F3] I still connect the spatial split and the helper's surprise ratings: the NO2 move from 70 to 78 µg/m³ [F7] peaks at Franše d’Epere [F6] near about 28 thousand residents within 1 km [F47] with surprise 2/5 [F52], whereas the 1/5-rated [F52] PM10 move from 40 to 36 µg/m³ [F5] and PM2.5 move from 33 to 34 µg/m³ [F9] both top out at Borča [F4, F8] near about 5 thousand residents [F45]. The lowest values in that same hour sit at three separate stations: PM10 at 8 µg/m³ at Dragiša Mišović [F4], PM2.5 at 7 µg/m³ at Obrenovac Centar [F8], and NO2 at 18 µg/m³ at Vinča [F6].",
-      "text_en": "Observer and Skeptic rely on outdated reception times: on this Wednesday at 17:25 local time [F1], the freshness gap has reopened because Sensor.Community arrived 8 min ago with 8466 values across 46 instruments [F10] while SEPA arrived 28 min ago with 1700 values across 32 instruments [F2]. I agree with Skeptic that our record has 0 days of the needed 30 days [F48], yet inside SEPA's hour labelled 16:00 UTC [F3] I still connect the spatial split and the helper's surprise ratings: the NO2 move from 70 to 78 µg/m³ [F7] peaks at Franše d’Epere [F6] near about 28 thousand residents within 1 km [F47] with surprise 2/5 [F52], whereas the 1/5-rated [F52] PM10 move from 40 to 36 µg/m³ [F5] and PM2.5 move from 33 to 34 µg/m³ [F9] both top out at Borča [F4, F8] near about 5 thousand residents [F45]. The lowest values in that same hour sit at three separate stations: PM10 at 8 µg/m³ at Dragiša Mišović [F4], PM2.5 at 7 µg/m³ at Obrenovac Centar [F8], and NO2 at 18 µg/m³ at Vinča [F6].",
-      "hypotheses_sr": [],
-      "questions_sr": [],
-      "cites": [
-        "F1",
-        "F10",
-        "F2",
-        "F3",
-        "F4",
-        "F45",
-        "F47",
-        "F48",
-        "F5",
-        "F52",
-        "F6",
-        "F7",
-        "F8",
-        "F9"
-      ],
-      "level": "veza"
-    },
-    {
       "model": "claude-opus-5-5-medium",
       "prompt_id": null,
       "oblik": "misao",
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118170932-11",
+      "id": "mind-20261118170932-12",
       "at": "2026-11-18T17:09:32.446821Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -1993,7 +1694,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118171355-10",
+      "id": "mind-20261118171355-11",
       "at": "2026-11-18T17:13:55.215089Z",
       "origin": "organ_mind",
       "entity": "organelle",
@@ -2014,7 +1715,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118171724-9",
+      "id": "mind-20261118171724-10",
       "at": "2026-11-18T17:17:24.525908Z",
       "origin": "organ_mind",
       "entity": "skeptic",
@@ -2047,7 +1748,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118172124-8",
+      "id": "mind-20261118172124-9",
       "at": "2026-11-18T17:21:24.973612Z",
       "origin": "organ_mind",
       "entity": "connector",
@@ -2080,7 +1781,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118174124-7",
+      "id": "mind-20261118174124-8",
       "at": "2026-11-18T17:41:24.932006Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -2107,7 +1808,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118174924-6",
+      "id": "mind-20261118174924-7",
       "at": "2026-11-18T17:49:24.637555Z",
       "origin": "organ_mind",
       "entity": "organelle",
@@ -2128,7 +1829,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118175324-5",
+      "id": "mind-20261118175324-6",
       "at": "2026-11-18T17:53:24.581775Z",
       "origin": "organ_mind",
       "entity": "skeptic",
@@ -2162,7 +1863,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118180124-4",
+      "id": "mind-20261118180124-5",
       "at": "2026-11-18T18:01:24.486859Z",
       "origin": "organ_mind",
       "entity": "connector",
@@ -2197,7 +1898,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118181401-3",
+      "id": "mind-20261118181401-4",
       "at": "2026-11-18T18:14:01.420282Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -2226,7 +1927,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118181724-2",
+      "id": "mind-20261118181724-3",
       "at": "2026-11-18T18:17:24.456161Z",
       "origin": "organ_mind",
       "entity": "organelle",
@@ -2247,7 +1948,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118182124-1",
+      "id": "mind-20261118182124-2",
       "at": "2026-11-18T18:21:24.456161Z",
       "origin": "organ_mind",
       "entity": "skeptic",
@@ -2277,7 +1978,7 @@
       "narav": null,
       "za_gradjanina": null,
       "validacija": null,
-      "id": "mind-20261118182524-0",
+      "id": "mind-20261118182524-1",
       "at": "2026-11-18T18:25:24.508197Z",
       "origin": "organ_mind",
       "entity": "connector",
@@ -2306,6 +2007,219 @@
         "F9"
       ],
       "level": "veza"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "prompt_id": null,
+      "oblik": "misao",
+      "narav": null,
+      "za_gradjanina": null,
+      "validacija": null,
+      "id": "mind-20261118184124-0",
+      "at": "2026-11-18T18:41:24.742613Z",
+      "origin": "organ_mind",
+      "entity": "observer",
+      "entity_label": "Posmatrač",
+      "state": "accepted",
+      "rejection_reason": null,
+      "text_sr": "Još ne mogu da pretvorim Connectorovo objašnjenje izvora u nalaz: nepromenjeni maksimumi čestica ne potvrđuju nepromenjen izvor. Primećujem da Topčiderska zvezda beleži oba minimuma čestica, dok Borča beleži oba maksimuma; ovaj zajednički prostorni raspored dodaje nešto što sami maksimumi ostavljaju nevidljivim. [F5][F9][F4][F8]",
+      "text_en": "I cannot yet turn Connector's source explanation into a finding: unchanged particulate maxima do not establish an unchanged source [F5][F9]. I notice that Topčiderska zvezda anchors both particulate minima while Borča anchors both maxima; this shared spatial ordering adds something the maxima alone leave unseen [F4][F8].",
+      "hypotheses_sr": [
+        "Zajednički ekstremi čestica možda označavaju prostorni kontrast između Borče i Topčiderske zvezde, ali potrebne su vrednosti ostalih stanica da bi se proverilo da li se obrazac proteže izvan ovih krajnjih tačaka [F4][F8]."
+      ],
+      "questions_sr": [
+        "Da li ostale stanice dele raspored čestica viđen u Borči i na Topčiderskoj zvezdi [F4][F8]?"
+      ],
+      "cites": [
+        "F4",
+        "F5",
+        "F8",
+        "F9"
+      ],
+      "level": "povrsinsko"
+    },
+    {
+      "id": "bridge:2026-11-18T18-42-01-829Z__urednik__claude_auto",
+      "at": "2026-11-18T18:42:47.569Z",
+      "origin": "bridge",
+      "entity": "bridge:claude",
+      "entity_label": "claude/auto",
+      "model": "claude/auto",
+      "prompt_id": null,
+      "oblik": "esej",
+      "narav": null,
+      "state": "rejected",
+      "rejection_reason": "brojevi izvan citiranih zapisa: 24, 2011",
+      "text_sr": "U preseku od 2026-11-18 u 18:27 UTC, referentna mreža pokazuje da je vazduh na većini mesta čist kad su u pitanju čestice. Srednja vrednost PM2.5 na 31 senzoru je 7.6 µg/m³, a medijana 5.9 µg/m³. Odstupa Borča, gde je izmereno najviše: 23.9 µg/m³ za PM2.5 i 24.9 µg/m³ za PM10. Kod azot-dioksida je slika drugačija. Srednja vrednost je 30.5 µg/m³, a najviša 59.7 µg/m³ na Ada petlji. Ozon dostiže 66.9 µg/m³ na Zelenom brdu. Automatska stanica RHMZ „Beograd” izmerila je u 18:10 UTC vlažnost od 100 %.\n\nSutrašnji dan najviše će promeniti najave planiranih isključenja struje za 2026-11-19. Na Zvezdari su to Ruže Jovanović 24 i 32, Voje Veljkovića 33–45 i Žabljačka 11, kao i delovi Mirijeva i Zagrađa, od 08:30 do 14:00. Na Vračaru struje neće biti u delovima ulica Cara Nikolaja Drugog i Novopazarske, kao i u Maksima Gorkog 29, od 09:00 do 14:00. U Lazarevcu je to deo Vojvode Stepe i okolnih ulica, takođe od 09:00 do 14:00. U Obrenovcu su najavljeni delovi Nemanjine i Nikole Tesle od 10:00 do 12:30, a Valjevski put kod radio-stanice od 12:00 do 13:30. Za Caricu Milice 2 na Starom gradu najava pod istim datumom navodi termin 23:30–05:00. Ovo su najave, a ne potvrđeni prekidi, i izvori ne navode vremensku zonu. Garaža „Baba Višnjina” prikazuje 150 slobodnih mesta. Čas tog merenja nije potvrđen, pa to ne garantuje mesto pri dolasku.\n\nVredna je pažnje razlika između dva sloja merenja. Građanski senzor 97343 iz mreže Sensor.Community u 18:22 UTC pokazuje PM2.5 od 0.99 µg/m³. To je ispod najniže vrednosti referentne mreže, koja iznosi 3.5 µg/m³. Tu razliku ne mogu razrešiti, jer je reč o drugoj mreži, drugom mestu i drugoj vrsti uređaja. Uz niska očitavanja čestica i vlažnost od 100 % stoji i naslov „Kiša ponovo paralisala Beograd”. Pretpostavljam da kiša ima veze sa čistijim vazduhom, ali paket nema zapis koji to pokazuje. Naslov ne potvrđuje ni događaj ni njegov obim.\n\nNe znamo kako se današnje stanje odnosi na uobičajen novembar. Istorija je SEPA verifikovani dnevni prosek po stanicama za period 2011–2024, a živi presek je preliminarni satni podatak cele mreže, pa poređenje ne bi bilo pošteno. Ne znamo ni šta donosi sutra. Prognoza za 19. novembar postoji samo kao naslov, bez sadržaja, a paket nema vremensku seriju na kojoj bi se video trend.",
+      "text_en": null,
+      "hypotheses_sr": [],
+      "questions_sr": [],
+      "cites": [
+        "puls:pm25",
+        "puls:pm10",
+        "puls:no2",
+        "puls:o3",
+        "izvor:S01:humidity",
+        "izvor:S04:pm25",
+        "izvor:2637e991b8b0aba6",
+        "izvor:7b6125568c3cffa0",
+        "izvor:422b984c286972e8",
+        "izvor:4c195df6779af373",
+        "izvor:5f1da2edb7254354",
+        "izvor:597e38ba72284f86",
+        "izvor:406255c08217b324",
+        "izvor:S10:free_spaces",
+        "izvor:535f58d650e3cccb",
+        "izvor:0e9f7f696e8fa751",
+        "istorija:vazduh-mesec-11"
+      ],
+      "pouzdanost": "srednje — presek vazduha je izmeren, ali su isključenja struje samo najave, a parking i naslov o kiši nisu potvrđeni.",
+      "naslov": "Čist vazduh u Beogradu, sutra planirana isključenja struje",
+      "prompt_version": 4,
+      "status_odgovora": "nalaz",
+      "odgovor_na_pitanje": null,
+      "ekspertize": null,
+      "prozor": null,
+      "kontekst_sha256": "c0edeebd64495321a9100be40e83e6af0b812af69c60686351c75a94b73dc010",
+      "oslonci": [
+        {
+          "id": "puls:pm25",
+          "naslov": "PM25",
+          "tekst": "{\"mean\":7.6,\"median\":5.9,\"min\":3.5,\"max\":23.9,\"max_station\":\"Borča\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+          "at": "2026-11-18T18:27:25.157148Z",
+          "izvor": "state/puls.json#/current_metrics/pm25"
+        },
+        {
+          "id": "puls:pm10",
+          "naslov": "PM10",
+          "tekst": "{\"mean\":8.3,\"median\":6.5,\"min\":3.9,\"max\":24.9,\"max_station\":\"Borča\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+          "at": "2026-11-18T18:27:25.157148Z",
+          "izvor": "state/puls.json#/current_metrics/pm10"
+        },
+        {
+          "id": "puls:no2",
+          "naslov": "NO2",
+          "tekst": "{\"mean\":30.5,\"median\":29.7,\"min\":11.3,\"max\":59.7,\"max_station\":\"Ada petlja\",\"unit\":\"µg/m³\",\"sensors_count\":32,\"network\":\"reference\"}",
+          "at": "2026-11-18T18:27:25.157148Z",
+          "izvor": "state/puls.json#/current_metrics/no2"
+        },
+        {
+          "id": "puls:o3",
+          "naslov": "O3",
+          "tekst": "{\"mean\":36.4,\"median\":40.8,\"min\":5.1,\"max\":66.9,\"max_station\":\"Zeleno brdo\",\"unit\":\"µg/m³\",\"sensors_count\":27,\"network\":\"reference\"}",
+          "at": "2026-11-18T18:27:25.157148Z",
+          "izvor": "state/puls.json#/current_metrics/o3"
+        },
+        {
+          "id": "izvor:S10:free_spaces",
+          "naslov": "Slobodnih parking mesta 150 — Garaža \"Baba Višnjina\"",
+          "tekst": "{\"naslov\":\"Slobodnih parking mesta 150 — Garaža \\\"Baba Višnjina\\\"\",\"stanje\":\"untimed\",\"vreme_merenja_ili_objave\":null,\"primljeno\":\"2026-11-18T18:17:25.471378Z\",\"napomena\":\"Čas merenja nije potvrđen; prijem ne određuje starost vrednosti.\"}",
+          "at": null,
+          "izvor": "Parking servis - displayed free spaces per lot"
+        },
+        {
+          "id": "izvor:0e9f7f696e8fa751",
+          "naslov": "Временска прогноза 19. новембар 2026.",
+          "tekst": "{\"naslov\":\"Временска прогноза 19. новембар 2026.\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-11-18T18:20:00Z\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-11-18T18:20:00Z",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:535f58d650e3cccb",
+          "naslov": "Киша поново паралисала Београд, до када ће падати",
+          "tekst": "{\"naslov\":\"Киша поново паралисала Београд, до када ће падати\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-11-18T18:07:34Z\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-11-18T18:07:34Z",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:S01:humidity",
+          "naslov": "Vlažnost 100 % — Beograd",
+          "tekst": "{\"naslov\":\"Vlažnost 100 % — Beograd\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-18T18:10:00Z\",\"primljeno\":\"2026-11-18T18:17:33.870112Z\",\"napomena\":null}",
+          "at": "2026-11-18T18:10:00Z",
+          "izvor": "RHMZ automatic stations - Belgrade (Beograd, Košutnjak)"
+        },
+        {
+          "id": "izvor:S04:pm25",
+          "naslov": "PM2.5 0.99 µg/m³ — 97343",
+          "tekst": "{\"naslov\":\"PM2.5 0.99 µg/m³ — 97343\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-18T18:22:01Z\",\"primljeno\":\"2026-11-18T18:22:26.008558Z\",\"napomena\":null}",
+          "at": "2026-11-18T18:22:01Z",
+          "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+        },
+        {
+          "id": "izvor:2637e991b8b0aba6",
+          "naslov": "Планирано искључење струје 2026-11-19 · Звездара · 08:30 - 14:00 · РУЖЕ ЈОВАНОВИЋ: 24,32, ВОЈЕ ВЕЉКОВИЋА: 33-45, ЖАБЉАЧКА: 11",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-19 · Звездара · 08:30 - 14:00 · РУЖЕ ЈОВАНОВИЋ: 24,32, ВОЈЕ ВЕЉКОВИЋА: 33-45, ЖАБЉАЧКА: 11\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-11-19\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-11-19",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:406255c08217b324",
+          "naslov": "Планирано искључење струје 2026-11-19 · Стари град · 23:30 - 05:00 · ЦАРИЦЕ МИЛИЦЕ: 2",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-19 · Стари град · 23:30 - 05:00 · ЦАРИЦЕ МИЛИЦЕ: 2\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-11-19\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-11-19",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:422b984c286972e8",
+          "naslov": "Планирано искључење струје 2026-11-19 · Врачар · 09:00 - 14:00 · ЦАРА НИКОЛАЈА ДРУГОГ: 7-9,11-13,1,17-19,23, МАКСИМА ГОРКОГ: 29, НОВОПАЗАРСКА: 22,28,32,36,7-9",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-19 · Врачар · 09:00 - 14:00 · ЦАРА НИКОЛАЈА ДРУГОГ: 7-9,11-13,1,17-19,23, МАКСИМА ГОРКОГ: 29, НОВОПАЗАРСКА: 22,28,32,36,7-9\",\"stanje\":\"najava\",\"vreme_merenja_ili_objave\":\"2026-11-19\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-11-19",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:4c195df6779af373",
+          "naslov": "Планирано искључење струје 2026-11-19 · Лазаревац · 09:00 - 14:00 · Војводе Степе (Момчила Павловића) 34-62,13-61, део улице Видовданска , Браће Миловановић, Цвијићева, Тополска, улица Брестова.",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-19 · Лазаревац · 09:00 - 14:00 · Војводе Степе (Момчила Павловића) 34-62,13-61, део улице Видовданска , Браће Миловановић, Цвијићева, Тополска, улица…",
+          "at": "2026-11-19",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:597e38ba72284f86",
+          "naslov": "Планирано искључење струје 2026-11-19 · Обреновац · 12:00 - 13:30 · Насеље ОБРЕНОВАЦ: ВАЉЕВСКИ ПУТ - РАДИО СТАНИЦА: 0,218,317,489, Насеље УРОВЦИ: КОД РАДИО СТАНИЦЕ: 230,1-1ББ,245,345,1111, РАСИНСКА: 3",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-19 · Обреновац · 12:00 - 13:30 · Насеље ОБРЕНОВАЦ: ВАЉЕВСКИ ПУТ - РАДИО СТАНИЦА: 0,218,317,489, Насеље УРОВЦИ: КОД РАДИО СТАНИЦЕ: 230,1-1ББ,245,345,1111, РАСИНСКА:…",
+          "at": "2026-11-19",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:5f1da2edb7254354",
+          "naslov": "Планирано искључење струје 2026-11-19 · Обреновац · 10:00 - 12:30 · Насеље ОБРЕНОВАЦ: НЕМАЊИНА: 111,119-135,139-161Б,167-173,177-181,185, НИКОЛЕ ТЕСЛЕ: 28,36, Насеље РВАТИ: РВАЋАНСКА: 60-64,76-102,51-",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-19 · Обреновац · 10:00 - 12:30 · Насеље ОБРЕНОВАЦ: НЕМАЊИНА: 111,119-135,139-161Б,167-173,177-181,185, НИКОЛЕ ТЕСЛЕ: 28,36, Насеље РВАТИ: РВАЋАНСКА:…",
+          "at": "2026-11-19",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:7b6125568c3cffa0",
+          "naslov": "Планирано искључење струје 2026-11-19 · Звездара · 08:30 - 14:00 · Д.ЂОРЂЕВИЋА-ГОШЕ: 2-8,12А-22,1-5,9-15,19-25, ЗАГРАЂЕ: 20Б,38-38А,7-13А,17, Насеље МИРИЈЕВО: ЉУБЕ ТАДИЋА: 28-36,19-21, МАРКА ТОДОРОВИЋ",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-19 · Звездара · 08:30 - 14:00 · Д.ЂОРЂЕВИЋА-ГОШЕ: 2-8,12А-22,1-5,9-15,19-25, ЗАГРАЂЕ: 20Б,38-38А,7-13А,17, Насеље МИРИЈЕВО: ЉУБЕ ТАДИЋА: 28-36,19-21, МАРКА…",
+          "at": "2026-11-19",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "istorija:vazduh-mesec-11",
+          "naslov": "Uobičajeno za ovaj mesec (SEPA verifikovano, 2011–2024)",
+          "tekst": "{\"mesec\":11,\"jedinica\":\"µg/m³, dnevni prosek\",\"stanice\":{\"mostar\":{\"s146_id\":\"10\",\"no2\":{\"p50\":40.6,\"p90\":71.3,\"dana\":385},\"pm10\":{\"p50\":31,\"p90\":74.5,\"dana\":270},\"pm25\":{\"p50\":25,\"p90\":47.2,\"dana\":180}},\"novi-beograd\":{\"s146_id\":\"9\",\"no2\":{\"p50\":28.9,\"p90\":52.3,\"dana\":355},\"pm10…",
+          "at": "2024-12-31",
+          "izvor": "state/kontekst-vazduh-dnevno.json#/monthly_climatology"
+        }
+      ],
+      "level": null,
+      "za_gradjanina": {
+        "akcija": "Ako ste na adresama iz najava za 2026-11-19, proverite najavu kod distributera i pripremite se pre početka termina. Isključenja počinju na Zvezdari u 08:30, na Vračaru i u Lazarevcu u 09:00, a u Obrenovcu u 10:00 odnosno 12:00; vremenska zona u izvoru nije navedena. Pre polaska ka garaži „Baba Višnjina” ne oslanjajte se na prikaz od 150 slobodnih mesta, jer čas tog merenja nije potvrđen.",
+        "vazi_do": null,
+        "lokacija": "ОБРЕНОВАЦ",
+        "dokaz": "puls:pm25 · puls:pm10 · puls:no2 · puls:o3 · izvor:S01:humidity · izvor:S04:pm25 · izvor:2637e991b8b0aba6 · izvor:7b6125568c3cffa0 · izvor:422b984c286972e8 · izvor:4c195df6779af373 · izvor:5f1da2edb7254354 · izvor:597e38ba72284f86 · izvor:406255c08217b324 · izvor:S10:free_spaces · izvor:535f58d650e3cccb · izvor:0e9f7f696e8fa751 · istorija:vazduh-mesec-11"
+      },
+      "validacija": {
+        "state": "rejected",
+        "razlog": [
+          {
+            "pravilo": "brojevi_iz_dokaza",
+            "stanje": "rejected",
+            "razlog": "brojevi izvan citiranih zapisa: 24, 2011"
+          }
+        ],
+        "at": "2026-11-18T18:42:47.570Z"
+      }
     }
   ]
 }
