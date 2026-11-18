@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-18T19:46:27.678609+00:00",
-  "as_of": "2026-11-18T19:32:25.790894Z",
+  "generated_at": "2026-11-18T19:56:27.086387+00:00",
+  "as_of": "2026-11-18T19:47:32.761266Z",
   "city_status": {
     "aqi_us": 40,
     "aqi_us_category": "dobar",
@@ -68,19 +68,19 @@
     },
     "meteo": {
       "temperature": 11.3,
-      "humidity": 92.5,
-      "pressure": 985.8,
-      "wind_speed": 5.6,
-      "wind_direction": "100.0"
+      "humidity": 92.6,
+      "pressure": 986.1,
+      "wind_speed": 6.5,
+      "wind_direction": "80.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 3.9,
-      "pm25_median": 1.8,
-      "pm10_mean": 6.0,
+      "pm25_mean": 4.0,
+      "pm25_median": 2.3,
+      "pm10_mean": 6.4,
       "sensors_count": 27,
       "high_humidity_flag": true,
-      "humidity_pct": 92.5,
+      "humidity_pct": 92.6,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
@@ -92,7 +92,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-18T19:32:25.790894Z"
+        "as_of": "2026-11-18T19:47:32.761266Z"
       }
     },
     {
@@ -102,7 +102,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-18T19:32:25.790894Z"
+        "as_of": "2026-11-18T19:47:32.761266Z"
       }
     },
     {
@@ -112,7 +112,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-18T19:32:25.790894Z"
+        "as_of": "2026-11-18T19:47:32.761266Z"
       }
     },
     {
@@ -122,52 +122,51 @@
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-18T19:32:25.790894Z"
+        "as_of": "2026-11-18T19:47:32.761266Z"
       }
     },
     {
       "aktivnost": "ves_na_terasi",
       "odluka": "OPREZ",
-      "razlog_sr": "Vlaga je 92 % — veš se teško suši napolju.",
+      "razlog_sr": "Vlaga je 93 % — veš se teško suši napolju.",
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "NO2+vlaga",
-        "as_of": "2026-11-18T19:32:25.790894Z"
+        "as_of": "2026-11-18T19:47:32.761266Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261118190924-3",
-    "at": "2026-11-18T19:09:24.894100Z",
+    "id": "mind-20261118195334-0",
+    "at": "2026-11-18T19:53:34.249760Z",
     "speaker": "Povezivač",
     "speaker_role": "connector",
-    "text_sr": "Poslednji prijem SEPA podataka star je 66 min, dok je Sensor.Community javio pre 16 min, pa je zastarela zvanična mreža, a ne građanska. DanubeHIS pokazuje istu tišinu od 66 min, što upućuje na zajedničko kašnjenje u prenosu, a ne na odvojene kvarove. Maksimum PM10 ostao je na 25, dok je maksimum NO2 popustio sa 64 na 60, a istorije još nema da bi se bilo šta nazvalo visokim. [F2][F10][F41][F5][F7][F48]",
-    "text_en": "SEPA's last reception is now 66 min old while Sensor.Community reported 16 min ago [F2][F10], so the official network is the stale one, not the citizen one. DanubeHIS shows the same 66 min silence [F41], which suggests a shared upstream or transfer delay rather than separate failures. The PM10 maximum stayed at 25 while the NO2 maximum eased from 64 to 60 [F5][F7], and no history exists yet to call either high [F48].",
+    "text_sr": "Observerovo sidro za minimume čestica više ne važi: Novi Beograd sada nosi oba minimuma, 4 i 3 µg/m³, dok Borča i dalje nosi oba maksimuma, 20 i 19 µg/m³. Sva tri maksimuma pala su zajedno između označenih sati: PM10 sa 25 na 20, PM2.5 sa 24 na 19, NO2 sa 60 na 51. Izvor označava da taj sat ističe u 19:00, ali naša procena stvarnog UTC je 18:00, pa su ovo ranovečernje vrednosti, poslednji put primljene pre 46 min. [F4][F8][F5][F9][F7][F3][F2]",
+    "text_en": "Observer's anchor for the particulate minima no longer holds: Novi Beograd now carries both lows, 4 and 3 µg/m³, while Borča still carries both highs, 20 and 19 µg/m³ [F4][F8]. All three maxima fell together between the labelled hours: PM10 from 25 to 20, PM2.5 from 24 to 19, NO2 from 60 to 51 [F5][F9][F7]. The source labels that hour as ending 19:00, but our estimate of true UTC is 18:00, so these are early-evening values last received 46 min ago [F3][F2].",
     "hypotheses_sr": [
-      "Identična starost prijema od 66 min kod SEPA i DanubeHIS [F2][F41] možda potiče od jedne zajedničke putanje prikupljanja, što bi objasnilo zašto kasne samo ta dva izvora, dok su RHMZ i METAR stari 21 min [F33][F34].",
-      "Kiša i grmljavina nad Beogradom [F31], zajedno sa upozorenjem na kišu [F37], mogle bi da drže maksimume čestica ravnim na 25 i 24 [F9][F5] tako što peru vazduh, a blagi pad NO2 sa 64 na 60 [F7] uklapa se u isto vlažno veče; ovo je samo hipoteza.",
-      "Borča ima maksimume PM10 i PM2.5 iako blizu nje živi manje ljudi, oko 5 hiljada, nego blizu Topčiderske zvezde, oko 8 hiljada [F4][F8][F44][F45], pa raspored možda odražava karakter lokacije, a ne broj stanovnika.",
-      "Parovi vesti o krađi kablova [F49][F50][F51] svi se oslanjaju na jedan naslov Blica i na sličnost teksta od samo 0.74, pa ocena iznenađenja 4/5 [F52] odražava formulaciju, a ne proveren zajednički događaj."
+      "Maksimumi PM10 i PM2.5 nalaze se na istoj stanici, Borči, i pali su gotovo usklađeno (sa 25 na 20 i sa 24 na 19) [F4][F8][F5][F9]. To bi odgovaralo jednom izvoru sitnih čestica blizu Borče pre nego krupnoj prašini, ako se obrazac ponovi u sledećem označenom satu.",
+      "Novi Beograd drži oba minimuma čestica iako oko 22 hiljade ljudi živi u krugu od 1 km, dok Borča drži oba maksimuma sa oko 5 hiljada [F4][F8][F45][F46]. Gustina naseljenosti oko stanice možda nije ono što ovde određuje poredak čestica. Bez osnovne linije ovo ostaje prostorni poredak, ne nalaz [F49].",
+      "Maksimum NO2 je na Ada petlji, a minimum u Krnjači [F6]. To bi odgovaralo doprinosu saobraćajne petlje kod NO2, koji poredak čestica ne deli."
     ],
     "questions_sr": [
-      "Hoće li SEPA i DanubeHIS nastaviti da javljaju zajedno, što bi upućivalo na zajedničko kašnjenje [F2][F41]?",
-      "Da li naslovi o nestanku struje u Rakovici i Čukarici [F13] i naslov Danubeogradu [F17] opisuju isti kvar i kada se dogodio?",
-      "Da li Parking Servis, čiji je prijem star 21 min bez vremena merenja [F11], pokazuje neku promenu na Belvilu osim skoka sa 165 na 388 [F12]?"
+      "Da li upozorenje Meteoalarma na kišu za beogradski region pokriva iste sate u kojima su pala sva tri maksimuma [F37][F5][F7][F9], i da li je ijedan instrument potvrdio kišu?",
+      "Da li instrumenti Sensor.Community blizu Borče pokazuju isti smer promene kao SEPA maksimumi [F10][F5]?"
     ],
     "cites": [
-      "F10",
       "F2",
-      "F41",
-      "F48",
+      "F3",
+      "F4",
       "F5",
-      "F7"
+      "F7",
+      "F8",
+      "F9"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-18T19:09:24.894100Z",
+    "last_mind_step": "2026-11-18T19:53:34.249760Z",
     "active_sources_count": 36,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-18T19:32:25.790894Z"
+    "sensors_as_of": "2026-11-18T19:47:32.761266Z"
   }
 }
