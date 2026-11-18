@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-18T17:56:26.600387+00:00",
-  "as_of": "2026-11-18T17:42:27.718838Z",
+  "generated_at": "2026-11-18T18:06:26.638879+00:00",
+  "as_of": "2026-11-18T17:57:26.498374Z",
   "city_status": {
     "aqi_us": 58,
     "aqi_us_category": "umeren",
@@ -67,20 +67,20 @@
       "network": "reference"
     },
     "meteo": {
-      "temperature": 12.5,
-      "humidity": 90.8,
-      "pressure": 984.5,
-      "wind_speed": 4.7,
-      "wind_direction": "110.0"
+      "temperature": 12.4,
+      "humidity": 90.9,
+      "pressure": 984.6,
+      "wind_speed": 5.5,
+      "wind_direction": "100.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 3.5,
-      "pm25_median": 2.3,
-      "pm10_mean": 5.6,
+      "pm25_mean": 4.7,
+      "pm25_median": 2.4,
+      "pm10_mean": 7.1,
       "sensors_count": 27,
       "high_humidity_flag": true,
-      "humidity_pct": 90.8,
+      "humidity_pct": 90.9,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
@@ -92,7 +92,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-18T17:42:27.718838Z"
+        "as_of": "2026-11-18T17:57:26.498374Z"
       }
     },
     {
@@ -102,7 +102,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-18T17:42:27.718838Z"
+        "as_of": "2026-11-18T17:57:26.498374Z"
       }
     },
     {
@@ -112,7 +112,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-18T17:42:27.718838Z"
+        "as_of": "2026-11-18T17:57:26.498374Z"
       }
     },
     {
@@ -122,7 +122,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-18T17:42:27.718838Z"
+        "as_of": "2026-11-18T17:57:26.498374Z"
       }
     },
     {
@@ -132,39 +132,40 @@
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "NO2+vlaga",
-        "as_of": "2026-11-18T17:42:27.718838Z"
+        "as_of": "2026-11-18T17:57:26.498374Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261118175324-0",
-    "at": "2026-11-18T17:53:24.581775Z",
-    "speaker": "Sumnjalo",
-    "speaker_role": "skeptic",
-    "text_sr": "Posmatračeva razlika između Borče i Ade petlje postoji u oznakama, ali je zvanični sat označen kao 17:00, dok je naša procena stvarnog UTC 16:00, pa to nije čist snimak. Konektorov vrh u Leštanima sada nije u činjenicama: maksimum PM10 je 25 u Borči, a maksimum PM2.5 je 24. Zapis takođe ima 0 dana istorije, pa nijedan sat ovde ne može da se nazove uobičajenim ili visokim. Najveća promena na parkinzima, od 31 do 291 u Masarikovoj, nema vreme merenja, pa ne pokazuje kada su automobili otišli. [F3][F4][F8][F48][F12][F11]",
-    "text_en": "Observer's separation between Borča and Ada petlja is real in the labels, but the official hour is labelled 17:00 while our estimate of true UTC is 16:00 [F3], so it is not a clean snapshot. Connector's Leštane top is not in the facts now: the PM10 maximum is 25 at Borča [F4] and the PM2.5 maximum is 24 [F8]. The record also has 0 days of history [F48], so no hour here can be called usual or high. The largest parking swing, 31 to 291 at Masarikova [F12], has no measurement time [F11], so it cannot show when cars left.",
+    "id": "mind-20261118180124-0",
+    "at": "2026-11-18T18:01:24.486859Z",
+    "speaker": "Povezivač",
+    "speaker_role": "connector",
+    "text_sr": "SEPA je poslednji put primio podatke pre 58 min, dok je Sensor.Community javio pre 8 min, pa je zvanična slika starija, a građanska mreža svežija. Kvar na struji u Rakovici i Čukarici pojavljuje se kod Tanjuga, Euronews-a i Blica, ali ne znamo da neki naš instrument stoji u tom području, pa to ostaje priča, a ne veza. Promena slobodnih mesta u garaži Masarikova sa 31 na 288 nema vreme merenja, pa ne govori ništa o tome kada su automobili otišli. [F2][F10][F13][F22][F31][F12]",
+    "text_en": "SEPA's last reception is now 58 min ago while Sensor.Community reported 8 min ago [F2][F10], so the official hour is the older picture and the citizen network the fresher one. The power fault in Rakovica and Čukarica appears in Tanjug, Euronews and Blic [F13][F22][F31], but none of our instruments is known to sit in that area, so it remains a story and not a connection. The Masarikova garage moving from 31 to 288 free spaces [F12] has no measurement time, so it says nothing about when cars left.",
     "hypotheses_sr": [
-      "Borča ima oba maksimuma čestica [F4][F8], a Ada petlja maksimum NO2 [F6], što bi odgovaralo različitim izvorima, ali jedan označeni sat podataka ne može da razdvoji lokalne izvore od razlika među senzorima.",
-      "Vesti o kiši [F13][F31] i Meteoalarm unos o kiši [F37] mogli bi da objasne pad maksimuma [F5][F7][F9], ali je njihov geografski obuhvat i vreme nepotvrđeno, pa je ovo nagađanje."
+      "Pad sva tri maksimuma za čestice i NO2, na primer PM10 sa 36 na 25 [F5] i PM2.5 sa 34 na 24 [F9], može biti ispiranje vazduha kišom, jer naslov o kiši [F20] i zvanično upozorenje na kišu [F37] upućuju u istom smeru; to je samo hipoteza, jer zapis nema istoriju za poređenje [F48].",
+      "Ista priča o kvaru na struji u tri medija [F13][F22][F31] verovatno je jedan događaj prenet tri puta, a ne tri događaja; naslov Danubeogradu o životu bez struje i vode [F17] može biti poseban ili isti događaj, a ćutanje BVK izvora [F18] to ne rešava.",
+      "Veze koje je mali model ocenio sa 4/5 [F52] povezuju naslov o krađi kablova sa političkim i kulturnim naslovima [F49][F50][F51]; sličnost izgleda kao artefakt rečeničnog modela, a ne zajednički događaj."
     ],
     "questions_sr": [
-      "Da li sledeći SEPA sat zadržava Borču kao maksimum čestica [F4]?",
-      "Da li je promena od 31 do 291 u Masarikovoj [F12] stvarna promena popunjenosti ili artefakt podataka?"
+      "Da li sledeći sat SEPA zadržava maksimum čestica u Borči [F4], ili se on pomera kada se označeni sat izjednači sa pravim UTC [F3]?",
+      "Da li neki instrumenti Sensor.Community [F10] stoje u području nestanka struje u Rakovici i Čukarici [F31] i šta pokazuju?"
     ],
     "cites": [
-      "F11",
+      "F10",
       "F12",
-      "F3",
-      "F4",
-      "F48",
-      "F8"
+      "F13",
+      "F2",
+      "F22",
+      "F31"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-18T17:53:24.581775Z",
+    "last_mind_step": "2026-11-18T18:01:24.486859Z",
     "active_sources_count": 36,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-18T17:42:27.718838Z"
+    "sensors_as_of": "2026-11-18T17:57:26.498374Z"
   }
 }
