@@ -1,10 +1,40 @@
 {
   "schema": "beops-v2-oslonci/v1",
-  "generated_at": "2026-11-18T08:36:28.985Z",
-  "as_of": "2026-11-18T08:33:47.600893Z",
+  "generated_at": "2026-11-18T08:46:32.979Z",
+  "as_of": "2026-11-18T08:42:01.844Z",
   "zakon": "pun tekst dokaza; ugovor misli nosi samo prozor teksta (280 znakova + …)",
   "ukupno": 14,
   "oslonci": {
+    "bridge:2026-11-18T08-41-51-992Z__claude_auto": [
+      {
+        "id": "puls:pm25",
+        "naslov": "PM25",
+        "tekst": "{\"mean\":10,\"median\":7.5,\"min\":2.7,\"max\":55.4,\"max_station\":\"Rakovica\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+        "at": "2026-11-18T08:32:25.924584Z",
+        "izvor": "state/puls.json#/current_metrics/pm25"
+      },
+      {
+        "id": "puls:pm10",
+        "naslov": "PM10",
+        "tekst": "{\"mean\":12.1,\"median\":8.8,\"min\":2.9,\"max\":61,\"max_station\":\"Rakovica\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+        "at": "2026-11-18T08:32:25.924584Z",
+        "izvor": "state/puls.json#/current_metrics/pm10"
+      },
+      {
+        "id": "izvor:767fb3199b7bfd68",
+        "naslov": "Požar u stanu u Sremčici, stradao muškarac",
+        "tekst": "{\"naslov\":\"Požar u stanu u Sremčici, stradao muškarac\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-11-18T08:12:01Z\",\"primljeno\":null,\"napomena\":null}",
+        "at": "2026-11-18T08:12:01Z",
+        "izvor": "news-sorter"
+      },
+      {
+        "id": "izvor:S146:pm25",
+        "naslov": "PM2.5 55.38 µg/m³ — Rakovica",
+        "tekst": "{\"naslov\":\"PM2.5 55.38 µg/m³ — Rakovica\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-11-18T08:00:00Z\",\"primljeno\":\"2026-11-18T07:52:25.244577Z\",\"napomena\":null}",
+        "at": "2026-11-18T08:00:00Z",
+        "izvor": "SEPA air quality HVD API - hourly preliminary means"
+      }
+    ],
     "bridge:2026-11-18T06-11-37-385Z__antigravity_gemini-4-argon-medium": [
       {
         "id": "puls:pm25",
@@ -338,50 +368,6 @@
         "tekst": "{\"naslov\":\"Slobodnih parking mesta 189 — Garaža \\\"Baba Višnjina\\\"\",\"stanje\":\"untimed\",\"vreme_merenja_ili_objave\":null,\"primljeno\":\"2026-11-17T07:32:24.938257Z\",\"napomena\":\"Čas merenja nije potvrđen; prijem ne određuje starost vrednosti.\"}",
         "at": null,
         "izvor": "Parking servis - displayed free spaces per lot"
-      }
-    ],
-    "bridge:2026-11-17T05-11-46-117Z__claude_auto": [
-      {
-        "id": "puls:pm25",
-        "naslov": "PM25",
-        "tekst": "{\"mean\":18.5,\"median\":17.3,\"min\":10.7,\"max\":29.1,\"max_station\":\"Stojčino brdo\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-        "at": "2026-11-17T05:02:32.725919Z",
-        "izvor": "state/puls.json#/current_metrics/pm25"
-      },
-      {
-        "id": "puls:pm10",
-        "naslov": "PM10",
-        "tekst": "{\"mean\":20.7,\"median\":18.2,\"min\":11.4,\"max\":40.8,\"max_station\":\"Pančevo Vatrogasni dom\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-        "at": "2026-11-17T05:02:32.725919Z",
-        "izvor": "state/puls.json#/current_metrics/pm10"
-      },
-      {
-        "id": "puls:meteo",
-        "naslov": "Vremenski uslovi",
-        "tekst": "{\"temperature\":10.8,\"humidity\":92.9,\"pressure\":995.7,\"wind_speed\":2.7,\"wind_direction\":\"150.0\"}",
-        "at": "2026-11-17T05:02:32.725919Z",
-        "izvor": "state/puls.json#/current_metrics/meteo"
-      },
-      {
-        "id": "izvor:S04:pm10",
-        "naslov": "PM10 125.1 µg/m³ — 90579",
-        "tekst": "{\"naslov\":\"PM10 125.1 µg/m³ — 90579\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-17T04:55:04Z\",\"primljeno\":\"2026-11-17T04:57:25.037106Z\",\"napomena\":null}",
-        "at": "2026-11-17T04:55:04Z",
-        "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-      },
-      {
-        "id": "izvor:S04:pm25",
-        "naslov": "PM2.5 57.6 µg/m³ — 90579",
-        "tekst": "{\"naslov\":\"PM2.5 57.6 µg/m³ — 90579\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-17T04:55:04Z\",\"primljeno\":\"2026-11-17T04:57:25.037106Z\",\"napomena\":null}",
-        "at": "2026-11-17T04:55:04Z",
-        "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-      },
-      {
-        "id": "izvor:S01:humidity",
-        "naslov": "Vlažnost 100 % — Beograd",
-        "tekst": "{\"naslov\":\"Vlažnost 100 % — Beograd\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-17T04:50:00Z\",\"primljeno\":\"2026-11-17T05:02:31.865585Z\",\"napomena\":null}",
-        "at": "2026-11-17T04:50:00Z",
-        "izvor": "RHMZ automatic stations - Belgrade (Beograd, Košutnjak)"
       }
     ],
     "bridge:2026-11-18T08-11-59-604Z__urednik__claude_auto": [
