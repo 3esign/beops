@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-19T23:16:26.725058+00:00",
-  "as_of": "2026-11-19T23:07:25.474351Z",
+  "generated_at": "2026-11-19T23:26:26.671942+00:00",
+  "as_of": "2026-11-19T23:22:33.454552Z",
   "city_status": {
     "aqi_us": 16,
     "aqi_us_category": "dobar",
@@ -23,7 +23,7 @@
       "advice_sensitive_sr": "Uživajte u uobičajenim aktivnostima na otvorenom."
     },
     "reference_stations_count": 31,
-    "citizen_sensors_count": 28
+    "citizen_sensors_count": 27
   },
   "current_metrics": {
     "pm25": {
@@ -67,20 +67,20 @@
       "network": "reference"
     },
     "meteo": {
-      "temperature": 12.3,
-      "humidity": 86.0,
-      "pressure": 988.9,
-      "wind_speed": 10.8,
+      "temperature": 11.8,
+      "humidity": 84.7,
+      "pressure": 989.1,
+      "wind_speed": 8.8,
       "wind_direction": "280.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 1.2,
-      "pm25_median": 0.7,
-      "pm10_mean": 2.0,
-      "sensors_count": 28,
+      "pm25_mean": 0.8,
+      "pm25_median": 0.6,
+      "pm10_mean": 1.5,
+      "sensors_count": 27,
       "high_humidity_flag": true,
-      "humidity_pct": 86.0,
+      "humidity_pct": 84.7,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
@@ -92,7 +92,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-19T23:07:25.474351Z"
+        "as_of": "2026-11-19T23:22:33.454552Z"
       }
     },
     {
@@ -102,7 +102,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-19T23:07:25.474351Z"
+        "as_of": "2026-11-19T23:22:33.454552Z"
       }
     },
     {
@@ -112,7 +112,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-19T23:07:25.474351Z"
+        "as_of": "2026-11-19T23:22:33.454552Z"
       }
     },
     {
@@ -122,35 +122,29 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-19T23:07:25.474351Z"
+        "as_of": "2026-11-19T23:22:33.454552Z"
       }
     },
     {
       "aktivnost": "ves_na_terasi",
       "odluka": "OPREZ",
-      "razlog_sr": "Vlaga je 86 % — veš se teško suši napolju.",
+      "razlog_sr": "Vlaga je 85 % — veš se teško suši napolju.",
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "PM2.5+vlaga",
-        "as_of": "2026-11-19T23:07:25.474351Z"
+        "as_of": "2026-11-19T23:22:33.454552Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261119230924-1",
-    "at": "2026-11-19T23:09:24.104191Z",
-    "speaker": "Posmatrač",
-    "speaker_role": "observer",
-    "text_sr": "Građanski senzori pristižu novije od zvaničnog izvora kvaliteta vazduha, dok Parking Servis daje vrednosti bez vremena njihovog merenja. Velika promena prikazana kod Garaže „Obilićev venac“ zato nije dokaz vremenski određenog kretanja automobila. [F2][F10][F11][F12]",
-    "text_en": "Citizen sensors are arriving more recently than the official air-quality feed, while Parking Servis gives values without their measurement time [F2][F10][F11]. The large change displayed at Garaža \"Obilićev venac\" is therefore a change in the received display, not evidence of a timed movement of cars [F12].",
-    "hypotheses_sr": [
-      "Kombinacija gustog prijema sa građanskih senzora i zakašnjelog prijema sa zvaničnih stanica može otkriti lokalne prostorne razlike pre nego što se mreže mogu vremenski uskladiti [F2][F10].",
-      "Promena kod Garaže „Obilićev venac“ može odražavati operativnu ili izveštajnu razliku, ali se njen prostorni smisao ne može odvojiti od nepoznatog vremena merenja [F11][F12]."
-    ],
-    "questions_sr": [
-      "Da li građanski senzori i zvanične stanice prijavljuju uporedive parametre na preklapajućim lokacijama?",
-      "Da li Parking Servis u narednom prijemu daje vremensku oznaku merenja za Garažu „Obilićev venac“?"
-    ],
+    "id": "mind-20261119231724-1",
+    "at": "2026-11-19T23:17:24.206741Z",
+    "speaker": "Sumnjalo",
+    "speaker_role": "skeptic",
+    "text_sr": "Odbacujem Connectorove starosti prijema kao zastarele: kod građanskih senzora sada je prošlo 14 min, kod Parking servisa 19 min, a kod SEPA 54 min od prijema. Ne mogu taj redosled da pretvorim u sled događaja na ulici: parking izričito ne daje vreme merenja, pa vreme prijema ne može da utvrdi kada se prikazana promena dogodila. [F10][F11][F2][F12]",
+    "text_en": "I reject Connector's reception ages as stale: citizen sensors now stand at 14 min, Parking Servis at 19 min, and SEPA at 54 min since reception [F10][F11][F2]. I cannot turn that ordering into a sequence of street events: parking explicitly supplies no measurement time, so reception timing cannot establish when its displayed change occurred [F11][F12].",
+    "hypotheses_sr": [],
+    "questions_sr": [],
     "cites": [
       "F10",
       "F11",
@@ -160,9 +154,9 @@
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-19T23:09:24.104191Z",
+    "last_mind_step": "2026-11-19T23:17:24.206741Z",
     "active_sources_count": 37,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-19T23:07:25.474351Z"
+    "sensors_as_of": "2026-11-19T23:22:33.454552Z"
   }
 }
