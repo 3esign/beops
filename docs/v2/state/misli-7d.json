@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-misli/v1.1",
-  "generated_at": "2026-11-20T19:36:28.784Z",
-  "as_of": "2026-11-20T19:17:24.899959Z",
+  "generated_at": "2026-11-20T19:46:28.399Z",
+  "as_of": "2026-11-20T19:42:41.116Z",
   "total_thoughts": 55,
   "filter_counts": {
     "accepted": 54,
@@ -12,62 +12,10 @@
     "organelle": 0,
     "ai_feed": 0,
     "bridge": 20,
-    "kartice": 12,
+    "kartice": 13,
     "eseji": 3
   },
   "thoughts": [
-    {
-      "id": "bridge:2026-11-19T06-11-36-770Z__codex_gpt-6_1-sol",
-      "at": "2026-11-19T06:11:49.705Z",
-      "origin": "bridge",
-      "entity": "bridge:codex",
-      "entity_label": "codex/gpt-6.1-sol",
-      "model": "codex/gpt-6.1-sol",
-      "prompt_id": null,
-      "oblik": "misao",
-      "narav": null,
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "Gradski prosek čestica nije dovoljan da opiše vazduh u svakom kraju. Stojčino brdo ima najviše zabeležene koncentracije obe prikazane vrste čestica u referentnoj mreži; tu lokalna razlika zaslužuje pažnju koju zbirna slika lako potisne.",
-      "text_en": null,
-      "hypotheses_sr": [],
-      "questions_sr": [],
-      "cites": [
-        "puls:pm25",
-        "puls:pm10"
-      ],
-      "pouzdanost": "srednje — presek pokazuje prostorne razlike, ali ne potvrđuje čas svakog senzora.",
-      "naslov": null,
-      "prompt_version": 4,
-      "status_odgovora": "nalaz",
-      "odgovor_na_pitanje": null,
-      "ekspertize": null,
-      "prozor": null,
-      "kontekst_sha256": "e322aa4207cc9a66d399d20a0edadf4d3388022ff33247731da273a3a72dadeb",
-      "oslonci": [
-        {
-          "id": "puls:pm25",
-          "naslov": "PM25",
-          "tekst": "{\"mean\":3.9,\"median\":2.6,\"min\":1.5,\"max\":15.6,\"max_station\":\"Stojčino brdo\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-          "at": "2026-11-19T05:57:27.221106Z",
-          "izvor": "state/puls.json#/current_metrics/pm25"
-        },
-        {
-          "id": "puls:pm10",
-          "naslov": "PM10",
-          "tekst": "{\"mean\":4.6,\"median\":3.2,\"min\":1.8,\"max\":17.1,\"max_station\":\"Stojčino brdo\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-          "at": "2026-11-19T05:57:27.221106Z",
-          "izvor": "state/puls.json#/current_metrics/pm10"
-        }
-      ],
-      "level": "srednje",
-      "za_gradjanina": null,
-      "validacija": {
-        "state": "accepted",
-        "razlog": [],
-        "at": "2026-11-19T06:11:49.770Z"
-      }
-    },
     {
       "id": "bridge:2026-11-19T07-41-38-137Z__codex_gpt-6_1-sol",
       "at": "2026-11-19T07:41:58.622Z",
@@ -2478,6 +2426,55 @@
         "F3"
       ],
       "level": "veza"
+    },
+    {
+      "id": "bridge:2026-11-20T19-41-55-098Z__codex_gpt-6_1-sol",
+      "at": "2026-11-20T19:42:41.116Z",
+      "origin": "bridge",
+      "entity": "bridge:codex",
+      "entity_label": "codex/gpt-6.1-sol",
+      "model": "codex/gpt-6.1-sol",
+      "prompt_id": null,
+      "oblik": "misao",
+      "narav": null,
+      "state": "accepted",
+      "rejection_reason": null,
+      "text_sr": "Parking u garaži „Baba Višnjina“ ne bih smatrao obezbeđenim samo na osnovu prikaza slobodnih mesta: vreme merenja nije potvrđeno.",
+      "text_en": null,
+      "hypotheses_sr": [],
+      "questions_sr": [],
+      "cites": [
+        "izvor:S10:free_spaces"
+      ],
+      "pouzdanost": "srednje — zapis postoji, ali starost prikazane raspoloživosti nije poznata.",
+      "naslov": null,
+      "prompt_version": 4,
+      "status_odgovora": "nalaz",
+      "odgovor_na_pitanje": null,
+      "ekspertize": null,
+      "prozor": null,
+      "kontekst_sha256": "f23f8ab1e2fda8532ef12f60c9e348b15f81cc915df89a5ea1fc1fae5213488f",
+      "oslonci": [
+        {
+          "id": "izvor:S10:free_spaces",
+          "naslov": "Slobodnih parking mesta 192 — Garaža \"Baba Višnjina\"",
+          "tekst": "{\"naslov\":\"Slobodnih parking mesta 192 — Garaža \\\"Baba Višnjina\\\"\",\"stanje\":\"untimed\",\"vreme_merenja_ili_objave\":null,\"primljeno\":\"2026-11-20T19:12:27.333304Z\",\"napomena\":\"Čas merenja nije potvrđen; prijem ne određuje starost vrednosti.\"}",
+          "at": null,
+          "izvor": "Parking servis - displayed free spaces per lot"
+        }
+      ],
+      "level": "površinsko",
+      "za_gradjanina": {
+        "akcija": "Pre nego što se osloniš na ovu garažu, proveri trenutnu raspoloživost kod Parking servisa.",
+        "vazi_do": null,
+        "lokacija": null,
+        "dokaz": "izvor:S10:free_spaces"
+      },
+      "validacija": {
+        "state": "accepted",
+        "razlog": [],
+        "at": "2026-11-20T19:42:41.625Z"
+      }
     }
   ]
 }
