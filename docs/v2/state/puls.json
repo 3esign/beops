@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-20T02:36:26.339717+00:00",
-  "as_of": "2026-11-20T02:22:28.447624Z",
+  "generated_at": "2026-11-20T02:46:26.493792+00:00",
+  "as_of": "2026-11-20T02:37:24.878684Z",
   "city_status": {
     "aqi_us": 14,
     "aqi_us_category": "dobar",
@@ -67,20 +67,20 @@
       "network": "reference"
     },
     "meteo": {
-      "temperature": 11.5,
-      "humidity": 84.0,
-      "pressure": 991.4,
-      "wind_speed": 3.1,
+      "temperature": 11.4,
+      "humidity": 83.4,
+      "pressure": 991.5,
+      "wind_speed": 3.2,
       "wind_direction": "210.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 1.1,
+      "pm25_mean": 1.4,
       "pm25_median": 0.8,
-      "pm10_mean": 2.1,
+      "pm10_mean": 2.8,
       "sensors_count": 27,
       "high_humidity_flag": true,
-      "humidity_pct": 84.0,
+      "humidity_pct": 83.4,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
@@ -92,7 +92,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-20T02:22:28.447624Z"
+        "as_of": "2026-11-20T02:37:24.878684Z"
       }
     },
     {
@@ -102,7 +102,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-20T02:22:28.447624Z"
+        "as_of": "2026-11-20T02:37:24.878684Z"
       }
     },
     {
@@ -112,7 +112,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-20T02:22:28.447624Z"
+        "as_of": "2026-11-20T02:37:24.878684Z"
       }
     },
     {
@@ -122,45 +122,53 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-20T02:22:28.447624Z"
+        "as_of": "2026-11-20T02:37:24.878684Z"
       }
     },
     {
       "aktivnost": "ves_na_terasi",
       "odluka": "OPREZ",
-      "razlog_sr": "Vlaga je 84 % — veš se teško suši napolju.",
+      "razlog_sr": "Vlaga je 83 % — veš se teško suši napolju.",
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "PM2.5+vlaga",
-        "as_of": "2026-11-20T02:22:28.447624Z"
+        "as_of": "2026-11-20T02:37:24.878684Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261120021724-2",
-    "at": "2026-11-20T02:17:24.310512Z",
+    "id": "mind-20261120024124-0",
+    "at": "2026-11-20T02:41:24.448718Z",
     "speaker": "Povezivač",
     "speaker_role": "connector",
-    "text_sr": "Vidim da senzori građana stižu novije od SEPA, pa njihova očitavanja ne treba uparivati kao istovremena posmatranja. Prikazana slobodna mesta u Pionirskom parku promenila su se sa 71 na 350, ali odsustvo vremena merenja ostavlja tu promenu nedatiranom. [F2][F10][F11][F12]",
-    "text_en": "I see citizen sensors arriving more recently than SEPA, so their readings should not be paired as simultaneous observations [F2] [F10]. Pionirski park's displayed free spaces changed from 71 to 350, but the missing measurement time leaves the movement undated [F11] [F12].",
+    "text_sr": "Skepticovi poklopljeni dolasci više ne važe: SEPA je sada na 19 min od poslednjeg prijema, a građanski senzori na 8 min, pa se razmak vratio i to je i dalje samo razmak prijema, ne uzorkovanja. Ono što niko nije povezao jeste da Jajinci drže vrh obe veličine čestica u istom satu, PM10 sa 6 i PM2.5 sa 5 µg/m³, dok je vrh NO2 na drugom mestu, u Borči sa 21 µg/m³. Taj sat je označen kao 03:00 UTC, ali je naša procena pravog UTC 02:00, a pomoćnik je ravne vrhove u F5, F7 i F9 ocenio sa 1/5 iznenađenja, što je procena modela, a ne osnovica. [F2][F10][F4][F8][F6][F3][F53][F49]",
+    "text_en": "Skeptic's matching arrivals no longer hold: SEPA now stands at 19 min since last reception [F2] and citizen sensors at 8 min [F10], so the gap is back and it is still only a gap of receptions, not of sampling. What nobody connected is that Jajinci tops both particle sizes in the same hour, PM10 at 6 [F4] and PM2.5 at 5 µg/m³ [F8], while the NO2 top sits elsewhere, at Borča with 21 µg/m³ [F6]. That hour is labelled 03:00 UTC but our estimate of true UTC is 02:00 [F3], and the helper rated the flat tops in F5, F7 and F9 at 1/5 surprise [F53], which is a model's estimate, not a baseline [F49].",
     "hypotheses_sr": [
-      "Prikaz parkiranja može odražavati promenu stanja izveštavanja, a ne kretanje u garaži; vreme prijema i vremenska oznaka merenja bi ih razlikovali [F11] [F12]."
+      "Maksimum čestica i maksimum NO2 dolaze sa različitih mesta u istom satu, Jajinci za PM10 i PM2.5 [F4][F8] i Borča za NO2 [F6], što bi odgovaralo različitim lokalnim izvorima za čestice i za gas; sa 0 dana istorije [F49] ovo je obrazac za proveru, a ne nalaz.",
+      "U Jajincima je vrh PM2.5 od 5 µg/m³ [F8] blizu vrha PM10 od 6 µg/m³ [F4], pa bi veći deo izmerene mase čestica tamo mogao biti fina frakcija; jedan sat i jedna stanica to ne mogu potvrditi.",
+      "Oko 15 hiljada ljudi živi unutar 1 km od stanice Jajinci [F46] naspram oko 5 hiljada unutar 1 km od stanice Borča [F48], pa je vrh čestica u naseljenijem od ta dva okruženja; obe vrednosti su modelovane procene."
     ],
     "questions_sr": [
-      "Može li sledeći prijem Parking Servisa dati vremensku oznaku merenja za Garaža \"Pionirski park\" [F11] [F12]?"
+      "Da li Jajinci zadržavaju vrh i za PM10 i za PM2.5 u sledećem označenom satu, ili se ta dva maksimuma razdvajaju?",
+      "Da li građanski senzori [F10] imaju instrument blizu Jajinaca čije bi se vrednosti u istom pravom satu [F3] mogle uporediti sa zvaničnih 6 µg/m³ [F4]?",
+      "Da li Borča ostaje maksimum NO2 posle pomaka sa 20 na 21 µg/m³ [F7]?"
     ],
     "cites": [
       "F10",
-      "F11",
-      "F12",
-      "F2"
+      "F2",
+      "F3",
+      "F4",
+      "F49",
+      "F53",
+      "F6",
+      "F8"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-20T02:17:24.310512Z",
+    "last_mind_step": "2026-11-20T02:41:24.448718Z",
     "active_sources_count": 37,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-20T02:22:28.447624Z"
+    "sensors_as_of": "2026-11-20T02:37:24.878684Z"
   }
 }
