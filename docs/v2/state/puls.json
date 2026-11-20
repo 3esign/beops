@@ -1,165 +1,163 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-20T16:16:26.171094+00:00",
-  "as_of": "2026-11-20T16:07:24.438130Z",
+  "generated_at": "2026-11-20T16:26:26.302544+00:00",
+  "as_of": "2026-11-20T16:22:28.551693Z",
   "city_status": {
-    "aqi_us": 62,
+    "aqi_us": 96,
     "aqi_us_category": "umeren",
     "aqi_standard": "EEA EAQI 2024 (odluka i savet) · US EPA 2024 AQI (informativno)",
     "decision_basis": "eaqi",
-    "category": "umeren",
-    "category_sr": "Umeren",
-    "category_en": "Moderate",
+    "category": "los",
+    "category_sr": "Loš",
+    "category_en": "Poor",
     "dominant_pollutant": "NO2",
-    "summary_sr": "Vazduh u Beogradu je umeren (EEA EAQI 3/6); osetljivi neka prate simptome.",
-    "summary_en": "Air quality in Belgrade is moderate (EEA EAQI 3/6); sensitive people should watch for symptoms.",
+    "summary_sr": "Vazduh u Beogradu je loš (EEA EAQI 4/6); deca, stariji i hronični bolesnici neka smanje napor napolju.",
+    "summary_en": "Air quality in Belgrade is poor (EEA EAQI 4/6); children, older and chronically ill people should reduce outdoor exertion.",
     "eaqi": {
-      "level": 3,
-      "category": "umeren",
-      "label_sr": "Umeren",
-      "label_en": "Moderate",
+      "level": 4,
+      "category": "los",
+      "label_sr": "Loš",
+      "label_en": "Poor",
       "dominant_pollutant": "NO2",
-      "advice_general_sr": "Uživajte u uobičajenim aktivnostima na otvorenom.",
-      "advice_sensitive_sr": "Razmotrite smanjenje intenzivnih aktivnosti na otvorenom ako osetite simptome."
+      "advice_general_sr": "Razmotrite smanjenje intenzivnih aktivnosti na otvorenom ako osetite iritaciju grla ili kašalj.",
+      "advice_sensitive_sr": "Smanjite intenzivne aktivnosti na otvorenom (deca, stariji, hronični bolesnici)."
     },
     "reference_stations_count": 31,
     "citizen_sensors_count": 27
   },
   "current_metrics": {
     "pm25": {
-      "mean": 14.9,
-      "median": 12.2,
-      "min": 3.7,
-      "max": 50.4,
-      "max_station": "Leštane",
+      "mean": 33.0,
+      "median": 28.2,
+      "min": 3.9,
+      "max": 94.1,
+      "max_station": "Zemun TB",
       "unit": "µg/m³",
       "sensors_count": 31,
       "network": "reference"
     },
     "pm10": {
-      "mean": 37.8,
-      "median": 31.8,
-      "min": 6.8,
-      "max": 189.4,
-      "max_station": "Leštane",
+      "mean": 61.3,
+      "median": 58.0,
+      "min": 8.4,
+      "max": 147.9,
+      "max_station": "Zemun Ugrinovačka",
       "unit": "µg/m³",
       "sensors_count": 31,
       "network": "reference"
     },
     "no2": {
-      "mean": 58.3,
-      "median": 56.3,
-      "min": 17.2,
-      "max": 102.5,
-      "max_station": "Pančevo Cara Dušana",
+      "mean": 76.4,
+      "median": 77.5,
+      "min": 31.6,
+      "max": 116.6,
+      "max_station": "Franše d’Epere",
       "unit": "µg/m³",
       "sensors_count": 32,
       "network": "reference"
     },
     "o3": {
-      "mean": 25.4,
-      "median": 25.4,
-      "min": 5.2,
-      "max": 58.8,
-      "max_station": "Novi Beograd",
+      "mean": 12.6,
+      "median": 7.9,
+      "min": 0.3,
+      "max": 51.9,
+      "max_station": "Stojčino brdo",
       "unit": "µg/m³",
       "sensors_count": 27,
       "network": "reference"
     },
     "meteo": {
-      "temperature": 15.9,
-      "humidity": 64.1,
-      "pressure": 993.6,
-      "wind_speed": 1.7,
-      "wind_direction": "80.0"
+      "temperature": 15.4,
+      "humidity": 67.0,
+      "pressure": 994.5,
+      "wind_speed": 4.2,
+      "wind_direction": "270.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 20.0,
-      "pm25_median": 11.5,
-      "pm10_mean": 32.0,
+      "pm25_mean": 13.2,
+      "pm25_median": 8.1,
+      "pm10_mean": 21.1,
       "sensors_count": 27,
       "high_humidity_flag": false,
-      "humidity_pct": 64.1,
+      "humidity_pct": 67.0,
       "note_sr": "Građanski optički senzori (5 min) prikazani su odvojeno od referentne državne mreže SEPA (1 h)."
     }
   },
   "danas_saveti": [
     {
       "aktivnost": "napolje_sa_decom",
-      "odluka": "DA",
-      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Za decu se preporučuje smanjenje napora napolju.",
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-20T16:07:24.438130Z"
+        "as_of": "2026-11-20T16:22:28.551693Z"
       }
     },
     {
       "aktivnost": "trcanje",
-      "odluka": "OPREZ",
-      "razlog_sr": "Intenzivan napor produbljuje udah — proceni simptome.",
+      "odluka": "NE",
+      "razlog_sr": "Izdržljivi napor napolju nije preporučljiv.",
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-20T16:07:24.438130Z"
+        "as_of": "2026-11-20T16:22:28.551693Z"
       }
     },
     {
       "aktivnost": "provetravanje",
-      "odluka": "DA",
-      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Kratko provetravanje — do 10 minuta.",
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-20T16:07:24.438130Z"
+        "as_of": "2026-11-20T16:22:28.551693Z"
       }
     },
     {
       "aktivnost": "bicikl",
-      "odluka": "DA",
-      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Duže vožnje povećavaju udah prašine — razmisli o kraćoj relaciji.",
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-20T16:07:24.438130Z"
+        "as_of": "2026-11-20T16:22:28.551693Z"
       }
     },
     {
       "aktivnost": "ves_na_terasi",
-      "odluka": "DA",
-      "razlog_sr": "Vazduh je čist i meteo je povoljan za sušenje.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Prašina se taloži na veš — presvuči ga ili suši u stanu.",
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "NO2+vlaga",
-        "as_of": "2026-11-20T16:07:24.438130Z"
+        "as_of": "2026-11-20T16:22:28.551693Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261120155724-2",
-    "at": "2026-11-20T15:57:24.043169Z",
+    "id": "mind-20261120162123-0",
+    "at": "2026-11-20T16:21:23.974993Z",
     "speaker": "Povezivač",
     "speaker_role": "connector",
-    "text_sr": "Skrećem pažnju sa maksimuma zagađujućih materija na Masarikovu, gde se prikazani broj slobodnih mesta promenio sa 37 na 267 između prijema. Tu promenu ne mogu da smestim u ritam petka popodne: Parking Servis ne daje vreme merenja. [F12][F1][F11]",
-    "text_en": "I turn from the pollutant maxima to Masarikova, where displayed free spaces changed from 37 to 267 between receptions [F12]. I cannot place that change within Friday's afternoon rhythm: Parking Servis provides no measurement time [F1][F11].",
+    "text_sr": "Uporedio bih Masarikovu sa ostalim parking lokacijama tražeći znake zajedničkog osvežavanja prikaza, umesto da pretpostavim odlaske vozila [F11, F12]. Nedostatak vremena merenja ostavlja tu vezu neproverenom. [F11]",
+    "text_en": "I would compare Masarikova with the other parking locations for signs of a shared display refresh, rather than assume departures [F11, F12]. Missing measurement times leave that connection untested [F11].",
     "hypotheses_sr": [
-      "Prikazana promena u Masarikovoj možda odražava odloženo osvežavanje, a ne odlaske koncentrisane između prijema [F11][F12]."
+      "Promena prikaza Masarikove možda odražava zajedničko osvežavanje izvora podataka, a ne kretanje vozila [F11, F12]."
     ],
     "questions_sr": [
-      "Da li se prikaz za Masarikovu osvežava neprekidno ili u paketima [F11][F12]?"
+      "Da li su se prikazi drugih parking lokacija promenili u istom prijemnom prozoru kao prikaz Masarikove [F11, F12]?"
     ],
     "cites": [
-      "F1",
-      "F11",
-      "F12"
+      "F11"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-20T15:57:24.043169Z",
+    "last_mind_step": "2026-11-20T16:21:23.974993Z",
     "active_sources_count": 37,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-20T16:07:24.438130Z"
+    "sensors_as_of": "2026-11-20T16:22:28.551693Z"
   }
 }
