@@ -1,86 +1,86 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-20T06:16:25.632700+00:00",
-  "as_of": "2026-11-20T06:07:24.532860Z",
+  "generated_at": "2026-11-20T06:26:25.729576+00:00",
+  "as_of": "2026-11-20T06:22:28.080258Z",
   "city_status": {
-    "aqi_us": 31,
+    "aqi_us": 42,
     "aqi_us_category": "dobar",
     "aqi_standard": "EEA EAQI 2024 (odluka i savet) · US EPA 2024 AQI (informativno)",
     "decision_basis": "eaqi",
-    "category": "prihvatljiv",
-    "category_sr": "Prihvatljiv",
-    "category_en": "Fair",
-    "dominant_pollutant": "PM2.5",
-    "summary_sr": "Vazduh u Beogradu je prihvatljiv (EEA EAQI 2/6).",
-    "summary_en": "Air quality in Belgrade is fair (EEA EAQI 2/6).",
+    "category": "umeren",
+    "category_sr": "Umeren",
+    "category_en": "Moderate",
+    "dominant_pollutant": "NO2",
+    "summary_sr": "Vazduh u Beogradu je umeren (EEA EAQI 3/6); osetljivi neka prate simptome.",
+    "summary_en": "Air quality in Belgrade is moderate (EEA EAQI 3/6); sensitive people should watch for symptoms.",
     "eaqi": {
-      "level": 2,
-      "category": "prihvatljiv",
-      "label_sr": "Prihvatljiv",
-      "label_en": "Fair",
-      "dominant_pollutant": "PM2.5",
+      "level": 3,
+      "category": "umeren",
+      "label_sr": "Umeren",
+      "label_en": "Moderate",
+      "dominant_pollutant": "NO2",
       "advice_general_sr": "Uživajte u uobičajenim aktivnostima na otvorenom.",
-      "advice_sensitive_sr": "Uživajte u uobičajenim aktivnostima na otvorenom."
+      "advice_sensitive_sr": "Razmotrite smanjenje intenzivnih aktivnosti na otvorenom ako osetite simptome."
     },
     "reference_stations_count": 31,
     "citizen_sensors_count": 27
   },
   "current_metrics": {
     "pm25": {
-      "mean": 5.5,
-      "median": 4.1,
+      "mean": 7.5,
+      "median": 6.6,
       "min": 1.7,
-      "max": 12.3,
-      "max_station": "Borča",
+      "max": 21.9,
+      "max_station": "Zemun TB",
       "unit": "µg/m³",
       "sensors_count": 31,
       "network": "reference"
     },
     "pm10": {
-      "mean": 6.7,
-      "median": 5.5,
+      "mean": 9.1,
+      "median": 8.5,
       "min": 2.2,
-      "max": 13.9,
-      "max_station": "Borča",
+      "max": 22.1,
+      "max_station": "Zemun TB",
       "unit": "µg/m³",
       "sensors_count": 31,
       "network": "reference"
     },
     "no2": {
-      "mean": 23.2,
-      "median": 19.2,
+      "mean": 35.7,
+      "median": 36.3,
       "min": 5.7,
-      "max": 64.6,
-      "max_station": "Franše d’Epere",
+      "max": 69.0,
+      "max_station": "Mostar",
       "unit": "µg/m³",
       "sensors_count": 32,
       "network": "reference"
     },
     "o3": {
-      "mean": 25.9,
-      "median": 24.1,
-      "min": 1.1,
-      "max": 54.9,
-      "max_station": "Stojčino brdo",
+      "mean": 18.6,
+      "median": 14.0,
+      "min": 3.2,
+      "max": 54.5,
+      "max_station": "Zeleno brdo",
       "unit": "µg/m³",
       "sensors_count": 27,
       "network": "reference"
     },
     "meteo": {
-      "temperature": 10.5,
-      "humidity": 81.8,
+      "temperature": 10.8,
+      "humidity": 81.0,
       "pressure": 992.6,
-      "wind_speed": 3.0,
-      "wind_direction": "160.0"
+      "wind_speed": 3.5,
+      "wind_direction": "150.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 6.4,
+      "pm25_mean": 7.3,
       "pm25_median": 2.8,
-      "pm10_mean": 9.0,
+      "pm10_mean": 10.1,
       "sensors_count": 27,
       "high_humidity_flag": true,
-      "humidity_pct": 81.8,
+      "humidity_pct": 81.0,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
@@ -88,85 +88,79 @@
     {
       "aktivnost": "napolje_sa_decom",
       "odluka": "DA",
-      "razlog_sr": "EAQI nivo 2 (prihvatljiv) — bez ograničenja.",
+      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
       "dokaz": {
         "sid": "S146",
-        "param": "PM2.5",
-        "as_of": "2026-11-20T06:07:24.532860Z"
+        "param": "NO2",
+        "as_of": "2026-11-20T06:22:28.080258Z"
       }
     },
     {
       "aktivnost": "trcanje",
-      "odluka": "DA",
-      "razlog_sr": "EAQI nivo 2 (prihvatljiv) — bez ograničenja.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Intenzivan napor produbljuje udah — proceni simptome.",
       "dokaz": {
         "sid": "S146",
-        "param": "PM2.5",
-        "as_of": "2026-11-20T06:07:24.532860Z"
+        "param": "NO2",
+        "as_of": "2026-11-20T06:22:28.080258Z"
       }
     },
     {
       "aktivnost": "provetravanje",
       "odluka": "DA",
-      "razlog_sr": "EAQI nivo 2 (prihvatljiv) — bez ograničenja.",
+      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
       "dokaz": {
         "sid": "S146",
-        "param": "PM2.5",
-        "as_of": "2026-11-20T06:07:24.532860Z"
+        "param": "NO2",
+        "as_of": "2026-11-20T06:22:28.080258Z"
       }
     },
     {
       "aktivnost": "bicikl",
       "odluka": "DA",
-      "razlog_sr": "EAQI nivo 2 (prihvatljiv) — bez ograničenja.",
+      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
       "dokaz": {
         "sid": "S146",
-        "param": "PM2.5",
-        "as_of": "2026-11-20T06:07:24.532860Z"
+        "param": "NO2",
+        "as_of": "2026-11-20T06:22:28.080258Z"
       }
     },
     {
       "aktivnost": "ves_na_terasi",
       "odluka": "OPREZ",
-      "razlog_sr": "Vlaga je 82 % — veš se teško suši napolju.",
+      "razlog_sr": "Vlaga je 81 % — veš se teško suši napolju.",
       "dokaz": {
         "sid": "S146+S01,S03,S04",
-        "param": "PM2.5+vlaga",
-        "as_of": "2026-11-20T06:07:24.532860Z"
+        "param": "NO2+vlaga",
+        "as_of": "2026-11-20T06:22:28.080258Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261120061324-0",
-    "at": "2026-11-20T06:13:24.814190Z",
-    "speaker": "Sumnjalo",
-    "speaker_role": "skeptic",
-    "text_sr": "Pomak sa 140 na 224 na Parkiralištu \"Donji grad\" nema vreme merenja, pa ga ni Connector ni Observer ne mogu staviti pored SEPA sata. Poslednji prijem sa SEPA star je već 51 min, dok su se građanski senzori javili pre 10 min. Tanjug, Danas, Studio B i Beta ćute poslednjih 6 h, a ipak svaki i dalje pokazuje 94 od 96 očekivanih termina u 24 h; na prvi pogled se te dve brojke ne slažu, i nijedna ne dokazuje ni pokvaren dovod ni mirnu noć bez vesti. [F12][F11][F2][F10][F13][F14][F15][F16]",
-    "text_en": "The swing from 140 to 224 at Parkiralište \"Donji grad\" [F12] has no measurement time [F11], so neither Connector nor Observer can place it beside the SEPA hour. SEPA's last reception is already 51 min old [F2], while the citizen sensors reported 10 min ago [F10]. Tanjug, Danas, Studio B and Beta have all been silent for the last 6 h [F13][F14][F15][F16], yet each still shows 94 of 96 expected slots in 24 h; on their face those two counts do not agree, and neither proves a broken feed or a quiet news night.",
+    "id": "mind-20261120061723-0",
+    "at": "2026-11-20T06:17:23.849929Z",
+    "speaker": "Povezivač",
+    "speaker_role": "connector",
+    "text_sr": "Promena prikaza Parking servisa je skorašnja kao prijem, ali njena starost merenja ostaje nepoznata, pa je ne mogu smestiti pored zvaničnog zapisa o vazduhu. Građanski senzori su pristigli bliže nego zvanične stanice, što čini proveru njihovih zajedničkih uslova vrednom pokušaja bez tretiranja bilo kojih kao istovremenih. [F11][F12][F2][F10]",
+    "text_en": "Parking's displayed change is recent as a reception, but its measurement age remains unknown, so I cannot place it beside the official air record [F11][F12]. Citizen sensors arrived nearer than the official stations, which makes a cross-check of their shared conditions worth attempting without treating either as simultaneous [F2][F10].",
     "hypotheses_sr": [
-      "Zajedničko ćutanje Tanjuga, Danasa, Studija B i Bete u poslednjih 6 h [F13][F14][F15][F16] možda potiče od jednog zajedničkog puta prikupljanja, a ne od odvojenih tihih redakcija, jer sva četiri pokazuju isti zbir od 94 od 96.",
-      "Građanski senzori, primljeni pre 10 min [F10], možda već sadrže očitavanja koja SEPA, poslednji put primljena pre 51 min [F2], još nije isporučila, pa svaka priča o NO2 ili česticama zasnovana samo na SEPA zaostaje za najsvežijim instrumentima."
+      "Promena na Parkiralištu \"Donji grad\" možda odražava promenljiv obrazac korišćenja, a ne stanje istovremeno sa zapisom o vazduhu [F11][F12]."
     ],
     "questions_sr": [
-      "Kako 94 od 96 očekivanih termina u 24 h [F13] može postojati uz to da ništa nije stiglo u poslednjih 6 h, ako su tih 6 h deo tih 24 h?",
-      "Da li je promena sa 140 na 224 na Parkiralištu \"Donji grad\" [F12] stvarna promena slobodnih mesta ili greška prikaza, s obzirom na to da Parking Servis ne daje vreme merenja [F11]?"
+      "Da li vrednosti građanskih senzora podržavaju isti prostorni kontrast kao zvanične stanice kada se provere njihovi vremenski žigovi [F2][F10]?"
     ],
     "cites": [
       "F10",
       "F11",
       "F12",
-      "F13",
-      "F14",
-      "F15",
-      "F16",
       "F2"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-20T06:13:24.814190Z",
+    "last_mind_step": "2026-11-20T06:17:23.849929Z",
     "active_sources_count": 37,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-20T06:07:24.532860Z"
+    "sensors_as_of": "2026-11-20T06:22:28.080258Z"
   }
 }
