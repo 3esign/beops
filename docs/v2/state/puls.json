@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-20T19:46:26.376894+00:00",
-  "as_of": "2026-11-20T19:37:25.775728Z",
+  "generated_at": "2026-11-20T19:56:26.439216+00:00",
+  "as_of": "2026-11-20T19:52:29.071794Z",
   "city_status": {
     "aqi_us": 55,
     "aqi_us_category": "umeren",
@@ -67,20 +67,20 @@
       "network": "reference"
     },
     "meteo": {
-      "temperature": 12.9,
-      "humidity": 84.9,
+      "temperature": 12.7,
+      "humidity": 85.0,
       "pressure": 996.1,
-      "wind_speed": 2.5,
-      "wind_direction": "60.0"
+      "wind_speed": 4.1,
+      "wind_direction": "150.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 12.4,
+      "pm25_mean": 17.4,
       "pm25_median": 7.8,
-      "pm10_mean": 18.0,
+      "pm10_mean": 26.9,
       "sensors_count": 27,
       "high_humidity_flag": true,
-      "humidity_pct": 84.9,
+      "humidity_pct": 85.0,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
@@ -92,7 +92,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-20T19:37:25.775728Z"
+        "as_of": "2026-11-20T19:52:29.071794Z"
       }
     },
     {
@@ -102,7 +102,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-20T19:37:25.775728Z"
+        "as_of": "2026-11-20T19:52:29.071794Z"
       }
     },
     {
@@ -112,7 +112,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-20T19:37:25.775728Z"
+        "as_of": "2026-11-20T19:52:29.071794Z"
       }
     },
     {
@@ -122,7 +122,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "NO2",
-        "as_of": "2026-11-20T19:37:25.775728Z"
+        "as_of": "2026-11-20T19:52:29.071794Z"
       }
     },
     {
@@ -132,36 +132,41 @@
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "NO2+vlaga",
-        "as_of": "2026-11-20T19:37:25.775728Z"
+        "as_of": "2026-11-20T19:52:29.071794Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261120191724-0",
-    "at": "2026-11-20T19:17:24.899959Z",
-    "speaker": "Povezivač",
-    "speaker_role": "connector",
-    "text_sr": "SEPA je sada manje sveža od Sensor.Community, a njen poslednji označeni sat završava se u 19:00 UTC, dok je procenjeno stvarno UTC vreme 18:00. Prikaz za Masarikovu promenio se sa 53 na 274, ali Parking Servis ne daje vreme merenja, pa to kretanje držim odvojeno od očitavanja vazduha. [F2][F3][F10][F11][F12]",
-    "text_en": "SEPA is now less recent than Sensor.Community, and its latest labelled hour ends at 19:00 UTC while the estimated true UTC is 18:00 [F2][F3][F10]. The Masarikova display changed from 53 to 274, but Parking Servis gives no measurement time, so I keep that movement separate from the air readings [F11][F12].",
+    "id": "mind-20261120195333-0",
+    "at": "2026-11-20T19:53:33.412412Z",
+    "speaker": "Posmatrač",
+    "speaker_role": "observer",
+    "text_sr": "Stigao je najnoviji sat SEPA, i maksimumi su svuda pali: PM10 sa 67 na 24, PM2.5 sa 32 na 22, NO2 sa 72 na 62 µg/m³. Zeleno brdo sada drži oba maksimuma čestica, dok je maksimum NO2 na Franše d’Epere. Sensor.Community je i dalje svežiji izvor, sa 21 min naspram 31 min za SEPA. [F2][F5][F9][F7][F4][F8][F6][F10]",
+    "text_en": "SEPA's newest hour has arrived [F2], and the peaks fell across the board: PM10 from 67 to 24 [F5], PM2.5 from 32 to 22 [F9], NO2 from 72 to 62 µg/m³ [F7]. Zeleno brdo now holds both particle maxima [F4][F8], while the NO2 peak sits at Franše d’Epere [F6]. Sensor.Community is still the fresher source, at 21 min [F10] against SEPA's 31 min [F2].",
     "hypotheses_sr": [
-      "Kontrast između maksimuma u Leštanima i minimuma u Zemunu TB vredi proveriti u odnosu na lokalni kontekst stanovništva, pošto se procenjeni broj stanovnika u krugu od 1 km razlikuje između tih stanica [F4][F8][F45][F46]."
+      "Zeleno brdo drži i maksimum PM10 od 24 [F4] i maksimum PM2.5 od 22 [F8], pa čestice i NO2 (maksimum na Franše d’Epere [F6]) u ovom satu možda imaju različite prostorne izvore.",
+      "Topčiderska zvezda je najniža stanica i za PM10 sa 6 [F4] i za PM2.5 sa 5 [F8], što odgovara stalno čistijem džepu, iako zapis još ne može da kaže da je to uobičajeno [F49]."
     ],
     "questions_sr": [
-      "Može li sledeći prijem SEPA da razjasni da li označeni sat 19:00 UTC odgovara trenutnom periodu posmatranja, i može li Parking Servis da obezbedi vremena merenja za vrednosti Masarikove?"
+      "Da li instrumenti Sensor.Community blizu Zelenog brda pokazuju isti vrh čestica u istom satu [F10][F4]?",
+      "Da li je pad maksimuma PM10 sa 67 na 24 [F5] bio raširen na mnoge stanice ili se desio na jednoj stanici?"
     ],
     "cites": [
       "F10",
-      "F11",
-      "F12",
       "F2",
-      "F3"
+      "F4",
+      "F5",
+      "F6",
+      "F7",
+      "F8",
+      "F9"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-20T19:17:24.899959Z",
+    "last_mind_step": "2026-11-20T19:53:33.412412Z",
     "active_sources_count": 37,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-20T19:37:25.775728Z"
+    "sensors_as_of": "2026-11-20T19:52:29.071794Z"
   }
 }
