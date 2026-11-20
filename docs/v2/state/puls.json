@@ -1,175 +1,172 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-20T18:16:26.287560+00:00",
-  "as_of": "2026-11-20T18:07:25.546546Z",
+  "generated_at": "2026-11-20T18:26:26.376089+00:00",
+  "as_of": "2026-11-20T18:22:28.551055Z",
   "city_status": {
-    "aqi_us": 78,
+    "aqi_us": 63,
     "aqi_us_category": "umeren",
     "aqi_standard": "EEA EAQI 2024 (odluka i savet) · US EPA 2024 AQI (informativno)",
     "decision_basis": "eaqi",
-    "category": "los",
-    "category_sr": "Loš",
-    "category_en": "Poor",
-    "dominant_pollutant": "NO2",
-    "summary_sr": "Vazduh u Beogradu je loš (EEA EAQI 4/6); deca, stariji i hronični bolesnici neka smanje napor napolju.",
-    "summary_en": "Air quality in Belgrade is poor (EEA EAQI 4/6); children, older and chronically ill people should reduce outdoor exertion.",
+    "category": "umeren",
+    "category_sr": "Umeren",
+    "category_en": "Moderate",
+    "dominant_pollutant": "PM2.5",
+    "summary_sr": "Vazduh u Beogradu je umeren (EEA EAQI 3/6); osetljivi neka prate simptome.",
+    "summary_en": "Air quality in Belgrade is moderate (EEA EAQI 3/6); sensitive people should watch for symptoms.",
     "eaqi": {
-      "level": 4,
-      "category": "los",
-      "label_sr": "Loš",
-      "label_en": "Poor",
-      "dominant_pollutant": "NO2",
-      "advice_general_sr": "Razmotrite smanjenje intenzivnih aktivnosti na otvorenom ako osetite iritaciju grla ili kašalj.",
-      "advice_sensitive_sr": "Smanjite intenzivne aktivnosti na otvorenom (deca, stariji, hronični bolesnici)."
+      "level": 3,
+      "category": "umeren",
+      "label_sr": "Umeren",
+      "label_en": "Moderate",
+      "dominant_pollutant": "PM2.5",
+      "advice_general_sr": "Uživajte u uobičajenim aktivnostima na otvorenom.",
+      "advice_sensitive_sr": "Razmotrite smanjenje intenzivnih aktivnosti na otvorenom ako osetite simptome."
     },
     "reference_stations_count": 31,
     "citizen_sensors_count": 27
   },
   "current_metrics": {
     "pm25": {
-      "mean": 23.4,
-      "median": 20.8,
-      "min": 10.3,
-      "max": 44.3,
+      "mean": 15.8,
+      "median": 14.0,
+      "min": 7.0,
+      "max": 32.3,
       "max_station": "Leštane",
       "unit": "µg/m³",
       "sensors_count": 31,
       "network": "reference"
     },
     "pm10": {
-      "mean": 36.9,
-      "median": 31.8,
-      "min": 15.5,
-      "max": 88.4,
+      "mean": 22.0,
+      "median": 17.0,
+      "min": 7.2,
+      "max": 66.8,
       "max_station": "Leštane",
       "unit": "µg/m³",
       "sensors_count": 31,
       "network": "reference"
     },
     "no2": {
-      "mean": 63.6,
-      "median": 62.4,
-      "min": 42.8,
-      "max": 87.1,
-      "max_station": "Obrenovac Centar",
+      "mean": 50.4,
+      "median": 53.5,
+      "min": 20.9,
+      "max": 79.3,
+      "max_station": "Mostar",
       "unit": "µg/m³",
       "sensors_count": 32,
       "network": "reference"
     },
     "o3": {
-      "mean": 14.6,
-      "median": 11.9,
-      "min": 2.2,
-      "max": 36.9,
-      "max_station": "Borča",
+      "mean": 22.3,
+      "median": 20.4,
+      "min": 5.2,
+      "max": 52.8,
+      "max_station": "Krnjača",
       "unit": "µg/m³",
       "sensors_count": 27,
       "network": "reference"
     },
     "meteo": {
       "temperature": 13.1,
-      "humidity": 82.2,
-      "pressure": 996.0,
-      "wind_speed": 5.1,
-      "wind_direction": "340.0"
+      "humidity": 83.2,
+      "pressure": 995.9,
+      "wind_speed": 2.8,
+      "wind_direction": "50.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 5.2,
-      "pm25_median": 4.0,
-      "pm10_mean": 9.2,
+      "pm25_mean": 7.5,
+      "pm25_median": 4.2,
+      "pm10_mean": 11.4,
       "sensors_count": 27,
       "high_humidity_flag": true,
-      "humidity_pct": 82.2,
+      "humidity_pct": 83.2,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
   "danas_saveti": [
     {
       "aktivnost": "napolje_sa_decom",
-      "odluka": "OPREZ",
-      "razlog_sr": "Za decu se preporučuje smanjenje napora napolju.",
+      "odluka": "DA",
+      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
       "dokaz": {
         "sid": "S146",
-        "param": "NO2",
-        "as_of": "2026-11-20T18:07:25.546546Z"
+        "param": "PM2.5",
+        "as_of": "2026-11-20T18:22:28.551055Z"
       }
     },
     {
       "aktivnost": "trcanje",
-      "odluka": "NE",
-      "razlog_sr": "Izdržljivi napor napolju nije preporučljiv.",
+      "odluka": "OPREZ",
+      "razlog_sr": "Intenzivan napor produbljuje udah — proceni simptome.",
       "dokaz": {
         "sid": "S146",
-        "param": "NO2",
-        "as_of": "2026-11-20T18:07:25.546546Z"
+        "param": "PM2.5",
+        "as_of": "2026-11-20T18:22:28.551055Z"
       }
     },
     {
       "aktivnost": "provetravanje",
-      "odluka": "OPREZ",
-      "razlog_sr": "Kratko provetravanje — do 10 minuta.",
+      "odluka": "DA",
+      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
       "dokaz": {
         "sid": "S146",
-        "param": "NO2",
-        "as_of": "2026-11-20T18:07:25.546546Z"
+        "param": "PM2.5",
+        "as_of": "2026-11-20T18:22:28.551055Z"
       }
     },
     {
       "aktivnost": "bicikl",
-      "odluka": "OPREZ",
-      "razlog_sr": "Duže vožnje povećavaju udah prašine — razmisli o kraćoj relaciji.",
+      "odluka": "DA",
+      "razlog_sr": "EAQI nivo 3 (umeren) — bez ograničenja.",
       "dokaz": {
         "sid": "S146",
-        "param": "NO2",
-        "as_of": "2026-11-20T18:07:25.546546Z"
+        "param": "PM2.5",
+        "as_of": "2026-11-20T18:22:28.551055Z"
       }
     },
     {
       "aktivnost": "ves_na_terasi",
       "odluka": "OPREZ",
-      "razlog_sr": "Prašina se taloži na veš — presvuči ga ili suši u stanu.",
+      "razlog_sr": "Vlaga je 83 % — veš se teško suši napolju.",
       "dokaz": {
         "sid": "S146+S01,S03,S04",
-        "param": "NO2+vlaga",
-        "as_of": "2026-11-20T18:07:25.546546Z"
+        "param": "PM2.5+vlaga",
+        "as_of": "2026-11-20T18:22:28.551055Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261120180924-1",
-    "at": "2026-11-20T18:09:24.491760Z",
-    "speaker": "Posmatrač",
-    "speaker_role": "observer",
-    "text_sr": "Connectorova brojka za Garažu \"Masarikova\" je zastarela: prikazana slobodna mesta sada idu od 19 do 281 između prvog i poslednjeg prijema u prozoru, i dalje bez vremena merenja, pošto je Parking Servis poslednji put stigao pre 11 min sa 27 lokacija. SEPA ćuti već 46 min, dok je Sensor.Community stigao pre 6 min sa 46 instrumenata, pa je zvanična slika ona starija. Skepticovi ekstremi mogu se odmeriti po tome ko živi pored njih: minimumi PM10 i PM2.5 su na Bežanijskoj kosi, sa oko 32 hiljade ljudi u krugu od 1 km, a maksimumi u Leštanima, sa oko 5 hiljada, mada još ništa ne govori šta je tamo uobičajeno. [F12][F11][F2][F10][F4][F8][F45][F46][F49]",
-    "text_en": "Connector's figure for Garaža \"Masarikova\" is stale: the displayed free spaces now run from 19 to 281 between the first and last reception in the window [F12], still with no measurement time, since Parking Servis last arrived 11 min ago across 27 locations [F11]. SEPA has been quiet for 46 min [F2] while Sensor.Community arrived 6 min ago across 46 instruments [F10], so the official picture is the older one. Skeptic's extremes can be weighed by who lives beside them: the PM10 and PM2.5 minima sit at Bežanijska kosa, with about 32 thousand people within 1 km [F4][F8][F45], and the maxima at Leštane, with about 5 thousand [F46], though nothing yet says what is usual there [F49].",
+    "id": "mind-20261120181724-1",
+    "at": "2026-11-20T18:17:24.354607Z",
+    "speaker": "Sumnjalo",
+    "speaker_role": "skeptic",
+    "text_sr": "Observerovo očitavanje Garaže „Masarikova” i dalje nema vreme merenja: prikazana slobodna mesta idu od 27 do 281 kroz prozor, dok je Parking Servis poslednji put stigao pre 19 min na 27 lokacija, pa je taj pomak razlika između prijema, a ne starost podatka. Connectorova procena o SEPA-i je zastarela: SEPA je sada bez prijema 54 min, dok je poslednji prijem Sensor.Community stigao pre 14 min sa 46 instrumenata, što je sveži feed, ali ne i proverena slika. Novi naslovi, Danas sa 75 vesti, Studio B sa 5 i Beta sa 32, imaju neproveren geografski obuhvat, pa ostaju van očitavanja vazduha i parkinga. [F12][F11][F2][F10][F14][F15][F16]",
+    "text_en": "Observer's reading of Garaža “Masarikova” still carries no measurement time: the displayed free spaces run from 27 to 281 across the window [F12], while Parking Servis last arrived 19 min ago across 27 locations [F11], so that move is a gap between receptions, not an age. Connector's SEPA recency is outdated, since SEPA has now been silent for 54 min [F2], while Sensor.Community's last arrival is 14 min old across 46 instruments [F10], a fresh feed but not a verified picture. The new headline feeds, Danas with 75 headlines [F14], Studio B with 5 [F15] and Beta with 32 [F16], have unconfirmed geographic scope, so they stay outside both the air and the parking readings.",
     "hypotheses_sr": [
-      "Ekstremi PM10 i PM2.5 dele isti par stanica, Bežanijska kosa najniža i Leštane najviša [F4][F8], dok NO2 ima drugačiji par, Stari grad najniži i Obrenovac Centar najviši [F6]; čestice i NO2 možda prate različite prostorne obrasce u mreži u ovom satu.",
-      "Stanica sa najvišim PM10 i PM2.5 ima oko 5 hiljada ljudi u krugu od 1 km, dok stanica sa najnižim ima oko 32 hiljade [F45][F46]; u ovom satu maksimum čestica je možda na ređe naseljenom obodu mreže, a ne u njenom gustom delu.",
-      "Promena sa 19 na 281 prikazanih slobodnih mesta u Garaži \"Masarikova\" [F12] možda odražava pražnjenje garaže tokom prozora u petak uveče [F1], ali bez vremena merenja redosled i starost tih vrednosti ostaju nepoznati [F11]."
+      "Skok Garaže „Masarikova” sa 27 na 281 [F12] može odražavati promenu u načinu na koji senzor izveštava, a ne stvarnu promenu slobodnih mesta, jer se vreme merenja ne objavljuje [F11].",
+      "Najviša SEPA vrednost PM10 od 88 na Leštanu [F4] i PM2.5 od 44 na istoj lokaciji [F8] pripadaju satu koji već stoji 54 min bez novog prijema [F2], pa se ne moraju poklapati sa najnovijim prijemom Sensor.Community [F10].",
+      "Observerova težina po stanovnicima oko Bežanijske kose, oko 32 hiljade [F45], je modelovana kontekstualna brojka, a ne izloženost, i ne može reći da li su minimumi 15 [F4] ili 10 [F8] niski za to mesto, jer zapis ima 0 dana [F49]."
     ],
     "questions_sr": [
-      "Da li instrumenti Sensor.Community u blizini Leštana i Bežanijske kose pokazuju isti redosled vrednosti čestica kao poslednji označeni sat SEPA [F10][F4]?",
-      "Koja stanica je držala maksimum PM2.5 od 94 u prethodnom satu, pre nego što je prešao na 44 u Leštanima [F9][F8]?",
-      "Da li su se ostalih 27 lokacija Parking Servisa kretale u istom smeru kao Garaža \"Masarikova\" tokom prozora [F11][F12]?"
+      "Da li Parking Servis objavljuje vreme merenja za Garažu „Masarikova” [F11][F12], ili se raspon od 27 do 281 može ograničiti pre nego što se čita kao trend?",
+      "Da li će SEPA-in prekid od 54 min [F2] biti prekinut sledećim prijemom, i da li Sensor.Community zadržava svoj prijem pre 14 min [F10] u istom ritmu?"
     ],
     "cites": [
       "F10",
       "F11",
       "F12",
-      "F2",
-      "F4",
-      "F45",
-      "F46",
-      "F49",
-      "F8"
+      "F14",
+      "F15",
+      "F16",
+      "F2"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-20T18:09:24.491760Z",
+    "last_mind_step": "2026-11-20T18:17:24.354607Z",
     "active_sources_count": 37,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-20T18:07:25.546546Z"
+    "sensors_as_of": "2026-11-20T18:22:28.551055Z"
   }
 }
