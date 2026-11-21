@@ -19,42 +19,42 @@
 
   const TXT = {
     sr: {
-      title: 'Pretraga po ulici ili naselju (D-005)',
-      sub: 'Registar naselja (OSM ODbL / Wikidata CC0) i komunalne najave sa rokom važenja merenim tvojim satom.',
-      ph: 'Ulica ili naselje (latinica/ćirilica, npr. Mirijevo, Cvijićeva, Ripanj)…',
+      title: 'Ulica ili naselje (D-005)',
+      sub: 'Registar naselja (OSM ODbL / Wikidata CC0) i komunalne najave sa rokom važenja po tvom satu.',
+      ph: 'Ulica ili naselje (npr. Mirijevo, Cvijićeva, Ripanj)…',
       lbl: 'Pretraga ulice ili naselja', clear: 'Očisti', naselje: 'naselje', ulica: 'ulica',
       act: 'U TOKU', up: 'NAJAVLJENO', exp: 'ISTEKLO',
       vJos: 'važi još', pZa: 'počinje za', iPre: 'isteklo pre',
-      geoOk: 'D-005', geoNo: 'bez koordinata (dvosmisleno ili van registra)',
-      staVazi: 'Šta važi kod mene', struja: 'Struja (EPS)', voda: 'Voda (BVK)', grejanje: 'Grejanje',
-      vazduh: 'Najbliža ref. stanica vazduha',
-      nemaM: 'Nema aktivnih ni najavljenih isključenja struje za ovo mesto.',
-      nemaA: 'Nema aktivnih ni najavljenih obustava za izabranu opštinu.',
-      ostale: 'Ostale aktivne/najavljene ulice u opštini',
-      pExp: 'Prikaži istekle najave (24 h)', sExp: 'Sakrij istekle',
-      najNas: 'Najave po ulici sa rokom važenja', van: 'Van Beograda po sadržaju',
-      zadnji: 'poslednji zapis', nemaP: 'Nema aktivnih u prozoru',
-      bezR: 'Nema poklapanja u D-005 registru ni aktivnim najavama.',
-      dl: 'kraj — naselja i najave (.json)',
+      geoOk: 'D-005', geoNo: 'bez koordinata',
+      staVazi: 'Šta važi', struja: 'Struja (EPS)', voda: 'Voda (BVK)', grejanje: 'Grejanje',
+      vazduh: 'Najbliža ref. stanica',
+      nemaM: 'Nema aktivnih ni najavljenih isključenja za ovo mesto.',
+      nemaA: 'Nema aktivnih ni najavljenih obustava za opštinu.',
+      ostale: 'Ostale ulice u opštini',
+      pExp: 'Istekle najave (24 h)', sExp: 'Sakrij istekle',
+      najNas: 'Najave po ulici sa rokom važenja', van: 'Van Beograda',
+      zadnji: 'poslednji', nemaP: 'Nema u prozoru',
+      bezR: 'Nema poklapanja.',
+      dl: 'kraj (.json)',
     },
     en: {
-      title: 'Search by street or neighborhood (D-005)',
+      title: 'Street or neighborhood (D-005)',
       sub: 'Settlement register (OSM ODbL / Wikidata CC0) and utility notices checked against your clock.',
-      ph: 'Street or neighborhood (Latin/Cyrillic, e.g. Mirijevo, Cvijićeva, Ripanj)…',
+      ph: 'Street or neighborhood (e.g. Mirijevo, Cvijićeva, Ripanj)…',
       lbl: 'Search street or neighborhood', clear: 'Clear', naselje: 'neighborhood', ulica: 'street',
       act: 'ACTIVE', up: 'UPCOMING', exp: 'EXPIRED',
       vJos: 'ends in', pZa: 'starts in', iPre: 'ended ago',
-      geoOk: 'D-005', geoNo: 'no coordinates (ambiguous or outside register)',
-      staVazi: 'What applies here', struja: 'Power (EPS)', voda: 'Water (BVK)', grejanje: 'Heating',
-      vazduh: 'Nearest ref. air station',
-      nemaM: 'No active or upcoming power outages for this place.',
-      nemaA: 'No active or upcoming notices for the selected municipality.',
-      ostale: 'Other active/upcoming streets in municipality',
-      pExp: 'Show expired notices (24 h)', sExp: 'Hide expired',
-      najNas: 'Street-level notices with validity', van: 'Outside Belgrade by content',
-      zadnji: 'last record', nemaP: 'None active in window',
-      bezR: 'No matches in D-005 register or active notices.',
-      dl: 'neighborhoods & notices (.json)',
+      geoOk: 'D-005', geoNo: 'no coordinates',
+      staVazi: 'What applies', struja: 'Power (EPS)', voda: 'Water (BVK)', grejanje: 'Heating',
+      vazduh: 'Nearest ref. station',
+      nemaM: 'No active or upcoming outages for this place.',
+      nemaA: 'No active or upcoming notices for this municipality.',
+      ostale: 'Other streets in municipality',
+      pExp: 'Expired notices (24 h)', sExp: 'Hide expired',
+      najNas: 'Street notices with validity', van: 'Outside Belgrade',
+      zadnji: 'last', nemaP: 'None in window',
+      bezR: 'No matches.',
+      dl: 'kraj (.json)',
     },
   };
   const L = () => TXT[typeof LANG === 'string' && LANG === 'en' ? 'en' : 'sr'];
@@ -65,21 +65,20 @@
     const s = document.createElement('style');
     s.setAttribute('data-beops', 'ulice');
     s.textContent =
-      '#ulice-block{margin:16px 0 18px;padding:14px 16px;border:1px solid var(--line,#e2e6e4);border-radius:10px;background:var(--paper,#fff)}' +
-      '#ulice-block h3{margin:0 0 4px;font-size:1.05rem}.ul-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}' +
-      '.ul-in{flex:1;min-width:220px;max-width:480px;padding:8px 11px;border:1px solid var(--line,#e2e6e4);border-radius:8px;background:var(--bg,#f6f7f6);color:inherit;font:inherit}' +
-      '.ul-in:focus-visible,.ul-hit:focus-visible{outline:2px solid var(--blue,#1d6fa5);outline-offset:1px}' +
-      '.ul-btn{padding:6px 10px;border:1px solid var(--line,#e2e6e4);border-radius:8px;background:var(--bg,#f6f7f6);color:inherit;font:inherit;font-size:.82rem;cursor:pointer}' +
-      '.ul-hits{display:flex;flex-direction:column;gap:4px;margin:6px 0 10px;max-width:560px}' +
-      '.ul-hit{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line,#e2e6e4);border-radius:8px;background:var(--paper,#fff);color:inherit;font:inherit;font-size:.86rem;text-align:left;cursor:pointer}' +
-      '.ul-card{margin:10px 0;padding:12px 14px;border:1px solid var(--line,#e2e6e4);border-radius:8px;background:var(--bg,#f6f7f6)}' +
-      '.ul-card h4{margin:0 0 6px;font-size:.96rem}.ul-kv{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}' +
-      '.ul-pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.75rem;font-weight:700;border:1px solid var(--line,#e2e6e4)}' +
-      '.ul-pill.act{background:#fee2e2;color:#991b1b;border-color:#fca5a5}.ul-pill.up{background:#fef3c7;color:#92400e;border-color:#fcd34d}.ul-pill.exp{background:var(--bg,#f6f7f6);color:var(--ink-2,#555)}' +
-      '.ul-n{padding:8px 10px;margin:6px 0;border-left:3px solid var(--blue,#1d6fa5);background:var(--paper,#fff);border-radius:4px;font-size:.86rem}' +
+      '#ulice-block{margin:14px 0;padding:12px 14px;border:1px solid var(--line,#e2e6e4);border-radius:10px;background:var(--paper,#fff)}' +
+      '#ulice-block h3{margin:0 0 4px;font-size:1.05rem}.ul-row,.ul-kv{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}' +
+      '.ul-in{flex:1;min-width:200px;max-width:460px;padding:7px 9px;border:1px solid var(--line,#e2e6e4);border-radius:8px;background:var(--bg,#f6f7f6);color:inherit;font:inherit}' +
+      '.ul-in:focus-visible,.ul-hit:focus-visible{outline:2px solid var(--blue,#1d6fa5)}' +
+      '.ul-btn,.ul-hit{padding:5px 9px;border:1px solid var(--line,#e2e6e4);border-radius:8px;color:inherit;font:inherit;cursor:pointer}' +
+      '.ul-btn{background:var(--bg,#f6f7f6);font-size:.82rem}.ul-hits{display:flex;flex-direction:column;gap:4px;margin:6px 0;max-width:560px}' +
+      '.ul-hit{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--paper,#fff);font-size:.86rem;text-align:left}' +
+      '.ul-card{margin:8px 0;padding:10px 12px;border:1px solid var(--line,#e2e6e4);border-radius:8px;background:var(--bg,#f6f7f6)}' +
+      '.ul-card h4{margin:0 0 6px;font-size:.96rem}.ul-pill{display:inline-block;padding:2px 7px;border-radius:999px;font-size:.75rem;font-weight:700;border:1px solid var(--line,#e2e6e4)}' +
+      '.ul-pill.act{background:#fee2e2;color:#991b1b}.ul-pill.up{background:#fef3c7;color:#92400e}.ul-pill.exp{background:var(--bg,#f6f7f6);color:var(--ink-2,#555)}' +
+      '.ul-n{padding:7px 9px;margin:5px 0;border-left:3px solid var(--blue,#1d6fa5);background:var(--paper,#fff);border-radius:4px;font-size:.86rem}' +
       '.ul-n.act{border-left-color:#dc2626}.ul-n.up{border-left-color:#d97706}.ul-n.exp{border-left-color:var(--line,#cbd5e1);opacity:.78}' +
-      '.ul-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin:8px 0}' +
-      '.ul-mini{padding:8px 10px;border:1px solid var(--line,#e2e6e4);border-radius:8px;background:var(--paper,#fff);font-size:.84rem}';
+      '.ul-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin:6px 0}' +
+      '.ul-mini{padding:7px 9px;border:1px solid var(--line,#e2e6e4);border-radius:8px;background:var(--paper,#fff);font-size:.84rem}';
     document.head.appendChild(s);
   }
 
@@ -234,11 +233,18 @@
     wrap.appendChild(hits);
 
     const idx = buildIndex();
+    const rank = (it, qf) => {
+      const fn = fold(it.n);
+      if (fn === qf) return 0;
+      if (fn.startsWith(qf)) return 1;
+      return it.fk.includes(qf) ? 2 : 9;
+    };
     const fill = q => {
       hits.textContent = '';
       const qf = fold(q);
       if (qf.length < 2) return;
-      const ms = idx.filter(it => it.fk.includes(qf)).slice(0, 10);
+      const ms = idx.map(it => [rank(it, qf), it]).filter(x => x[0] < 9)
+        .sort((a, b) => a[0] - b[0] || (b[1].badge ? 1 : 0) - (a[1].badge ? 1 : 0)).slice(0, 10).map(x => x[1]);
       if (!ms.length) { hits.appendChild(el('p', 'meta', L().bezR)); return; }
       for (const it of ms) {
         const b = el('button', 'ul-hit');
