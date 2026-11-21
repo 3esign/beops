@@ -91,7 +91,7 @@ function b4Bounds(id, pts, y0, y1) {
 function drawB4(svg, id, pts, sx, sy) {
   const s = STATE.serije[id] || {};
   let iqrBand = '', run = [];
-  const lo = p => Math.max(id === 'pm25' || id === 'pm10' ? 0 : -Infinity, Math.min(p.p25 ?? p.mean, p.mean - (p.u || 0)));
+  const lo = p => Math.max(id !== 'temperature' && id !== 'humidity' ? 0 : -Infinity, Math.min(p.p25 ?? p.mean, p.mean - (p.u || 0)));
   const hi = p => Math.max(p.p75 ?? p.mean, p.mean + (p.u || 0));
   const flush = () => {
     if (run.length > 1) iqrBand += run.map((p, i) => (i ? 'L' : 'M') + sx(p.x).toFixed(1) + ' ' + sy(hi(p)).toFixed(1)).join(' ') +
@@ -116,7 +116,8 @@ function drawB4(svg, id, pts, sx, sy) {
   }
 }
 function ttB4(id, p) {
-  const unit = id === 'temperature' ? '°C' : id === 'humidity' ? '%' : 'µg/m³';
+  const s = STATE.serije[id];
+  const unit = (s && s.unit) || (id === 'temperature' ? '°C' : id === 'humidity' ? '%' : 'µg/m³');
   const head = fmtNum(p.mean) + (p.u ? ' ± ' + fmtNum(p.u) : '') + ' ' + unit;
   const parts = [absTime(new Date(p.x).toISOString())];
   if (p.p25 !== undefined && p.p75 !== undefined) parts.push('p25–p75 ' + fmtNum(p.p25) + '–' + fmtNum(p.p75));
@@ -260,9 +261,9 @@ function heroPulsGrid() {
   addMetric('PM2.5 · referentna mreža', cm.pm25 && cm.pm25.mean, 'µg/m³', stSub(cm.pm25), deltaEl(d24.pm25_delta, false, 'µg/m³'), 'pm25');
   addMetric('PM10 · referentna mreža', cm.pm10 && cm.pm10.mean, 'µg/m³', stSub(cm.pm10), deltaEl(d24.pm10_delta, false, 'µg/m³'), 'pm10');
   addMetric('NO₂ · azot-dioksid', cm.no2 && cm.no2.mean, 'µg/m³', stSub(cm.no2),
-    cm.no2 ? el('span', 'delta', T().raspon + ' ' + fmtNum(cm.no2.min, 1) + '–' + fmtNum(cm.no2.max, 1) + ' µg/m³') : null, null);
+    cm.no2 ? el('span', 'delta', T().raspon + ' ' + fmtNum(cm.no2.min, 1) + '–' + fmtNum(cm.no2.max, 1) + ' µg/m³') : null, 'no2');
   addMetric('O₃ · prizemni ozon', cm.o3 && cm.o3.mean, 'µg/m³', stSub(cm.o3),
-    cm.o3 ? el('span', 'delta', T().raspon + ' ' + fmtNum(cm.o3.min, 1) + '–' + fmtNum(cm.o3.max, 1) + ' µg/m³') : null, null);
+    cm.o3 ? el('span', 'delta', T().raspon + ' ' + fmtNum(cm.o3.min, 1) + '–' + fmtNum(cm.o3.max, 1) + ' µg/m³') : null, 'o3');
   addMetric(LANG === 'sr' ? 'Temperatura' : 'Temperature', met.temperature, '°C',
     (met.wind_speed != null ? (LANG === 'sr' ? 'vetar ' : 'wind ') + fmtNum(met.wind_speed, 1) + ' m/s' : '') +
     (met.pressure != null ? ' · ' + fmtNum(met.pressure, 0) + ' hPa' : ''),
