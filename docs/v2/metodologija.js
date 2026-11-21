@@ -54,7 +54,7 @@ function viewMeto(body) {
     tb.appendChild(tr);
   }
   tbl.appendChild(tb);
-  body.appendChild(tbl);
+  const tw = el('div', 'table-wrap'); tw.appendChild(tbl); body.appendChild(tw);
   if ((d.bez_saglasnosti || []).length)
     body.appendChild(el('p', 'razlog', T().metoBezSaglasnosti + ': ' + d.bez_saglasnosti.join(', ')));
   body.appendChild(dlRow([

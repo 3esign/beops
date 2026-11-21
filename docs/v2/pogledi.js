@@ -73,7 +73,7 @@ function renderO(root) {
     sekcija(T().belaPoNaravi, bel.po_naravi);
     sekcija(T().belaPoNivou, bel.po_nivou);
     bt.appendChild(tb);
-    body.appendChild(bt);
+    const tw = el('div', 'table-wrap'); tw.appendChild(bt); body.appendChild(tw);
     let mt = bel.prihvacenih_glasova + ' ' + T().belaGlasova + ' ' + T().belaNad + ' ' + bel.ocenjenih_misli + ' ' + T().belaMisli;
     if (bel.glasova_na_nepoznatoj_misli) mt += ' · ' + bel.glasova_na_nepoznatoj_misli + ' ' + T().belaNepoznate;
     body.appendChild(el('p', 'meta', mt));

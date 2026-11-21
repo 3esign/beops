@@ -226,7 +226,7 @@ function thoughtCard(t) {
   head.appendChild(mindChip(t));
   head.appendChild(el('span', null, T().filterNivo + ': ' + (t.level || '—')));
   const sp = el('span'); sp.style.marginLeft = 'auto'; head.appendChild(sp);
-  head.appendChild(stampEl(t.at, 4));
+  head.appendChild(stampEl(t.at, 12));
   const tim = el('span', 'time', absTime(t.at));
   head.appendChild(tim);
   card.appendChild(head);
@@ -286,7 +286,7 @@ function esejCard(t) {
   const pz = t.pouzdanost && (t.pouzdanost.match(/^(nisko|srednje|visoko)/i) || [])[0];
   if (pz && !t.urednicka_napomena) { const b = el('span', 'pouzd ' + pz.toLowerCase(), pz.toLowerCase()); b.title = t.pouzdanost; head.appendChild(b); }
   const sp = el('span'); sp.style.marginLeft = 'auto'; head.appendChild(sp);
-  head.appendChild(stampEl(t.at, 4));
+  head.appendChild(stampEl(t.at, 12));
   art.appendChild(head);
   if (t.naslov) art.appendChild(el('h3', 'esej-naslov', t.naslov));
   if (t.urednicka_napomena) art.appendChild(el('p', 'reading-note', t.urednicka_napomena));
@@ -368,12 +368,12 @@ function renderDanas(root) {
     LANG === 'sr' ? 'Danas · ' + d.toLocaleDateString('sr-RS') : 'Today · ' + d.toLocaleDateString('en-GB'),
     T().danasTitle, T().danasSub));
 
-  /* P3 — tišina grada: puls (kadenca 5 min) i um (4 min) */
+  /* P3 — tišina grada: puls (kadenca 5 min) i um (12 min) */
   if (STATE.puls && tier(STATE.puls.as_of, 5) === 'silent') {
     root.appendChild(banner(T().gradCuti + ' —', T().gradCutiText, null, STATE.puls.as_of, false));
   }
   const newest = newestThoughtAt();
-  if (newest && tier(newest, 4) === 'silent') {
+  if (newest && tier(newest, 12) === 'silent') {
     root.appendChild(banner(T().umCuti + ' —', T().umCutiText, null, newest, false));
   }
 
@@ -517,7 +517,7 @@ function viewMisli(root) {
   root.appendChild(sectionHead(null, T().misliTitle, T().misliSub));
 
   const newest = newestThoughtAt();
-  if (newest && tier(newest, 4) === 'silent') {
+  if (newest && tier(newest, 12) === 'silent') {
     root.appendChild(banner(T().umCuti + ' —', T().umCutiText, null, newest, false));
   }
 
@@ -786,7 +786,8 @@ function mkTable(head, rows, cls) {
     });
     b.appendChild(tr);
   });
-  t.appendChild(b); return t;
+  t.appendChild(b);
+  const w = el('div', 'table-wrap'); w.appendChild(t); return w;   /* široka tabela klizi u svom okviru, ne širi stranu */
 }
 function renderKolokacija(root) {
   const old = document.getElementById('kolo-block');
@@ -810,7 +811,7 @@ function renderKolokacija(root) {
       (pp.pairs || []).slice(0, 6).map(p => [p.sc.location_id + ' (' + (p.sc.sensor_type || '?') + ') ↔ ' + (p.sepa.name || p.sepa.station_id), fmtNum(p.sepa.distance_km, 2) + ' km', String(p.stats.n), p.stats.mean_bias === null ? '—' : fmtNum(p.stats.mean_bias, 2) + ' µg/m³', p.stats.r === null ? '—' : fmtNum(p.stats.r, 3)])));
     block.appendChild(sec);
   }
-  block.appendChild(el('p', 'sub', k.state_note));
+  block.appendChild(el('p', 'sub', LANG === 'en' && k.state_note_en || k.state_note));
   root.appendChild(block);
 }
 function renderVeze(root) {
