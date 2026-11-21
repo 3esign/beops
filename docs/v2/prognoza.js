@@ -256,7 +256,7 @@
       const pct = Math.min(100, Math.round(((kal.days_measured || 0) / (kal.days_required || 14)) * 100));
       const msg = mk('p', null, en
         ? `Public forecast values are withheld until 14 full days of +24h forecast error are measured against SEPA S146 stations (${kal.days_measured || 0}/${kal.days_required || 14} days; ${kal.snapshots_collected || 0} hourly snapshots stored; earliest public date: ${kal.earliest_public_date || '—'}).`
-        : `Brojevi prognoze se ne objavljuju dok ne skupimo 14 punih dana izmerene +24 h greške prema SEPA S146 stanicama (${kal.days_measured || 0}/${kal.kalibracija_dana || kal.days_required || 14} dana; sačuvano ${kal.snapshots_collected || 0} satnih snimaka; najraniji javni prikaz: ${kal.earliest_public_date || '—'}).`);
+        : `Brojevi prognoze se ne objavljuju dok ne skupimo 14 punih dana izmerene +24 h greške prema SEPA S146 stanicama (${kal.days_measured || 0}/${kal.days_required || 14} dana; sačuvano ${kal.snapshots_collected || 0} satnih snimaka; najraniji javni prikaz: ${kal.earliest_public_date || '—'}).`);
       msg.style.margin = '0.45rem 0 0.6rem';
       msg.style.fontSize = '0.88rem';
       sec.appendChild(msg);
