@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-22T03:16:25.889202+00:00",
-  "as_of": "2026-11-22T03:02:25.954926Z",
+  "generated_at": "2026-11-22T03:26:25.819887+00:00",
+  "as_of": "2026-11-22T03:17:24.768156Z",
   "city_status": {
     "aqi_us": 75,
     "aqi_us_category": "umeren",
@@ -68,19 +68,19 @@
     },
     "meteo": {
       "temperature": 6.5,
-      "humidity": 68.5,
+      "humidity": 68.9,
       "pressure": 1004.2,
-      "wind_speed": 3.6,
-      "wind_direction": "110.0"
+      "wind_speed": 3.1,
+      "wind_direction": "60.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 8.2,
-      "pm25_median": 5.3,
-      "pm10_mean": 11.1,
+      "pm25_mean": 7.1,
+      "pm25_median": 4.5,
+      "pm10_mean": 9.7,
       "sensors_count": 27,
       "high_humidity_flag": false,
-      "humidity_pct": 68.5,
+      "humidity_pct": 68.9,
       "note_sr": "Građanski optički senzori (5 min) prikazani su odvojeno od referentne državne mreže SEPA (1 h)."
     }
   },
@@ -92,7 +92,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-22T03:02:25.954926Z"
+        "as_of": "2026-11-22T03:17:24.768156Z"
       }
     },
     {
@@ -102,7 +102,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-22T03:02:25.954926Z"
+        "as_of": "2026-11-22T03:17:24.768156Z"
       }
     },
     {
@@ -112,7 +112,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-22T03:02:25.954926Z"
+        "as_of": "2026-11-22T03:17:24.768156Z"
       }
     },
     {
@@ -122,7 +122,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-22T03:02:25.954926Z"
+        "as_of": "2026-11-22T03:17:24.768156Z"
       }
     },
     {
@@ -132,26 +132,31 @@
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "PM2.5+vlaga",
-        "as_of": "2026-11-22T03:02:25.954926Z"
+        "as_of": "2026-11-22T03:17:24.768156Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261122024524-0",
-    "at": "2026-11-22T02:45:24.166403Z",
-    "speaker": "Povezivač",
-    "speaker_role": "connector",
-    "text_sr": "Nalazim zajednički minimum ispod promenljivih maksimuma čestica: Mirijevo ima najniža očitavanja PM10 i PM2.5 u ovom satu. Povezujem opadanje maksimuma čestica sa opadanjem maksimuma NO2 kao obrazac koji vredi proveriti na pojedinačnim stanicama, a ne još kao dokaz opadanja širom grada. [F4][F8][F5][F7][F9]",
-    "text_en": "I find a shared low point beneath the changing particle peaks: Mirijevo has the lowest PM10 and PM2.5 readings in this hour [F4][F8]. I connect the declining particle maxima with the declining NO2 maximum as a pattern worth checking at individual stations, not yet evidence of a citywide decline [F5][F7][F9].",
+    "id": "mind-20261122032124-0",
+    "at": "2026-11-22T03:21:24.221742Z",
+    "speaker": "Posmatrač",
+    "speaker_role": "observer",
+    "text_sr": "SEPA-in poslednji sat stavlja maksimume na tri različite stanice: PM10 u Borči sa 49, PM2.5 u Krnjači sa 42 i NO2 na Franše d'Eperea sa 53. Ovo nadjačava Skeptikovu stanicu Zemun TB. Sva tri mrežna maksimuma su popustila u odnosu na prethodni sat (54 na 49, 55 na 53, 45 na 42), ali to je promena jednog maksimuma po zagađivaču, a ne trend, i zapis ima 0 dana istorije da kaže šta je uobičajeno. Slažem se sa Konektorom da je Mirijevo zajednička najniža tačka za PM10 i PM2.5. [F4][F8][F6][F5][F7][F9][F49]",
+    "text_en": "SEPA's latest hour puts the maxima at three different stations: PM10 at Borča with 49 [F4], PM2.5 at Krnjača with 42 [F8] and NO2 at Franše d'Epere with 53 [F6]. This supersedes Skeptic's Zemun TB. All three network maxima eased from the previous hour (54 to 49, 55 to 53, 45 to 42) [F5][F7][F9], but that is a change in one maximum per pollutant, not a trend, and the record has 0 days of history to say what is usual [F49]. I agree with Connector that Mirijevo is the shared low point for PM10 and PM2.5 [F4][F8].",
     "hypotheses_sr": [
-      "Opadanje mrežnih maksimuma možda prikriva suprotne promene na pojedinačnim stanicama [F5][F7][F9]."
+      "Maksimumi se javljaju na različitim stanicama za svaki zagađivač, što sugeriše lokalne obrasce specifične za zagađivač u ovom satu, a ne jedan zajednički vrh [F4][F6][F8].",
+      "Stanica sa najnižim PM10, Mirijevo, ima oko 14 hiljada ljudi u blizini, a ona sa najvišim, Borča, oko 5 hiljada [F45][F46], pa sama gustina stanovništva ne objašnjava razliku.",
+      "Zeleno brdo i Franše d'Epere imaju po oko 28 hiljada ljudi u blizini [F47][F48], a ipak drže najniži NO2 od 11 i najviši od 53 [F6], pa ih razdvaja nešto drugo, a ne stanovništvo."
     ],
     "questions_sr": [
-      "Da li Mirijevo ostaje zajednički minimum čestica u sledećem označenom satu [F4][F8]?"
+      "Hoće li Borča, Krnjača i Franše d'Epere ostati stanice sa maksimumom u narednom SEPA satu?",
+      "Da li pomak između SEPA-ine označene ure i naše procene stvarnog UTC-a [F3] menja način na koji treba porediti maksimume od 02:00 i 03:00?"
     ],
     "cites": [
       "F4",
+      "F49",
       "F5",
+      "F6",
       "F7",
       "F8",
       "F9"
@@ -159,9 +164,9 @@
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-22T02:45:24.166403Z",
+    "last_mind_step": "2026-11-22T03:21:24.221742Z",
     "active_sources_count": 37,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-22T03:02:25.954926Z"
+    "sensors_as_of": "2026-11-22T03:17:24.768156Z"
   }
 }
