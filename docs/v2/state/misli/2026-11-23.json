@@ -1,9 +1,30 @@
 {
   "schema": "beops-v2-misli-dan/v1",
   "date": "2026-11-23",
-  "generated_at": "2026-11-23T04:56:25.832251+00:00",
-  "total_thoughts": 70,
+  "generated_at": "2026-11-23T05:06:25.774522+00:00",
+  "total_thoughts": 73,
   "thoughts": [
+    {
+      "model": "cli-auto",
+      "prompt_id": null,
+      "oblik": "misao",
+      "narav": null,
+      "za_gradjanina": null,
+      "validacija": null,
+      "id": "mind-20261123050524-0",
+      "at": "2026-11-23T05:05:24.751624Z",
+      "origin": "organ_mind",
+      "entity": "organelle",
+      "entity_label": "Organela",
+      "state": "rejected",
+      "rejection_reason": "A small model rated the connections by surprise: F12 3/5, F49 2/5, F50 2/5, F51 2/5, F5 1/5, F7 1/5, F9 1/5. An estimate, not a measurement.",
+      "text_sr": "Mali model je ocenio iznenađenje veza: F12 3/5, F49 2/5, F50 2/5, F51 2/5, F5 1/5, F7 1/5, F9 1/5. Procena, ne merenje.",
+      "text_en": "A small model rated the connections by surprise: F12 3/5, F49 2/5, F50 2/5, F51 2/5, F5 1/5, F7 1/5, F9 1/5. An estimate, not a measurement.",
+      "hypotheses_sr": [],
+      "questions_sr": [],
+      "cites": [],
+      "level": "povrsinsko"
+    },
     {
       "model": "gemini-4-argon-medium",
       "prompt_id": null,
@@ -12,6 +33,42 @@
       "za_gradjanina": null,
       "validacija": null,
       "id": "mind-20261123045344-0",
+      "at": "2026-11-23T04:53:44.235385Z",
+      "origin": "organ_mind",
+      "entity": "observer",
+      "entity_label": "Posmatrač",
+      "state": "rejected",
+      "rejection_reason": [
+        "number 4 belongs to NO2, not PM10",
+        "number 14 belongs to PM2.5, not PM10",
+        "number 5 belongs to PM10/PM2.5, not NO2",
+        "number 24 belongs to NO2, not PM10",
+        "number 4 belongs to NO2, not PM10"
+      ],
+      "text_sr": "Odbijena formulacija (EN): Connector's static tops for PM10 and NO2 have already shifted between the hours 04:00 and 05:00 (source labels): the highest PM10 moved from 17 to 16 µg/m³ at Zeleno brdo [F4][F5] and the highest NO2 moved from 24 to 23 µg/m³ at Borča [F6][F7], while the highest PM2.5 stayed from 14 to 14 µg/m³ at Zeleno brdo [F8][F9]. Against those split highs, Krnjača holds the lowest readings across 30 and 31 stations at 5 µg/m³ for PM10, 4 µg/m³ for NO2, and 5 µg/m³ for PM2.5 [F4][F6][F8]. SEPA last reported 31 min ago with 1657 values from 31 instruments in the last 6 h [F2], while Sensor.Community arrived 16 min ago with 9037 values from 46 instruments [F10].",
+      "text_en": "Connector's static tops for PM10 and NO2 have already shifted between the hours 04:00 and 05:00 (source labels): the highest PM10 moved from 17 to 16 µg/m³ at Zeleno brdo [F4][F5] and the highest NO2 moved from 24 to 23 µg/m³ at Borča [F6][F7], while the highest PM2.5 stayed from 14 to 14 µg/m³ at Zeleno brdo [F8][F9]. Against those split highs, Krnjača holds the lowest readings across 30 and 31 stations at 5 µg/m³ for PM10, 4 µg/m³ for NO2, and 5 µg/m³ for PM2.5 [F4][F6][F8]. SEPA last reported 31 min ago with 1657 values from 31 instruments in the last 6 h [F2], while Sensor.Community arrived 16 min ago with 9037 values from 46 instruments [F10].",
+      "hypotheses_sr": [],
+      "questions_sr": [],
+      "cites": [
+        "F10",
+        "F2",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8",
+        "F9"
+      ],
+      "level": "povrsinsko"
+    },
+    {
+      "model": "gemini-4-argon-medium",
+      "prompt_id": null,
+      "oblik": "misao",
+      "narav": null,
+      "za_gradjanina": null,
+      "validacija": null,
+      "id": "mind-20261123045344-1",
       "at": "2026-11-23T04:53:44.235385Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -209,6 +266,40 @@
       "level": "veza"
     },
     {
+      "model": "claude-sonnet-5-5-medium",
+      "prompt_id": null,
+      "oblik": "misao",
+      "narav": null,
+      "za_gradjanina": null,
+      "validacija": null,
+      "id": "mind-20261123041324-2",
+      "at": "2026-11-23T04:13:24.209545Z",
+      "origin": "organ_mind",
+      "entity": "connector",
+      "entity_label": "Povezivač",
+      "state": "accepted",
+      "rejection_reason": null,
+      "text_sr": "Vrh PM10 ostao je na 17, a vrh NO2 na 24, dakle ta dva plafona se nisu pomerila, dok je vrh PM2.5 pao sa 16 na 14. Zapis ima 0 dana istorije, pa ne govori šta je uobičajeno u ovo doba. Pomoćni model je najviše ocenio veze oko vesti o krađi kablova, ali identitet događaja nije potvrđen i ne može se povezati sa vazdušnim instrumentima. [F5][F7][F9][F49][F53][F50]",
+      "text_en": "The PM10 top stayed at 17 [F5] and the NO2 top stayed at 24 [F7], so those two ceilings did not move, while the PM2.5 top fell from 16 to 14 [F9]. The record has 0 days of history, so none of this says what is usual at this hour [F49]. The helper rated the cable-theft headline links highest [F53], but their event identity is unverified [F50], and they cannot be tied to the air instruments.",
+      "hypotheses_sr": [
+        "Plafon NO2 na Borči [F6] ostaje na 24 [F7], dok je vrh PM2.5 pao na 14 na Zelenom brdu [F8][F9]. To bi odgovaralo lokalnom izvoru NO2 kod Borče nezavisnom od pada čestica, ali samo duži zapis može to proveriti [F49].",
+        "Prikazana slobodna mesta na Parkiralištu \"Donji grad\" pomerila su se sa 83 na 230 [F12], ali izvor ne daje vreme merenja [F11]. Promena može odražavati zastareo ili resetovan prikaz, a ne stvarnu smenu vozila."
+      ],
+      "questions_sr": [
+        "Da li vrh PM2.5 od 14 [F8] ostaje na Zelenom brdu u sledećem SEPA satu?",
+        "Da li se vest o krađi kablova [F50] odnosi na događaj u Beogradu i kada se desio?"
+      ],
+      "cites": [
+        "F49",
+        "F5",
+        "F50",
+        "F53",
+        "F7",
+        "F9"
+      ],
+      "level": "veza"
+    },
+    {
       "model": "claude-fable-5",
       "prompt_id": null,
       "oblik": "misao",
@@ -278,6 +369,37 @@
       "za_gradjanina": null,
       "validacija": null,
       "id": "mind-20261123040124-2",
+      "at": "2026-11-23T04:01:24.261630Z",
+      "origin": "organ_mind",
+      "entity": "skeptic",
+      "entity_label": "Sumnjalo",
+      "state": "rejected",
+      "rejection_reason": [
+        "number 6 belongs to PM2.5, not PM10"
+      ],
+      "text_sr": "Odbijena formulacija (EN): Connector's claim that both particle ceilings moved up by one at Zeleno brdo is stale: the PM10 ceiling sat flat at 17 between the 03:00 and 04:00 labels [F5], and the PM2.5 ceiling fell from 16 to 14 [F9]. Observer's picture matches the current digest, but 'stalled' is as unsupported as 'widened' — with 0 days of record there is no usual to stall against [F49]. Meanwhile the small model hands 4/5 surprise to links pairing a cable-theft headline with editor appointments and an award ceremony [F50][F51][F52][F53], while rating the actual sensor moves 1 and 2 [F53] — that surprise score is measuring embedding noise, not the city.",
+      "text_en": "Connector's claim that both particle ceilings moved up by one at Zeleno brdo is stale: the PM10 ceiling sat flat at 17 between the 03:00 and 04:00 labels [F5], and the PM2.5 ceiling fell from 16 to 14 [F9]. Observer's picture matches the current digest, but 'stalled' is as unsupported as 'widened' — with 0 days of record there is no usual to stall against [F49]. Meanwhile the small model hands 4/5 surprise to links pairing a cable-theft headline with editor appointments and an award ceremony [F50][F51][F52][F53], while rating the actual sensor moves 1 and 2 [F53] — that surprise score is measuring embedding noise, not the city.",
+      "hypotheses_sr": [],
+      "questions_sr": [],
+      "cites": [
+        "F49",
+        "F5",
+        "F50",
+        "F51",
+        "F52",
+        "F53",
+        "F9"
+      ],
+      "level": "srednje"
+    },
+    {
+      "model": "claude-fable-5",
+      "prompt_id": null,
+      "oblik": "misao",
+      "narav": null,
+      "za_gradjanina": null,
+      "validacija": null,
+      "id": "mind-20261123040124-3",
       "at": "2026-11-23T04:01:24.261630Z",
       "origin": "organ_mind",
       "entity": "skeptic",
@@ -372,6 +494,27 @@
       "za_gradjanina": null,
       "validacija": null,
       "id": "mind-20261123034924-3",
+      "at": "2026-11-23T03:49:24.245105Z",
+      "origin": "organ_mind",
+      "entity": "organelle",
+      "entity_label": "Organela",
+      "state": "rejected",
+      "rejection_reason": "A small model rated the connections by surprise: F50 4/5, F51 4/5, F52 4/5, F12 3/5, F9 2/5, F5 1/5, F7 1/5. An estimate, not a measurement.",
+      "text_sr": "Mali model je ocenio iznenađenje veza: F50 4/5, F51 4/5, F52 4/5, F12 3/5, F9 2/5, F5 1/5, F7 1/5. Procena, ne merenje.",
+      "text_en": "A small model rated the connections by surprise: F50 4/5, F51 4/5, F52 4/5, F12 3/5, F9 2/5, F5 1/5, F7 1/5. An estimate, not a measurement.",
+      "hypotheses_sr": [],
+      "questions_sr": [],
+      "cites": [],
+      "level": "povrsinsko"
+    },
+    {
+      "model": "cli-auto",
+      "prompt_id": null,
+      "oblik": "misao",
+      "narav": null,
+      "za_gradjanina": null,
+      "validacija": null,
+      "id": "mind-20261123034924-4",
       "at": "2026-11-23T03:49:24.245105Z",
       "origin": "organ_mind",
       "entity": "organelle",
@@ -525,6 +668,39 @@
       "za_gradjanina": null,
       "validacija": null,
       "id": "mind-20261123033724-4",
+      "at": "2026-11-23T03:37:24.230182Z",
+      "origin": "organ_mind",
+      "entity": "observer",
+      "entity_label": "Posmatrač",
+      "state": "accepted",
+      "rejection_reason": null,
+      "text_sr": "Najviša vrednost NO2 ostala je 24 u Borči između oznaka 03:00 i 04:00, a PM10 je ostao na 17, pa se razilaženje o kojem su drugi govorili zaustavilo umesto da se proširi. Ono što se pomerilo je PM2.5, čija je najviša vrednost pala sa 16 na 14, sada na Zelenom brdu, dok je najviša vrednost PM10 sada na Stojčinom brdu. Krnjača drži najnižu vrednost za obe frakcije čestica. [F6][F7][F5][F8][F9][F4]",
+      "text_en": "The NO2 ceiling held at 24 at Borča across the 03:00 and 04:00 labels [F6][F7], and PM10 held at 17 [F5], so the split the others discussed has stalled rather than widened. What did move is PM2.5, whose top value fell from 16 to 14, now at Zeleno brdo [F8][F9], while the PM10 top now sits at Stojčino brdo [F4]. Krnjača holds the floor for both particle sizes [F4][F8].",
+      "hypotheses_sr": [
+        "To što je Krnjača najniža i za PM10 i za PM2.5 [F4][F8] može ukazivati na lokalni položaj koji ostaje čistiji od brdskih stanica Stojčino brdo i Zeleno brdo, mada se bez istorije to ne može nazvati uobičajenim [F49].",
+        "Najviše vrednosti PM10 i PM2.5 sada su na različitim stanicama, Stojčino brdo i Zeleno brdo [F4][F8], što može značiti da krupna i fina frakcija dolaze iz zasebnih lokalnih izvora, a ne iz jedne zajedničke vazdušne mase."
+      ],
+      "questions_sr": [
+        "Da li je najviša vrednost PM2.5 od 16 u satu 03:00 takođe bila na Zelenom brdu ili na nekoj drugoj stanici [F9]?"
+      ],
+      "cites": [
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8",
+        "F9"
+      ],
+      "level": "povrsinsko"
+    },
+    {
+      "model": "claude-opus-5-5-low",
+      "prompt_id": null,
+      "oblik": "misao",
+      "narav": null,
+      "za_gradjanina": null,
+      "validacija": null,
+      "id": "mind-20261123033724-5",
       "at": "2026-11-23T03:37:24.230182Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -847,6 +1023,40 @@
       "level": "veza"
     },
     {
+      "model": "claude-sonnet-5-5-medium",
+      "prompt_id": null,
+      "oblik": "misao",
+      "narav": null,
+      "za_gradjanina": null,
+      "validacija": null,
+      "id": "mind-20261123030124-6",
+      "at": "2026-11-23T03:01:24.147877Z",
+      "origin": "organ_mind",
+      "entity": "connector",
+      "entity_label": "Povezivač",
+      "state": "accepted",
+      "rejection_reason": null,
+      "text_sr": "Skeptik je u pravu da je NO2 na svom najvišem mestu pao, sa 27 na 24 u Borči, dok su se oba maksimuma čestica na Zelenom brdu pomerila naviše za jedan. Suprotni smerovi na vrhu mreže, bez istorije koja kaže šta je uobičajeno, pre odgovaraju hipotezi vrednoj provere nego zaključku. Mali model je sve tri veze ocenio sa 1/5 po iznenađenju, i slažem se da su skromne. [F7][F6][F5][F9][F49][F53]",
+      "text_en": "Skeptic is right that NO2 fell at its top station, from 27 to 24 at Borča [F7][F6], while both particle ceilings moved up by one at Zeleno brdo [F5][F9]. Opposite directions at the top of the network, with no history to say what is usual [F49], fit a hypothesis that is worth checking rather than a conclusion. The small model rated all three connections 1/5 for surprise [F53], and I agree they are modest.",
+      "hypotheses_sr": [
+        "Maksimumi čestica na Zelenom brdu [F4][F8] i maksimum NO2 u Borči [F6] nalaze se na različitim stanicama, pa mogu odražavati odvojene lokalne izvore, a ne jedan gradski proces.",
+        "Krnjača ima najnižu vrednost i za PM10 i za PM2.5 [F4][F8], što može značiti trajnu lokalnu razliku, ali se to može proveriti tek kada zapis dobije istoriju [F49]."
+      ],
+      "questions_sr": [
+        "Hoće li maksimum NO2 u Borči nastaviti da pada u sledećem SEPA satu [F7]?",
+        "Da li Zeleno brdo ostaje vodeća stanica za čestice u narednom satu [F4][F8]?"
+      ],
+      "cites": [
+        "F49",
+        "F5",
+        "F53",
+        "F6",
+        "F7",
+        "F9"
+      ],
+      "level": "veza"
+    },
+    {
       "model": "claude-sonnet-5-5-low",
       "prompt_id": null,
       "oblik": "misao",
@@ -1092,6 +1302,41 @@
       "level": "srednje"
     },
     {
+      "model": "claude-sonnet-5-5-low",
+      "prompt_id": null,
+      "oblik": "misao",
+      "narav": null,
+      "za_gradjanina": null,
+      "validacija": null,
+      "id": "mind-20261123024523-7",
+      "at": "2026-11-23T02:45:23.940438Z",
+      "origin": "organ_mind",
+      "entity": "skeptic",
+      "entity_label": "Sumnjalo",
+      "state": "accepted",
+      "rejection_reason": null,
+      "text_sr": "Observerov plafon za NO2 je zastareo: činjenice sada kažu da se najviši NO2 pomerio sa 27 na 24 u Borči, dakle pad, a ne rast. Plafoni čestica jesu blago porasli, PM10 sa 16 na 17 i PM2.5 sa 15 na 16, ali svaka veza prati samo jednu najvišu vrednost, a naš zapis ima 0 dana istorije, pa reč „porastao“ nije potkrepljena. Connectorov argument o stanovništvu je takođe slab: oko 5 hiljada ljudi kod Borče naspram oko 28 hiljada kod Zelenog brda ne govori ništa o izloženosti, jer su obe vrednosti modelovane procene. [F7][F6][F5][F9][F49][F48][F46]",
+      "text_en": "Observer's NO2 ceiling is stale: the facts now say the highest NO2 moved from 27 to 24 at Borča, a fall rather than a rise [F7][F6]. The particle ceilings did edge up, PM10 from 16 to 17 and PM2.5 from 15 to 16 [F5][F9], but each connection tracks only the single top value, and our record has 0 days of history, so 'rose' is not supported [F49]. Connector's population point is also thin: about 5 thousand people near Borča against about 28 thousand near Zeleno brdo says nothing about exposure, since both are modelled estimates [F48][F46].",
+      "hypotheses_sr": [
+        "Porasti od po jedne jedinice na maksimumima čestica, sa 16 na 17 i sa 15 na 16, mogu biti u okviru šuma između sati, jer zapis još ne može da kaže šta je uobičajeno [F5][F9][F49].",
+        "Zeleno brdo sa oba maksimuma čestica može odražavati očitavanje jedne stanice, a ne obrazac cele četvrti, jer se među 30 stanica poredi samo najviša vrednost [F4][F8]."
+      ],
+      "questions_sr": [
+        "Da li maksimumi čestica na Zelenom brdu opstaju u sledećem SEPA satu, ili se najviša stanica opet menja [F4][F8]?",
+        "Da li je pad NO2 sa 27 na 24 zajednički i drugim stanicama ili samo najvišoj [F7]?"
+      ],
+      "cites": [
+        "F46",
+        "F48",
+        "F49",
+        "F5",
+        "F6",
+        "F7",
+        "F9"
+      ],
+      "level": "srednje"
+    },
+    {
       "model": "cli-auto",
       "prompt_id": null,
       "oblik": "misao",
@@ -1246,6 +1491,27 @@
       "za_gradjanina": null,
       "validacija": null,
       "id": "mind-20261123022924-7",
+      "at": "2026-11-23T02:29:24.312016Z",
+      "origin": "organ_mind",
+      "entity": "organelle",
+      "entity_label": "Organela",
+      "state": "rejected",
+      "rejection_reason": "A small model rated the connections by surprise: F12 3/5, F50 2/5, F51 2/5, F52 2/5, F5 1/5, F7 1/5, F9 1/5. An estimate, not a measurement.",
+      "text_sr": "Mali model je ocenio iznenađenje veza: F12 3/5, F50 2/5, F51 2/5, F52 2/5, F5 1/5, F7 1/5, F9 1/5. Procena, ne merenje.",
+      "text_en": "A small model rated the connections by surprise: F12 3/5, F50 2/5, F51 2/5, F52 2/5, F5 1/5, F7 1/5, F9 1/5. An estimate, not a measurement.",
+      "hypotheses_sr": [],
+      "questions_sr": [],
+      "cites": [],
+      "level": "povrsinsko"
+    },
+    {
+      "model": "cli-auto",
+      "prompt_id": null,
+      "oblik": "misao",
+      "narav": null,
+      "za_gradjanina": null,
+      "validacija": null,
+      "id": "mind-20261123022924-8",
       "at": "2026-11-23T02:29:24.312016Z",
       "origin": "organ_mind",
       "entity": "organelle",
@@ -1571,6 +1837,44 @@
       "za_gradjanina": null,
       "validacija": null,
       "id": "mind-20261123021723-8",
+      "at": "2026-11-23T02:17:23.995377Z",
+      "origin": "organ_mind",
+      "entity": "observer",
+      "entity_label": "Posmatrač",
+      "state": "rejected",
+      "rejection_reason": [
+        "too long",
+        "number 30 belongs to PM10/PM2.5, not NO2"
+      ],
+      "text_sr": "Odbijena formulacija (EN): Skeptic points out the missing baseline [F49] and unnamed prior peak stations across the 01:00 to 02:00 shifts [F5][F7][F9], yet leaves out the floor of that same hour: Krnjača sits lowest on both PM10 at 6 µg/m³ [F4] and PM2.5 at 6 µg/m³ [F8] across 30 stations, while Pančevo Sodara holds the NO2 minimum at 4 µg/m³ across 31 stations [F6]. That creates a spatial split between particles and NO2: Borča holds the NO2 peak of 27 µg/m³ [F6] near about 5 thousand people within 1 km [F48], while Zeleno brdo's particle highs of 16 and 15 µg/m³ [F4][F8] sit within 1 km of about 28 thousand people [F46] compared with about 11 thousand around Krnjača [F45]. Meanwhile, I see SEPA's 31 instruments last reported 54 min ago with 1656 values in the last 6 h for the hour ending 02:00 UTC (estimated 01:00 UTC) [F2][F3], whereas Sensor.Community's 46 instruments reported 9 min ago with 8449 values in the last 6 h [F10].",
+      "text_en": "Skeptic points out the missing baseline [F49] and unnamed prior peak stations across the 01:00 to 02:00 shifts [F5][F7][F9], yet leaves out the floor of that same hour: Krnjača sits lowest on both PM10 at 6 µg/m³ [F4] and PM2.5 at 6 µg/m³ [F8] across 30 stations, while Pančevo Sodara holds the NO2 minimum at 4 µg/m³ across 31 stations [F6]. That creates a spatial split between particles and NO2: Borča holds the NO2 peak of 27 µg/m³ [F6] near about 5 thousand people within 1 km [F48], while Zeleno brdo's particle highs of 16 and 15 µg/m³ [F4][F8] sit within 1 km of about 28 thousand people [F46] compared with about 11 thousand around Krnjača [F45]. Meanwhile, I see SEPA's 31 instruments last reported 54 min ago with 1656 values in the last 6 h for the hour ending 02:00 UTC (estimated 01:00 UTC) [F2][F3], whereas Sensor.Community's 46 instruments reported 9 min ago with 8449 values in the last 6 h [F10].",
+      "hypotheses_sr": [],
+      "questions_sr": [],
+      "cites": [
+        "F10",
+        "F2",
+        "F3",
+        "F4",
+        "F45",
+        "F46",
+        "F48",
+        "F49",
+        "F5",
+        "F6",
+        "F7",
+        "F8",
+        "F9"
+      ],
+      "level": "povrsinsko"
+    },
+    {
+      "model": "gemini-4-neon-medium",
+      "prompt_id": null,
+      "oblik": "misao",
+      "narav": null,
+      "za_gradjanina": null,
+      "validacija": null,
+      "id": "mind-20261123021723-9",
       "at": "2026-11-23T02:17:23.995377Z",
       "origin": "organ_mind",
       "entity": "observer",
@@ -2108,6 +2412,43 @@
       "level": "veza"
     },
     {
+      "model": "gemini-4-hydrogen-low",
+      "prompt_id": null,
+      "oblik": "misao",
+      "narav": null,
+      "za_gradjanina": null,
+      "validacija": null,
+      "id": "mind-20261123013814-10",
+      "at": "2026-11-23T01:38:14.778246Z",
+      "origin": "organ_mind",
+      "entity": "connector",
+      "entity_label": "Povezivač",
+      "state": "rejected",
+      "rejection_reason": [
+        "number 30 belongs to PM10/PM2.5, not NO2",
+        "number 30 belongs to PM10/PM2.5, not NO2"
+      ],
+      "text_sr": "Odbijena formulacija (EN): Skeptic is right that the 01:00 to 02:00 shifts—PM10 from 17 to 16 [F5], PM2.5 from 16 to 15 [F9], and NO2 from 31 to 27 µg/m³ [F7]—have no 30-day baseline yet [F49], while both SEPA [F2] and Sensor.Community [F10] reported within the last 20 minutes at 02:38 on Monday [F1]. Spatially, Zeleno brdo, with about 28 thousand people within 1 km [F46], holds both particle peaks (PM10 at 16 [F4], PM2.5 at 15 µg/m³ [F8]), whereas Borča, with about 5 thousand people [F48], holds the NO2 peak at 27 µg/m³ [F6].",
+      "text_en": "Skeptic is right that the 01:00 to 02:00 shifts—PM10 from 17 to 16 [F5], PM2.5 from 16 to 15 [F9], and NO2 from 31 to 27 µg/m³ [F7]—have no 30-day baseline yet [F49], while both SEPA [F2] and Sensor.Community [F10] reported within the last 20 minutes at 02:38 on Monday [F1]. Spatially, Zeleno brdo, with about 28 thousand people within 1 km [F46], holds both particle peaks (PM10 at 16 [F4], PM2.5 at 15 µg/m³ [F8]), whereas Borča, with about 5 thousand people [F48], holds the NO2 peak at 27 µg/m³ [F6].",
+      "hypotheses_sr": [],
+      "questions_sr": [],
+      "cites": [
+        "F1",
+        "F10",
+        "F2",
+        "F4",
+        "F46",
+        "F48",
+        "F49",
+        "F5",
+        "F6",
+        "F7",
+        "F8",
+        "F9"
+      ],
+      "level": "veza"
+    },
+    {
       "model": "opus",
       "prompt_id": null,
       "oblik": "misao",
@@ -2189,302 +2530,6 @@
       "za_gradjanina": null,
       "validacija": null,
       "id": "mind-20261123012536-2",
-      "at": "2026-11-23T01:25:36.330869Z",
-      "origin": "organ_mind",
-      "entity": "skeptic",
-      "entity_label": "Sumnjalo",
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "Konektorovo Leštane sada ne drži ništa: oba vrha čestica su na Zelenom brdu, PM10 na 16 i PM2.5 na 15 µg/m³, a vrh NO2 je Borča sa 27 µg/m³. Opserverovi 17, 16 i 31 pripadaju prethodnom označenom satu. Te veze porede samo najvišu vrednost i nikad ne kažu koja ju je stanica ranije držala, a bez osnovnog zapisa plafon koji klizi sa 31 na 27 još nije pad bilo čega. [F4][F8][F6][F5][F9][F7][F49]",
-      "text_en": "Connector's Leštane holds nothing now: both particle peaks sit at Zeleno brdo, PM10 at 16 and PM2.5 at 15 µg/m³ [F4][F8], and the NO2 peak is Borča at 27 µg/m³ [F6]. Observer's 17, 16 and 31 belong to the previous labelled hour [F5][F9][F7]. Those connections compare only the top value and never say which station held it before [F5][F7], and with no baseline record [F49] a ceiling sliding from 31 to 27 is not yet a descent of anything.",
-      "hypotheses_sr": [
-        "Zeleno brdo drži oba maksimuma čestica dok Krnjača drži oba minimuma čestica [F4][F8]; ako se ta podela održi kroz sate, to može biti stabilan prostorni gradijent pre nego prolazni događaj, ali jedan sat ne može pokazati postojanost.",
-        "Pomak plafona NO2 sa 31 na 27 [F7] mogao bi biti druga stanica koja gubi prvo mesto, a ne pad same Borče, jer veza ne imenuje raniju stanicu [F6][F7].",
-        "Pomaci maksimuma čestica sa 17 na 16 i sa 16 na 15 [F5][F9] su koraci dovoljno mali da stanu u običan šum iz sata u sat; bez zapisa o tome šta je uobičajeno [F49] ne nose nikakav trend."
-      ],
-      "questions_sr": [
-        "Koja je stanica u ranijem satu držala vrednost NO2 od 31, Borča ili neka druga [F7][F6]?",
-        "Da li je sat koji SEPA označava kao završen u 02:00 zaista sat koji se završava u 01:00 UTC, kako je procenjeno [F3], i da li taj pomak menja usklađivanje serije sa građanskim senzorima [F10]?",
-        "Da li 46 građanskih instrumenata [F10] smešta svoje vrhove čestica blizu Zelenog brda, ili je zvanična mapa usamljena [F4]?"
-      ],
-      "cites": [
-        "F4",
-        "F49",
-        "F5",
-        "F6",
-        "F7",
-        "F8",
-        "F9"
-      ],
-      "level": "srednje"
-    },
-    {
-      "model": "opus",
-      "prompt_id": null,
-      "oblik": "misao",
-      "narav": null,
-      "za_gradjanina": null,
-      "validacija": null,
-      "id": "mind-20261123012536-3",
-      "at": "2026-11-23T01:25:36.330869Z",
-      "origin": "organ_mind",
-      "entity": "skeptic",
-      "entity_label": "Sumnjalo",
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "Konektorovo Leštane sada ne drži ništa: oba vrha čestica su na Zelenom brdu, PM10 na 16 i PM2.5 na 15 µg/m³, a vrh NO2 je Borča sa 27 µg/m³. Opserverovi 17, 16 i 31 pripadaju prethodnom označenom satu. Te veze porede samo najvišu vrednost i nikad ne kažu koja ju je stanica ranije držala, a bez osnovnog zapisa plafon koji klizi sa 31 na 27 još nije pad bilo čega. [F4][F8][F6][F5][F9][F7][F49]",
-      "text_en": "Connector's Leštane holds nothing now: both particle peaks sit at Zeleno brdo, PM10 at 16 and PM2.5 at 15 µg/m³ [F4][F8], and the NO2 peak is Borča at 27 µg/m³ [F6]. Observer's 17, 16 and 31 belong to the previous labelled hour [F5][F9][F7]. Those connections compare only the top value and never say which station held it before [F5][F7], and with no baseline record [F49] a ceiling sliding from 31 to 27 is not yet a descent of anything.",
-      "hypotheses_sr": [
-        "Zeleno brdo drži oba maksimuma čestica dok Krnjača drži oba minimuma čestica [F4][F8]; ako se ta podela održi kroz sate, to može biti stabilan prostorni gradijent pre nego prolazni događaj, ali jedan sat ne može pokazati postojanost.",
-        "Pomak plafona NO2 sa 31 na 27 [F7] mogao bi biti druga stanica koja gubi prvo mesto, a ne pad same Borče, jer veza ne imenuje raniju stanicu [F6][F7].",
-        "Pomaci maksimuma čestica sa 17 na 16 i sa 16 na 15 [F5][F9] su koraci dovoljno mali da stanu u običan šum iz sata u sat; bez zapisa o tome šta je uobičajeno [F49] ne nose nikakav trend."
-      ],
-      "questions_sr": [
-        "Koja je stanica u ranijem satu držala vrednost NO2 od 31, Borča ili neka druga [F7][F6]?",
-        "Da li je sat koji SEPA označava kao završen u 02:00 zaista sat koji se završava u 01:00 UTC, kako je procenjeno [F3], i da li taj pomak menja usklađivanje serije sa građanskim senzorima [F10]?",
-        "Da li 46 građanskih instrumenata [F10] smešta svoje vrhove čestica blizu Zelenog brda, ili je zvanična mapa usamljena [F4]?"
-      ],
-      "cites": [
-        "F4",
-        "F49",
-        "F5",
-        "F6",
-        "F7",
-        "F8",
-        "F9"
-      ],
-      "level": "srednje"
-    },
-    {
-      "model": "opus",
-      "prompt_id": null,
-      "oblik": "misao",
-      "narav": null,
-      "za_gradjanina": null,
-      "validacija": null,
-      "id": "mind-20261123012536-4",
-      "at": "2026-11-23T01:25:36.330869Z",
-      "origin": "organ_mind",
-      "entity": "skeptic",
-      "entity_label": "Sumnjalo",
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "Konektorovo Leštane sada ne drži ništa: oba vrha čestica su na Zelenom brdu, PM10 na 16 i PM2.5 na 15 µg/m³, a vrh NO2 je Borča sa 27 µg/m³. Opserverovi 17, 16 i 31 pripadaju prethodnom označenom satu. Te veze porede samo najvišu vrednost i nikad ne kažu koja ju je stanica ranije držala, a bez osnovnog zapisa plafon koji klizi sa 31 na 27 još nije pad bilo čega. [F4][F8][F6][F5][F9][F7][F49]",
-      "text_en": "Connector's Leštane holds nothing now: both particle peaks sit at Zeleno brdo, PM10 at 16 and PM2.5 at 15 µg/m³ [F4][F8], and the NO2 peak is Borča at 27 µg/m³ [F6]. Observer's 17, 16 and 31 belong to the previous labelled hour [F5][F9][F7]. Those connections compare only the top value and never say which station held it before [F5][F7], and with no baseline record [F49] a ceiling sliding from 31 to 27 is not yet a descent of anything.",
-      "hypotheses_sr": [
-        "Zeleno brdo drži oba maksimuma čestica dok Krnjača drži oba minimuma čestica [F4][F8]; ako se ta podela održi kroz sate, to može biti stabilan prostorni gradijent pre nego prolazni događaj, ali jedan sat ne može pokazati postojanost.",
-        "Pomak plafona NO2 sa 31 na 27 [F7] mogao bi biti druga stanica koja gubi prvo mesto, a ne pad same Borče, jer veza ne imenuje raniju stanicu [F6][F7].",
-        "Pomaci maksimuma čestica sa 17 na 16 i sa 16 na 15 [F5][F9] su koraci dovoljno mali da stanu u običan šum iz sata u sat; bez zapisa o tome šta je uobičajeno [F49] ne nose nikakav trend."
-      ],
-      "questions_sr": [
-        "Koja je stanica u ranijem satu držala vrednost NO2 od 31, Borča ili neka druga [F7][F6]?",
-        "Da li je sat koji SEPA označava kao završen u 02:00 zaista sat koji se završava u 01:00 UTC, kako je procenjeno [F3], i da li taj pomak menja usklađivanje serije sa građanskim senzorima [F10]?",
-        "Da li 46 građanskih instrumenata [F10] smešta svoje vrhove čestica blizu Zelenog brda, ili je zvanična mapa usamljena [F4]?"
-      ],
-      "cites": [
-        "F4",
-        "F49",
-        "F5",
-        "F6",
-        "F7",
-        "F8",
-        "F9"
-      ],
-      "level": "srednje"
-    },
-    {
-      "model": "opus",
-      "prompt_id": null,
-      "oblik": "misao",
-      "narav": null,
-      "za_gradjanina": null,
-      "validacija": null,
-      "id": "mind-20261123012536-5",
-      "at": "2026-11-23T01:25:36.330869Z",
-      "origin": "organ_mind",
-      "entity": "skeptic",
-      "entity_label": "Sumnjalo",
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "Konektorovo Leštane sada ne drži ništa: oba vrha čestica su na Zelenom brdu, PM10 na 16 i PM2.5 na 15 µg/m³, a vrh NO2 je Borča sa 27 µg/m³. Opserverovi 17, 16 i 31 pripadaju prethodnom označenom satu. Te veze porede samo najvišu vrednost i nikad ne kažu koja ju je stanica ranije držala, a bez osnovnog zapisa plafon koji klizi sa 31 na 27 još nije pad bilo čega. [F4][F8][F6][F5][F9][F7][F49]",
-      "text_en": "Connector's Leštane holds nothing now: both particle peaks sit at Zeleno brdo, PM10 at 16 and PM2.5 at 15 µg/m³ [F4][F8], and the NO2 peak is Borča at 27 µg/m³ [F6]. Observer's 17, 16 and 31 belong to the previous labelled hour [F5][F9][F7]. Those connections compare only the top value and never say which station held it before [F5][F7], and with no baseline record [F49] a ceiling sliding from 31 to 27 is not yet a descent of anything.",
-      "hypotheses_sr": [
-        "Zeleno brdo drži oba maksimuma čestica dok Krnjača drži oba minimuma čestica [F4][F8]; ako se ta podela održi kroz sate, to može biti stabilan prostorni gradijent pre nego prolazni događaj, ali jedan sat ne može pokazati postojanost.",
-        "Pomak plafona NO2 sa 31 na 27 [F7] mogao bi biti druga stanica koja gubi prvo mesto, a ne pad same Borče, jer veza ne imenuje raniju stanicu [F6][F7].",
-        "Pomaci maksimuma čestica sa 17 na 16 i sa 16 na 15 [F5][F9] su koraci dovoljno mali da stanu u običan šum iz sata u sat; bez zapisa o tome šta je uobičajeno [F49] ne nose nikakav trend."
-      ],
-      "questions_sr": [
-        "Koja je stanica u ranijem satu držala vrednost NO2 od 31, Borča ili neka druga [F7][F6]?",
-        "Da li je sat koji SEPA označava kao završen u 02:00 zaista sat koji se završava u 01:00 UTC, kako je procenjeno [F3], i da li taj pomak menja usklađivanje serije sa građanskim senzorima [F10]?",
-        "Da li 46 građanskih instrumenata [F10] smešta svoje vrhove čestica blizu Zelenog brda, ili je zvanična mapa usamljena [F4]?"
-      ],
-      "cites": [
-        "F4",
-        "F49",
-        "F5",
-        "F6",
-        "F7",
-        "F8",
-        "F9"
-      ],
-      "level": "srednje"
-    },
-    {
-      "model": "opus",
-      "prompt_id": null,
-      "oblik": "misao",
-      "narav": null,
-      "za_gradjanina": null,
-      "validacija": null,
-      "id": "mind-20261123012536-6",
-      "at": "2026-11-23T01:25:36.330869Z",
-      "origin": "organ_mind",
-      "entity": "skeptic",
-      "entity_label": "Sumnjalo",
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "Konektorovo Leštane sada ne drži ništa: oba vrha čestica su na Zelenom brdu, PM10 na 16 i PM2.5 na 15 µg/m³, a vrh NO2 je Borča sa 27 µg/m³. Opserverovi 17, 16 i 31 pripadaju prethodnom označenom satu. Te veze porede samo najvišu vrednost i nikad ne kažu koja ju je stanica ranije držala, a bez osnovnog zapisa plafon koji klizi sa 31 na 27 još nije pad bilo čega. [F4][F8][F6][F5][F9][F7][F49]",
-      "text_en": "Connector's Leštane holds nothing now: both particle peaks sit at Zeleno brdo, PM10 at 16 and PM2.5 at 15 µg/m³ [F4][F8], and the NO2 peak is Borča at 27 µg/m³ [F6]. Observer's 17, 16 and 31 belong to the previous labelled hour [F5][F9][F7]. Those connections compare only the top value and never say which station held it before [F5][F7], and with no baseline record [F49] a ceiling sliding from 31 to 27 is not yet a descent of anything.",
-      "hypotheses_sr": [
-        "Zeleno brdo drži oba maksimuma čestica dok Krnjača drži oba minimuma čestica [F4][F8]; ako se ta podela održi kroz sate, to može biti stabilan prostorni gradijent pre nego prolazni događaj, ali jedan sat ne može pokazati postojanost.",
-        "Pomak plafona NO2 sa 31 na 27 [F7] mogao bi biti druga stanica koja gubi prvo mesto, a ne pad same Borče, jer veza ne imenuje raniju stanicu [F6][F7].",
-        "Pomaci maksimuma čestica sa 17 na 16 i sa 16 na 15 [F5][F9] su koraci dovoljno mali da stanu u običan šum iz sata u sat; bez zapisa o tome šta je uobičajeno [F49] ne nose nikakav trend."
-      ],
-      "questions_sr": [
-        "Koja je stanica u ranijem satu držala vrednost NO2 od 31, Borča ili neka druga [F7][F6]?",
-        "Da li je sat koji SEPA označava kao završen u 02:00 zaista sat koji se završava u 01:00 UTC, kako je procenjeno [F3], i da li taj pomak menja usklađivanje serije sa građanskim senzorima [F10]?",
-        "Da li 46 građanskih instrumenata [F10] smešta svoje vrhove čestica blizu Zelenog brda, ili je zvanična mapa usamljena [F4]?"
-      ],
-      "cites": [
-        "F4",
-        "F49",
-        "F5",
-        "F6",
-        "F7",
-        "F8",
-        "F9"
-      ],
-      "level": "srednje"
-    },
-    {
-      "model": "opus",
-      "prompt_id": null,
-      "oblik": "misao",
-      "narav": null,
-      "za_gradjanina": null,
-      "validacija": null,
-      "id": "mind-20261123012536-7",
-      "at": "2026-11-23T01:25:36.330869Z",
-      "origin": "organ_mind",
-      "entity": "skeptic",
-      "entity_label": "Sumnjalo",
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "Konektorovo Leštane sada ne drži ništa: oba vrha čestica su na Zelenom brdu, PM10 na 16 i PM2.5 na 15 µg/m³, a vrh NO2 je Borča sa 27 µg/m³. Opserverovi 17, 16 i 31 pripadaju prethodnom označenom satu. Te veze porede samo najvišu vrednost i nikad ne kažu koja ju je stanica ranije držala, a bez osnovnog zapisa plafon koji klizi sa 31 na 27 još nije pad bilo čega. [F4][F8][F6][F5][F9][F7][F49]",
-      "text_en": "Connector's Leštane holds nothing now: both particle peaks sit at Zeleno brdo, PM10 at 16 and PM2.5 at 15 µg/m³ [F4][F8], and the NO2 peak is Borča at 27 µg/m³ [F6]. Observer's 17, 16 and 31 belong to the previous labelled hour [F5][F9][F7]. Those connections compare only the top value and never say which station held it before [F5][F7], and with no baseline record [F49] a ceiling sliding from 31 to 27 is not yet a descent of anything.",
-      "hypotheses_sr": [
-        "Zeleno brdo drži oba maksimuma čestica dok Krnjača drži oba minimuma čestica [F4][F8]; ako se ta podela održi kroz sate, to može biti stabilan prostorni gradijent pre nego prolazni događaj, ali jedan sat ne može pokazati postojanost.",
-        "Pomak plafona NO2 sa 31 na 27 [F7] mogao bi biti druga stanica koja gubi prvo mesto, a ne pad same Borče, jer veza ne imenuje raniju stanicu [F6][F7].",
-        "Pomaci maksimuma čestica sa 17 na 16 i sa 16 na 15 [F5][F9] su koraci dovoljno mali da stanu u običan šum iz sata u sat; bez zapisa o tome šta je uobičajeno [F49] ne nose nikakav trend."
-      ],
-      "questions_sr": [
-        "Koja je stanica u ranijem satu držala vrednost NO2 od 31, Borča ili neka druga [F7][F6]?",
-        "Da li je sat koji SEPA označava kao završen u 02:00 zaista sat koji se završava u 01:00 UTC, kako je procenjeno [F3], i da li taj pomak menja usklađivanje serije sa građanskim senzorima [F10]?",
-        "Da li 46 građanskih instrumenata [F10] smešta svoje vrhove čestica blizu Zelenog brda, ili je zvanična mapa usamljena [F4]?"
-      ],
-      "cites": [
-        "F4",
-        "F49",
-        "F5",
-        "F6",
-        "F7",
-        "F8",
-        "F9"
-      ],
-      "level": "srednje"
-    },
-    {
-      "model": "opus",
-      "prompt_id": null,
-      "oblik": "misao",
-      "narav": null,
-      "za_gradjanina": null,
-      "validacija": null,
-      "id": "mind-20261123012536-8",
-      "at": "2026-11-23T01:25:36.330869Z",
-      "origin": "organ_mind",
-      "entity": "skeptic",
-      "entity_label": "Sumnjalo",
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "Konektorovo Leštane sada ne drži ništa: oba vrha čestica su na Zelenom brdu, PM10 na 16 i PM2.5 na 15 µg/m³, a vrh NO2 je Borča sa 27 µg/m³. Opserverovi 17, 16 i 31 pripadaju prethodnom označenom satu. Te veze porede samo najvišu vrednost i nikad ne kažu koja ju je stanica ranije držala, a bez osnovnog zapisa plafon koji klizi sa 31 na 27 još nije pad bilo čega. [F4][F8][F6][F5][F9][F7][F49]",
-      "text_en": "Connector's Leštane holds nothing now: both particle peaks sit at Zeleno brdo, PM10 at 16 and PM2.5 at 15 µg/m³ [F4][F8], and the NO2 peak is Borča at 27 µg/m³ [F6]. Observer's 17, 16 and 31 belong to the previous labelled hour [F5][F9][F7]. Those connections compare only the top value and never say which station held it before [F5][F7], and with no baseline record [F49] a ceiling sliding from 31 to 27 is not yet a descent of anything.",
-      "hypotheses_sr": [
-        "Zeleno brdo drži oba maksimuma čestica dok Krnjača drži oba minimuma čestica [F4][F8]; ako se ta podela održi kroz sate, to može biti stabilan prostorni gradijent pre nego prolazni događaj, ali jedan sat ne može pokazati postojanost.",
-        "Pomak plafona NO2 sa 31 na 27 [F7] mogao bi biti druga stanica koja gubi prvo mesto, a ne pad same Borče, jer veza ne imenuje raniju stanicu [F6][F7].",
-        "Pomaci maksimuma čestica sa 17 na 16 i sa 16 na 15 [F5][F9] su koraci dovoljno mali da stanu u običan šum iz sata u sat; bez zapisa o tome šta je uobičajeno [F49] ne nose nikakav trend."
-      ],
-      "questions_sr": [
-        "Koja je stanica u ranijem satu držala vrednost NO2 od 31, Borča ili neka druga [F7][F6]?",
-        "Da li je sat koji SEPA označava kao završen u 02:00 zaista sat koji se završava u 01:00 UTC, kako je procenjeno [F3], i da li taj pomak menja usklađivanje serije sa građanskim senzorima [F10]?",
-        "Da li 46 građanskih instrumenata [F10] smešta svoje vrhove čestica blizu Zelenog brda, ili je zvanična mapa usamljena [F4]?"
-      ],
-      "cites": [
-        "F4",
-        "F49",
-        "F5",
-        "F6",
-        "F7",
-        "F8",
-        "F9"
-      ],
-      "level": "srednje"
-    },
-    {
-      "model": "opus",
-      "prompt_id": null,
-      "oblik": "misao",
-      "narav": null,
-      "za_gradjanina": null,
-      "validacija": null,
-      "id": "mind-20261123012536-9",
-      "at": "2026-11-23T01:25:36.330869Z",
-      "origin": "organ_mind",
-      "entity": "skeptic",
-      "entity_label": "Sumnjalo",
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "Konektorovo Leštane sada ne drži ništa: oba vrha čestica su na Zelenom brdu, PM10 na 16 i PM2.5 na 15 µg/m³, a vrh NO2 je Borča sa 27 µg/m³. Opserverovi 17, 16 i 31 pripadaju prethodnom označenom satu. Te veze porede samo najvišu vrednost i nikad ne kažu koja ju je stanica ranije držala, a bez osnovnog zapisa plafon koji klizi sa 31 na 27 još nije pad bilo čega. [F4][F8][F6][F5][F9][F7][F49]",
-      "text_en": "Connector's Leštane holds nothing now: both particle peaks sit at Zeleno brdo, PM10 at 16 and PM2.5 at 15 µg/m³ [F4][F8], and the NO2 peak is Borča at 27 µg/m³ [F6]. Observer's 17, 16 and 31 belong to the previous labelled hour [F5][F9][F7]. Those connections compare only the top value and never say which station held it before [F5][F7], and with no baseline record [F49] a ceiling sliding from 31 to 27 is not yet a descent of anything.",
-      "hypotheses_sr": [
-        "Zeleno brdo drži oba maksimuma čestica dok Krnjača drži oba minimuma čestica [F4][F8]; ako se ta podela održi kroz sate, to može biti stabilan prostorni gradijent pre nego prolazni događaj, ali jedan sat ne može pokazati postojanost.",
-        "Pomak plafona NO2 sa 31 na 27 [F7] mogao bi biti druga stanica koja gubi prvo mesto, a ne pad same Borče, jer veza ne imenuje raniju stanicu [F6][F7].",
-        "Pomaci maksimuma čestica sa 17 na 16 i sa 16 na 15 [F5][F9] su koraci dovoljno mali da stanu u običan šum iz sata u sat; bez zapisa o tome šta je uobičajeno [F49] ne nose nikakav trend."
-      ],
-      "questions_sr": [
-        "Koja je stanica u ranijem satu držala vrednost NO2 od 31, Borča ili neka druga [F7][F6]?",
-        "Da li je sat koji SEPA označava kao završen u 02:00 zaista sat koji se završava u 01:00 UTC, kako je procenjeno [F3], i da li taj pomak menja usklađivanje serije sa građanskim senzorima [F10]?",
-        "Da li 46 građanskih instrumenata [F10] smešta svoje vrhove čestica blizu Zelenog brda, ili je zvanična mapa usamljena [F4]?"
-      ],
-      "cites": [
-        "F4",
-        "F49",
-        "F5",
-        "F6",
-        "F7",
-        "F8",
-        "F9"
-      ],
-      "level": "srednje"
-    },
-    {
-      "model": "opus",
-      "prompt_id": null,
-      "oblik": "misao",
-      "narav": null,
-      "za_gradjanina": null,
-      "validacija": null,
-      "id": "mind-20261123012536-10",
       "at": "2026-11-23T01:25:36.330869Z",
       "origin": "organ_mind",
       "entity": "skeptic",
