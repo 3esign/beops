@@ -11,18 +11,18 @@
 html,body{height:100%;background:var(--noc);color:var(--belo);font-family:"Segoe UI",system-ui,sans-serif;overflow:hidden}
 canvas{display:block;position:fixed;inset:0}
 #lab{position:fixed;inset:0;pointer-events:none}
-.lb{position:absolute;transform:translate(-50%,-100%);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--magla);white-space:nowrap;opacity:0;transition:opacity .6s;text-shadow:0 0 6px var(--noc)}
+.lb{position:absolute;transform:translate(-50%,-100%);font-size:clamp(11px,.9vw,18px);letter-spacing:.08em;text-transform:uppercase;color:var(--magla);white-space:nowrap;opacity:0;transition:opacity .6s;text-shadow:0 0 6px var(--noc)}
 .lb.on{opacity:1}.lb.a{color:var(--amber)}.lb.t{color:var(--tirkiz)}.lb.r{color:var(--crvena)}
 .lb::after{content:"";display:block;width:1px;height:14px;background:currentColor;margin:3px auto 0;opacity:.6}
 #hud::before{content:"";position:absolute;left:-12vw;right:-14vw;top:-10vh;bottom:-12vh;background:radial-gradient(ellipse at 30% 60%,rgba(14,27,46,.92),rgba(14,27,46,.6) 45%,rgba(14,27,46,0) 72%);z-index:-1}
-#hud{position:fixed;left:5vw;bottom:13vh;max-width:min(46vw,760px);pointer-events:none}
-#hud .k{font-size:clamp(11px,1vw,15px);letter-spacing:.14em;text-transform:uppercase;color:var(--amber);font-weight:600;margin-bottom:1.1em;display:flex;gap:.8em;align-items:center}
+#hud{position:fixed;left:5vw;bottom:13vh;max-width:min(48vw,900px);pointer-events:none}
+#hud .k{font-size:clamp(11px,1vw,20px);letter-spacing:.14em;text-transform:uppercase;color:var(--amber);font-weight:600;margin-bottom:1.1em;display:flex;gap:.8em;align-items:center}
 #hud .k::before{content:"";width:36px;height:3px;background:var(--amber)}
 #hud h1{font-weight:300;font-size:clamp(26px,3.3vw,54px);line-height:1.12;letter-spacing:-.01em}
 #hud h1 b{font-weight:600;color:var(--amber)}
-#hud p{margin-top:1em;font-size:clamp(14px,1.25vw,20px);line-height:1.45;color:var(--magla);max-width:36em}
+#hud p{margin-top:1em;font-size:clamp(14px,1.3vw,26px);line-height:1.45;color:var(--magla);max-width:36em}
 #hud p b{color:var(--belo);font-weight:600}
-#hud .tag{display:inline-block;margin-top:1.2em;border:1px dashed var(--amber);color:var(--amber);padding:.35em .8em;font-size:clamp(11px,.9vw,14px);letter-spacing:.1em;text-transform:uppercase}
+#hud .tag{display:inline-block;margin-top:1.2em;border:1px dashed var(--amber);color:var(--amber);padding:.35em .8em;font-size:clamp(11px,.95vw,18px);letter-spacing:.1em;text-transform:uppercase}
 #hud.s1 h1{font-size:clamp(34px,5vw,84px)}
 #hud .fade{transition:opacity .5s,transform .5s}
 #hud.out .fade{opacity:0;transform:translateY(12px)}
@@ -32,14 +32,29 @@ canvas{display:block;position:fixed;inset:0}
 #foot .sv i::after{content:"";position:absolute;width:5px;height:5px;background:var(--amber);border-radius:50%;right:-3px;top:-2px}
 #dots{display:flex;gap:6px}#dots span{width:18px;height:3px;background:#2c4468;cursor:pointer;pointer-events:auto}#dots span.on{background:var(--amber)}
 #help{position:fixed;right:5vw;top:4vh;font-size:12px;color:#5d7396;letter-spacing:.06em}
-body.shot #hud,body.shot #foot,body.shot #help,body.pdf #help,body.pdf #dots{display:none}
-@media (max-width:760px){#hud{max-width:90vw;bottom:16vh}#help{display:none}}
+#aut{position:fixed;left:5vw;top:4.2vh;max-width:78vw;font-size:clamp(14px,1.45vw,29px);font-weight:600;line-height:1.25;color:var(--belo);text-shadow:0 0 14px var(--noc),0 0 4px var(--noc);transition:font-size .5s;pointer-events:none}
+#top{position:fixed;left:0;right:0;top:0;height:20vh;background:linear-gradient(180deg,rgba(14,27,46,.94),rgba(14,27,46,.8) 45%,rgba(14,27,46,0));pointer-events:none}
+body.shot #top{display:none}
+#aut i{font-style:normal;color:var(--amber);margin:0 .55em}
+#aut small{display:block;font-size:.5em;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin-bottom:.5em}
+#aut.big{font-size:clamp(16px,1.9vw,38px)}
+#qr{position:fixed;right:5vw;top:17vh;width:40vh;background:var(--belo);padding:1.2vh 1.2vh 1.6vh;opacity:0;transform:translateY(14px);transition:opacity .7s .5s,transform .7s .5s;pointer-events:none;text-decoration:none;box-shadow:0 0 0 1px var(--amber),0 2vh 6vh rgba(0,0,0,.55)}
+#qr.on{opacity:1;transform:none;pointer-events:auto}
+#qr svg{display:block;width:100%;height:auto}
+#qr b{display:block;text-align:center;color:var(--noc);font-size:clamp(13px,2.5vh,30px);font-weight:600;letter-spacing:.01em;margin-top:.2vh}
+#qr span{display:block;text-align:center;color:#3e5b82;font-size:clamp(10px,1.55vh,18px);letter-spacing:.14em;text-transform:uppercase;margin-top:.5vh}
+body.shot #hud,body.shot #foot,body.shot #help,body.shot #aut,body.shot #qr,body.pdf #help,body.pdf #dots{display:none}
+body.pdf #qr{transition:none}
+@media (max-width:760px){#hud{max-width:90vw;bottom:16vh}#help{display:none}#aut{max-width:90vw}#aut i{display:block;height:0;overflow:hidden;margin:0}#qr{width:34vw;top:16vh}}
 </style>
 </head>
 <body>
 <div id="lab"></div>
 <div id="hud"><div class="fade" id="hc"></div></div>
-<div id="foot"><span>Prof. dr Darinka Golubović-Matić · Doc. dr Semir Poturak</span><span id="dots"></span><span class="sv"><i></i>SVEMIR</span></div>
+<div id="top"></div>
+<div id="aut"><small>Autori</small>Prof. dr Darinka Golubović-Matić<i>·</i>Doc. dr Semir Poturak</div>
+<a id="qr" href="https://3esign.github.io/beops/" aria-label="QR kod: https://3esign.github.io/beops/"><svg viewBox="-4 -4 37 37" shape-rendering="crispEdges" role="img"><rect x="-4" y="-4" width="37" height="37" fill="#F4F1EA"/><path fill="#0E1B2E" d="M0 0h7v1h-7zM11 0h2v1h-2zM14 0h1v1h-1zM17 0h3v1h-3zM22 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM10 1h2v1h-2zM16 1h2v1h-2zM22 1h1v1h-1zM28 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM9 2h2v1h-2zM12 2h1v1h-1zM14 2h2v1h-2zM17 2h1v1h-1zM19 2h2v1h-2zM22 2h1v1h-1zM24 2h3v1h-3zM28 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM9 3h1v1h-1zM11 3h1v1h-1zM13 3h1v1h-1zM16 3h1v1h-1zM18 3h1v1h-1zM22 3h1v1h-1zM24 3h3v1h-3zM28 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM10 4h2v1h-2zM17 4h2v1h-2zM20 4h1v1h-1zM22 4h1v1h-1zM24 4h3v1h-3zM28 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM15 5h6v1h-6zM22 5h1v1h-1zM28 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h7v1h-7zM9 7h2v1h-2zM12 7h2v1h-2zM15 7h5v1h-5zM0 8h1v1h-1zM3 8h1v1h-1zM5 8h2v1h-2zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM21 8h1v1h-1zM23 8h1v1h-1zM0 9h1v1h-1zM2 9h2v1h-2zM7 9h1v1h-1zM13 9h1v1h-1zM15 9h2v1h-2zM20 9h3v1h-3zM25 9h1v1h-1zM28 9h1v1h-1zM0 10h3v1h-3zM4 10h1v1h-1zM6 10h2v1h-2zM12 10h4v1h-4zM17 10h1v1h-1zM19 10h1v1h-1zM21 10h1v1h-1zM23 10h5v1h-5zM0 11h3v1h-3zM4 11h1v1h-1zM8 11h3v1h-3zM13 11h1v1h-1zM16 11h1v1h-1zM18 11h2v1h-2zM22 11h1v1h-1zM24 11h1v1h-1zM26 11h2v1h-2zM1 12h1v1h-1zM3 12h5v1h-5zM9 12h2v1h-2zM12 12h1v1h-1zM14 12h2v1h-2zM17 12h1v1h-1zM21 12h2v1h-2zM25 12h1v1h-1zM27 12h2v1h-2zM3 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM13 13h5v1h-5zM19 13h3v1h-3zM1 14h1v1h-1zM6 14h6v1h-6zM13 14h2v1h-2zM18 14h1v1h-1zM21 14h1v1h-1zM25 14h4v1h-4zM0 15h2v1h-2zM5 15h1v1h-1zM7 15h1v1h-1zM9 15h4v1h-4zM15 15h1v1h-1zM17 15h1v1h-1zM19 15h1v1h-1zM21 15h3v1h-3zM25 15h1v1h-1zM27 15h1v1h-1zM3 16h1v1h-1zM5 16h2v1h-2zM9 16h1v1h-1zM11 16h3v1h-3zM17 16h1v1h-1zM20 16h1v1h-1zM23 16h1v1h-1zM27 16h1v1h-1zM1 17h5v1h-5zM8 17h1v1h-1zM13 17h4v1h-4zM21 17h3v1h-3zM25 17h1v1h-1zM28 17h1v1h-1zM0 18h1v1h-1zM4 18h3v1h-3zM9 18h1v1h-1zM11 18h1v1h-1zM14 18h3v1h-3zM20 18h2v1h-2zM23 18h2v1h-2zM27 18h2v1h-2zM2 19h2v1h-2zM9 19h1v1h-1zM14 19h1v1h-1zM17 19h2v1h-2zM20 19h2v1h-2zM27 19h2v1h-2zM0 20h1v1h-1zM3 20h4v1h-4zM8 20h1v1h-1zM11 20h1v1h-1zM15 20h2v1h-2zM20 20h5v1h-5zM26 20h1v1h-1zM8 21h3v1h-3zM12 21h1v1h-1zM14 21h2v1h-2zM20 21h1v1h-1zM24 21h1v1h-1zM26 21h3v1h-3zM0 22h7v1h-7zM9 22h2v1h-2zM12 22h1v1h-1zM16 22h2v1h-2zM20 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM27 22h1v1h-1zM0 23h1v1h-1zM6 23h1v1h-1zM8 23h1v1h-1zM11 23h2v1h-2zM14 23h1v1h-1zM16 23h1v1h-1zM18 23h1v1h-1zM20 23h1v1h-1zM24 23h3v1h-3zM28 23h1v1h-1zM0 24h1v1h-1zM2 24h3v1h-3zM6 24h1v1h-1zM9 24h4v1h-4zM15 24h3v1h-3zM20 24h5v1h-5zM27 24h1v1h-1zM0 25h1v1h-1zM2 25h3v1h-3zM6 25h1v1h-1zM8 25h3v1h-3zM13 25h1v1h-1zM16 25h4v1h-4zM22 25h5v1h-5zM28 25h1v1h-1zM0 26h1v1h-1zM2 26h3v1h-3zM6 26h1v1h-1zM9 26h2v1h-2zM14 26h1v1h-1zM17 26h2v1h-2zM20 26h1v1h-1zM24 26h3v1h-3zM28 26h1v1h-1zM0 27h1v1h-1zM6 27h1v1h-1zM9 27h3v1h-3zM13 27h2v1h-2zM17 27h1v1h-1zM19 27h2v1h-2zM24 27h2v1h-2zM27 27h1v1h-1zM0 28h7v1h-7zM8 28h1v1h-1zM10 28h2v1h-2zM16 28h2v1h-2zM20 28h3v1h-3zM24 28h1v1h-1zM27 28h1v1h-1z"/></svg><b>3esign.github.io/beops</b><span>skeniraj · živi BEOPS</span></a>
+<div id="foot"><span>BEOPS – Mozak Beograda · 8. FMBAS · <span id="num"></span></span><span id="dots"></span><span class="sv"><i></i>SVEMIR</span></div>
 <div id="help">← → · prevuci · F ceo ekran</div>
 <script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script>
 <script type="module">
@@ -55,12 +70,12 @@ const S=[
  {k:'Grad',h:'Beograd vidi sebe <b>u ostrvima</b>.',p:'Vazduh, vreme, saobraćaj, reke: svaki podatak ima svog vlasnika, svoj ritam i svoju pouzdanost.',cam:[[40,70,95],[0,0,8]]},
  {k:'Digitalni blizanac',h:'Blizanac grada nastaje tek kad se <b>ostrva povežu</b>.',p:'Povezati, modelovati, podržati odluku. Odluku i dalje donosi struka.',cam:[[-55,60,90],[0,0,8]]},
  {k:'Ideja',h:'Mozak grada nije kontrolna soba. To je <b>mreža bez centra</b>.',p:'Mesto gde javni podaci postaju zajedničko i proverljivo znanje.',cam:[[0,22,95],[0,26,0]]},
- {k:'Šta mora da ume',h:'Opaža. Pamti. Sumnja. I <b>kaže šta ne zna</b>.',p:'Četvrta osobina je najređa i najvažnija.',cam:[[-10,75,95],[0,26,4]]},
+ {k:'Šta mora da ume',h:'Opaža. Pamti. Sumnja. I <b>kaže šta ne zna</b>.',p:'Četvrta osobina je najređa i najvažnija.',cam:[[-10,75,95],[-16,17,10]]},
  {k:'BEOPS · stanje 24.11.2026',h:'Za sedam dana BEOPS je odbio <b>19 od 47</b> sopstvenih misli.',p:'Svaka odbijena misao ima ispisan razlog. Posmatrač opaža, Sumnjalo proverava, Povezivač spaja.',cam:[[34,26,44],[14,6,12]]},
  {k:'Provera',h:'Tvrdnja o <b>PM10</b> pala je: izmereno je bilo PM2.5.',p:'Ilustracija tipa greške koju provera zaustavlja pre nego što postane javno „znanje“.',cam:[[30,13,38],[11,6.5,11]]},
- {k:'Kuda može da raste',h:'Mozak kvarta, kampusa, <b>zgrade</b> — i mreža gradova.',p:'<b>Most ka zgradama</b>: BMS i mozak grada razmenjuju ono što oboje znaju. Uz to pitanja građana i scenariji „šta ako“.',tag:'ideje, ne postojeće funkcije',cam:[[50,120,170],[-5,0,-40]]},
+ {k:'Kuda može da raste',h:'Mozak kvarta, kampusa, <b>zgrade</b> — i mreža gradova.',p:'<b>Most ka zgradama</b>: BMS i mozak grada razmenjuju ono što oboje znaju. Uz to pitanja građana i scenariji „šta ako“.',tag:'ideje, ne postojeće funkcije',cam:[[50,120,170],[-15,0,-90]]},
  {k:'Uslovi',h:'Pametan grad bez poverenja je <b>samo nadzor</b>.',p:'Otvorenost · privatnost · proverljivost · čovek odlučuje.',cam:[[-70,14,70],[0,4,0]]},
- {k:'3esign.github.io/beops',h:'Zgrade su <b>prvi neuroni</b> grada.',p:'Poziv struci facility menadžmenta: povežimo zgrade sa javnim znanjem grada.<br>Dizajn i priprema: SVEMIR',cam:[[-30,18,26],[-10,7,6]]},
+ {k:'Poziv',h:'Zgrade su <b>prvi neuroni</b> grada.',p:'Povežimo zgrade sa javnim znanjem grada.<br>Dizajn i priprema: SVEMIR',cam:[[-33,19,29],[-10,9.4,6]]},
 ];
 const N=S.length;
 
@@ -188,7 +203,7 @@ label('Stari grad',new T.Vector3(18,3,2),'',s=>s===2);
 label('Vračar',new T.Vector3(26,3,40),'',s=>s===3);
 label('Zemun',new T.Vector3(-58,3,-30),'',s=>s===2);
 label('Kalemegdan',new T.Vector3(6,1,-4),'',s=>s===7);
-label('zgrada',new T.Vector3(HERO.x,17,HERO.z),'a',s=>s===0||s===10);
+label('zgrada',new T.Vector3(HERO.x,17,HERO.z),'a',s=>s===0);
 ['energija','voda','vazduh','održavanje','bezbednost'].forEach((n,i)=>label(n,new T.Vector3(HERO.x-1.4+i*.7,15.9-i*2.6,HERO.z+2.3),'a',s=>s===1));
 isl.forEach(s=>label(s.n,s.pos.clone().setY(11),'t',x=>x===2));
 four.forEach(([n,p],i)=>label(n,p.clone().setY(p.y+2),i===3?'a':'t',s=>s===5));
@@ -210,7 +225,7 @@ function go(n,instant){n=Math.max(0,Math.min(N-1,n));if(n===slide&&!instant&&fly
  if(instant||reduce){cam.position.copy(to.p);look.copy(to.t);fly=null;}else fly={fp:cam.position.clone(),ft:look.clone(),to,t0:performance.now(),d:1100};
  if(n===7)tClaim=performance.now();
  if(instant)Object.assign(cur,want(n));
- hud(n);dots();if(!SHOT)history.replaceState(null,'','#'+(n+1));}
+ hud(n);dots();document.getElementById('aut').classList.toggle('big',n===0||n===N-1);document.getElementById('qr').classList.toggle('on',n===N-1);document.getElementById('num').textContent=(n+1)+' / '+N;if(!SHOT)history.replaceState(null,'','#'+(n+1));}
 const look=new T.Vector3();
 const hudEl=document.getElementById('hud'),hc=document.getElementById('hc');
 function hud(n){const s=S[n];hudEl.classList.add('out');setTimeout(()=>{hudEl.className=n===0?'s1':'';
@@ -225,7 +240,7 @@ addEventListener('keydown',e=>{if(['ArrowRight','PageDown',' ','Enter'].includes
 let wl=0;addEventListener('wheel',e=>{const now=performance.now();if(now-wl<900||Math.abs(e.deltaY)<20)return;wl=now;go(slide+(e.deltaY>0?1:-1));},{passive:true});
 let tx=null;addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
 addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50)go(slide+(dx<0?1:-1));tx=null;});
-R.domElement.addEventListener('click',e=>go(slide+(e.clientX>innerWidth/3?1:-1)));
+R.domElement.addEventListener('click',e=>go(slide+(e.clientX>innerWidth/3?1:-1)));document.getElementById('qr').addEventListener('click',e=>e.stopPropagation());
 addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();R.setSize(innerWidth,innerHeight);});
 
 /* ---------- petlja ---------- */
