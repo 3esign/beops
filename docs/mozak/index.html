@@ -6,7 +6,7 @@
 <title>BEOPS – Mozak Beograda · 8. FMBAS konferencija</title>
 <meta name="description" content="Let kroz Beograd: od inteligentne zgrade do mozga grada. Prof. dr Darinka Golubović-Matić · Doc. dr Semir Poturak. Dizajn: SVEMIR.">
 <style>
-:root{--noc:#0E1B2E;--amber:#E8A33D;--tirkiz:#2BB3A9;--crvena:#D9614A;--magla:#A9B6CC;--belo:#F4F1EA}
+:root{--noc:#F1EADB;--amber:#B5521F;--tirkiz:#0F766E;--crvena:#B3261E;--magla:#5E6470;--belo:#18202E}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--noc);color:var(--belo);font-family:"Segoe UI",system-ui,sans-serif;overflow:hidden}
 canvas{display:block;position:fixed;inset:0}
@@ -14,15 +14,15 @@ canvas{display:block;position:fixed;inset:0}
 .lb{position:absolute;transform:translate(-50%,-100%);font-size:clamp(11px,.9vw,18px);letter-spacing:.08em;text-transform:uppercase;color:var(--magla);white-space:nowrap;opacity:0;transition:opacity .6s;text-shadow:0 0 6px var(--noc)}
 .lb.on{opacity:1}.lb.n{text-transform:none;letter-spacing:.03em}.lb.a{color:var(--amber)}.lb.t{color:var(--tirkiz)}.lb.r{color:var(--crvena)}
 .lb::after{content:"";display:block;width:1px;height:14px;background:currentColor;margin:3px auto 0;opacity:.6}
-#hud::before{content:"";position:absolute;left:-12vw;right:-14vw;top:-10vh;bottom:-12vh;background:radial-gradient(ellipse at 30% 60%,rgba(14,27,46,.94),rgba(14,27,46,.66) 45%,rgba(14,27,46,0) 72%);z-index:-1}
+#hud::before{content:"";position:absolute;left:-12vw;right:-14vw;top:-10vh;bottom:-12vh;background:radial-gradient(ellipse at 30% 60%,rgba(241,234,219,.94),rgba(241,234,219,.66) 45%,rgba(241,234,219,0) 72%);z-index:-1}
 #hud{position:fixed;max-width:min(46vw,880px);pointer-events:none}
 #hud.bl{left:5vw;bottom:13vh}
 #hud.br{right:5vw;bottom:13vh}
-#hud.br::before{left:-14vw;right:-12vw;background:radial-gradient(ellipse at 70% 60%,rgba(14,27,46,.94),rgba(14,27,46,.66) 45%,rgba(14,27,46,0) 72%)}
+#hud.br::before{left:-14vw;right:-12vw;background:radial-gradient(ellipse at 70% 60%,rgba(241,234,219,.94),rgba(241,234,219,.66) 45%,rgba(241,234,219,0) 72%)}
 #hud.tl{left:5vw;top:21vh}
-#hud.tl::before{top:-6vh;bottom:-14vh;background:radial-gradient(ellipse at 30% 42%,rgba(14,27,46,.94),rgba(14,27,46,.66) 45%,rgba(14,27,46,0) 72%)}
+#hud.tl::before{top:-6vh;bottom:-14vh;background:radial-gradient(ellipse at 30% 42%,rgba(241,234,219,.94),rgba(241,234,219,.66) 45%,rgba(241,234,219,0) 72%)}
 #hud.bc{left:50%;bottom:12vh;transform:translateX(-50%);text-align:center;width:min(66vw,1260px);max-width:none}
-#hud.bc::before{left:-10vw;right:-10vw;background:radial-gradient(ellipse at 50% 60%,rgba(14,27,46,.94),rgba(14,27,46,.66) 45%,rgba(14,27,46,0) 72%)}
+#hud.bc::before{left:-10vw;right:-10vw;background:radial-gradient(ellipse at 50% 60%,rgba(241,234,219,.94),rgba(241,234,219,.66) 45%,rgba(241,234,219,0) 72%)}
 #hud.bc .k{justify-content:center}#hud.bc p{margin-left:auto;margin-right:auto}
 #hud .num{font-size:1.5em;white-space:nowrap}
 #strip{display:flex;gap:.34vw;margin:0 0 1.5em;align-items:flex-end}
@@ -31,7 +31,7 @@ canvas{display:block;position:fixed;inset:0}
 #strip i.in{opacity:1;transform:none}
 #strip+small{display:block;margin:-.8em 0 1.4em;font-size:clamp(11px,.95vw,18px);letter-spacing:.1em;text-transform:uppercase;color:var(--magla)}
 #strip+small b{color:var(--crvena);font-weight:600}
-#notes{position:fixed;left:5vw;right:5vw;bottom:7vh;background:rgba(9,18,32,.96);border:1px solid var(--amber);padding:1.6vh 1.4vw;font-size:clamp(14px,1.25vw,24px);line-height:1.45;color:var(--belo);display:none;z-index:5}
+#notes{position:fixed;left:5vw;right:5vw;bottom:7vh;background:rgba(255,252,245,.97);border:1px solid var(--amber);padding:1.6vh 1.4vw;font-size:clamp(14px,1.25vw,24px);line-height:1.45;color:var(--belo);display:none;z-index:5}
 #notes.on{display:block}#notes small{display:block;color:var(--amber);font-size:.62em;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.5em}
 body.bg #hc,body.bg #aut,body.bg #foot,body.bg #help,body.bg #qr,body.pdf #notes,body.bg #notes{visibility:hidden}
 #hud .k{font-size:clamp(11px,1vw,20px);letter-spacing:.14em;text-transform:uppercase;color:var(--amber);font-weight:600;margin-bottom:1.1em;display:flex;gap:.8em;align-items:center}
@@ -44,25 +44,25 @@ body.bg #hc,body.bg #aut,body.bg #foot,body.bg #help,body.bg #qr,body.pdf #notes
 #hud.s1 h1{font-size:clamp(34px,5vw,84px)}
 #hud .fade{transition:opacity .5s,transform .5s}
 #hud.out .fade{opacity:0;transform:translateY(12px)}
-#foot{position:fixed;left:5vw;right:5vw;bottom:3.2vh;display:flex;justify-content:space-between;align-items:center;font-size:clamp(10px,.85vw,13px);color:var(--magla);border-top:1px solid #23395c;padding-top:1.1vh}
+#foot{position:fixed;left:5vw;right:5vw;bottom:3.2vh;display:flex;justify-content:space-between;align-items:center;font-size:clamp(10px,.85vw,13px);color:var(--magla);border-top:1px solid #CFC4AD;padding-top:1.1vh}
 #foot .sv{display:flex;gap:.5em;align-items:center;font-weight:600;letter-spacing:.14em}
 #foot .sv i{width:14px;height:14px;border:1.5px solid currentColor;border-radius:50%;position:relative}
 #foot .sv i::after{content:"";position:absolute;width:5px;height:5px;background:var(--amber);border-radius:50%;right:-3px;top:-2px}
-#dots{display:flex;gap:6px}#dots span{width:18px;height:3px;background:#2c4468;cursor:pointer;pointer-events:auto}#dots span.on{background:var(--amber)}
-#help{position:fixed;right:5vw;top:4vh;font-size:12px;color:#5d7396;letter-spacing:.06em}
+#dots{display:flex;gap:6px}#dots span{width:18px;height:3px;background:#CFC4AD;cursor:pointer;pointer-events:auto}#dots span.on{background:var(--amber)}
+#help{position:fixed;right:5vw;top:4vh;font-size:12px;color:#8A8271;letter-spacing:.06em}
 #aut{position:fixed;left:5vw;top:4.2vh;max-width:78vw;font-size:clamp(14px,1.45vw,29px);font-weight:600;line-height:1.25;color:var(--belo);text-shadow:0 0 14px var(--noc),0 0 4px var(--noc);transition:font-size .5s;pointer-events:none}
-#top{position:fixed;left:0;right:0;top:0;height:20vh;background:linear-gradient(180deg,rgba(14,27,46,.94),rgba(14,27,46,.8) 45%,rgba(14,27,46,0));pointer-events:none}
+#top{position:fixed;left:0;right:0;top:0;height:20vh;background:linear-gradient(180deg,rgba(241,234,219,.94),rgba(241,234,219,.8) 45%,rgba(241,234,219,0));pointer-events:none}
 body.shot #top{display:none}
 #aut i{font-style:normal;color:var(--amber);margin:0 .55em}
 #aut small{display:block;font-size:.5em;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin-bottom:.5em}
 #aut.big{font-size:clamp(16px,1.9vw,38px)}
 #aut em{display:none;font-style:normal;font-size:.5em;font-weight:400;letter-spacing:.06em;color:var(--magla);margin-top:.55em}
 #aut.big em{display:block}
-#qr{position:fixed;right:5vw;top:17vh;width:40vh;background:var(--belo);padding:1.2vh 1.2vh 1.6vh;opacity:0;transform:translateY(14px);transition:opacity .7s .5s,transform .7s .5s;pointer-events:none;text-decoration:none;box-shadow:0 0 0 1px var(--amber),0 2vh 6vh rgba(0,0,0,.55)}
+#qr{position:fixed;right:5vw;top:17vh;width:40vh;background:#FFFFFF;padding:1.2vh 1.2vh 1.6vh;opacity:0;transform:translateY(14px);transition:opacity .7s .5s,transform .7s .5s;pointer-events:none;text-decoration:none;box-shadow:0 0 0 1px var(--amber),0 2vh 6vh rgba(60,45,20,.25)}
 #qr.on{opacity:1;transform:none;pointer-events:auto}
 #qr svg{display:block;width:100%;height:auto}
-#qr b{display:block;text-align:center;color:var(--noc);font-size:clamp(13px,2.5vh,30px);font-weight:600;letter-spacing:.01em;margin-top:.2vh}
-#qr span{display:block;text-align:center;color:#3e5b82;font-size:clamp(10px,1.55vh,18px);letter-spacing:.14em;text-transform:uppercase;margin-top:.5vh}
+#qr b{display:block;text-align:center;color:#141C2B;font-size:clamp(13px,2.5vh,30px);font-weight:600;letter-spacing:.01em;margin-top:.2vh}
+#qr span{display:block;text-align:center;color:#5E6470;font-size:clamp(10px,1.55vh,18px);letter-spacing:.14em;text-transform:uppercase;margin-top:.5vh}
 body.shot #hud,body.shot #foot,body.shot #help,body.shot #aut,body.shot #qr,body.pdf #help,body.pdf #dots{display:none}
 body.pdf #qr{transition:none}
 @media (max-width:760px){#hud,#hud.bl,#hud.br,#hud.tl,#hud.bc{left:5vw;right:5vw;top:auto;bottom:16vh;max-width:90vw;width:auto;transform:none;text-align:left}#strip i{width:1.1vw;height:5vw}#strip i.x{height:7vw}#help{display:none}#aut{max-width:90vw}#aut i{display:block;height:0;overflow:hidden;margin:0}#qr{width:34vw;top:16vh}}
@@ -74,7 +74,7 @@ body.pdf #qr{transition:none}
 <div id="top"></div>
 <div id="aut"><small>Autori</small>Prof. dr Darinka Golubović-Matić<i>·</i>Doc. dr Semir Poturak<em>Dizajn i priprema slajdova: SVEMIR</em></div>
 <div id="notes"></div>
-<a id="qr" href="https://3esign.github.io/beops/" aria-label="QR kod: https://3esign.github.io/beops/"><svg viewBox="-4 -4 37 37" shape-rendering="crispEdges" role="img"><rect x="-4" y="-4" width="37" height="37" fill="#F4F1EA"/><path fill="#0E1B2E" d="M0 0h7v1h-7zM11 0h2v1h-2zM14 0h1v1h-1zM17 0h3v1h-3zM22 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM10 1h2v1h-2zM16 1h2v1h-2zM22 1h1v1h-1zM28 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM9 2h2v1h-2zM12 2h1v1h-1zM14 2h2v1h-2zM17 2h1v1h-1zM19 2h2v1h-2zM22 2h1v1h-1zM24 2h3v1h-3zM28 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM9 3h1v1h-1zM11 3h1v1h-1zM13 3h1v1h-1zM16 3h1v1h-1zM18 3h1v1h-1zM22 3h1v1h-1zM24 3h3v1h-3zM28 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM10 4h2v1h-2zM17 4h2v1h-2zM20 4h1v1h-1zM22 4h1v1h-1zM24 4h3v1h-3zM28 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM15 5h6v1h-6zM22 5h1v1h-1zM28 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h7v1h-7zM9 7h2v1h-2zM12 7h2v1h-2zM15 7h5v1h-5zM0 8h1v1h-1zM3 8h1v1h-1zM5 8h2v1h-2zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM21 8h1v1h-1zM23 8h1v1h-1zM0 9h1v1h-1zM2 9h2v1h-2zM7 9h1v1h-1zM13 9h1v1h-1zM15 9h2v1h-2zM20 9h3v1h-3zM25 9h1v1h-1zM28 9h1v1h-1zM0 10h3v1h-3zM4 10h1v1h-1zM6 10h2v1h-2zM12 10h4v1h-4zM17 10h1v1h-1zM19 10h1v1h-1zM21 10h1v1h-1zM23 10h5v1h-5zM0 11h3v1h-3zM4 11h1v1h-1zM8 11h3v1h-3zM13 11h1v1h-1zM16 11h1v1h-1zM18 11h2v1h-2zM22 11h1v1h-1zM24 11h1v1h-1zM26 11h2v1h-2zM1 12h1v1h-1zM3 12h5v1h-5zM9 12h2v1h-2zM12 12h1v1h-1zM14 12h2v1h-2zM17 12h1v1h-1zM21 12h2v1h-2zM25 12h1v1h-1zM27 12h2v1h-2zM3 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM13 13h5v1h-5zM19 13h3v1h-3zM1 14h1v1h-1zM6 14h6v1h-6zM13 14h2v1h-2zM18 14h1v1h-1zM21 14h1v1h-1zM25 14h4v1h-4zM0 15h2v1h-2zM5 15h1v1h-1zM7 15h1v1h-1zM9 15h4v1h-4zM15 15h1v1h-1zM17 15h1v1h-1zM19 15h1v1h-1zM21 15h3v1h-3zM25 15h1v1h-1zM27 15h1v1h-1zM3 16h1v1h-1zM5 16h2v1h-2zM9 16h1v1h-1zM11 16h3v1h-3zM17 16h1v1h-1zM20 16h1v1h-1zM23 16h1v1h-1zM27 16h1v1h-1zM1 17h5v1h-5zM8 17h1v1h-1zM13 17h4v1h-4zM21 17h3v1h-3zM25 17h1v1h-1zM28 17h1v1h-1zM0 18h1v1h-1zM4 18h3v1h-3zM9 18h1v1h-1zM11 18h1v1h-1zM14 18h3v1h-3zM20 18h2v1h-2zM23 18h2v1h-2zM27 18h2v1h-2zM2 19h2v1h-2zM9 19h1v1h-1zM14 19h1v1h-1zM17 19h2v1h-2zM20 19h2v1h-2zM27 19h2v1h-2zM0 20h1v1h-1zM3 20h4v1h-4zM8 20h1v1h-1zM11 20h1v1h-1zM15 20h2v1h-2zM20 20h5v1h-5zM26 20h1v1h-1zM8 21h3v1h-3zM12 21h1v1h-1zM14 21h2v1h-2zM20 21h1v1h-1zM24 21h1v1h-1zM26 21h3v1h-3zM0 22h7v1h-7zM9 22h2v1h-2zM12 22h1v1h-1zM16 22h2v1h-2zM20 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM27 22h1v1h-1zM0 23h1v1h-1zM6 23h1v1h-1zM8 23h1v1h-1zM11 23h2v1h-2zM14 23h1v1h-1zM16 23h1v1h-1zM18 23h1v1h-1zM20 23h1v1h-1zM24 23h3v1h-3zM28 23h1v1h-1zM0 24h1v1h-1zM2 24h3v1h-3zM6 24h1v1h-1zM9 24h4v1h-4zM15 24h3v1h-3zM20 24h5v1h-5zM27 24h1v1h-1zM0 25h1v1h-1zM2 25h3v1h-3zM6 25h1v1h-1zM8 25h3v1h-3zM13 25h1v1h-1zM16 25h4v1h-4zM22 25h5v1h-5zM28 25h1v1h-1zM0 26h1v1h-1zM2 26h3v1h-3zM6 26h1v1h-1zM9 26h2v1h-2zM14 26h1v1h-1zM17 26h2v1h-2zM20 26h1v1h-1zM24 26h3v1h-3zM28 26h1v1h-1zM0 27h1v1h-1zM6 27h1v1h-1zM9 27h3v1h-3zM13 27h2v1h-2zM17 27h1v1h-1zM19 27h2v1h-2zM24 27h2v1h-2zM27 27h1v1h-1zM0 28h7v1h-7zM8 28h1v1h-1zM10 28h2v1h-2zM16 28h2v1h-2zM20 28h3v1h-3zM24 28h1v1h-1zM27 28h1v1h-1z"/></svg><b>3esign.github.io/beops</b><span>skeniraj · živi BEOPS</span></a>
+<a id="qr" href="https://3esign.github.io/beops/" aria-label="QR kod: https://3esign.github.io/beops/"><svg viewBox="-4 -4 37 37" shape-rendering="crispEdges" role="img"><rect x="-4" y="-4" width="37" height="37" fill="#FFFFFF"/><path fill="#141C2B" d="M0 0h7v1h-7zM11 0h2v1h-2zM14 0h1v1h-1zM17 0h3v1h-3zM22 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM10 1h2v1h-2zM16 1h2v1h-2zM22 1h1v1h-1zM28 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM9 2h2v1h-2zM12 2h1v1h-1zM14 2h2v1h-2zM17 2h1v1h-1zM19 2h2v1h-2zM22 2h1v1h-1zM24 2h3v1h-3zM28 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM9 3h1v1h-1zM11 3h1v1h-1zM13 3h1v1h-1zM16 3h1v1h-1zM18 3h1v1h-1zM22 3h1v1h-1zM24 3h3v1h-3zM28 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM10 4h2v1h-2zM17 4h2v1h-2zM20 4h1v1h-1zM22 4h1v1h-1zM24 4h3v1h-3zM28 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM15 5h6v1h-6zM22 5h1v1h-1zM28 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h7v1h-7zM9 7h2v1h-2zM12 7h2v1h-2zM15 7h5v1h-5zM0 8h1v1h-1zM3 8h1v1h-1zM5 8h2v1h-2zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM21 8h1v1h-1zM23 8h1v1h-1zM0 9h1v1h-1zM2 9h2v1h-2zM7 9h1v1h-1zM13 9h1v1h-1zM15 9h2v1h-2zM20 9h3v1h-3zM25 9h1v1h-1zM28 9h1v1h-1zM0 10h3v1h-3zM4 10h1v1h-1zM6 10h2v1h-2zM12 10h4v1h-4zM17 10h1v1h-1zM19 10h1v1h-1zM21 10h1v1h-1zM23 10h5v1h-5zM0 11h3v1h-3zM4 11h1v1h-1zM8 11h3v1h-3zM13 11h1v1h-1zM16 11h1v1h-1zM18 11h2v1h-2zM22 11h1v1h-1zM24 11h1v1h-1zM26 11h2v1h-2zM1 12h1v1h-1zM3 12h5v1h-5zM9 12h2v1h-2zM12 12h1v1h-1zM14 12h2v1h-2zM17 12h1v1h-1zM21 12h2v1h-2zM25 12h1v1h-1zM27 12h2v1h-2zM3 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM13 13h5v1h-5zM19 13h3v1h-3zM1 14h1v1h-1zM6 14h6v1h-6zM13 14h2v1h-2zM18 14h1v1h-1zM21 14h1v1h-1zM25 14h4v1h-4zM0 15h2v1h-2zM5 15h1v1h-1zM7 15h1v1h-1zM9 15h4v1h-4zM15 15h1v1h-1zM17 15h1v1h-1zM19 15h1v1h-1zM21 15h3v1h-3zM25 15h1v1h-1zM27 15h1v1h-1zM3 16h1v1h-1zM5 16h2v1h-2zM9 16h1v1h-1zM11 16h3v1h-3zM17 16h1v1h-1zM20 16h1v1h-1zM23 16h1v1h-1zM27 16h1v1h-1zM1 17h5v1h-5zM8 17h1v1h-1zM13 17h4v1h-4zM21 17h3v1h-3zM25 17h1v1h-1zM28 17h1v1h-1zM0 18h1v1h-1zM4 18h3v1h-3zM9 18h1v1h-1zM11 18h1v1h-1zM14 18h3v1h-3zM20 18h2v1h-2zM23 18h2v1h-2zM27 18h2v1h-2zM2 19h2v1h-2zM9 19h1v1h-1zM14 19h1v1h-1zM17 19h2v1h-2zM20 19h2v1h-2zM27 19h2v1h-2zM0 20h1v1h-1zM3 20h4v1h-4zM8 20h1v1h-1zM11 20h1v1h-1zM15 20h2v1h-2zM20 20h5v1h-5zM26 20h1v1h-1zM8 21h3v1h-3zM12 21h1v1h-1zM14 21h2v1h-2zM20 21h1v1h-1zM24 21h1v1h-1zM26 21h3v1h-3zM0 22h7v1h-7zM9 22h2v1h-2zM12 22h1v1h-1zM16 22h2v1h-2zM20 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM27 22h1v1h-1zM0 23h1v1h-1zM6 23h1v1h-1zM8 23h1v1h-1zM11 23h2v1h-2zM14 23h1v1h-1zM16 23h1v1h-1zM18 23h1v1h-1zM20 23h1v1h-1zM24 23h3v1h-3zM28 23h1v1h-1zM0 24h1v1h-1zM2 24h3v1h-3zM6 24h1v1h-1zM9 24h4v1h-4zM15 24h3v1h-3zM20 24h5v1h-5zM27 24h1v1h-1zM0 25h1v1h-1zM2 25h3v1h-3zM6 25h1v1h-1zM8 25h3v1h-3zM13 25h1v1h-1zM16 25h4v1h-4zM22 25h5v1h-5zM28 25h1v1h-1zM0 26h1v1h-1zM2 26h3v1h-3zM6 26h1v1h-1zM9 26h2v1h-2zM14 26h1v1h-1zM17 26h2v1h-2zM20 26h1v1h-1zM24 26h3v1h-3zM28 26h1v1h-1zM0 27h1v1h-1zM6 27h1v1h-1zM9 27h3v1h-3zM13 27h2v1h-2zM17 27h1v1h-1zM19 27h2v1h-2zM24 27h2v1h-2zM27 27h1v1h-1zM0 28h7v1h-7zM8 28h1v1h-1zM10 28h2v1h-2zM16 28h2v1h-2zM20 28h3v1h-3zM24 28h1v1h-1zM27 28h1v1h-1z"/></svg><b>3esign.github.io/beops</b><span>skeniraj · živi BEOPS</span></a>
 <div id="foot"><span>BEOPS – Mozak Beograda · 8. FMBAS · <span id="num"></span></span><span id="dots"></span><span class="sv"><i></i>SVEMIR</span></div>
 <div id="help">← → · prevuci · F ceo ekran · N beleške</div>
 <script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script>
@@ -82,7 +82,7 @@ body.pdf #qr{transition:none}
 import * as T from 'three';
 const Q=new URLSearchParams(location.search), SHOT=Q.has('shot');
 const STILL=SHOT||Q.has("pdf")||Q.has("bg");if(SHOT)document.body.classList.add("shot");if(Q.has("pdf"))document.body.classList.add("pdf");if(Q.has("bg"))document.body.classList.add("pdf","bg");
-const C={noc:0x0E1B2E,tlo:0x13243d,reka:0x1d4b74,rekaL:0x2f6f9a,zgr:0x3e5b82,amber:0xE8A33D,tirkiz:0x2BB3A9,crvena:0xD9614A,magla:0xA9B6CC};
+const C={noc:0xF1EADB,tlo:0xECE3CF,reka:0xA9C3CF,rekaL:0x6F93A6,zgr:0xB3A68C,amber:0xB5521F,tirkiz:0x0F766E,crvena:0xB3261E,magla:0x5E6470};
 
 /* ---------- slajdovi: tvrdnja + jedan konkretan red ---------- */
 const MISLI='xooooooooooooooooooooxooxoxoxoxxxxxxxxooxxxxxxo';
@@ -99,7 +99,7 @@ const S=[
   n:'Glavna ideja izlaganja. Mozak grada nije centralna kontrolna soba koja upravlja gradom. To je zajednička memorija i rasuđivanje koje svako može da pogleda i proveri.'},
  {k:'Šta mora da ume',h:'Opaža. Pamti. Sumnja. I <b>kaže šta ne zna</b>.',p:'Četvrta osobina je najređa i najvažnija.',cam:[[-10,75,95],[-16,17,10]],lay:'br',off:[-.15,-.03],
   n:'Četiri sposobnosti koje svaki „mozak grada“ mora da ima. Naglasiti četvrtu: sistem koji ume da kaže „ne znam“ zaslužuje više poverenja od onoga koji uvek ima odgovor.'},
- {k:'BEOPS · stanje 24.11.2026, 17:01 UTC',h:'Za sedam dana BEOPS je odbio <b class="num"><span id="cnt">19</span> od 47</b> sopstvenih misli.',p:'Svaka odbijena ima ispisan razlog, npr. „navodi uzrok koji zapis ne nosi“.',cam:[[34,26,44],[14,6,12]],lay:'bl',off:[.2,-.1],strip:1,
+ {k:'BEOPS · stanje 24.11.2026, 17:01 UTC',h:'Za sedam dana BEOPS je odbio <b class="num"><span id="cnt">19</span> od 47</b> sopstvenih misli.',p:'Svaka odbijena ima ispisan razlog, npr. „navodi uzrok koji zapis ne nosi“.',cam:[[34,26,44],[14,6,12]],lay:'bl',off:[.34,-.1],strip:1,
   n:'BEOPS je otvorena opservatorija Beograda i prvi mali primer ove ideje. Više AI uloga radi kao tim: Posmatrač opaža, Sumnjalo proverava, Povezivač spaja. Nijedna tvrdnja ne izlazi bez provere. Traka na slajdu je stvarni redosled 47 misli iz poslednjih sedam dana; crvene su odbijene. Brojku osvežiti pred nastup (stanje 24.11.2026, 17:01 UTC).'},
  {k:'Stvarni zapis · 24.11.2026, 11:22 UTC',h:'Provera: „broj 16 pripada <b>PM2.5</b>, ne PM10“. Misao je odbijena.',p:'Uloga Sumnjalo, stanica Obrenovac Centar. Razlog je javno ispisan.',cam:[[30,13,38],[11,6.5,11]],lay:'br',off:[-.2,-.12],
   n:'Stvaran zapis iz BEOPS-a od 24.11.2026 u 11:22 UTC: misao uloge Sumnjalo je odbijena, a provera je kao razlog upisala da broj 16 pripada PM2.5, a ne PM10 (Obrenovac Centar: PM10 30, PM2.5 16 µg/m³). Provera je namerno stroga: odbija i kada je rečenica samo dvosmislena. Poruka: granice podataka su deo rezultata. Položaj stanice u sceni je stilizovan.'},
@@ -118,8 +118,8 @@ R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.setSize(innerWidth,innerHeight
 document.body.prepend(R.domElement);
 const sc=new T.Scene();sc.background=new T.Color(C.noc);sc.fog=new T.Fog(C.noc,120,420);
 const cam=new T.PerspectiveCamera(42,innerWidth/innerHeight,0.5,2000);
-sc.add(new T.HemisphereLight(0x8fb0d8,0x0b1424,1.1));
-const sun=new T.DirectionalLight(0xffe2b8,1.3);sun.position.set(-60,90,40);sc.add(sun);
+sc.add(new T.HemisphereLight(0xffffff,0xEFE6D2,2.5));
+const sun=new T.DirectionalLight(0xfff6e6,1.5);sun.position.set(-60,90,40);sc.add(sun);
 
 /* deterministički slučaj */
 let seed=7;const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
@@ -129,7 +129,7 @@ const V=(x,z)=>new T.Vector3(x,0,z);
 const dunav=new T.CatmullRomCurve3([V(-120,-95),V(-75,-58),V(-38,-27),V(-8,-6),V(18,-12),V(45,-30),V(85,-46),V(140,-52)]).getPoints(160);
 const sava=new T.CatmullRomCurve3([V(-110,95),V(-62,62),V(-36,34),V(-18,12),V(-8,-6)]).getPoints(90);
 function ribbon(pts,w,y){const p=[],idx=[];for(let i=0;i<pts.length;i++){const a=pts[Math.max(0,i-1)],b=pts[Math.min(pts.length-1,i+1)];const d=new T.Vector3().subVectors(b,a).normalize();const n=new T.Vector3(-d.z,0,d.x).multiplyScalar(w/2);p.push(pts[i].x+n.x,y,pts[i].z+n.z,pts[i].x-n.x,y,pts[i].z-n.z);if(i)idx.push(2*i-2,2*i-1,2*i,2*i-1,2*i+1,2*i);}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.setIndex(idx);return g;}
-const tlo=new T.Mesh(new T.CircleGeometry(600,64).rotateX(-Math.PI/2),new T.MeshLambertMaterial({color:C.tlo}));tlo.position.y=-0.05;sc.add(tlo);
+const tlo=new T.Mesh(new T.CircleGeometry(600,64).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:C.tlo}));tlo.position.y=-0.05;sc.add(tlo);
 for(const [pts,w] of [[dunav,9],[sava,5]]){
  sc.add(new T.Mesh(ribbon(pts,w,0.02),new T.MeshBasicMaterial({color:C.reka,side:2})));
  for(const s of [1,-1]){const e=pts.map((q,i)=>{const a=pts[Math.max(0,i-1)],b=pts[Math.min(pts.length-1,i+1)];const d=new T.Vector3().subVectors(b,a).normalize();return new T.Vector3(q.x-d.z*s*w/2,0.05,q.z+d.x*s*w/2);});
@@ -153,7 +153,7 @@ for(let x=-80;x<-6;x+=6.2)for(let z=-40;z<70;z+=6.2){const sx=interp(sava,'z',z,
  const tower=rnd()<.07;tryBox(x+rnd()*.6,z+rnd()*.6,3.8,3.8,tower?7+rnd()*7:1+rnd()*2.6,0);}
 for(let i=-34;i<34;i++)for(let j=-6;j<40;j++){const a=.42,u=i*2.7,v=j*2.7;const x=6+u*Math.cos(a)-v*Math.sin(a),z=2+u*Math.sin(a)+v*Math.cos(a);
  const sx=interp(sava,'z',z,'x');if(sx!==null&&x<sx)continue;if(rnd()<.3)continue;tryBox(x,z,1.9,1.9,.6+rnd()*rnd()*4.2,a);}
-{const g=new T.BoxGeometry(1,1,1).translate(0,.5,0);const im=new T.InstancedMesh(g,new T.MeshLambertMaterial({color:0x1a2f4f}),boxes.length);
+{const g=new T.BoxGeometry(1,1,1).translate(0,.5,0);const im=new T.InstancedMesh(g,new T.MeshLambertMaterial({color:0xFBF8F1}),boxes.length);
  const m=new T.Matrix4(),pos=[];
  boxes.forEach((b,i)=>{m.compose(new T.Vector3(b.x,0,b.z),new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),-b.rot),new T.Vector3(b.w,b.h,b.d));im.setMatrixAt(i,m);
   const c=[[-.5,0,-.5],[.5,0,-.5],[.5,0,.5],[-.5,0,.5]].map(([a,,cc])=>new T.Vector3(a,0,cc).applyMatrix4(m)),t=[[-.5,1,-.5],[.5,1,-.5],[.5,1,.5],[-.5,1,.5]].map(([a,bb,cc])=>new T.Vector3(a,bb,cc).applyMatrix4(m));
@@ -164,11 +164,11 @@ for(let i=-34;i<34;i++)for(let j=-6;j<40;j++){const a=.42,u=i*2.7,v=j*2.7;const 
 /* ---------- zgrada-junak: spratovi + pet tokova (nervni sistem) ---------- */
 const hero=new T.Group();hero.position.copy(HERO);sc.add(hero);
 {const h=16,w=4.4;const g=new T.BoxGeometry(w,h,w).translate(0,h/2,0);
- hero.add(new T.Mesh(g,new T.MeshLambertMaterial({color:0x22385c,transparent:true,opacity:.55})));
+ hero.add(new T.Mesh(g,new T.MeshLambertMaterial({color:0xFFFFFF,transparent:true,opacity:.55})));
  hero.add(new T.LineSegments(new T.EdgesGeometry(g),new T.LineBasicMaterial({color:C.amber})));
  const fl=[];for(let y=1.6;y<h;y+=1.6){const s=w/2;fl.push(-s,y,-s,s,y,-s,s,y,-s,s,y,s,s,y,s,-s,y,s,-s,y,s,-s,y,-s);}
  const fg=new T.BufferGeometry();fg.setAttribute('position',new T.Float32BufferAttribute(fl,3));hero.add(new T.LineSegments(fg,new T.LineBasicMaterial({color:C.amber,transparent:true,opacity:.28})));}
-const nerv=[];{const cols=[C.amber,C.tirkiz,0x7fb7ff,C.magla,C.crvena];
+const nerv=[];{const cols=[C.amber,C.tirkiz,0x2F6FB0,C.magla,C.crvena];
  for(let i=0;i<5;i++){const x=-1.4+i*.7;const ln=new T.Line(new T.BufferGeometry().setFromPoints([new T.Vector3(x,.2,0),new T.Vector3(x,15.6,0)]),new T.LineBasicMaterial({color:cols[i],transparent:true,opacity:0}));hero.add(ln);
   const p=new T.Mesh(new T.SphereGeometry(.22,10,8),new T.MeshBasicMaterial({color:cols[i],transparent:true,opacity:0}));hero.add(p);nerv.push({ln,p,x,o:i*.37});}}
 
@@ -199,7 +199,7 @@ bn.forEach(p=>{const m=new T.Mesh(new T.SphereGeometry(.55,10,8),bNodeMat);m.pos
 const up=[];isl.forEach(s=>{let best=bn[0];bn.forEach(b=>{if(b.distanceTo(s.pos)<best.distanceTo(s.pos))best=b;});up.push(...s.pos.toArray(),...best.toArray());});
 const upg=new T.BufferGeometry();upg.setAttribute('position',new T.Float32BufferAttribute(up,3));
 const upMat=new T.LineDashedMaterial({color:C.tirkiz,dashSize:1,gapSize:1,transparent:true,opacity:0});const upL=new T.LineSegments(upg,upMat);upL.computeLineDistances();sc.add(upL);
-const pulses=[];for(let k=0;k<26;k++){const m=new T.Mesh(new T.SphereGeometry(.42,8,6),new T.MeshBasicMaterial({color:0xfff1d6,transparent:true,opacity:0}));brain.add(m);pulses.push({m,l:bLinks[Math.floor(rnd()*bLinks.length)],t:rnd()});}
+const pulses=[];for(let k=0;k<26;k++){const m=new T.Mesh(new T.SphereGeometry(.42,8,6),new T.MeshBasicMaterial({color:0x7A2E12,transparent:true,opacity:0}));brain.add(m);pulses.push({m,l:bLinks[Math.floor(rnd()*bLinks.length)],t:rnd()});}
 /* četiri osobine: četiri istaknuta čvora */
 const four=[[ 'opaža',0],['pamti',0],['sumnja',0],['kaže šta ne zna',0]];
 {const picks=[...bn].map((p,i)=>[p,i]).sort((a,b)=>a[0].distanceTo(new T.Vector3(0,BY,8))-b[0].distanceTo(new T.Vector3(0,BY,8))).slice(0,14);
@@ -208,8 +208,8 @@ const fourMesh=four.map(([,p],i)=>{const m=new T.Mesh(new T.SphereGeometry(i===3
 
 /* ---------- merna stanica i odbijena tvrdnja ---------- */
 const ST=new T.Vector3(13,0,12);const stn=new T.Group();stn.position.copy(ST);sc.add(stn);
-stn.add(new T.Mesh(new T.CylinderGeometry(.12,.12,5,8).translate(0,2.5,0),new T.MeshLambertMaterial({color:0xcfd8e6})));
-stn.add(new T.Mesh(new T.BoxGeometry(1.4,.9,.9).translate(0,5.2,0),new T.MeshLambertMaterial({color:0xcfd8e6})));
+stn.add(new T.Mesh(new T.CylinderGeometry(.12,.12,5,8).translate(0,2.5,0),new T.MeshLambertMaterial({color:0x4A5568})));
+stn.add(new T.Mesh(new T.BoxGeometry(1.4,.9,.9).translate(0,5.2,0),new T.MeshLambertMaterial({color:0x4A5568})));
 const claim=new T.Mesh(new T.SphereGeometry(.45,16,12),new T.MeshBasicMaterial({color:C.crvena,transparent:true,opacity:0}));sc.add(claim);
 const xMat=new T.LineBasicMaterial({color:C.crvena,transparent:true,opacity:0});
 const xg=new T.BufferGeometry();xg.setAttribute('position',new T.Float32BufferAttribute([-1.3,-1.3,0,1.3,1.3,0,-1.3,1.3,0,1.3,-1.3,0],3));
@@ -234,7 +234,7 @@ label('Ušće Save i Dunava',new T.Vector3(-6,1,-3),'',s=>s>=2&&s<=3);
 label('Novi Beograd',new T.Vector3(-30,3,2),'',s=>s>=2&&s<=3);
 label('Stari grad',new T.Vector3(18,3,2),'',s=>s===2);
 label('Vračar',new T.Vector3(26,3,40),'',s=>s===3);
-label('Zemun',new T.Vector3(-58,3,-30),'',s=>s===2);
+label('Zemun',new T.Vector3(-58,3,-30),'',s=>s===3);
 label('zgrada',new T.Vector3(HERO.x,17,HERO.z),'a',s=>s===0);
 ['energija','voda','vazduh','održavanje','bezbednost'].forEach((n,i)=>label(n,new T.Vector3(HERO.x-1.4+i*.7,15.9-i*2.6,HERO.z+2.3),'a',s=>s===1));
 isl.forEach(s=>label(s.n,s.pos.clone().setY(11),'t',x=>x===2));
@@ -248,7 +248,7 @@ COND.forEach(([n],i)=>label(n,condP[i].position.clone().setY(22),'a',s=>s===9));
 label('mozak grada',new T.Vector3(0,BY+9,8),'a',s=>s===4);
 
 /* ---------- stanje po slajdu (ciljne vrednosti, glatko se dostižu) ---------- */
-const want=s=>({nerv:+(s===1||s===10),isl:+(s>=2&&s<=7),twin:s>=3?1:0,brain:s>=4?(s===7?.3:s===9?.12:s===6?.6:1):0,up:+(s>=4&&s<=6),four:+(s===5),claim:+(s===7),fut:+(s===8),cond:+(s===9)});
+const want=s=>({nerv:+(s===1||s===10),isl:+(s>=2&&s<=7),twin:s>=3?1:0,brain:s>=4&&s<10?(s===7?.3:s===9?.12:s===6?.6:1):0,up:+(s>=4&&s<=6),four:+(s===5),claim:+(s===7),fut:+(s===8),cond:+(s===9)});
 const cur=want(0);let slide=0,fly=null,tClaim=0;const off=[0,0];
 const ease=t=>1-Math.pow(1-t,3);
 function go(n,instant){n=Math.max(0,Math.min(N-1,n));if(n===slide&&!instant&&fly)return;slide=n;
@@ -296,7 +296,7 @@ function frame(now){
  isl.forEach((s,i)=>{const o=cur.isl;s.ring.material.opacity=o*(.6+.3*Math.sin(t*2+i));s.beam.material.opacity=o*.35*(1-cur.twin*.6);s.pm.material.opacity=o;});
  twinLines.forEach((l,i)=>l.geometry.setDrawRange(0,Math.round(41*Math.max(0,Math.min(1,cur.twin*1.6-i*.04)))));
  twinLines.forEach(l=>l.material.opacity=.85*Math.min(1,cur.isl+cur.fut*0));
- bLineMat.opacity=.42*cur.brain;bNodeMat.opacity=.9*cur.brain;upMat.opacity=.5*cur.up;
+ bLineMat.opacity=.3*cur.brain;bNodeMat.opacity=.9*cur.brain;upMat.opacity=.5*cur.up;
  pulses.forEach(p=>{p.t=(p.t+.006)%1;const [i,j]=p.l;p.m.position.lerpVectors(bn[i],bn[j],p.t);p.m.material.opacity=cur.brain*(slide===7?.2:1);});
  fourMesh.forEach((m,i)=>{m.material.opacity=cur.four;m.scale.setScalar(1+.18*Math.sin(t*3+i));});
  /* odbijena tvrdnja: pada iz mozga, staje na štitu iznad stanice */
