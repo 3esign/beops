@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-misli/v1.1",
-  "generated_at": "2026-11-24T01:36:28.231Z",
-  "as_of": "2026-11-24T01:33:41.488179Z",
+  "generated_at": "2026-11-24T01:46:28.058Z",
+  "as_of": "2026-11-24T01:42:46.186Z",
   "total_thoughts": 46,
   "filter_counts": {
     "accepted": 28,
@@ -109,175 +109,6 @@
           }
         ],
         "at": "2026-11-20T18:42:22.058Z"
-      }
-    },
-    {
-      "id": "bridge:2026-11-22T08-12-02-632Z__urednik__claude_auto",
-      "at": "2026-11-22T08:12:33.799Z",
-      "origin": "bridge",
-      "entity": "bridge:claude",
-      "entity_label": "claude/auto",
-      "model": "claude/auto",
-      "prompt_id": null,
-      "oblik": "esej",
-      "narav": null,
-      "state": "accepted",
-      "rejection_reason": null,
-      "text_sr": "U jutarnjem preseku od 08:02 UTC referentna mreža beleži prosečnu vrednost PM2.5 od 12.1 µg/m³ na 30 senzora. Raspon je od 5.1 do 26.1 µg/m³, a najviše meri Leštane. Ista stanica ima najvišu vrednost i za PM10, 35.9 µg/m³ uz prosek mreže od 14.2 µg/m³, i za NO2, 31.8 µg/m³ uz prosek od 16.6 µg/m³ na 31 senzoru. Kod ozona je drugačije: prosek je 37 µg/m³, a najviše, 54.4 µg/m³, meri se u Jajincima. Leštane je danas na vrhu kod tri zagađivača. Iz preseka ne može da se vidi zašto. Za ovaj mesec postoje SEPA dnevni proseci za pojedine stanice. Leštane nije među njima, pa ne mogu da kažem da li je ovo za to mesto uobičajeno.\n\nZa građane danas je najkonkretniji podatak 213 slobodnih mesta u garaži „Baba Višnjina“. Čas merenja nije potvrđen, pa ovaj broj ne garantuje slobodno mesto kad stignete. Važnije su najave za sutra, 2026-11-23. Planirano je isključenje struje u Zemunu za deo Ugrinovačke od 08:30 do 10:30. U Sremčici na Čukarici i u Mirijevu na Zvezdari najava je od 09:00 do 16:00. U Ripnju su najavljena dva prozora: od 08:00 do 15:00 i od 08:30 do 14:30. U Vrčinu je najava od 08:00 do 15:00, a u delu Novog Beograda, između ostalih u Alekse Dundića, od 10:00 do 15:00. Pretpostavljam da će ovo najviše pogoditi one koji sutra rade od kuće na navedenim adresama, ako se isključenja sprovedu kako su najavljena.\n\nPažnju zaslužuje jedna protivrečnost. Jedan građanski senzor, 101496, u 08:00 UTC prikazuje PM2.5 od 38 µg/m³. To je više od najviše vrednosti cele referentne mreže. Slično je sa vlažnošću: građanski senzor 54598 meri 41.47 %, a referentni meteorološki zapis 66.5. U oba slučaja reč je o jednom uređaju druge mreže, sa nepoznatim položajem i kalibracijom. Ovo je znak da se merenja razlikuju, ne dokaz da je zagađenje skriveno.\n\nGranice znanja su jasne. Presek nije potvrđeno vreme za svaki senzor, i nemamo seriju koja bi pokazala smer kretanja. Nemamo ni prognozu, pa ne znamo kakav će vazduh biti posle podne ili sutra. Najave isključenja ne navode vremensku zonu niti potvrđuju da će radovi biti izvedeni. Istorijski proseci su dnevni, a današnji podatak je preliminarna satna vrednost, pa poređenje služi samo kao orijentir.",
-      "text_en": null,
-      "hypotheses_sr": [],
-      "questions_sr": [],
-      "cites": [
-        "puls:pm25",
-        "puls:pm10",
-        "puls:no2",
-        "puls:o3",
-        "puls:meteo",
-        "izvor:S04:pm25",
-        "izvor:S04:humidity",
-        "istorija:vazduh-mesec-11",
-        "izvor:S10:free_spaces",
-        "izvor:173c2116315ebc23",
-        "izvor:18c6799719018e28",
-        "izvor:47eb23e6f7354aa7",
-        "izvor:61cfc19c47cfd392",
-        "izvor:6ee2f13c8422a347",
-        "izvor:64f6b803d29c9382",
-        "izvor:4e5fa63ebd17bbe1"
-      ],
-      "pouzdanost": "srednje — referentni presek je jasan i obiman, ali najave nemaju vremensku zonu i potvrdu izvođenja, parking nema čas merenja, a za Leštane nema istorije.",
-      "naslov": "Leštane vodi u zagađenju, sutra isključenja struje širom grada",
-      "prompt_version": 4,
-      "status_odgovora": "nalaz",
-      "odgovor_na_pitanje": null,
-      "ekspertize": null,
-      "prozor": null,
-      "kontekst_sha256": "6b93a432288e93a599d4d17a39d49d9c0b31870c5e188d5f455439eeed8f9233",
-      "oslonci": [
-        {
-          "id": "puls:pm25",
-          "naslov": "PM25",
-          "tekst": "{\"mean\":12.1,\"median\":10.4,\"min\":5.1,\"max\":26.1,\"max_station\":\"Leštane\",\"unit\":\"µg/m³\",\"sensors_count\":30,\"network\":\"reference\"}",
-          "at": "2026-11-22T08:02:25.585172Z",
-          "izvor": "state/puls.json#/current_metrics/pm25"
-        },
-        {
-          "id": "puls:pm10",
-          "naslov": "PM10",
-          "tekst": "{\"mean\":14.2,\"median\":12.4,\"min\":5.7,\"max\":35.9,\"max_station\":\"Leštane\",\"unit\":\"µg/m³\",\"sensors_count\":30,\"network\":\"reference\"}",
-          "at": "2026-11-22T08:02:25.585172Z",
-          "izvor": "state/puls.json#/current_metrics/pm10"
-        },
-        {
-          "id": "puls:no2",
-          "naslov": "NO2",
-          "tekst": "{\"mean\":16.6,\"median\":15.4,\"min\":5.5,\"max\":31.8,\"max_station\":\"Leštane\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-          "at": "2026-11-22T08:02:25.585172Z",
-          "izvor": "state/puls.json#/current_metrics/no2"
-        },
-        {
-          "id": "puls:o3",
-          "naslov": "O3",
-          "tekst": "{\"mean\":37,\"median\":40.1,\"min\":5.1,\"max\":54.4,\"max_station\":\"Jajinci\",\"unit\":\"µg/m³\",\"sensors_count\":26,\"network\":\"reference\"}",
-          "at": "2026-11-22T08:02:25.585172Z",
-          "izvor": "state/puls.json#/current_metrics/o3"
-        },
-        {
-          "id": "puls:meteo",
-          "naslov": "Vremenski uslovi",
-          "tekst": "{\"temperature\":9.2,\"humidity\":66.5,\"pressure\":1000.8,\"wind_speed\":4.6,\"wind_direction\":\"120.0\"}",
-          "at": "2026-11-22T08:02:25.585172Z",
-          "izvor": "state/puls.json#/current_metrics/meteo"
-        },
-        {
-          "id": "izvor:S10:free_spaces",
-          "naslov": "Slobodnih parking mesta 213 — Garaža \"Baba Višnjina\"",
-          "tekst": "{\"naslov\":\"Slobodnih parking mesta 213 — Garaža \\\"Baba Višnjina\\\"\",\"stanje\":\"untimed\",\"vreme_merenja_ili_objave\":null,\"primljeno\":\"2026-11-22T07:52:26.227875Z\",\"napomena\":\"Čas merenja nije potvrđen; prijem ne određuje starost vrednosti.\"}",
-          "at": null,
-          "izvor": "Parking servis - displayed free spaces per lot"
-        },
-        {
-          "id": "izvor:S04:pm25",
-          "naslov": "PM2.5 38 µg/m³ — 101496",
-          "tekst": "{\"naslov\":\"PM2.5 38 µg/m³ — 101496\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-22T08:00:43Z\",\"primljeno\":\"2026-11-22T08:02:24.943820Z\",\"napomena\":null}",
-          "at": "2026-11-22T08:00:43Z",
-          "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-        },
-        {
-          "id": "izvor:S04:humidity",
-          "naslov": "Vlažnost 41.47 % — 54598",
-          "tekst": "{\"naslov\":\"Vlažnost 41.47 % — 54598\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-22T08:01:32Z\",\"primljeno\":\"2026-11-22T08:02:24.943820Z\",\"napomena\":null}",
-          "at": "2026-11-22T08:01:32Z",
-          "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-        },
-        {
-          "id": "izvor:173c2116315ebc23",
-          "naslov": "Планирано искључење струје 2026-11-23 · Земун · 08:30 - 10:30 · УГРИНОВАЧКА: 223-223ж",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-23 · Земун · 08:30 - 10:30 · УГРИНОВАЧКА: 223-223ж\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[],\"vreme_merenja_ili_objave\":\"2026-11-23\",\"primljeno\":null,\"napomena\":null}",
-          "at": "2026-11-23",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:18c6799719018e28",
-          "naslov": "Планирано искључење струје 2026-11-23 · Чукарица · 09:00 - 16:00 · ЗОРАНА МАТИЋА: 4,10-18,3Б-5, Насеље СРЕМЧИЦА: АЦЕ ТРИЧКОВИЋА: 2-10,1-3, БЕОГРАДСКА: 108-110,114-138,142-146,152-192,196-198,111-119,1",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-23 · Чукарица · 09:00 - 16:00 · ЗОРАНА МАТИЋА: 4,10-18,3Б-5, Насеље СРЕМЧИЦА: АЦЕ ТРИЧКОВИЋА: 2-10,1-3, БЕОГРАДСКА: 108-110,114-138,142-146,152-192,196-198,111-119,1\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[\"4\",\"10\"],\"vreme_mer…",
-          "at": "2026-11-23",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:47eb23e6f7354aa7",
-          "naslov": "Планирано искључење струје 2026-11-23 · Вождовац · 08:00 - 15:00 · Насеље РИПАЊ: ЕРСКЕ АЛУГЕ: 15, КРАГУЈЕВАЧКИ ПУТ: 74-76Б,82Е-86,96-114,222А, ОСКОРУШЕ: ББ,2,6,14,26,1-5А,13-17,21,25-27,31,59, ПРВОМАЈ",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-23 · Вождовац · 08:00 - 15:00 · Насеље РИПАЊ: ЕРСКЕ АЛУГЕ: 15, КРАГУЈЕВАЧКИ ПУТ: 74-76Б,82Е-86,96-114,222А, ОСКОРУШЕ: ББ,2,6,14,26,1-5А,13-17,21,25-27,31,59,…",
-          "at": "2026-11-23",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:4e5fa63ebd17bbe1",
-          "naslov": "Планирано искључење струје 2026-11-23 · Нови Београд · 10:00 - 15:00 · АЛЕКСЕ ДУНДИЋА: 2-16,1-11, БЛАЖА ПОПИВОДЕ: 2-12,16а-18а,1-23, ДАНИЛА СРДИЋА: 2-12,1-15, ДУШАНА ВУКАСОВИЋА: 2А,6-36А,46,1-19,35Б-3",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-23 · Нови Београд · 10:00 - 15:00 · АЛЕКСЕ ДУНДИЋА: 2-16,1-11, БЛАЖА ПОПИВОДЕ: 2-12,16а-18а,1-23, ДАНИЛА СРДИЋА: 2-12,1-15, ДУШАНА ВУКАСОВИЋА:…",
-          "at": "2026-11-23",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:61cfc19c47cfd392",
-          "naslov": "Планирано искључење струје 2026-11-23 · Вождовац · 08:30 - 14:30 · Насеље РИПАЊ: АВАЛСКА: 87, ИВАНА ПАНЏЕ: 4-12,16-18,1-17, ПУТ ЗА ТРЕШЊУ: 0,12А,29,33, ПУТ ЗА ТРЕШЊУ 2 ДЕО: 8-8Б,26,34,3-7,19-21, СТАРИ",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-23 · Вождовац · 08:30 - 14:30 · Насеље РИПАЊ: АВАЛСКА: 87, ИВАНА ПАНЏЕ: 4-12,16-18,1-17, ПУТ ЗА ТРЕШЊУ: 0,12А,29,33, ПУТ ЗА ТРЕШЊУ 2 ДЕО: 8-8Б,26,34,3-7,19-21,…",
-          "at": "2026-11-23",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:64f6b803d29c9382",
-          "naslov": "Планирано искључење струје 2026-11-23 · Звездара · 09:00 - 16:00 · МАТИЦЕ СРПСКЕ: 67-81А,111-111, МИЛАНА РАКИЋА: 110Б,114-114,120-122Б,129Ж, МЛАВСКА: ББ, Насеље МИРИЈЕВО: КИСЕЛА ВОДА: 2-20",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-23 · Звездара · 09:00 - 16:00 · МАТИЦЕ СРПСКЕ: 67-81А,111-111, МИЛАНА РАКИЋА: 110Б,114-114,120-122Б,129Ж, МЛАВСКА: ББ, Насеље МИРИЈЕВО: КИСЕЛА ВОДА:…",
-          "at": "2026-11-23",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "izvor:6ee2f13c8422a347",
-          "naslov": "Планирано искључење струје 2026-11-23 · Гроцка · 08:00 - 15:00 · Насеље ВРЧИН: БРАТСТВА И ЈЕДИНСТВА: 2-24,1,7-9,13-27, КАЈМАКЧАЛАНСКА: 58-60,66,70-72,82,86, КАЈМАКЧАЛАНСКА ЧЕТВРТИ ДЕО: 4-8А,12,20-28,3",
-          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-23 · Гроцка · 08:00 - 15:00 · Насеље ВРЧИН: БРАТСТВА И ЈЕДИНСТВА: 2-24,1,7-9,13-27, КАЈМАКЧАЛАНСКА: 58-60,66,70-72,82,86, КАЈМАКЧАЛАНСКА ЧЕТВРТИ ДЕО:…",
-          "at": "2026-11-23",
-          "izvor": "news-sorter"
-        },
-        {
-          "id": "istorija:vazduh-mesec-11",
-          "naslov": "Uobičajeno za ovaj mesec (SEPA verifikovano, 2011–2024)",
-          "tekst": "{\"period\":[\"2011-01-01\",\"2024-12-31\"],\"mesec\":11,\"jedinica\":\"µg/m³, dnevni prosek\",\"stanice\":{\"mostar\":{\"s146_id\":\"10\",\"no2\":{\"p50\":40.6,\"p90\":71.3,\"dana\":385},\"pm10\":{\"p50\":31,\"p90\":74.5,\"dana\":270},\"pm25\":{\"p50\":25,\"p90\":47.2,\"dana\":180}},\"novi-beograd\":{\"s146_id\":\"9\",\"no2\":{\"p…",
-          "at": "2024-12-31",
-          "izvor": "state/kontekst-vazduh-dnevno.json#/monthly_climatology"
-        }
-      ],
-      "level": null,
-      "za_gradjanina": {
-        "akcija": "Ako ste sutra, 2026-11-23, na adresama iz najava u Ugrinovačkoj u Zemunu, Sremčici, Ripnju, Vrčinu, Mirijevu ili navedenim ulicama Novog Beograda, proverite svoju adresu u najavi i napunite telefon i uređaje pre početka prozora, između 08:00 i 10:00 zavisno od dela grada. Broj slobodnih mesta u garaži „Baba Višnjina“ nema potvrđen čas, pa računajte na rezervnu opciju za parking.",
-        "vazi_do": null,
-        "lokacija": "СРЕМЧИЦА, УГРИНОВАЧКА, МИРИЈЕВО, ВРЧИН, УГРИНОВЦИ",
-        "dokaz": "puls:pm25 · puls:pm10 · puls:no2 · puls:o3 · puls:meteo · izvor:S04:pm25 · izvor:S04:humidity · istorija:vazduh-mesec-11 · izvor:S10:free_spaces · izvor:173c2116315ebc23 · izvor:18c6799719018e28 · izvor:47eb23e6f7354aa7 · izvor:61cfc19c47cfd392 · izvor:6ee2f13c8422a347 · izvor:64f6b803d29c9382 · izvor:4e5fa63ebd17bbe1"
-      },
-      "validacija": {
-        "state": "accepted",
-        "razlog": [],
-        "at": "2026-11-22T08:12:33.801Z"
       }
     },
     {
@@ -2220,6 +2051,167 @@
         "F9"
       ],
       "level": "veza"
+    },
+    {
+      "id": "bridge:2026-11-24T01-42-18-134Z__urednik__claude_auto",
+      "at": "2026-11-24T01:42:46.186Z",
+      "origin": "bridge",
+      "entity": "bridge:claude",
+      "entity_label": "claude/auto",
+      "model": "claude/auto",
+      "prompt_id": null,
+      "oblik": "esej",
+      "narav": null,
+      "state": "accepted",
+      "rejection_reason": null,
+      "text_sr": "U noćnom preseku od 24. novembra u 01:32 UTC referentna mreža ne pokazuje visoko zagađenje vazduha. Prosek PM2.5 je 11.1 µg/m³, PM10 12.1 µg/m³, a NO2 12.7 µg/m³. Najviše vrednosti su lokalne. Obrenovac Centar beleži 18.5 µg/m³ PM2.5 i 25 µg/m³ PM10, a Borča 24.9 µg/m³ NO2. Odstupa jedan građanski senzor, 90579, koji je u 01:30 UTC javio PM10 od 36.4 µg/m³. To je više od najviše referentne vrednosti, ali je u pitanju pojedinačni nereferentni uređaj. RHMZ stanica Beograd izmerila je 0.4 °C u 01:20 UTC.\n\nZa građane je važnija sutrašnja najava nego ova noć. Za 25. novembar planirana su isključenja struje na više mesta po obodu grada. U Zemunu je najavljeno isključenje u naselju Altina od 08:30 do 13:30 i u Batajnici, na Širokom putu, od 10:00 do 11:30. Na Palilulu se odnose dve najave: Jabučki rit i Padinska skela od 09:00 do 12:00, a deo ulica oko Jahorinske i Levskoga od 08:30 do 14:00. Na Čukarici je u Železniku najavljeno isključenje od 09:00 do 11:00, u Obrenovcu za Konatice i Poljane od 08:30 do 15:00, a u Surčinu za Jakovo, Vožda Karađorđa 92–108, od 08:00 do 13:00. Ovo su najave, ne potvrđeni događaji.\n\nPažnju zaslužuje Obrenovac Centar. Noćas je to mesto sa najvišim česticama u mreži, a ipak je ispod onoga što je za novembar uobičajeno na toj stanici. SEPA-in verifikovani dnevni medijan za 2011–2024. tamo iznosi 26.4 µg/m³ za PM2.5 i 30.1 µg/m³ za PM10. To je samo orijentir, jer se satni preliminarni presek poredi sa dnevnim prosekom. Druga neusaglašenost je temperatura. Zbirni meteo presek daje vrednost 2.6 bez navedene jedinice, dok RHMZ meri 0.4 °C. Pretpostavljam da je razlog u različitim izvorima i trenucima merenja, ali paket to ne potvrđuje.\n\nNe znamo kakav će biti dan. Paket nema prognozu, nema podatke o padavinama ni vremensku seriju iz koje bi se video trend. Čas merenja nije potvrđen za svaki senzor, a broj senzora ne dokazuje da je mreža istog sastava kao ranije.",
+      "text_en": null,
+      "hypotheses_sr": [],
+      "questions_sr": [],
+      "cites": [
+        "puls:pm25",
+        "puls:pm10",
+        "puls:no2",
+        "puls:o3",
+        "puls:meteo",
+        "izvor:S01:temperature",
+        "izvor:S04:pm10",
+        "istorija:vazduh-mesec-11",
+        "izvor:1085721b53fda078",
+        "izvor:1c32697f29782420",
+        "izvor:1eaf5f4a95ef6381",
+        "izvor:2e1bf9dc5edde622",
+        "izvor:439ccba92ab165c2",
+        "izvor:70184c9ee60cf224",
+        "izvor:83f4b66869ef551d"
+      ],
+      "pouzdanost": "srednje — vazduh meri referentna mreža sa 27–32 senzora, ali čas merenja nije potvrđen za svaki senzor, a isključenja su samo najave.",
+      "naslov": "Mirna noć nad Beogradom, sutra najavljena isključenja struje po obodu",
+      "prompt_version": 4,
+      "status_odgovora": "nalaz",
+      "odgovor_na_pitanje": null,
+      "ekspertize": null,
+      "prozor": null,
+      "kontekst_sha256": "cc34430513c6747669ce96dd52260629bcad4a5db11e01c386e416b34a8fe331",
+      "oslonci": [
+        {
+          "id": "puls:pm25",
+          "naslov": "PM25",
+          "tekst": "{\"mean\":11.1,\"median\":10.8,\"min\":6.1,\"max\":18.5,\"max_station\":\"Obrenovac Centar\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+          "at": "2026-11-24T01:32:41.419897Z",
+          "izvor": "state/puls.json#/current_metrics/pm25"
+        },
+        {
+          "id": "puls:pm10",
+          "naslov": "PM10",
+          "tekst": "{\"mean\":12.1,\"median\":11.7,\"min\":6.7,\"max\":25,\"max_station\":\"Obrenovac Centar\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+          "at": "2026-11-24T01:32:41.419897Z",
+          "izvor": "state/puls.json#/current_metrics/pm10"
+        },
+        {
+          "id": "puls:no2",
+          "naslov": "NO2",
+          "tekst": "{\"mean\":12.7,\"median\":11.7,\"min\":6.7,\"max\":24.9,\"max_station\":\"Borča\",\"unit\":\"µg/m³\",\"sensors_count\":32,\"network\":\"reference\"}",
+          "at": "2026-11-24T01:32:41.419897Z",
+          "izvor": "state/puls.json#/current_metrics/no2"
+        },
+        {
+          "id": "puls:o3",
+          "naslov": "O3",
+          "tekst": "{\"mean\":34.5,\"median\":38,\"min\":5.2,\"max\":44.6,\"max_station\":\"Zeleno brdo\",\"unit\":\"µg/m³\",\"sensors_count\":27,\"network\":\"reference\"}",
+          "at": "2026-11-24T01:32:41.419897Z",
+          "izvor": "state/puls.json#/current_metrics/o3"
+        },
+        {
+          "id": "puls:meteo",
+          "naslov": "Vremenski uslovi",
+          "tekst": "{\"temperature\":2.6,\"humidity\":75.9,\"pressure\":1010,\"wind_speed\":4.1,\"wind_direction\":\"260.0\"}",
+          "at": "2026-11-24T01:32:41.419897Z",
+          "izvor": "state/puls.json#/current_metrics/meteo"
+        },
+        {
+          "id": "izvor:S04:pm10",
+          "naslov": "PM10 36.4 µg/m³ — 90579",
+          "tekst": "{\"naslov\":\"PM10 36.4 µg/m³ — 90579\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-24T01:30:06Z\",\"primljeno\":\"2026-11-24T01:32:26.235973Z\",\"napomena\":null}",
+          "at": "2026-11-24T01:30:06Z",
+          "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+        },
+        {
+          "id": "izvor:S01:temperature",
+          "naslov": "Temperatura 0.4 °C — Beograd",
+          "tekst": "{\"naslov\":\"Temperatura 0.4 °C — Beograd\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-24T01:20:00Z\",\"primljeno\":\"2026-11-24T01:32:38.589032Z\",\"napomena\":null}",
+          "at": "2026-11-24T01:20:00Z",
+          "izvor": "RHMZ automatic stations - Belgrade (Beograd, Košutnjak)"
+        },
+        {
+          "id": "izvor:1085721b53fda078",
+          "naslov": "Планирано искључење струје 2026-11-25 · Земун · 08:30 - 13:30 · Насеље АЛТИНА: ГОРДАНЕ КОСАНОВИЋ : 2-4А,10А-12А,1-3Д, ЈАСМИНЕ ЈОВАНОВИЋ : 2-8,1-5, ЈУГА ГРИЗЕЉА : 2-24А,28,3,17-19,23-33, ЉИЉАНЕ КРСТИЋ ",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-25 · Земун · 08:30 - 13:30 · Насеље АЛТИНА: ГОРДАНЕ КОСАНОВИЋ : 2-4А,10А-12А,1-3Д, ЈАСМИНЕ ЈОВАНОВИЋ : 2-8,1-5, ЈУГА ГРИЗЕЉА : 2-24А,28,3,17-19,23-33, ЉИЉАНЕ КРСТИЋ…",
+          "at": "2026-11-25",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:1c32697f29782420",
+          "naslov": "Планирано искључење струје 2026-11-25 · Земун · 10:00 - 11:30 · Насеље БАТАЈНИЦА: ШИРОКИ ПУТ: бб",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-25 · Земун · 10:00 - 11:30 · Насеље БАТАЈНИЦА: ШИРОКИ ПУТ: бб\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[],\"vreme_merenja_ili_objave\":\"2026-11-25\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-11-25",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:1eaf5f4a95ef6381",
+          "naslov": "Планирано искључење струје 2026-11-25 · Чукарица · 09:00 - 11:00 · МИЛАНА РИСТАНОВИЋА: 2-6,9-15, Насеље ЖЕЛЕЗНИК: ЛОЛЕ РИБАРА: 126-126А,132-140,144,141-145, МАКИШКА: 2-16А,1-13, САВСКА: 2-2Д,1-3",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-25 · Чукарица · 09:00 - 11:00 · МИЛАНА РИСТАНОВИЋА: 2-6,9-15, Насеље ЖЕЛЕЗНИК: ЛОЛЕ РИБАРА: 126-126А,132-140,144,141-145, МАКИШКА: 2-16А,1-13, САВСКА:…",
+          "at": "2026-11-25",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:2e1bf9dc5edde622",
+          "naslov": "Планирано искључење струје 2026-11-25 · Палилула · 09:00 - 12:00 · Насеље ЈАБУЧКИ РИТ: ЈАБУЧКИ РИТ: 14,18,42-62А,9-19,41-61, Насеље ПАДИНСКА СКЕЛА: ЈАБУЧКИ РИТ: ББ,ББ,ББ,ББ,ББ,ББ,ББ,10,100-104,101-105",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-25 · Палилула · 09:00 - 12:00 · Насеље ЈАБУЧКИ РИТ: ЈАБУЧКИ РИТ: 14,18,42-62А,9-19,41-61, Насеље ПАДИНСКА СКЕЛА: ЈАБУЧКИ РИТ:…",
+          "at": "2026-11-25",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:439ccba92ab165c2",
+          "naslov": "Планирано искључење струје 2026-11-25 · Палилула · 08:30 - 14:00 · ЈАХОРИНСКА: 2-12,16-20,7, ЛЕСНОВСКА: 2-6,12-16А, ЛЕВСКОГА: 2-14,1-11, ПРИБОЈСКА: 23, ТИНА УЈЕВИЋА: 2-8,1-5,9-17, ВЛАДЕ ИЛИЋА: 3-5, ВО",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-25 · Палилула · 08:30 - 14:00 · ЈАХОРИНСКА: 2-12,16-20,7, ЛЕСНОВСКА: 2-6,12-16А, ЛЕВСКОГА: 2-14,1-11, ПРИБОЈСКА: 23, ТИНА УЈЕВИЋА: 2-8,1-5,9-17, ВЛАДЕ ИЛИЋА: 3-5,…",
+          "at": "2026-11-25",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:70184c9ee60cf224",
+          "naslov": "Планирано искључење струје 2026-11-25 · Обреновац · 08:30 - 15:00 · Насеље КОНАТИЦЕ: БРОЧИШТЕ: ББ,10,102-102Ј,17А-19, ГОРЊИ КРАЈ: 127, Насеље ПОЉАНЕ: ЋОСИЋА КРАЈ: 148-148А,131-131,137,141А, ПАЈИЋА КРА",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-25 · Обреновац · 08:30 - 15:00 · Насеље КОНАТИЦЕ: БРОЧИШТЕ: ББ,10,102-102Ј,17А-19, ГОРЊИ КРАЈ: 127, Насеље ПОЉАНЕ: ЋОСИЋА КРАЈ: 148-148А,131-131,137,141А, ПАЈИЋА…",
+          "at": "2026-11-25",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "izvor:83f4b66869ef551d",
+          "naslov": "Планирано искључење струје 2026-11-25 · Сурчин · 08:00 - 13:00 · Насеље ЈАКОВО: ВОЖДА КАРАЂОРЂА: 92-108",
+          "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-25 · Сурчин · 08:00 - 13:00 · Насеље ЈАКОВО: ВОЖДА КАРАЂОРЂА: 92-108\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[],\"vreme_merenja_ili_objave\":\"2026-11-25\",\"primljeno\":null,\"napomena\":null}",
+          "at": "2026-11-25",
+          "izvor": "news-sorter"
+        },
+        {
+          "id": "istorija:vazduh-mesec-11",
+          "naslov": "Uobičajeno za ovaj mesec (SEPA verifikovano, 2011–2024)",
+          "tekst": "{\"period\":[\"2011-01-01\",\"2024-12-31\"],\"mesec\":11,\"jedinica\":\"µg/m³, dnevni prosek\",\"stanice\":{\"mostar\":{\"s146_id\":\"10\",\"no2\":{\"p50\":40.6,\"p90\":71.3,\"dana\":385},\"pm10\":{\"p50\":31,\"p90\":74.5,\"dana\":270},\"pm25\":{\"p50\":25,\"p90\":47.2,\"dana\":180}},\"novi-beograd\":{\"s146_id\":\"9\",\"no2\":{\"p…",
+          "at": "2024-12-31",
+          "izvor": "state/kontekst-vazduh-dnevno.json#/monthly_climatology"
+        }
+      ],
+      "level": null,
+      "za_gradjanina": {
+        "akcija": "Ako živite u Altini, Batajnici, Železniku, Jabučkom ritu, Padinskoj skeli, Konaticama, Poljanama ili Jakovu, proverite da li je vaša ulica na spisku za 25. novembar. Najavljena isključenja počinju između 08:00 i 10:00, a uglavnom traju do podneva ili ranog popodneva. Pre podne napunite telefon i pripremite ono što zavisi od struje.",
+        "vazi_do": null,
+        "lokacija": "ЈАКОВО, АЛТИНА, БАТАЈНИЦА, БАТАЈНИ, КОНАТИЦЕ, ПОЉАНЕ, ЖЕЛЕЗНИК",
+        "dokaz": "puls:pm25 · puls:pm10 · puls:no2 · puls:o3 · puls:meteo · izvor:S01:temperature · izvor:S04:pm10 · istorija:vazduh-mesec-11 · izvor:1085721b53fda078 · izvor:1c32697f29782420 · izvor:1eaf5f4a95ef6381 · izvor:2e1bf9dc5edde622 · izvor:439ccba92ab165c2 · izvor:70184c9ee60cf224 · izvor:83f4b66869ef551d"
+      },
+      "validacija": {
+        "state": "accepted",
+        "razlog": [],
+        "at": "2026-11-24T01:42:46.189Z"
+      }
     }
   ]
 }
