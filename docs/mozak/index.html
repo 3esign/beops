@@ -12,10 +12,28 @@ html,body{height:100%;background:var(--noc);color:var(--belo);font-family:"Segoe
 canvas{display:block;position:fixed;inset:0}
 #lab{position:fixed;inset:0;pointer-events:none}
 .lb{position:absolute;transform:translate(-50%,-100%);font-size:clamp(11px,.9vw,18px);letter-spacing:.08em;text-transform:uppercase;color:var(--magla);white-space:nowrap;opacity:0;transition:opacity .6s;text-shadow:0 0 6px var(--noc)}
-.lb.on{opacity:1}.lb.a{color:var(--amber)}.lb.t{color:var(--tirkiz)}.lb.r{color:var(--crvena)}
+.lb.on{opacity:1}.lb.n{text-transform:none;letter-spacing:.03em}.lb.a{color:var(--amber)}.lb.t{color:var(--tirkiz)}.lb.r{color:var(--crvena)}
 .lb::after{content:"";display:block;width:1px;height:14px;background:currentColor;margin:3px auto 0;opacity:.6}
-#hud::before{content:"";position:absolute;left:-12vw;right:-14vw;top:-10vh;bottom:-12vh;background:radial-gradient(ellipse at 30% 60%,rgba(14,27,46,.92),rgba(14,27,46,.6) 45%,rgba(14,27,46,0) 72%);z-index:-1}
-#hud{position:fixed;left:5vw;bottom:13vh;max-width:min(48vw,900px);pointer-events:none}
+#hud::before{content:"";position:absolute;left:-12vw;right:-14vw;top:-10vh;bottom:-12vh;background:radial-gradient(ellipse at 30% 60%,rgba(14,27,46,.94),rgba(14,27,46,.66) 45%,rgba(14,27,46,0) 72%);z-index:-1}
+#hud{position:fixed;max-width:min(46vw,880px);pointer-events:none}
+#hud.bl{left:5vw;bottom:13vh}
+#hud.br{right:5vw;bottom:13vh}
+#hud.br::before{left:-14vw;right:-12vw;background:radial-gradient(ellipse at 70% 60%,rgba(14,27,46,.94),rgba(14,27,46,.66) 45%,rgba(14,27,46,0) 72%)}
+#hud.tl{left:5vw;top:21vh}
+#hud.tl::before{top:-6vh;bottom:-14vh;background:radial-gradient(ellipse at 30% 42%,rgba(14,27,46,.94),rgba(14,27,46,.66) 45%,rgba(14,27,46,0) 72%)}
+#hud.bc{left:50%;bottom:12vh;transform:translateX(-50%);text-align:center;width:min(66vw,1260px);max-width:none}
+#hud.bc::before{left:-10vw;right:-10vw;background:radial-gradient(ellipse at 50% 60%,rgba(14,27,46,.94),rgba(14,27,46,.66) 45%,rgba(14,27,46,0) 72%)}
+#hud.bc .k{justify-content:center}#hud.bc p{margin-left:auto;margin-right:auto}
+#hud .num{font-size:1.5em;white-space:nowrap}
+#strip{display:flex;gap:.34vw;margin:0 0 1.5em;align-items:flex-end}
+#strip i{width:.62vw;height:2.6vw;background:var(--tirkiz);opacity:0;transform:scaleY(.2);transform-origin:bottom;transition:opacity .25s,transform .35s}
+#strip i.x{background:var(--crvena);height:3.6vw}
+#strip i.in{opacity:1;transform:none}
+#strip+small{display:block;margin:-.8em 0 1.4em;font-size:clamp(11px,.95vw,18px);letter-spacing:.1em;text-transform:uppercase;color:var(--magla)}
+#strip+small b{color:var(--crvena);font-weight:600}
+#notes{position:fixed;left:5vw;right:5vw;bottom:7vh;background:rgba(9,18,32,.96);border:1px solid var(--amber);padding:1.6vh 1.4vw;font-size:clamp(14px,1.25vw,24px);line-height:1.45;color:var(--belo);display:none;z-index:5}
+#notes.on{display:block}#notes small{display:block;color:var(--amber);font-size:.62em;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.5em}
+body.bg #hc,body.bg #aut,body.bg #foot,body.bg #help,body.bg #qr,body.pdf #notes,body.bg #notes{visibility:hidden}
 #hud .k{font-size:clamp(11px,1vw,20px);letter-spacing:.14em;text-transform:uppercase;color:var(--amber);font-weight:600;margin-bottom:1.1em;display:flex;gap:.8em;align-items:center}
 #hud .k::before{content:"";width:36px;height:3px;background:var(--amber)}
 #hud h1{font-weight:300;font-size:clamp(26px,3.3vw,54px);line-height:1.12;letter-spacing:-.01em}
@@ -38,6 +56,8 @@ body.shot #top{display:none}
 #aut i{font-style:normal;color:var(--amber);margin:0 .55em}
 #aut small{display:block;font-size:.5em;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin-bottom:.5em}
 #aut.big{font-size:clamp(16px,1.9vw,38px)}
+#aut em{display:none;font-style:normal;font-size:.5em;font-weight:400;letter-spacing:.06em;color:var(--magla);margin-top:.55em}
+#aut.big em{display:block}
 #qr{position:fixed;right:5vw;top:17vh;width:40vh;background:var(--belo);padding:1.2vh 1.2vh 1.6vh;opacity:0;transform:translateY(14px);transition:opacity .7s .5s,transform .7s .5s;pointer-events:none;text-decoration:none;box-shadow:0 0 0 1px var(--amber),0 2vh 6vh rgba(0,0,0,.55)}
 #qr.on{opacity:1;transform:none;pointer-events:auto}
 #qr svg{display:block;width:100%;height:auto}
@@ -45,42 +65,55 @@ body.shot #top{display:none}
 #qr span{display:block;text-align:center;color:#3e5b82;font-size:clamp(10px,1.55vh,18px);letter-spacing:.14em;text-transform:uppercase;margin-top:.5vh}
 body.shot #hud,body.shot #foot,body.shot #help,body.shot #aut,body.shot #qr,body.pdf #help,body.pdf #dots{display:none}
 body.pdf #qr{transition:none}
-@media (max-width:760px){#hud{max-width:90vw;bottom:16vh}#help{display:none}#aut{max-width:90vw}#aut i{display:block;height:0;overflow:hidden;margin:0}#qr{width:34vw;top:16vh}}
+@media (max-width:760px){#hud,#hud.bl,#hud.br,#hud.tl,#hud.bc{left:5vw;right:5vw;top:auto;bottom:16vh;max-width:90vw;width:auto;transform:none;text-align:left}#strip i{width:1.1vw;height:5vw}#strip i.x{height:7vw}#help{display:none}#aut{max-width:90vw}#aut i{display:block;height:0;overflow:hidden;margin:0}#qr{width:34vw;top:16vh}}
 </style>
 </head>
 <body>
 <div id="lab"></div>
 <div id="hud"><div class="fade" id="hc"></div></div>
 <div id="top"></div>
-<div id="aut"><small>Autori</small>Prof. dr Darinka Golubović-Matić<i>·</i>Doc. dr Semir Poturak</div>
+<div id="aut"><small>Autori</small>Prof. dr Darinka Golubović-Matić<i>·</i>Doc. dr Semir Poturak<em>Dizajn i priprema slajdova: SVEMIR</em></div>
+<div id="notes"></div>
 <a id="qr" href="https://3esign.github.io/beops/" aria-label="QR kod: https://3esign.github.io/beops/"><svg viewBox="-4 -4 37 37" shape-rendering="crispEdges" role="img"><rect x="-4" y="-4" width="37" height="37" fill="#F4F1EA"/><path fill="#0E1B2E" d="M0 0h7v1h-7zM11 0h2v1h-2zM14 0h1v1h-1zM17 0h3v1h-3zM22 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM10 1h2v1h-2zM16 1h2v1h-2zM22 1h1v1h-1zM28 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM9 2h2v1h-2zM12 2h1v1h-1zM14 2h2v1h-2zM17 2h1v1h-1zM19 2h2v1h-2zM22 2h1v1h-1zM24 2h3v1h-3zM28 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM9 3h1v1h-1zM11 3h1v1h-1zM13 3h1v1h-1zM16 3h1v1h-1zM18 3h1v1h-1zM22 3h1v1h-1zM24 3h3v1h-3zM28 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM10 4h2v1h-2zM17 4h2v1h-2zM20 4h1v1h-1zM22 4h1v1h-1zM24 4h3v1h-3zM28 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM15 5h6v1h-6zM22 5h1v1h-1zM28 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h7v1h-7zM9 7h2v1h-2zM12 7h2v1h-2zM15 7h5v1h-5zM0 8h1v1h-1zM3 8h1v1h-1zM5 8h2v1h-2zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM21 8h1v1h-1zM23 8h1v1h-1zM0 9h1v1h-1zM2 9h2v1h-2zM7 9h1v1h-1zM13 9h1v1h-1zM15 9h2v1h-2zM20 9h3v1h-3zM25 9h1v1h-1zM28 9h1v1h-1zM0 10h3v1h-3zM4 10h1v1h-1zM6 10h2v1h-2zM12 10h4v1h-4zM17 10h1v1h-1zM19 10h1v1h-1zM21 10h1v1h-1zM23 10h5v1h-5zM0 11h3v1h-3zM4 11h1v1h-1zM8 11h3v1h-3zM13 11h1v1h-1zM16 11h1v1h-1zM18 11h2v1h-2zM22 11h1v1h-1zM24 11h1v1h-1zM26 11h2v1h-2zM1 12h1v1h-1zM3 12h5v1h-5zM9 12h2v1h-2zM12 12h1v1h-1zM14 12h2v1h-2zM17 12h1v1h-1zM21 12h2v1h-2zM25 12h1v1h-1zM27 12h2v1h-2zM3 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM13 13h5v1h-5zM19 13h3v1h-3zM1 14h1v1h-1zM6 14h6v1h-6zM13 14h2v1h-2zM18 14h1v1h-1zM21 14h1v1h-1zM25 14h4v1h-4zM0 15h2v1h-2zM5 15h1v1h-1zM7 15h1v1h-1zM9 15h4v1h-4zM15 15h1v1h-1zM17 15h1v1h-1zM19 15h1v1h-1zM21 15h3v1h-3zM25 15h1v1h-1zM27 15h1v1h-1zM3 16h1v1h-1zM5 16h2v1h-2zM9 16h1v1h-1zM11 16h3v1h-3zM17 16h1v1h-1zM20 16h1v1h-1zM23 16h1v1h-1zM27 16h1v1h-1zM1 17h5v1h-5zM8 17h1v1h-1zM13 17h4v1h-4zM21 17h3v1h-3zM25 17h1v1h-1zM28 17h1v1h-1zM0 18h1v1h-1zM4 18h3v1h-3zM9 18h1v1h-1zM11 18h1v1h-1zM14 18h3v1h-3zM20 18h2v1h-2zM23 18h2v1h-2zM27 18h2v1h-2zM2 19h2v1h-2zM9 19h1v1h-1zM14 19h1v1h-1zM17 19h2v1h-2zM20 19h2v1h-2zM27 19h2v1h-2zM0 20h1v1h-1zM3 20h4v1h-4zM8 20h1v1h-1zM11 20h1v1h-1zM15 20h2v1h-2zM20 20h5v1h-5zM26 20h1v1h-1zM8 21h3v1h-3zM12 21h1v1h-1zM14 21h2v1h-2zM20 21h1v1h-1zM24 21h1v1h-1zM26 21h3v1h-3zM0 22h7v1h-7zM9 22h2v1h-2zM12 22h1v1h-1zM16 22h2v1h-2zM20 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM27 22h1v1h-1zM0 23h1v1h-1zM6 23h1v1h-1zM8 23h1v1h-1zM11 23h2v1h-2zM14 23h1v1h-1zM16 23h1v1h-1zM18 23h1v1h-1zM20 23h1v1h-1zM24 23h3v1h-3zM28 23h1v1h-1zM0 24h1v1h-1zM2 24h3v1h-3zM6 24h1v1h-1zM9 24h4v1h-4zM15 24h3v1h-3zM20 24h5v1h-5zM27 24h1v1h-1zM0 25h1v1h-1zM2 25h3v1h-3zM6 25h1v1h-1zM8 25h3v1h-3zM13 25h1v1h-1zM16 25h4v1h-4zM22 25h5v1h-5zM28 25h1v1h-1zM0 26h1v1h-1zM2 26h3v1h-3zM6 26h1v1h-1zM9 26h2v1h-2zM14 26h1v1h-1zM17 26h2v1h-2zM20 26h1v1h-1zM24 26h3v1h-3zM28 26h1v1h-1zM0 27h1v1h-1zM6 27h1v1h-1zM9 27h3v1h-3zM13 27h2v1h-2zM17 27h1v1h-1zM19 27h2v1h-2zM24 27h2v1h-2zM27 27h1v1h-1zM0 28h7v1h-7zM8 28h1v1h-1zM10 28h2v1h-2zM16 28h2v1h-2zM20 28h3v1h-3zM24 28h1v1h-1zM27 28h1v1h-1z"/></svg><b>3esign.github.io/beops</b><span>skeniraj · živi BEOPS</span></a>
 <div id="foot"><span>BEOPS – Mozak Beograda · 8. FMBAS · <span id="num"></span></span><span id="dots"></span><span class="sv"><i></i>SVEMIR</span></div>
-<div id="help">← → · prevuci · F ceo ekran</div>
+<div id="help">← → · prevuci · F ceo ekran · N beleške</div>
 <script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script>
 <script type="module">
 import * as T from 'three';
 const Q=new URLSearchParams(location.search), SHOT=Q.has('shot');
-if(SHOT)document.body.classList.add("shot");if(Q.has("pdf"))document.body.classList.add("pdf");
+const STILL=SHOT||Q.has("pdf")||Q.has("bg");if(SHOT)document.body.classList.add("shot");if(Q.has("pdf"))document.body.classList.add("pdf");if(Q.has("bg"))document.body.classList.add("pdf","bg");
 const C={noc:0x0E1B2E,tlo:0x13243d,reka:0x1d4b74,rekaL:0x2f6f9a,zgr:0x3e5b82,amber:0xE8A33D,tirkiz:0x2BB3A9,crvena:0xD9614A,magla:0xA9B6CC};
 
 /* ---------- slajdovi: tvrdnja + jedan konkretan red ---------- */
+const MISLI='xooooooooooooooooooooxooxoxoxoxxxxxxxxooxxxxxxo';
 const S=[
- {k:'8. FMBAS · Value Beyond the Building · Novi Sad, 26.11.2026',h:'BEOPS – <b>Mozak Beograda</b>',p:'Od inteligentnih zgrada do inteligentnih gradova',cam:[[-44,20,52],[-14,9,2]]},
- {k:'Zgrada',h:'Jedna zgrada već ima <b>nervni sistem</b>. Beograd ga nema.',p:'Energija, voda, vazduh, održavanje i bezbednost slivaju se u jedno upravljanje zgradom.',cam:[[16,11,30],[-11,8.5,6]]},
- {k:'Grad',h:'Beograd vidi sebe <b>u ostrvima</b>.',p:'Vazduh, vreme, saobraćaj, reke: svaki podatak ima svog vlasnika, svoj ritam i svoju pouzdanost.',cam:[[40,70,95],[0,0,8]]},
- {k:'Digitalni blizanac',h:'Blizanac grada nastaje tek kad se <b>ostrva povežu</b>.',p:'Povezati, modelovati, podržati odluku. Odluku i dalje donosi struka.',cam:[[-55,60,90],[0,0,8]]},
- {k:'Ideja',h:'Mozak grada nije kontrolna soba. To je <b>mreža bez centra</b>.',p:'Mesto gde javni podaci postaju zajedničko i proverljivo znanje.',cam:[[0,22,95],[0,26,0]]},
- {k:'Šta mora da ume',h:'Opaža. Pamti. Sumnja. I <b>kaže šta ne zna</b>.',p:'Četvrta osobina je najređa i najvažnija.',cam:[[-10,75,95],[-16,17,10]]},
- {k:'BEOPS · stanje 24.11.2026',h:'Za sedam dana BEOPS je odbio <b>19 od 47</b> sopstvenih misli.',p:'Svaka odbijena misao ima ispisan razlog. Posmatrač opaža, Sumnjalo proverava, Povezivač spaja.',cam:[[34,26,44],[14,6,12]]},
- {k:'Provera',h:'Tvrdnja o <b>PM10</b> pala je: izmereno je bilo PM2.5.',p:'Ilustracija tipa greške koju provera zaustavlja pre nego što postane javno „znanje“.',cam:[[30,13,38],[11,6.5,11]]},
- {k:'Kuda može da raste',h:'Mozak kvarta, kampusa, <b>zgrade</b> — i mreža gradova.',p:'<b>Most ka zgradama</b>: BMS i mozak grada razmenjuju ono što oboje znaju. Uz to pitanja građana i scenariji „šta ako“.',tag:'ideje, ne postojeće funkcije',cam:[[50,120,170],[-15,0,-90]]},
- {k:'Uslovi',h:'Pametan grad bez poverenja je <b>samo nadzor</b>.',p:'Otvorenost · privatnost · proverljivost · čovek odlučuje.',cam:[[-70,14,70],[0,4,0]]},
- {k:'Poziv',h:'Zgrade su <b>prvi neuroni</b> grada.',p:'Povežimo zgrade sa javnim znanjem grada.<br>Dizajn i priprema: SVEMIR',cam:[[-33,19,29],[-10,9.4,6]]},
+ {k:'8. FMBAS · Value Beyond the Building · Novi Sad, 26.11.2026',h:'BEOPS – <b>Mozak Beograda</b>',p:'Od inteligentnih zgrada do inteligentnih gradova',cam:[[-44,20,52],[-14,9,2]],lay:'bl',off:[0,0],
+  n:'Pozdrav i jedna rečenica o putu izlaganja: krećemo od zgrade koju struka FM dobro poznaje, a završavamo pitanjem može li i grad da ima svoj „mozak“.'},
+ {k:'Zgrada',h:'Jedna zgrada već ima <b>nervni sistem</b>. Beograd ga nema.',p:'Pet tokova, jedno upravljanje zgradom. To je teren FM struke.',cam:[[16,11,30],[-11,8.5,6]],lay:'bl',off:[.03,0],
+  n:'Savremena zgrada već ima „nervni sistem“: senzore, podatke i jedno mesto gde se odlučuje. Energija, voda, vazduh, održavanje i bezbednost slivaju se u jedno upravljanje. To je svakodnevica FM struke — ovde dodati jedan primer iz sopstvene prakse.'},
+ {k:'Grad · stanje 24.11.2026',h:'Beograd vidi sebe <b>u ostrvima</b>.',p:'BEOPS čita <b>34 javna izvora</b>. Svaki ima svog vlasnika i svoj ritam.',cam:[[40,70,95],[0,0,8]],lay:'br',off:[-.13,-.07],
+  n:'Podaci o gradu postoje, ali su rasuti: vazduh, vreme, saobraćaj, reke — svako meri svoje, u svom ritmu i sa svojom pouzdanošću. BEOPS danas čita 34 aktivna javna izvora (od 38 u javnoj metodologiji, stanje 24.11.2026). Primer: filtracija u zgradi prati spoljašnji vazduh, ali nije prečišćavanje ulice. Unutra i napolju su dva različita znanja.'},
+ {k:'Digitalni blizanac',h:'Blizanac grada nastaje tek kad se <b>ostrva povežu</b>.',p:'Povezati, modelovati, podržati odluku. Odluku i dalje donosi struka.',cam:[[-55,60,90],[0,0,8]],lay:'tl',off:[.12,.2],
+  n:'Digitalni blizanac nije 3D model, nego tumačenje povezanih podataka kroz vreme. AI ovde pomaže struci da brže vidi i proveri, ali odluku i odgovornost zadržava čovek. Reći naglas: AI je alat struke, a ne njena zamena.'},
+ {k:'Ideja',h:'Mozak grada nije kontrolna soba. To je <b>mreža bez centra</b>.',p:'Mesto gde javni podaci postaju zajedničko i proverljivo znanje.',cam:[[0,22,95],[0,26,0]],lay:'bc',off:[0,-.1],
+  n:'Glavna ideja izlaganja. Mozak grada nije centralna kontrolna soba koja upravlja gradom. To je zajednička memorija i rasuđivanje koje svako može da pogleda i proveri.'},
+ {k:'Šta mora da ume',h:'Opaža. Pamti. Sumnja. I <b>kaže šta ne zna</b>.',p:'Četvrta osobina je najređa i najvažnija.',cam:[[-10,75,95],[-16,17,10]],lay:'br',off:[-.15,-.03],
+  n:'Četiri sposobnosti koje svaki „mozak grada“ mora da ima. Naglasiti četvrtu: sistem koji ume da kaže „ne znam“ zaslužuje više poverenja od onoga koji uvek ima odgovor.'},
+ {k:'BEOPS · stanje 24.11.2026, 17:01 UTC',h:'Za sedam dana BEOPS je odbio <b class="num"><span id="cnt">19</span> od 47</b> sopstvenih misli.',p:'Svaka odbijena ima ispisan razlog, npr. „navodi uzrok koji zapis ne nosi“.',cam:[[34,26,44],[14,6,12]],lay:'bl',off:[.2,-.1],strip:1,
+  n:'BEOPS je otvorena opservatorija Beograda i prvi mali primer ove ideje. Više AI uloga radi kao tim: Posmatrač opaža, Sumnjalo proverava, Povezivač spaja. Nijedna tvrdnja ne izlazi bez provere. Traka na slajdu je stvarni redosled 47 misli iz poslednjih sedam dana; crvene su odbijene. Brojku osvežiti pred nastup (stanje 24.11.2026, 17:01 UTC).'},
+ {k:'Stvarni zapis · 24.11.2026, 11:22 UTC',h:'Provera: „broj 16 pripada <b>PM2.5</b>, ne PM10“. Misao je odbijena.',p:'Uloga Sumnjalo, stanica Obrenovac Centar. Razlog je javno ispisan.',cam:[[30,13,38],[11,6.5,11]],lay:'br',off:[-.2,-.12],
+  n:'Stvaran zapis iz BEOPS-a od 24.11.2026 u 11:22 UTC: misao uloge Sumnjalo je odbijena, a provera je kao razlog upisala da broj 16 pripada PM2.5, a ne PM10 (Obrenovac Centar: PM10 30, PM2.5 16 µg/m³). Provera je namerno stroga: odbija i kada je rečenica samo dvosmislena. Poruka: granice podataka su deo rezultata. Položaj stanice u sceni je stilizovan.'},
+ {k:'Kuda može da raste',h:'Mozak kvarta, kampusa, <b>zgrade</b> — i mreža gradova.',p:'<b>Most ka zgradama</b>: BMS i mozak grada razmenjuju ono što oboje znaju.',tag:'ideje, ne postojeće funkcije',cam:[[30,130,200],[0,0,-50]],lay:'bl',off:[.1,-.06],
+  n:'VAŽNO: ovo su ideje i mogući pravci, ne postojeće funkcije. BEOPS danas ne upravlja gradskim sistemima i nije povezan ni sa jednim sistemom za upravljanje zgradom. Za FM publiku naglasiti most od zgrade ka gradu; uz to pitanja građana i scenariji „šta ako“ za planere.'},
+ {k:'Uslovi',h:'Pametan grad bez poverenja je <b>samo nadzor</b>.',p:'Otvorenost · privatnost · proverljivost · čovek odlučuje.',cam:[[-130,80,165],[0,0,8]],lay:'bc',off:[0,-.1],
+  n:'Četiri uslova bez kojih ideja nije dobra. Pametan grad bez poverenja je samo nadzor: mozak grada mora da bude javan u metodi, a čuvan u privatnosti.'},
+ {k:'Poziv',h:'Zgrade su <b>prvi neuroni</b> grada.',p:'Povežimo zgrade sa javnim znanjem grada.',cam:[[-33,19,29],[-10,9.4,6]],lay:'bl',off:[0,0],
+  n:'Zaključak i poziv struci FM: upravnici objekata imaju podatke i znanje bez kojih mozak grada ne može da nastane. Pozvati na razgovor i saradnju. QR vodi na https://3esign.github.io/beops/ (živi BEOPS). Ostaviti ovaj slajd na platnu tokom pitanja; adresu reći i naglas za one koji su daleko.'},
 ];
 const N=S.length;
 
 /* ---------- renderer, scena ---------- */
-const R=new T.WebGLRenderer({antialias:true,preserveDrawingBuffer:SHOT||Q.has("pdf")});
+const R=new T.WebGLRenderer({antialias:true,preserveDrawingBuffer:STILL});
 R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.setSize(innerWidth,innerHeight);
 document.body.prepend(R.domElement);
 const sc=new T.Scene();sc.background=new T.Color(C.noc);sc.fog=new T.Fog(C.noc,120,420);
@@ -186,13 +219,13 @@ const shield=new T.Mesh(new T.RingGeometry(2.2,2.5,48).rotateX(-Math.PI/2),new T
 /* ---------- budućnost: krugovi kvarta/kampusa/zgrade + svetla drugih gradova ---------- */
 const fut=[];const ringAt=(x,z,r,col)=>{const m=new T.Mesh(new T.RingGeometry(r,r+.9,64).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:col,transparent:true,opacity:0,side:2}));m.position.set(x,.4,z);sc.add(m);fut.push(m);return m;};
 ringAt(24,34,14,C.tirkiz);ringAt(-38,22,11,C.tirkiz);ringAt(HERO.x,HERO.z,6,C.amber);
-const CITIES=[['Novi Sad',-150,-300],['Pančevo',150,-70],['Smederevo',170,170]];
+const CITIES=[['Novi Sad',-100,-200],['Pančevo',115,-70],['Smederevo',88,48]];
 const cityL=CITIES.map(([n,x,z])=>{const m=new T.Mesh(new T.SphereGeometry(4,16,12),new T.MeshBasicMaterial({color:C.amber,transparent:true,opacity:0}));m.position.set(x,2,z);sc.add(m);fut.push(m);
  const l=new T.Line(new T.BufferGeometry().setFromPoints(new T.QuadraticBezierCurve3(new T.Vector3(0,BY,8),new T.Vector3(x/2,BY+30,z/2),new T.Vector3(x,4,z)).getPoints(50)),new T.LineDashedMaterial({color:C.amber,dashSize:3,gapSize:3,transparent:true,opacity:0}));l.computeLineDistances();sc.add(l);fut.push(l);return m;});
 /* uslovi: četiri tačke na prstenu oko grada */
 const COND=[['otvorenost',0,-70],['privatnost',75,8],['proverljivost',0,86],['čovek odlučuje',-75,8]];
 const condRing=new T.Mesh(new T.RingGeometry(74,75.2,128).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:C.amber,transparent:true,opacity:0,side:2}));condRing.position.set(0,.3,8);sc.add(condRing);
-const condP=COND.map(([,x,z])=>{const m=new T.Mesh(new T.CylinderGeometry(1.2,1.2,12,16).translate(0,6,0),new T.MeshBasicMaterial({color:C.amber,transparent:true,opacity:0}));m.position.set(x,0,z);sc.add(m);return m;});
+const condP=COND.map(([,x,z])=>{const m=new T.Mesh(new T.CylinderGeometry(1.5,1.5,20,16).translate(0,10,0),new T.MeshBasicMaterial({color:C.amber,transparent:true,opacity:0}));m.position.set(x,0,z);sc.add(m);return m;});
 
 /* ---------- oznake u prostoru ---------- */
 const lab=document.getElementById('lab');
@@ -202,40 +235,46 @@ label('Novi Beograd',new T.Vector3(-30,3,2),'',s=>s>=2&&s<=3);
 label('Stari grad',new T.Vector3(18,3,2),'',s=>s===2);
 label('Vračar',new T.Vector3(26,3,40),'',s=>s===3);
 label('Zemun',new T.Vector3(-58,3,-30),'',s=>s===2);
-label('Kalemegdan',new T.Vector3(6,1,-4),'',s=>s===7);
 label('zgrada',new T.Vector3(HERO.x,17,HERO.z),'a',s=>s===0);
 ['energija','voda','vazduh','održavanje','bezbednost'].forEach((n,i)=>label(n,new T.Vector3(HERO.x-1.4+i*.7,15.9-i*2.6,HERO.z+2.3),'a',s=>s===1));
 isl.forEach(s=>label(s.n,s.pos.clone().setY(11),'t',x=>x===2));
 four.forEach(([n,p],i)=>label(n,p.clone().setY(p.y+2),i===3?'a':'t',s=>s===5));
 label('merna stanica',new T.Vector3(ST.x,6,ST.z+.5),'',s=>s===6);
-label('„PM10 je porastao“ ✗',new T.Vector3(ST.x,11,ST.z),'r',s=>s===7);
-label('izmereno: PM2.5',new T.Vector3(ST.x+.4,6.2,ST.z),'t',s=>s===7);
+label('misao odbijena ✗',new T.Vector3(ST.x,11,ST.z),'r',s=>s===7);
+label('PM2.5 = 16 · PM10 = 30 µg/m³',new T.Vector3(ST.x+5,2.6,ST.z+3),'t n',s=>s===7);
 label('kvart',new T.Vector3(24,2,20),'t',s=>s===8);label('kampus',new T.Vector3(-38,2,11),'t',s=>s===8);label('zgrada · BMS',new T.Vector3(HERO.x,18,HERO.z),'a',s=>s===8);
 CITIES.forEach(([n],i)=>label(n,cityL[i].position.clone().setY(9),'a',s=>s===8));
-COND.forEach(([n],i)=>label(n,condP[i].position.clone().setY(14),'a',s=>s===9));
+COND.forEach(([n],i)=>label(n,condP[i].position.clone().setY(22),'a',s=>s===9));
 label('mozak grada',new T.Vector3(0,BY+9,8),'a',s=>s===4);
 
 /* ---------- stanje po slajdu (ciljne vrednosti, glatko se dostižu) ---------- */
-const want=s=>({nerv:+(s===1||s===10),isl:+(s>=2&&s<=7),twin:s>=3?1:0,brain:s>=4?(s===7?.35:1):0,up:+(s>=4&&s<=6),four:+(s===5),claim:+(s===7),fut:+(s===8),cond:+(s===9)});
-const cur=want(0);let slide=0,fly=null,tClaim=0;
+const want=s=>({nerv:+(s===1||s===10),isl:+(s>=2&&s<=7),twin:s>=3?1:0,brain:s>=4?(s===7?.3:s===9?.12:s===6?.6:1):0,up:+(s>=4&&s<=6),four:+(s===5),claim:+(s===7),fut:+(s===8),cond:+(s===9)});
+const cur=want(0);let slide=0,fly=null,tClaim=0;const off=[0,0];
 const ease=t=>1-Math.pow(1-t,3);
 function go(n,instant){n=Math.max(0,Math.min(N-1,n));if(n===slide&&!instant&&fly)return;slide=n;
  const [p,t]=S[n].cam;const to={p:new T.Vector3(...p),t:new T.Vector3(...t)};
  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
- if(instant||reduce){cam.position.copy(to.p);look.copy(to.t);fly=null;}else fly={fp:cam.position.clone(),ft:look.clone(),to,t0:performance.now(),d:1100};
+ if(instant||reduce){cam.position.copy(to.p);look.copy(to.t);off[0]=S[n].off[0];off[1]=S[n].off[1];fly=null;}else fly={fp:cam.position.clone(),ft:look.clone(),fo:[...off],to,t0:performance.now(),d:1100};
  if(n===7)tClaim=performance.now();
  if(instant)Object.assign(cur,want(n));
  hud(n);dots();document.getElementById('aut').classList.toggle('big',n===0||n===N-1);document.getElementById('qr').classList.toggle('on',n===N-1);document.getElementById('num').textContent=(n+1)+' / '+N;if(!SHOT)history.replaceState(null,'','#'+(n+1));}
 const look=new T.Vector3();
 const hudEl=document.getElementById('hud'),hc=document.getElementById('hc');
-function hud(n){const s=S[n];hudEl.classList.add('out');setTimeout(()=>{hudEl.className=n===0?'s1':'';
- hc.innerHTML=`<div class="k">${s.k}</div><h1>${s.h}</h1><p>${s.p}</p>${s.tag?`<span class="tag">${s.tag}</span>`:''}`;},SHOT?0:260);}
+const notesEl=document.getElementById('notes');let hudT=0;
+function hud(n){const s=S[n];hudEl.classList.add('out');notesEl.innerHTML='<small>Beleška govornika · '+(n+1)+' / '+N+'</small>'+s.n;clearTimeout(hudT);hudT=setTimeout(()=>{hudEl.className=s.lay+(n===0?' s1':'');
+ const strip=s.strip?`<div id="strip">${[...MISLI].map(c=>`<i class="${c==='x'?'x':''}"></i>`).join('')}</div><small>47 misli redom · <b>crveno = odbijeno</b></small>`:'';
+ hc.innerHTML=`<div class="k">${s.k}</div>${strip}<h1>${s.h}</h1><p>${s.p}</p>${s.tag?`<span class="tag">${s.tag}</span>`:''}`;
+ if(s.strip)runStrip();},STILL?0:260);}
+function runStrip(){const els=[...document.querySelectorAll('#strip i')],cnt=document.getElementById('cnt');const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ if(STILL||reduce){els.forEach(e=>e.classList.add('in'));return;}
+ let x=0;cnt.textContent='0';els.forEach((e,i)=>setTimeout(()=>{if(!e.isConnected)return;e.classList.add('in');if(e.classList.contains('x'))cnt.textContent=++x;},300+i*45));}
 const dEl=document.getElementById('dots');for(let i=0;i<N;i++){const d=document.createElement('span');d.onclick=()=>go(i);dEl.appendChild(d);}
 function dots(){[...dEl.children].forEach((d,i)=>d.classList.toggle('on',i===slide));}
 
 addEventListener('keydown',e=>{if(['ArrowRight','PageDown',' ','Enter'].includes(e.key)){go(slide+1);e.preventDefault();}
  else if(['ArrowLeft','PageUp','Backspace'].includes(e.key)){go(slide-1);e.preventDefault();}
  else if(e.key==='Home')go(0);else if(e.key==='End')go(N-1);
+ else if(e.key==='n'||e.key==='N')notesEl.classList.toggle('on');
  else if(e.key==='f'||e.key==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();}});
 let wl=0;addEventListener('wheel',e=>{const now=performance.now();if(now-wl<900||Math.abs(e.deltaY)<20)return;wl=now;go(slide+(e.deltaY>0?1:-1));},{passive:true});
 let tx=null;addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
@@ -248,9 +287,10 @@ const vtmp=new T.Vector3();
 function frame(now){
  if(fly){const k=Math.min(1,(now-fly.t0)/fly.d),e=ease(k);
   const lift=Math.sin(Math.PI*k)*Math.min(30,fly.fp.distanceTo(fly.to.p)*.18);
-  cam.position.lerpVectors(fly.fp,fly.to.p,e);cam.position.y+=lift;look.lerpVectors(fly.ft,fly.to.t,e);if(k>=1)fly=null;}
+  cam.position.lerpVectors(fly.fp,fly.to.p,e);cam.position.y+=lift;look.lerpVectors(fly.ft,fly.to.t,e);off[0]=fly.fo[0]+(S[slide].off[0]-fly.fo[0])*e;off[1]=fly.fo[1]+(S[slide].off[1]-fly.fo[1])*e;if(k>=1)fly=null;}
+ cam.setViewOffset(innerWidth,innerHeight,-off[0]*innerWidth,-off[1]*innerHeight,innerWidth,innerHeight);
  cam.lookAt(look);
- const w=want(slide),a=(SHOT||Q.has("pdf"))?1:.06;for(const k in w)cur[k]+=(w[k]-cur[k])*a;
+ const w=want(slide),a=STILL?1:.06;for(const k in w)cur[k]+=(w[k]-cur[k])*a;
  const t=now/1000;
  nerv.forEach(n=>{n.ln.material.opacity=.85*cur.nerv;n.p.material.opacity=cur.nerv;n.p.position.set(n.x,.2+((t*.35+n.o)%1)*15.4,0);});
  isl.forEach((s,i)=>{const o=cur.isl;s.ring.material.opacity=o*(.6+.3*Math.sin(t*2+i));s.beam.material.opacity=o*.35*(1-cur.twin*.6);s.pm.material.opacity=o;});
@@ -260,9 +300,10 @@ function frame(now){
  pulses.forEach(p=>{p.t=(p.t+.006)%1;const [i,j]=p.l;p.m.position.lerpVectors(bn[i],bn[j],p.t);p.m.material.opacity=cur.brain*(slide===7?.2:1);});
  fourMesh.forEach((m,i)=>{m.material.opacity=cur.four;m.scale.setScalar(1+.18*Math.sin(t*3+i));});
  /* odbijena tvrdnja: pada iz mozga, staje na štitu iznad stanice */
- const ck=(SHOT||Q.has("pdf"))?1:Math.min(1,(now-tClaim)/2200);
+ const ck=STILL?1:Math.min(1,(now-tClaim)/2200);
  claim.position.set(ST.x,BY-(BY-7.8)*ease(Math.min(1,ck*1.3)),ST.z);claim.material.opacity=cur.claim;
  shield.material.opacity=cur.claim*(ck>.75?.9:.2);xMat.opacity=cur.claim*(ck>.8?1:0);xMark.lookAt(cam.position);
+ sc.fog.near=120+cur.fut*220;sc.fog.far=420+cur.fut*450;
  fut.forEach(m=>m.material.opacity=cur.fut*(m.isLine?.6:.85));
  condRing.material.opacity=.7*cur.cond;condP.forEach(m=>m.material.opacity=.85*cur.cond);
  R.render(sc,cam);
