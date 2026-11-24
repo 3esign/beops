@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="sr-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BEOPS – Mozak Beograda · 8. FMBAS konferencija</title>
+<meta name="description" content="Od inteligentnih zgrada do inteligentnih gradova. Prof. dr Darinka Golubović-Matić · Dr Semir Poturak. Dizajn: SVEMIR.">
+<style>
+:root{--noc:#0E1B2E;--noc2:#16294A;--papir:#F6F3EC;--belo:#fff;--mastilo:#14213A;--sivo:#5E6B80;--linija:#D9D3C5;--amber:#E8A33D;--tirkiz:#1F9E96;--crvena:#C8553D;--magla:#A9B6CC}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#070e19;overflow:hidden;font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+#vp{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#stage{position:relative;width:1600px;height:900px;flex:none;transform-origin:center center;overflow:hidden;border-radius:6px;box-shadow:0 20px 80px rgba(0,0,0,.5)}
+.s{position:absolute;inset:0;padding:74px 84px;opacity:0;visibility:hidden;transition:opacity .6s ease,visibility .6s}
+.s.on{opacity:1;visibility:visible}
+.s.d{background:var(--noc);color:var(--belo)}
+.s.l{background:var(--papir);color:var(--mastilo)}
+.bar{width:60px;height:7px;background:var(--amber);margin-bottom:12px}
+.nad{font-weight:600;font-size:14px;letter-spacing:.14em;color:var(--tirkiz);text-transform:uppercase}
+.d .nad{color:var(--amber)}
+h1{font-weight:300;font-size:70px;line-height:1.05}
+h2{font-weight:300;font-size:42px;margin-top:10px;line-height:1.15}
+.sub{color:var(--sivo);font-size:18px}
+.d .sub{color:var(--magla)}
+.foot{position:absolute;left:84px;right:84px;bottom:22px;height:36px;border-top:1px solid var(--linija);display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--sivo)}
+.d .foot{border-color:var(--noc2);color:var(--magla)}
+.mark{display:flex;align-items:center;gap:8px;font-weight:600;letter-spacing:.06em}
+.mark svg{width:28px;height:28px}
+/* animacije koje kreću kad je slajd aktivan */
+.up{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.on .up{opacity:1;transform:none}
+.on .up.t1{transition-delay:.15s}.on .up.t2{transition-delay:.35s}.on .up.t3{transition-delay:.55s}.on .up.t4{transition-delay:.75s}.on .up.t5{transition-delay:.95s}.on .up.t6{transition-delay:1.15s}
+.card{background:var(--belo);border:1px solid var(--linija);border-radius:17px;transition:transform .25s,box-shadow .25s,border-color .25s}
+.card:hover{transform:translateY(-6px);box-shadow:0 14px 30px rgba(20,33,58,.12)}
+.hint{font-size:12px;color:var(--sivo);letter-spacing:.04em}
+.d .hint{color:var(--magla)}
+/* nav */
+#nav{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;z-index:9;padding:6px 12px;border-radius:20px;background:rgba(14,27,46,.75);backdrop-filter:blur(6px)}
+#nav button{border:0;background:none;color:#cfd8e6;font-size:18px;cursor:pointer;padding:0 6px}
+#dots{display:flex;gap:6px}
+#dots i{width:8px;height:8px;border-radius:50%;background:#45597d;cursor:pointer;transition:background .3s,transform .3s}
+#dots i.on{background:var(--amber);transform:scale(1.3)}
+svg text{font-family:"Segoe UI",system-ui,sans-serif}
+@keyframes pulse{0%{r:0;opacity:.9}100%{r:70;opacity:0}}
+@keyframes dash{to{stroke-dashoffset:-40}}
+@keyframes flow{to{stroke-dashoffset:0}}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes rise{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="vp"><div id="stage">
+
+<!-- 1 -->
+<section class="s d on" data-n="1">
+  <div class="bar"></div>
+  <div class="nad up">8. FMBAS konferencija · Value Beyond the Building · InGrid, SE Hub Novi Sad · 26.11.2026.</div>
+  <h1 class="up t1" style="margin-top:70px">BEOPS – Mozak Beograda</h1>
+  <div class="up t2" style="color:var(--amber);font-size:30px;margin-top:18px">Od inteligentnih zgrada do inteligentnih gradova</div>
+  <div class="up t3" style="margin-top:56px;font-size:22px;font-weight:600">Prof. dr Darinka Golubović-Matić · Dr Semir Poturak</div>
+  <div class="up t3 sub" style="margin-top:6px">Univerzitet Union – Nikola Tesla, Beograd</div>
+  <svg id="sky" viewBox="0 0 1432 180" style="position:absolute;left:84px;bottom:80px;width:1432px;height:180px"></svg>
+  <div class="foot" style="border:0"><span class="mark">Dizajn i priprema slajdova:&nbsp;<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="14" cy="14" r="4" fill="currentColor"/><circle cx="25" cy="6" r="3.5" fill="#E8A33D"/></svg><b style="color:#fff">SVEMIR</b></span><span class="hint">← → ili klik · F za ceo ekran</span></div>
+</section>
+
+<!-- 2 -->
+<section class="s l" data-n="2">
+  <div class="bar"></div><div class="nad">Od zgrade ka gradu</div><h2>Zgrada koja oseća</h2>
+  <div class="up t1" style="position:absolute;left:84px;top:290px;width:560px">
+    <div style="font-size:34px;font-weight:600;line-height:1.15">Savremena zgrada već ima nervni sistem.</div>
+    <div class="sub" style="font-size:21px;margin-top:22px;line-height:1.4">Senzori mere, podaci se sabiraju na jednom mestu, a upravljanje odlučuje.</div>
+    <div class="hint" style="margin-top:30px">Pređi mišem preko toka da vidiš signal.</div>
+  </div>
+  <svg id="bms" viewBox="0 0 800 640" style="position:absolute;left:720px;top:190px;width:800px;height:640px"></svg>
+</section>
+
+<!-- 3 -->
+<section class="s l" data-n="3">
+  <div class="bar"></div><div class="nad">Od zgrade ka gradu</div><h2>Grad je mnogo zgrada, ali nije jedna zgrada</h2>
+  <svg id="grad" viewBox="0 0 1432 400" style="position:absolute;left:84px;top:230px;width:1432px;height:400px"></svg>
+  <div style="position:absolute;left:108px;right:84px;top:640px;display:flex;gap:60px">
+    <div class="up t2" style="border-left:7px solid var(--amber);padding-left:24px;flex:1"><div style="font-size:24px;font-weight:600">Različiti vlasnici</div><div class="sub">Svako meri i čuva svoje.</div></div>
+    <div class="up t3" style="border-left:7px solid var(--amber);padding-left:24px;flex:1"><div style="font-size:24px;font-weight:600">Različiti ritmovi</div><div class="sub">Minut, sat, dan, godina.</div></div>
+    <div class="up t4" style="border-left:7px solid var(--amber);padding-left:24px;flex:1"><div style="font-size:24px;font-weight:600">Različita pouzdanost</div><div class="sub">Nije svaki broj isto siguran.</div></div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="s l" data-n="4">
+  <div class="bar"></div><div class="nad">Od zgrade ka gradu</div><h2>Digitalni blizanac i AI</h2>
+  <div style="position:absolute;left:84px;right:84px;top:270px;display:flex;gap:30px">
+    <div class="card up t1" style="flex:1;padding:34px;height:320px"><div style="width:68px;height:68px;border-radius:50%;background:var(--noc);color:var(--amber);font-weight:600;font-size:24px;display:flex;align-items:center;justify-content:center">1</div><div style="font-size:27px;font-weight:600;margin-top:28px">Povezivanje</div><div class="sub" style="margin-top:12px;line-height:1.4">Podaci iz različitih izvora dobijaju zajedničko mesto i vreme.</div></div>
+    <div class="card up t2" style="flex:1;padding:34px;height:320px"><div style="width:68px;height:68px;border-radius:50%;background:var(--noc);color:var(--amber);font-weight:600;font-size:24px;display:flex;align-items:center;justify-content:center">2</div><div style="font-size:27px;font-weight:600;margin-top:28px">Modelovanje</div><div class="sub" style="margin-top:12px;line-height:1.4">Blizanac tumači povezane podatke kroz vreme. Nije samo 3D slika.</div></div>
+    <div class="card up t3" style="flex:1;padding:34px;height:320px"><div style="width:68px;height:68px;border-radius:50%;background:var(--noc);color:var(--amber);font-weight:600;font-size:24px;display:flex;align-items:center;justify-content:center">3</div><div style="font-size:27px;font-weight:600;margin-top:28px">Podrška odlučivanju</div><div class="sub" style="margin-top:12px;line-height:1.4">Stručnjak vidi više i brže. Odluka ostaje njegova.</div></div>
+  </div>
+  <div class="up t5" style="position:absolute;left:84px;right:84px;top:660px;height:110px;background:var(--noc);border-radius:17px;color:#fff;font-size:30px;font-weight:300;display:flex;align-items:center;justify-content:center">AI je alat struke, a ne njena zamena.</div>
+</section>
+
+<!-- 5 -->
+<section class="s d" data-n="5">
+  <div class="bar"></div><div class="nad">Ideja</div><h2>Mozak grada</h2>
+  <div class="up t1" style="position:absolute;left:84px;top:290px;width:760px;font-size:36px;font-weight:300;line-height:1.25">Šta kad bi grad imao mesto gde se njegovi javni podaci sabiraju, proveravaju i postaju zajedničko znanje?</div>
+  <div class="up t3" style="position:absolute;left:84px;top:640px;border-left:7px solid var(--amber);padding-left:26px;color:var(--magla);font-size:21px;line-height:1.4">Nije kontrolna soba koja upravlja.<br>To je zajedničko pamćenje i rasuđivanje.</div>
+  <svg id="mreza" viewBox="-30 -10 660 630" style="position:absolute;left:900px;top:200px;width:640px;height:620px;cursor:pointer"></svg>
+  <div class="hint" style="position:absolute;left:960px;top:820px">Klikni bilo koju tačku: nema centra, signal ide kroz veze.</div>
+</section>
+
+<!-- 6 -->
+<section class="s l" data-n="6">
+  <div class="bar"></div><div class="nad">Ideja</div><h2>Šta mozak grada mora da ume</h2>
+  <div id="cetiri" style="position:absolute;left:84px;right:84px;top:270px;display:flex;gap:30px"></div>
+</section>
+
+<!-- 7 -->
+<section class="s l" data-n="7">
+  <div class="bar"></div><div class="nad">BEOPS kao primer</div><h2>BEOPS: Beograd kao prvi primer</h2>
+  <div class="sub" style="position:absolute;left:84px;top:250px;font-size:23px">Otvorena opservatorija Beograda</div>
+  <svg id="tok" viewBox="0 0 900 520" style="position:absolute;left:84px;top:310px;width:900px;height:520px"></svg>
+  <div style="position:absolute;left:1050px;top:258px;width:466px;height:505px;background:var(--noc);border-radius:19px;color:#fff;text-align:center;padding-top:40px">
+    <div id="broj" style="font-size:150px;font-weight:300;color:var(--amber);line-height:1">0</div>
+    <div style="font-size:23px;font-weight:600;margin-top:18px">od 47 misli sistema</div>
+    <div style="color:var(--magla);font-size:18px;margin-top:14px;line-height:1.4">odbijeno je u nedelju dana,<br>svaka uz obrazloženje.</div>
+    <svg id="bar47" viewBox="0 0 380 40" style="width:380px;height:40px;margin-top:26px"></svg>
+    <div style="color:var(--magla);font-size:13px;margin-top:18px">stanje: 24.11.2026.</div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="s l" data-n="8">
+  <div class="bar"></div><div class="nad">BEOPS kao primer</div><h2>Mozak koji zna šta ne zna</h2>
+  <div class="card" style="position:absolute;left:84px;top:276px;width:792px;height:468px;padding:34px 42px">
+    <div class="nad" style="color:var(--sivo)">Tvrdnja</div>
+    <div id="tvrdnja" style="position:relative;display:inline-block;font-size:27px;color:var(--mastilo);margin-top:18px;transition:color .6s">„Vrednost PM10 je danas povišena.“<span id="crta" style="position:absolute;left:0;top:52%;height:3px;width:0;background:var(--crvena);transition:width .7s ease"></span></div>
+    <div style="margin-top:30px;height:52px"><button id="proveri" style="border:2px solid var(--tirkiz);background:none;color:var(--tirkiz);font:600 15px 'Segoe UI',sans-serif;letter-spacing:.1em;padding:12px 26px;border-radius:26px;cursor:pointer">PROVERI TVRDNJU</button><span id="odbijeno" style="display:none;background:var(--crvena);color:#fff;font-weight:600;font-size:14px;letter-spacing:.1em;padding:13px 28px;border-radius:26px">ODBIJENO</span></div>
+    <div id="razlog" style="opacity:0;transition:opacity .6s .5s">
+      <div style="font-size:23px;font-weight:600;margin-top:28px">Broj je izmeren za PM2.5, a ne za PM10.</div>
+      <div class="sub" style="margin-top:10px">Sistem je grešku uhvatio sam i javno zapisao razlog.</div>
+    </div>
+    <div class="hint" style="position:absolute;bottom:26px">Ilustracija tipa greške koju sistem odbija.</div>
+  </div>
+  <div style="position:absolute;left:930px;top:276px;width:586px;display:flex;flex-direction:column;gap:22px">
+    <div class="up t1" style="background:var(--noc);border-radius:17px;height:142px;padding:30px 40px;border-left:8px solid var(--amber)"><div style="color:#fff;font-size:23px;font-weight:600">Podatak koji nedostaje</div><div style="color:var(--amber);font-size:23px;margin-top:6px">nije nula.</div></div>
+    <div class="up t2" style="background:var(--noc);border-radius:17px;height:142px;padding:30px 40px;border-left:8px solid var(--amber)"><div style="color:#fff;font-size:23px;font-weight:600">Staro merenje</div><div style="color:var(--amber);font-size:23px;margin-top:6px">nije novo.</div></div>
+    <div class="up t3" style="background:var(--noc);border-radius:17px;height:142px;padding:30px 40px;border-left:8px solid var(--amber)"><div style="color:#fff;font-size:23px;font-weight:600">Granice podataka</div><div style="color:var(--amber);font-size:23px;margin-top:6px">su deo rezultata.</div></div>
+  </div>
+</section>
+
+<!-- 9 -->
+<section class="s l" data-n="9">
+  <div class="bar"></div><div class="nad">Moguće budućnosti</div><h2>Kuda ideja može da raste</h2>
+  <div style="position:absolute;right:84px;top:88px;border:1.5px solid var(--amber);border-radius:26px;padding:10px 26px;font-weight:600;font-size:14px">ideje, ne postojeće funkcije</div>
+  <svg id="stablo" viewBox="0 0 1432 150" style="position:absolute;left:84px;top:250px;width:1432px;height:150px"></svg>
+  <div id="pet" style="position:absolute;left:84px;right:84px;top:400px;display:flex;gap:28px"></div>
+  <div class="hint" style="position:absolute;left:84px;top:800px">Klikni karticu za kratko objašnjenje.</div>
+</section>
+
+<!-- 10 -->
+<section class="s l" data-n="10">
+  <div class="bar"></div><div class="nad">Moguće budućnosti</div><h2>Uslovi da ideja bude dobra</h2>
+  <div style="position:absolute;left:84px;right:84px;top:280px;display:flex;gap:40px">
+    <div class="up t1" style="flex:1;border-top:10px solid var(--tirkiz);padding-top:18px"><div style="font-size:40px;font-weight:300;color:var(--linija)">01</div><div style="font-size:27px;font-weight:600;margin-top:8px">Otvorenost</div><div class="sub" style="margin-top:8px">Metoda je javna.</div></div>
+    <div class="up t2" style="flex:1;border-top:10px solid var(--tirkiz);padding-top:18px"><div style="font-size:40px;font-weight:300;color:var(--linija)">02</div><div style="font-size:27px;font-weight:600;margin-top:8px">Privatnost</div><div class="sub" style="margin-top:8px">Lični podaci ostaju zaštićeni.</div></div>
+    <div class="up t3" style="flex:1;border-top:10px solid var(--tirkiz);padding-top:18px"><div style="font-size:40px;font-weight:300;color:var(--linija)">03</div><div style="font-size:27px;font-weight:600;margin-top:8px">Proverljivost</div><div class="sub" style="margin-top:8px">Svaka tvrdnja ima izvor.</div></div>
+    <div class="up t4" style="flex:1;border-top:10px solid var(--amber);padding-top:18px"><div style="font-size:40px;font-weight:300;color:var(--linija)">04</div><div style="font-size:27px;font-weight:600;margin-top:8px">Čovek odlučuje</div><div class="sub" style="margin-top:8px">Sistem savetuje, ne upravlja.</div></div>
+  </div>
+  <div class="up t6" style="position:absolute;left:84px;right:84px;top:600px;height:156px;background:var(--noc);border-radius:17px;color:#fff;font-size:33px;font-weight:300;display:flex;align-items:center;padding-left:84px;border-left:0"><span style="width:8px;height:72px;background:var(--amber);margin-right:40px"></span>Pametan grad bez poverenja je samo nadzor.</div>
+</section>
+
+<!-- 11 -->
+<section class="s d" data-n="11">
+  <div class="bar"></div><div class="nad">Zaključak</div>
+  <div class="up t1" style="font-size:52px;font-weight:300;line-height:1.15;margin-top:50px;width:1300px">Inteligentan grad nastaje kada podaci postanu zajednički i proverljivi.</div>
+  <div style="position:absolute;left:84px;right:84px;top:510px;display:flex;gap:52px">
+    <div class="up t3" style="flex:1;background:var(--noc2);border-radius:17px;padding:30px 36px;height:210px"><div class="nad" style="font-size:13px">Poziv struci</div><div style="font-size:21px;line-height:1.4;margin-top:14px">Zgrade su prvi neuroni grada. Hajde da razgovaramo o podacima koje vredi povezati.</div></div>
+    <div class="up t4" style="flex:1;background:var(--noc2);border-radius:17px;padding:30px 36px;height:210px"><div class="nad" style="font-size:13px">BEOPS je javan</div><a href="https://3esign.github.io/beops/v2/" target="_blank" rel="noopener" style="display:block;color:#fff;font-size:29px;font-weight:600;margin-top:16px;text-decoration:none">3esign.github.io/beops/v2</a><div class="sub" style="margin-top:10px">Otvorena opservatorija Beograda</div></div>
+  </div>
+  <div class="foot" style="bottom:46px;height:auto;padding-top:16px;align-items:flex-start">
+    <div><div style="color:#fff;font-weight:600;font-size:19px">Hvala.&nbsp; Prof. dr Darinka Golubović-Matić · Dr Semir Poturak</div><div style="margin-top:4px;font-size:14px">Univerzitet Union – Nikola Tesla, Beograd</div></div>
+    <span class="mark">Dizajn i priprema slajdova:&nbsp;<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="14" cy="14" r="4" fill="currentColor"/><circle cx="25" cy="6" r="3.5" fill="#E8A33D"/></svg><b style="color:#fff">SVEMIR</b></span>
+  </div>
+</section>
+
+</div></div>
+<div id="nav"><button id="prev" aria-label="Prethodni">‹</button><div id="dots"></div><button id="next" aria-label="Sledeći">›</button></div>
+
+<script>
+(function(){
+var NS="http://www.w3.org/2000/svg",C={noc:"#0E1B2E",noc2:"#16294A",amber:"#E8A33D",tirkiz:"#1F9E96",linija:"#D9D3C5",magla:"#A9B6CC",mastilo:"#14213A",crvena:"#C8553D",sivo:"#5E6B80"};
+var AUT="Prof. dr Darinka Golubović-Matić · Dr Semir Poturak";
+function el(p,t,a){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
+var S=[].slice.call(document.querySelectorAll(".s")),N=S.length,cur=0;
+// podnožje na slajdovima 2-10
+S.forEach(function(s,i){if(i===0||i===N-1)return;var f=document.createElement("div");f.className="foot";
+f.innerHTML='<span>'+AUT+'</span><span>'+(i+1)+' / '+N+'</span><span class="mark"><svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="14" cy="14" r="4" fill="currentColor"/><circle cx="25" cy="6" r="3.5" fill="#E8A33D"/></svg>SVEMIR</span>';s.appendChild(f)});
+// skaliranje pozornice
+function fit(){var k=Math.min(innerWidth/1600,(innerHeight-44)/900);document.getElementById("stage").style.transform="scale("+k+")"}
+addEventListener("resize",fit);fit();
+// navigacija
+var dots=document.getElementById("dots");
+S.forEach(function(_,i){var d=document.createElement("i");d.onclick=function(){go(i)};dots.appendChild(d)});
+var hooks={};
+function go(i){i=Math.max(0,Math.min(N-1,i));S[cur].classList.remove("on");cur=i;S[cur].classList.add("on");
+[].forEach.call(dots.children,function(d,j){d.classList.toggle("on",j===cur)});
+history.replaceState(null,"","#"+(cur+1));if(hooks[cur+1])hooks[cur+1]()}
+document.getElementById("prev").onclick=function(){go(cur-1)};
+document.getElementById("next").onclick=function(){go(cur+1)};
+addEventListener("keydown",function(e){if(["ArrowRight","PageDown"," "].indexOf(e.key)>=0){e.preventDefault();go(cur+1)}
+else if(["ArrowLeft","PageUp"].indexOf(e.key)>=0)go(cur-1);else if(e.key==="Home")go(0);else if(e.key==="End")go(N-1);
+else if(e.key==="f"||e.key==="F"){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}});
+var tx=null;addEventListener("touchstart",function(e){tx=e.touches[0].clientX},{passive:true});
+addEventListener("touchend",function(e){if(tx===null)return;var dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50)go(cur+(dx<0?1:-1));tx=null});
+
+// 1: zgrada -> grad (zgrade rastu, prozori trepću)
+(function(){var g=document.getElementById("sky"),ws=[.34,.42,.3,.5,.36,.44,.3,.52,.38,.46,.32,.5,.4,.34,.48,.36,.5,.3,.44,.38,.5],hs=[.5,.75,.42,.95,.6,1.1,.5,.85,1.3,.62,.9,1.5,.7,1.05,.8,1.2,.58,.95,1.4,.66,1];
+var x=0;el(g,"rect",{x:0,y:180-115,width:60,height:115,fill:C.amber});
+for(var r=0;r<4;r++)for(var q=0;q<2;q++)el(g,"rect",{x:9+q*32,y:78+r*24,width:10,height:8,fill:C.noc});
+el(g,"path",{d:"M78 150 H160 M146 140 L160 150 L146 160",stroke:C.amber,"stroke-width":3,fill:"none"});
+x=178;ws.forEach(function(w,i){var h=hs[i]*0.8*96;var b=el(g,"rect",{x:x,y:180-h,width:w*120,height:h,fill:C.noc2});
+b.style.transformOrigin="center bottom";b.style.transformBox="fill-box";b.style.animation="rise .9s "+(0.4+i*0.06)+"s both ease-out";
+if(i%3===1){var l=el(g,"rect",{x:x+w*120/2-4,y:180-h+14,width:8,height:6,fill:C.amber});l.style.animation="blink "+(2+i%4)+"s "+i*0.3+"s infinite"}
+x+=w*120+6});el(g,"line",{x1:0,y1:179,x2:1432,y2:179,stroke:C.magla,"stroke-width":1})})();
+
+// 2: tokovi u upravljanje
+(function(){var g=document.getElementById("bms"),cx=600,cy=300,t=["Energija","Voda","Vazduh","Održavanje","Bezbednost"];
+t.forEach(function(n,i){var y=40+i*122;var ln=el(g,"path",{d:"M220 "+(y+39)+" C 380 "+(y+39)+", 420 "+cy+", "+(cx-150)+" "+cy,stroke:C.linija,"stroke-width":3,fill:"none"});
+var sig=el(g,"path",{d:ln.getAttribute("d"),stroke:C.tirkiz,"stroke-width":4,fill:"none","stroke-dasharray":"10 30"});sig.style.animation="dash 1.2s linear infinite";sig.style.opacity=.35;
+var box=el(g,"g",{});box.style.cursor="pointer";el(box,"rect",{x:0,y:y,width:220,height:78,rx:39,fill:"#fff",stroke:C.linija,"stroke-width":1.5});
+el(box,"circle",{cx:38,cy:y+39,r:10,fill:C.tirkiz});var tt=el(box,"text",{x:64,y:y+46,"font-size":21,fill:C.mastilo});tt.textContent=n;
+box.onmouseenter=function(){sig.style.opacity=1;sig.setAttribute("stroke",C.amber)};box.onmouseleave=function(){sig.style.opacity=.35;sig.setAttribute("stroke",C.tirkiz)}});
+el(g,"circle",{cx:cx,cy:cy,r:150,fill:C.noc});var o=el(g,"circle",{cx:cx,cy:cy,r:172,fill:"none",stroke:C.amber,"stroke-width":2.5,"stroke-dasharray":"12 10"});o.style.animation="dash 3s linear infinite";
+var a=el(g,"text",{x:cx,y:cy-4,"font-size":24,"font-weight":600,fill:"#fff","text-anchor":"middle"});a.textContent="Upravljanje";var b=el(g,"text",{x:cx,y:cy+28,"font-size":24,"font-weight":600,fill:"#fff","text-anchor":"middle"});b.textContent="zgradom"})();
+
+// 3: rasuti senzori, svaki u svom ritmu
+(function(){var g=document.getElementById("grad"),bw=[.9,.7,1,.75,.95,.7,.9],bh=[1.3,.85,1.6,1,1.4,.8,1.15],x=60,R=[1.1,3.7,2.3,5,1.7,2.9,4.2];
+bw.forEach(function(w,i){var W=w*144,H=bh[i]*144,c=i%3?C.tirkiz:C.amber,bx=x+W/2;
+el(g,"rect",{x:x,y:390-H,width:W,height:H,fill:i%2?"#2B3E5E":C.noc});el(g,"line",{x1:bx,y1:110,x2:bx,y2:390-H-8,stroke:C.linija,"stroke-width":1.5,"stroke-dasharray":"4 6"});
+el(g,"circle",{cx:bx,cy:60,r:12,fill:c});var p=el(g,"circle",{cx:bx,cy:60,r:0,fill:"none",stroke:c,"stroke-width":2.5});p.style.animation="pulse "+R[i]+"s "+(i*.4)+"s infinite ease-out";
+x+=W+104});el(g,"line",{x1:0,y1:390,x2:1432,y2:390,stroke:C.mastilo,"stroke-width":1.5})})();
+
+// 5: mreža bez centra, klik šalje talas
+(function(){var g=document.getElementById("mreza"),P=[[60,100],[250,30],[450,80],[580,225],[535,410],[365,530],[165,500],[20,350],[205,225],[390,260],[260,390]],
+V=[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,0],[0,8],[1,8],[8,9],[2,9],[3,9],[9,4],[9,10],[10,5],[10,6],[7,8],[8,10],[7,10],[1,9]],L=[],D=[];
+V.forEach(function(v){L.push(el(g,"line",{x1:P[v[0]][0],y1:P[v[0]][1],x2:P[v[1]][0],y2:P[v[1]][1],stroke:"#34507C","stroke-width":2.5}))});
+P.forEach(function(p,i){var c=i%3?C.tirkiz:C.amber;var o=el(g,"circle",{cx:p[0],cy:p[1],r:26,fill:C.noc,stroke:c,"stroke-width":3});el(g,"circle",{cx:p[0],cy:p[1],r:10,fill:c});D.push(o);o.onclick=function(){talas(i)}});
+function talas(s){var dist={},q=[s];dist[s]=0;while(q.length){var u=q.shift();V.forEach(function(v,k){var w=v[0]===u?v[1]:v[1]===u?v[0]:-1;if(w>=0&&dist[w]===undefined){dist[w]=dist[u]+1;q.push(w)}})}
+V.forEach(function(v,k){var d=Math.min(dist[v[0]],dist[v[1]]);setTimeout(function(){L[k].setAttribute("stroke",C.amber);setTimeout(function(){L[k].setAttribute("stroke","#34507C")},700)},d*260)});
+P.forEach(function(p,i){setTimeout(function(){var r=el(g,"circle",{cx:p[0],cy:p[1],r:0,fill:"none",stroke:C.amber,"stroke-width":2});r.style.animation="pulse 1s ease-out forwards";setTimeout(function(){r.remove()},1000)},dist[i]*260)})}
+hooks[5]=function(){setTimeout(function(){talas(8)},900)}})();
+
+// 6: četiri sposobnosti
+(function(){var d=document.getElementById("cetiri"),sp=[["Opaža","Prikuplja javne izvore, uz dozvolu.","oko"],["Pamti","Čuva kada je šta izmereno i odakle potiče.","slojevi"],["Sumnja","Proverava pre nego što zaključi.","?"],["Govori pošteno","Kaže i šta ne zna.","govor"]];
+sp.forEach(function(s,i){var c=i===3?C.amber:C.tirkiz,k=document.createElement("div");k.className="card up t"+(i+1);k.style.cssText="flex:1;height:470px;text-align:center;padding-top:50px;"+(i===3?"border:2.5px solid "+C.amber:"");
+var ic={oko:'<ellipse cx="50" cy="50" rx="24" ry="13" fill="none" stroke="'+c+'" stroke-width="3"/><circle cx="50" cy="50" r="7" fill="'+c+'"><animate attributeName="cx" values="44;56;44" dur="3s" repeatCount="indefinite"/></circle>',
+slojevi:[0,1,2].map(function(j){return '<rect x="30" y="'+(32+j*14)+'" width="40" height="8" rx="4" fill="'+c+'"><animate attributeName="opacity" values="1;.3;1" dur="2.4s" begin="'+(j*.4)+'s" repeatCount="indefinite"/></rect>'}).join(""),
+"?":'<text x="50" y="66" font-size="48" font-weight="600" text-anchor="middle" fill="'+c+'">?<animateTransform attributeName="transform" type="rotate" values="-8 50 50;8 50 50;-8 50 50" dur="2.6s" repeatCount="indefinite"/></text>',
+govor:'<rect x="28" y="33" width="44" height="28" rx="8" fill="'+c+'"/><rect x="36" y="58" width="9" height="11" fill="'+c+'"/>'+[0,1,2].map(function(j){return '<circle cx="'+(40+j*10)+'" cy="47" r="3" fill="#fff"><animate attributeName="opacity" values=".2;1;.2" dur="1.2s" begin="'+(j*.2)+'s" repeatCount="indefinite"/></circle>'}).join("")}[s[2]];
+k.innerHTML='<svg viewBox="0 0 100 100" width="130" height="130"><circle cx="50" cy="50" r="40" fill="none" stroke="'+c+'" stroke-width="2.5"/>'+ic+'</svg><div style="font-size:29px;font-weight:600;margin-top:30px">'+s[0]+'</div><div class="sub" style="margin:14px 34px 0;line-height:1.4">'+s[1]+'</div>';d.appendChild(k)})})();
+
+// 7: tok i tri uloge + brojač
+(function(){var g=document.getElementById("tok"),t=["Javni izvori","Provera","Javni prikaz"];
+t.forEach(function(n,i){var x=i*310;el(g,"rect",{x:x,y:0,width:250,height:96,rx:20,fill:i===1?C.amber:C.noc});var a=el(g,"text",{x:x+125,y:56,"font-size":22,"font-weight":600,"text-anchor":"middle",fill:i===1?C.noc:"#fff"});a.textContent=n;
+if(i<2){var p=el(g,"path",{d:"M"+(x+258)+" 48 H"+(x+302),stroke:C.mastilo,"stroke-width":3,"stroke-dasharray":"6 6"});p.style.animation="dash 1s linear infinite";el(g,"path",{d:"M"+(x+292)+" 38 L"+(x+304)+" 48 L"+(x+292)+" 58",stroke:C.mastilo,"stroke-width":3,fill:"none"})}});
+var h=el(g,"text",{x:0,y:178,"font-size":15,"font-weight":600,fill:C.tirkiz,"letter-spacing":"2"});h.textContent="TRI ULOGE, JEDAN TIM";
+[["Posmatrač","gleda podatke"],["Sumnjalo","traži grešku"],["Povezivač","spaja teme"]].forEach(function(u,i){var x=i*310,cy=262;el(g,"circle",{cx:x+48,cy:cy,r:46,fill:"none",stroke:C.tirkiz,"stroke-width":3});
+if(i===0){var e=el(g,"circle",{cx:x+48,cy:cy,r:15,fill:C.tirkiz});el(e,"animate",{attributeName:"r",values:"12;17;12",dur:"2s",repeatCount:"indefinite"})}
+else if(i===1){var q=el(g,"text",{x:x+48,y:cy+14,"font-size":38,"font-weight":600,"text-anchor":"middle",fill:C.tirkiz});q.textContent="?"}
+else{el(g,"line",{x1:x+30,y1:cy,x2:x+66,y2:cy,stroke:C.tirkiz,"stroke-width":3});el(g,"circle",{cx:x+30,cy:cy,r:9,fill:C.tirkiz});el(g,"circle",{cx:x+66,cy:cy,r:9,fill:C.tirkiz})}
+var a=el(g,"text",{x:x+110,y:cy-4,"font-size":22,"font-weight":600,fill:C.mastilo});a.textContent=u[0];var b=el(g,"text",{x:x+110,y:cy+24,"font-size":17,fill:C.sivo});b.textContent=u[1]});
+var z=el(g,"text",{x:0,y:420,"font-size":25,"font-weight":600,fill:C.mastilo});z.textContent="Nijedna tvrdnja ne izlazi bez provere.";
+var bar=document.getElementById("bar47"),cells=[];for(var i=0;i<47;i++)cells.push(el(bar,"rect",{x:i*8.1,y:6,width:6,height:28,rx:2,fill:"#34507C"}));
+hooks[7]=function(){var n=document.getElementById("broj"),k=0;cells.forEach(function(c){c.setAttribute("fill","#34507C")});
+var t=setInterval(function(){if(k>=47){clearInterval(t);return}var odb=(k*19/47|0)!==((k+1)*19/47|0);cells[k].setAttribute("fill",odb?C.amber:C.tirkiz);if(odb)n.textContent=((k+1)*19/47|0);k++},40)}})();
+
+// 8: proveri tvrdnju
+(function(){var b=document.getElementById("proveri");function reset(){document.getElementById("crta").style.width="0";document.getElementById("tvrdnja").style.color=C.mastilo;b.style.display="";document.getElementById("odbijeno").style.display="none";document.getElementById("razlog").style.opacity=0}
+b.onclick=function(){b.textContent="PROVERAVAM…";setTimeout(function(){document.getElementById("crta").style.width="100%";document.getElementById("tvrdnja").style.color=C.sivo;b.style.display="none";b.textContent="PROVERI TVRDNJU";var o=document.getElementById("odbijeno");o.style.display="inline-block";document.getElementById("razlog").style.opacity=1},700)};
+hooks[8]=reset})();
+
+// 9: pet pravaca
+(function(){var g=document.getElementById("stablo"),pet=document.getElementById("pet"),xs=[];for(var i=0;i<5;i++)xs.push(i*292+132);
+el(g,"rect",{x:566,y:0,width:300,height:60,rx:30,fill:C.noc});var t=el(g,"text",{x:716,y:38,"font-size":19,"font-weight":600,"text-anchor":"middle",fill:"#fff"});t.textContent="Mozak grada";
+xs.forEach(function(x,i){var p=el(g,"path",{d:"M716 60 V100 H"+x+" V150",stroke:i===1?C.amber:C.tirkiz,"stroke-width":2.5,fill:"none","stroke-dasharray":"900","stroke-dashoffset":"900"});p.dataset.k=i;p.classList.add("grana")});
+var B=[["Mozak kvarta ili kampusa","Isti princip na manjoj skali.","Jedan kvart ili kampus kao poligon: manje izvora, brža provera, jasni vlasnici podataka."],
+["Most ka zgradama","Zgrade dele proverene, anonimne pokazatelje.","Za FM: sistem upravljanja zgradom šalje zbirne pokazatelje, a grad vraća kontekst (vazduh, toplota, saobraćaj)."],
+["Pitanja građana","Odgovor uz izvor, vreme i granicu.","Građanin pita, a odgovor uvek kaže odakle je podatak, kada je izmeren i šta se ne zna."],
+["Mreža gradova","Gradovi razmenjuju metode, ne privatne podatke.","Novi Sad, Niš, Beograd… isti način provere, a svaki grad zadržava svoje podatke."],
+["Scenariji „šta ako“","Podrška planerima. Odlučuje čovek.","Šta ako se zatvori ulica ili ozeleni blok? Sistem pokazuje moguće posledice, a odluku donosi čovek."]];
+B.forEach(function(b,i){var k=document.createElement("div");k.className="card";var hl=i===1;k.style.cssText="flex:1;height:340px;padding:30px 28px;cursor:pointer;position:relative;overflow:hidden;"+(hl?"border:2.5px solid "+C.amber:"");
+k.innerHTML='<div style="width:30px;height:30px;border-radius:50%;background:'+(hl?C.amber:C.tirkiz)+'"></div><div style="font-size:24px;font-weight:600;margin-top:24px;line-height:1.2">'+b[0]+'</div><div class="sub" style="margin-top:14px;line-height:1.4;font-size:17px">'+b[1]+'</div>'+
+'<div class="vise" style="position:absolute;inset:0;background:'+C.noc+';color:#fff;padding:30px 28px;font-size:18px;line-height:1.45;opacity:0;transition:opacity .35s"><div style="color:'+C.amber+';font-weight:600;font-size:13px;letter-spacing:.12em;margin-bottom:14px">IDEJA</div>'+b[2]+'</div>';
+k.onclick=function(){var v=k.querySelector(".vise");v.style.opacity=v.style.opacity==="1"?"0":"1"};pet.appendChild(k)});
+hooks[9]=function(){[].forEach.call(g.querySelectorAll(".grana"),function(p,i){p.style.transition="none";p.setAttribute("stroke-dashoffset","900");p.getBoundingClientRect();p.style.transition="stroke-dashoffset 1s "+(0.2+i*0.12)+"s ease";p.setAttribute("stroke-dashoffset","0")});
+[].forEach.call(pet.querySelectorAll(".vise"),function(v){v.style.opacity="0"})}})();
+
+var h=parseInt(location.hash.slice(1),10);go(h>=1&&h<=N?h-1:0);
+})();
+</script>
+</body>
+</html>
