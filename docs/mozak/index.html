@@ -2,299 +2,261 @@
 <html lang="sr-Latn">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>BEOPS – Mozak Beograda · 8. FMBAS konferencija</title>
-<meta name="description" content="Od inteligentnih zgrada do inteligentnih gradova. Prof. dr Darinka Golubović-Matić · Dr Semir Poturak. Dizajn: SVEMIR.">
+<meta name="description" content="Let kroz Beograd: od inteligentne zgrade do mozga grada. Prof. dr Darinka Golubović-Matić · Doc. dr Semir Poturak. Dizajn: SVEMIR.">
 <style>
-:root{--noc:#0E1B2E;--noc2:#16294A;--papir:#F6F3EC;--belo:#fff;--mastilo:#14213A;--sivo:#5E6B80;--linija:#D9D3C5;--amber:#E8A33D;--tirkiz:#1F9E96;--crvena:#C8553D;--magla:#A9B6CC}
+:root{--noc:#0E1B2E;--amber:#E8A33D;--tirkiz:#2BB3A9;--crvena:#D9614A;--magla:#A9B6CC;--belo:#F4F1EA}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:#070e19;overflow:hidden;font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
-#vp{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
-#stage{position:relative;width:1600px;height:900px;flex:none;transform-origin:center center;overflow:hidden;border-radius:6px;box-shadow:0 20px 80px rgba(0,0,0,.5)}
-.s{position:absolute;inset:0;padding:74px 84px;opacity:0;visibility:hidden;transition:opacity .6s ease,visibility .6s}
-.s.on{opacity:1;visibility:visible}
-.s.d{background:var(--noc);color:var(--belo)}
-.s.l{background:var(--papir);color:var(--mastilo)}
-.bar{width:60px;height:7px;background:var(--amber);margin-bottom:12px}
-.nad{font-weight:600;font-size:14px;letter-spacing:.14em;color:var(--tirkiz);text-transform:uppercase}
-.d .nad{color:var(--amber)}
-h1{font-weight:300;font-size:70px;line-height:1.05}
-h2{font-weight:300;font-size:42px;margin-top:10px;line-height:1.15}
-.sub{color:var(--sivo);font-size:18px}
-.d .sub{color:var(--magla)}
-.foot{position:absolute;left:84px;right:84px;bottom:22px;height:36px;border-top:1px solid var(--linija);display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--sivo)}
-.d .foot{border-color:var(--noc2);color:var(--magla)}
-.mark{display:flex;align-items:center;gap:8px;font-weight:600;letter-spacing:.06em}
-.mark svg{width:28px;height:28px}
-/* animacije koje kreću kad je slajd aktivan */
-.up{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
-.on .up{opacity:1;transform:none}
-.on .up.t1{transition-delay:.15s}.on .up.t2{transition-delay:.35s}.on .up.t3{transition-delay:.55s}.on .up.t4{transition-delay:.75s}.on .up.t5{transition-delay:.95s}.on .up.t6{transition-delay:1.15s}
-.card{background:var(--belo);border:1px solid var(--linija);border-radius:17px;transition:transform .25s,box-shadow .25s,border-color .25s}
-.card:hover{transform:translateY(-6px);box-shadow:0 14px 30px rgba(20,33,58,.12)}
-.hint{font-size:12px;color:var(--sivo);letter-spacing:.04em}
-.d .hint{color:var(--magla)}
-/* nav */
-#nav{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;z-index:9;padding:6px 12px;border-radius:20px;background:rgba(14,27,46,.75);backdrop-filter:blur(6px)}
-#nav button{border:0;background:none;color:#cfd8e6;font-size:18px;cursor:pointer;padding:0 6px}
-#dots{display:flex;gap:6px}
-#dots i{width:8px;height:8px;border-radius:50%;background:#45597d;cursor:pointer;transition:background .3s,transform .3s}
-#dots i.on{background:var(--amber);transform:scale(1.3)}
-svg text{font-family:"Segoe UI",system-ui,sans-serif}
-@keyframes pulse{0%{r:0;opacity:.9}100%{r:70;opacity:0}}
-@keyframes dash{to{stroke-dashoffset:-40}}
-@keyframes flow{to{stroke-dashoffset:0}}
-@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
-@keyframes rise{from{transform:scaleY(0)}to{transform:scaleY(1)}}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+html,body{height:100%;background:var(--noc);color:var(--belo);font-family:"Segoe UI",system-ui,sans-serif;overflow:hidden}
+canvas{display:block;position:fixed;inset:0}
+#lab{position:fixed;inset:0;pointer-events:none}
+.lb{position:absolute;transform:translate(-50%,-100%);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--magla);white-space:nowrap;opacity:0;transition:opacity .6s;text-shadow:0 0 6px var(--noc)}
+.lb.on{opacity:1}.lb.a{color:var(--amber)}.lb.t{color:var(--tirkiz)}.lb.r{color:var(--crvena)}
+.lb::after{content:"";display:block;width:1px;height:14px;background:currentColor;margin:3px auto 0;opacity:.6}
+#hud::before{content:"";position:absolute;left:-12vw;right:-14vw;top:-10vh;bottom:-12vh;background:radial-gradient(ellipse at 30% 60%,rgba(14,27,46,.92),rgba(14,27,46,.6) 45%,rgba(14,27,46,0) 72%);z-index:-1}
+#hud{position:fixed;left:5vw;bottom:13vh;max-width:min(46vw,760px);pointer-events:none}
+#hud .k{font-size:clamp(11px,1vw,15px);letter-spacing:.14em;text-transform:uppercase;color:var(--amber);font-weight:600;margin-bottom:1.1em;display:flex;gap:.8em;align-items:center}
+#hud .k::before{content:"";width:36px;height:3px;background:var(--amber)}
+#hud h1{font-weight:300;font-size:clamp(26px,3.3vw,54px);line-height:1.12;letter-spacing:-.01em}
+#hud h1 b{font-weight:600;color:var(--amber)}
+#hud p{margin-top:1em;font-size:clamp(14px,1.25vw,20px);line-height:1.45;color:var(--magla);max-width:36em}
+#hud p b{color:var(--belo);font-weight:600}
+#hud .tag{display:inline-block;margin-top:1.2em;border:1px dashed var(--amber);color:var(--amber);padding:.35em .8em;font-size:clamp(11px,.9vw,14px);letter-spacing:.1em;text-transform:uppercase}
+#hud.s1 h1{font-size:clamp(34px,5vw,84px)}
+#hud .fade{transition:opacity .5s,transform .5s}
+#hud.out .fade{opacity:0;transform:translateY(12px)}
+#foot{position:fixed;left:5vw;right:5vw;bottom:3.2vh;display:flex;justify-content:space-between;align-items:center;font-size:clamp(10px,.85vw,13px);color:var(--magla);border-top:1px solid #23395c;padding-top:1.1vh}
+#foot .sv{display:flex;gap:.5em;align-items:center;font-weight:600;letter-spacing:.14em}
+#foot .sv i{width:14px;height:14px;border:1.5px solid currentColor;border-radius:50%;position:relative}
+#foot .sv i::after{content:"";position:absolute;width:5px;height:5px;background:var(--amber);border-radius:50%;right:-3px;top:-2px}
+#dots{display:flex;gap:6px}#dots span{width:18px;height:3px;background:#2c4468;cursor:pointer;pointer-events:auto}#dots span.on{background:var(--amber)}
+#help{position:fixed;right:5vw;top:4vh;font-size:12px;color:#5d7396;letter-spacing:.06em}
+body.shot #hud,body.shot #foot,body.shot #help,body.pdf #help,body.pdf #dots{display:none}
+@media (max-width:760px){#hud{max-width:90vw;bottom:16vh}#help{display:none}}
 </style>
 </head>
 <body>
-<div id="vp"><div id="stage">
+<div id="lab"></div>
+<div id="hud"><div class="fade" id="hc"></div></div>
+<div id="foot"><span>Prof. dr Darinka Golubović-Matić · Doc. dr Semir Poturak</span><span id="dots"></span><span class="sv"><i></i>SVEMIR</span></div>
+<div id="help">← → · prevuci · F ceo ekran</div>
+<script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script>
+<script type="module">
+import * as T from 'three';
+const Q=new URLSearchParams(location.search), SHOT=Q.has('shot');
+if(SHOT)document.body.classList.add("shot");if(Q.has("pdf"))document.body.classList.add("pdf");
+const C={noc:0x0E1B2E,tlo:0x13243d,reka:0x1d4b74,rekaL:0x2f6f9a,zgr:0x3e5b82,amber:0xE8A33D,tirkiz:0x2BB3A9,crvena:0xD9614A,magla:0xA9B6CC};
 
-<!-- 1 -->
-<section class="s d on" data-n="1">
-  <div class="bar"></div>
-  <div class="nad up">8. FMBAS konferencija · Value Beyond the Building · InGrid, SE Hub Novi Sad · 26.11.2026.</div>
-  <h1 class="up t1" style="margin-top:70px">BEOPS – Mozak Beograda</h1>
-  <div class="up t2" style="color:var(--amber);font-size:30px;margin-top:18px">Od inteligentnih zgrada do inteligentnih gradova</div>
-  <div class="up t3" style="margin-top:56px;font-size:22px;font-weight:600">Prof. dr Darinka Golubović-Matić · Dr Semir Poturak</div>
-  <div class="up t3 sub" style="margin-top:6px">Univerzitet Union – Nikola Tesla, Beograd</div>
-  <svg id="sky" viewBox="0 0 1432 180" style="position:absolute;left:84px;bottom:80px;width:1432px;height:180px"></svg>
-  <div class="foot" style="border:0"><span class="mark">Dizajn i priprema slajdova:&nbsp;<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="14" cy="14" r="4" fill="currentColor"/><circle cx="25" cy="6" r="3.5" fill="#E8A33D"/></svg><b style="color:#fff">SVEMIR</b></span><span class="hint">← → ili klik · F za ceo ekran</span></div>
-</section>
+/* ---------- slajdovi: tvrdnja + jedan konkretan red ---------- */
+const S=[
+ {k:'8. FMBAS · Value Beyond the Building · Novi Sad, 26.11.2026',h:'BEOPS – <b>Mozak Beograda</b>',p:'Od inteligentnih zgrada do inteligentnih gradova',cam:[[-44,20,52],[-14,9,2]]},
+ {k:'Zgrada',h:'Jedna zgrada već ima <b>nervni sistem</b>. Beograd ga nema.',p:'Energija, voda, vazduh, održavanje i bezbednost slivaju se u jedno upravljanje zgradom.',cam:[[16,11,30],[-11,8.5,6]]},
+ {k:'Grad',h:'Beograd vidi sebe <b>u ostrvima</b>.',p:'Vazduh, vreme, saobraćaj, reke: svaki podatak ima svog vlasnika, svoj ritam i svoju pouzdanost.',cam:[[40,70,95],[0,0,8]]},
+ {k:'Digitalni blizanac',h:'Blizanac grada nastaje tek kad se <b>ostrva povežu</b>.',p:'Povezati, modelovati, podržati odluku. Odluku i dalje donosi struka.',cam:[[-55,60,90],[0,0,8]]},
+ {k:'Ideja',h:'Mozak grada nije kontrolna soba. To je <b>mreža bez centra</b>.',p:'Mesto gde javni podaci postaju zajedničko i proverljivo znanje.',cam:[[0,22,95],[0,26,0]]},
+ {k:'Šta mora da ume',h:'Opaža. Pamti. Sumnja. I <b>kaže šta ne zna</b>.',p:'Četvrta osobina je najređa i najvažnija.',cam:[[-10,75,95],[0,26,4]]},
+ {k:'BEOPS · stanje 24.11.2026',h:'Za sedam dana BEOPS je odbio <b>19 od 47</b> sopstvenih misli.',p:'Svaka odbijena misao ima ispisan razlog. Posmatrač opaža, Sumnjalo proverava, Povezivač spaja.',cam:[[34,26,44],[14,6,12]]},
+ {k:'Provera',h:'Tvrdnja o <b>PM10</b> pala je: izmereno je bilo PM2.5.',p:'Ilustracija tipa greške koju provera zaustavlja pre nego što postane javno „znanje“.',cam:[[30,13,38],[11,6.5,11]]},
+ {k:'Kuda može da raste',h:'Mozak kvarta, kampusa, <b>zgrade</b> — i mreža gradova.',p:'<b>Most ka zgradama</b>: BMS i mozak grada razmenjuju ono što oboje znaju. Uz to pitanja građana i scenariji „šta ako“.',tag:'ideje, ne postojeće funkcije',cam:[[50,120,170],[-5,0,-40]]},
+ {k:'Uslovi',h:'Pametan grad bez poverenja je <b>samo nadzor</b>.',p:'Otvorenost · privatnost · proverljivost · čovek odlučuje.',cam:[[-70,14,70],[0,4,0]]},
+ {k:'3esign.github.io/beops',h:'Zgrade su <b>prvi neuroni</b> grada.',p:'Poziv struci facility menadžmenta: povežimo zgrade sa javnim znanjem grada.<br>Dizajn i priprema: SVEMIR',cam:[[-30,18,26],[-10,7,6]]},
+];
+const N=S.length;
 
-<!-- 2 -->
-<section class="s l" data-n="2">
-  <div class="bar"></div><div class="nad">Od zgrade ka gradu</div><h2>Zgrada koja oseća</h2>
-  <div class="up t1" style="position:absolute;left:84px;top:290px;width:560px">
-    <div style="font-size:34px;font-weight:600;line-height:1.15">Savremena zgrada već ima nervni sistem.</div>
-    <div class="sub" style="font-size:21px;margin-top:22px;line-height:1.4">Senzori mere, podaci se sabiraju na jednom mestu, a upravljanje odlučuje.</div>
-    <div class="hint" style="margin-top:30px">Pređi mišem preko toka da vidiš signal.</div>
-  </div>
-  <svg id="bms" viewBox="0 0 800 640" style="position:absolute;left:720px;top:190px;width:800px;height:640px"></svg>
-</section>
+/* ---------- renderer, scena ---------- */
+const R=new T.WebGLRenderer({antialias:true,preserveDrawingBuffer:SHOT||Q.has("pdf")});
+R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.setSize(innerWidth,innerHeight);
+document.body.prepend(R.domElement);
+const sc=new T.Scene();sc.background=new T.Color(C.noc);sc.fog=new T.Fog(C.noc,120,420);
+const cam=new T.PerspectiveCamera(42,innerWidth/innerHeight,0.5,2000);
+sc.add(new T.HemisphereLight(0x8fb0d8,0x0b1424,1.1));
+const sun=new T.DirectionalLight(0xffe2b8,1.3);sun.position.set(-60,90,40);sc.add(sun);
 
-<!-- 3 -->
-<section class="s l" data-n="3">
-  <div class="bar"></div><div class="nad">Od zgrade ka gradu</div><h2>Grad je mnogo zgrada, ali nije jedna zgrada</h2>
-  <svg id="grad" viewBox="0 0 1432 400" style="position:absolute;left:84px;top:230px;width:1432px;height:400px"></svg>
-  <div style="position:absolute;left:108px;right:84px;top:640px;display:flex;gap:60px">
-    <div class="up t2" style="border-left:7px solid var(--amber);padding-left:24px;flex:1"><div style="font-size:24px;font-weight:600">Različiti vlasnici</div><div class="sub">Svako meri i čuva svoje.</div></div>
-    <div class="up t3" style="border-left:7px solid var(--amber);padding-left:24px;flex:1"><div style="font-size:24px;font-weight:600">Različiti ritmovi</div><div class="sub">Minut, sat, dan, godina.</div></div>
-    <div class="up t4" style="border-left:7px solid var(--amber);padding-left:24px;flex:1"><div style="font-size:24px;font-weight:600">Različita pouzdanost</div><div class="sub">Nije svaki broj isto siguran.</div></div>
-  </div>
-</section>
+/* deterministički slučaj */
+let seed=7;const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
 
-<!-- 4 -->
-<section class="s l" data-n="4">
-  <div class="bar"></div><div class="nad">Od zgrade ka gradu</div><h2>Digitalni blizanac i AI</h2>
-  <div style="position:absolute;left:84px;right:84px;top:270px;display:flex;gap:30px">
-    <div class="card up t1" style="flex:1;padding:34px;height:320px"><div style="width:68px;height:68px;border-radius:50%;background:var(--noc);color:var(--amber);font-weight:600;font-size:24px;display:flex;align-items:center;justify-content:center">1</div><div style="font-size:27px;font-weight:600;margin-top:28px">Povezivanje</div><div class="sub" style="margin-top:12px;line-height:1.4">Podaci iz različitih izvora dobijaju zajedničko mesto i vreme.</div></div>
-    <div class="card up t2" style="flex:1;padding:34px;height:320px"><div style="width:68px;height:68px;border-radius:50%;background:var(--noc);color:var(--amber);font-weight:600;font-size:24px;display:flex;align-items:center;justify-content:center">2</div><div style="font-size:27px;font-weight:600;margin-top:28px">Modelovanje</div><div class="sub" style="margin-top:12px;line-height:1.4">Blizanac tumači povezane podatke kroz vreme. Nije samo 3D slika.</div></div>
-    <div class="card up t3" style="flex:1;padding:34px;height:320px"><div style="width:68px;height:68px;border-radius:50%;background:var(--noc);color:var(--amber);font-weight:600;font-size:24px;display:flex;align-items:center;justify-content:center">3</div><div style="font-size:27px;font-weight:600;margin-top:28px">Podrška odlučivanju</div><div class="sub" style="margin-top:12px;line-height:1.4">Stručnjak vidi više i brže. Odluka ostaje njegova.</div></div>
-  </div>
-  <div class="up t5" style="position:absolute;left:84px;right:84px;top:660px;height:110px;background:var(--noc);border-radius:17px;color:#fff;font-size:30px;font-weight:300;display:flex;align-items:center;justify-content:center">AI je alat struke, a ne njena zamena.</div>
-</section>
+/* ---------- reke (stilizovano: Sava sa jugozapada, Dunav sa severozapada, ušće kod Kalemegdana) ---------- */
+const V=(x,z)=>new T.Vector3(x,0,z);
+const dunav=new T.CatmullRomCurve3([V(-120,-95),V(-75,-58),V(-38,-27),V(-8,-6),V(18,-12),V(45,-30),V(85,-46),V(140,-52)]).getPoints(160);
+const sava=new T.CatmullRomCurve3([V(-110,95),V(-62,62),V(-36,34),V(-18,12),V(-8,-6)]).getPoints(90);
+function ribbon(pts,w,y){const p=[],idx=[];for(let i=0;i<pts.length;i++){const a=pts[Math.max(0,i-1)],b=pts[Math.min(pts.length-1,i+1)];const d=new T.Vector3().subVectors(b,a).normalize();const n=new T.Vector3(-d.z,0,d.x).multiplyScalar(w/2);p.push(pts[i].x+n.x,y,pts[i].z+n.z,pts[i].x-n.x,y,pts[i].z-n.z);if(i)idx.push(2*i-2,2*i-1,2*i,2*i-1,2*i+1,2*i);}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.setIndex(idx);return g;}
+const tlo=new T.Mesh(new T.CircleGeometry(600,64).rotateX(-Math.PI/2),new T.MeshLambertMaterial({color:C.tlo}));tlo.position.y=-0.05;sc.add(tlo);
+for(const [pts,w] of [[dunav,9],[sava,5]]){
+ sc.add(new T.Mesh(ribbon(pts,w,0.02),new T.MeshBasicMaterial({color:C.reka,side:2})));
+ for(const s of [1,-1]){const e=pts.map((q,i)=>{const a=pts[Math.max(0,i-1)],b=pts[Math.min(pts.length-1,i+1)];const d=new T.Vector3().subVectors(b,a).normalize();return new T.Vector3(q.x-d.z*s*w/2,0.05,q.z+d.x*s*w/2);});
+  sc.add(new T.Line(new T.BufferGeometry().setFromPoints(e),new T.LineBasicMaterial({color:C.rekaL,transparent:true,opacity:.7})));}
+}
+const distTo=(pts,x,z)=>{let m=1e9;for(const q of pts){const d=(q.x-x)**2+(q.z-z)**2;if(d<m)m=d;}return Math.sqrt(m);};
+const interp=(pts,key,val,out)=>{for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i];if((a[key]-val)*(b[key]-val)<=0&&a[key]!==b[key]){const t=(val-a[key])/(b[key]-a[key]);return a[out]+t*(b[out]-a[out]);}}return null;};
 
-<!-- 5 -->
-<section class="s d" data-n="5">
-  <div class="bar"></div><div class="nad">Ideja</div><h2>Mozak grada</h2>
-  <div class="up t1" style="position:absolute;left:84px;top:290px;width:760px;font-size:36px;font-weight:300;line-height:1.25">Šta kad bi grad imao mesto gde se njegovi javni podaci sabiraju, proveravaju i postaju zajedničko znanje?</div>
-  <div class="up t3" style="position:absolute;left:84px;top:640px;border-left:7px solid var(--amber);padding-left:26px;color:var(--magla);font-size:21px;line-height:1.4">Nije kontrolna soba koja upravlja.<br>To je zajedničko pamćenje i rasuđivanje.</div>
-  <svg id="mreza" viewBox="-30 -10 660 630" style="position:absolute;left:900px;top:200px;width:640px;height:620px;cursor:pointer"></svg>
-  <div class="hint" style="position:absolute;left:960px;top:820px">Klikni bilo koju tačku: nema centra, signal ide kroz veze.</div>
-</section>
+/* ---------- blokovi: Novi Beograd (pravilna mreža), Stari grad i Vračar (gušće, zarotirano) ---------- */
+const HERO=new T.Vector3(-10,0,6);
+const boxes=[];
+function tryBox(x,z,w,d,h,rot){
+ if(distTo(dunav,x,z)<w+6||distTo(sava,x,z)<w+4)return;
+ const dz=interp(dunav,'x',x,'z');if(dz!==null&&z<dz)return;           // leva obala Dunava ostaje prazna (Ada Huja/ritovi stilizovano)
+ if(Math.hypot(x-6,z+4)<7)return;                                       // Kalemegdan: park
+ if(Math.hypot(x-HERO.x,z-HERO.z)<5)return;
+ if(Math.hypot(x,z-8)>95)return;
+ boxes.push({x,z,w,d,h,rot});
+}
+for(let x=-80;x<-6;x+=6.2)for(let z=-40;z<70;z+=6.2){const sx=interp(sava,'z',z,'x');if(sx!==null&&x>sx)continue;if(sx===null&&z>0)continue;
+ const tower=rnd()<.07;tryBox(x+rnd()*.6,z+rnd()*.6,3.8,3.8,tower?7+rnd()*7:1+rnd()*2.6,0);}
+for(let i=-34;i<34;i++)for(let j=-6;j<40;j++){const a=.42,u=i*2.7,v=j*2.7;const x=6+u*Math.cos(a)-v*Math.sin(a),z=2+u*Math.sin(a)+v*Math.cos(a);
+ const sx=interp(sava,'z',z,'x');if(sx!==null&&x<sx)continue;if(rnd()<.3)continue;tryBox(x,z,1.9,1.9,.6+rnd()*rnd()*4.2,a);}
+{const g=new T.BoxGeometry(1,1,1).translate(0,.5,0);const im=new T.InstancedMesh(g,new T.MeshLambertMaterial({color:0x1a2f4f}),boxes.length);
+ const m=new T.Matrix4(),pos=[];
+ boxes.forEach((b,i)=>{m.compose(new T.Vector3(b.x,0,b.z),new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),-b.rot),new T.Vector3(b.w,b.h,b.d));im.setMatrixAt(i,m);
+  const c=[[-.5,0,-.5],[.5,0,-.5],[.5,0,.5],[-.5,0,.5]].map(([a,,cc])=>new T.Vector3(a,0,cc).applyMatrix4(m)),t=[[-.5,1,-.5],[.5,1,-.5],[.5,1,.5],[-.5,1,.5]].map(([a,bb,cc])=>new T.Vector3(a,bb,cc).applyMatrix4(m));
+  for(let k=0;k<4;k++){const n=(k+1)%4;pos.push(...t[k].toArray(),...t[n].toArray(),...c[k].toArray(),...t[k].toArray());}});
+ sc.add(im);const lg=new T.BufferGeometry();lg.setAttribute('position',new T.Float32BufferAttribute(pos,3));
+ sc.add(new T.LineSegments(lg,new T.LineBasicMaterial({color:C.zgr,transparent:true,opacity:.75})));}
 
-<!-- 6 -->
-<section class="s l" data-n="6">
-  <div class="bar"></div><div class="nad">Ideja</div><h2>Šta mozak grada mora da ume</h2>
-  <div id="cetiri" style="position:absolute;left:84px;right:84px;top:270px;display:flex;gap:30px"></div>
-</section>
+/* ---------- zgrada-junak: spratovi + pet tokova (nervni sistem) ---------- */
+const hero=new T.Group();hero.position.copy(HERO);sc.add(hero);
+{const h=16,w=4.4;const g=new T.BoxGeometry(w,h,w).translate(0,h/2,0);
+ hero.add(new T.Mesh(g,new T.MeshLambertMaterial({color:0x22385c,transparent:true,opacity:.55})));
+ hero.add(new T.LineSegments(new T.EdgesGeometry(g),new T.LineBasicMaterial({color:C.amber})));
+ const fl=[];for(let y=1.6;y<h;y+=1.6){const s=w/2;fl.push(-s,y,-s,s,y,-s,s,y,-s,s,y,s,s,y,s,-s,y,s,-s,y,s,-s,y,-s);}
+ const fg=new T.BufferGeometry();fg.setAttribute('position',new T.Float32BufferAttribute(fl,3));hero.add(new T.LineSegments(fg,new T.LineBasicMaterial({color:C.amber,transparent:true,opacity:.28})));}
+const nerv=[];{const cols=[C.amber,C.tirkiz,0x7fb7ff,C.magla,C.crvena];
+ for(let i=0;i<5;i++){const x=-1.4+i*.7;const ln=new T.Line(new T.BufferGeometry().setFromPoints([new T.Vector3(x,.2,0),new T.Vector3(x,15.6,0)]),new T.LineBasicMaterial({color:cols[i],transparent:true,opacity:0}));hero.add(ln);
+  const p=new T.Mesh(new T.SphereGeometry(.22,10,8),new T.MeshBasicMaterial({color:cols[i],transparent:true,opacity:0}));hero.add(p);nerv.push({ln,p,x,o:i*.37});}}
 
-<!-- 7 -->
-<section class="s l" data-n="7">
-  <div class="bar"></div><div class="nad">BEOPS kao primer</div><h2>BEOPS: Beograd kao prvi primer</h2>
-  <div class="sub" style="position:absolute;left:84px;top:250px;font-size:23px">Otvorena opservatorija Beograda</div>
-  <svg id="tok" viewBox="0 0 900 520" style="position:absolute;left:84px;top:310px;width:900px;height:520px"></svg>
-  <div style="position:absolute;left:1050px;top:258px;width:466px;height:505px;background:var(--noc);border-radius:19px;color:#fff;text-align:center;padding-top:40px">
-    <div id="broj" style="font-size:150px;font-weight:300;color:var(--amber);line-height:1">0</div>
-    <div style="font-size:23px;font-weight:600;margin-top:18px">od 47 misli sistema</div>
-    <div style="color:var(--magla);font-size:18px;margin-top:14px;line-height:1.4">odbijeno je u nedelju dana,<br>svaka uz obrazloženje.</div>
-    <svg id="bar47" viewBox="0 0 380 40" style="width:380px;height:40px;margin-top:26px"></svg>
-    <div style="color:var(--magla);font-size:13px;margin-top:18px">stanje: 24.11.2026.</div>
-  </div>
-</section>
+/* ---------- ostrva podataka ---------- */
+const ISL=[['vazduh',13,12],['vazduh',-32,20],['vazduh',24,32],['vazduh',-52,-22],['saobraćaj',4,24],['reke',-2,-14],['vreme',34,4],['saobraćaj',-24,44]];
+const isl=ISL.map(([n,x,z])=>{const g=new T.Group();g.position.set(x,0,z);sc.add(g);
+ const ring=new T.Mesh(new T.RingGeometry(3.4,3.8,48).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:C.tirkiz,transparent:true,opacity:0,side:2}));ring.position.y=.3;g.add(ring);
+ const beam=new T.Mesh(new T.CylinderGeometry(.12,.12,10,6).translate(0,5,0),new T.MeshBasicMaterial({color:C.tirkiz,transparent:true,opacity:0}));g.add(beam);
+ const pts=[];for(let k=0;k<14;k++){const a=rnd()*6.28,r=rnd()*2.8;pts.push(Math.cos(a)*r,.5+rnd()*2,Math.sin(a)*r);}
+ const pg=new T.BufferGeometry();pg.setAttribute('position',new T.Float32BufferAttribute(pts,3));
+ const pm=new T.Points(pg,new T.PointsMaterial({color:C.tirkiz,size:.7,transparent:true,opacity:0}));g.add(pm);
+ return {n,g,ring,beam,pm,pos:new T.Vector3(x,1,z)};});
+/* veze blizanca */
+const twinPairs=[];isl.forEach((a,i)=>{isl.map((b,j)=>[a.pos.distanceTo(b.pos),j]).filter(([,j])=>j!==i).sort((p,q)=>p[0]-q[0]).slice(0,2).forEach(([,j])=>{if(i<j||!twinPairs.some(([x,y])=>x===j&&y===i))twinPairs.push([i,j]);});});
+const twinLines=twinPairs.map(([i,j])=>{const a=isl[i].pos,b=isl[j].pos;const mid=a.clone().add(b).multiplyScalar(.5);mid.y=6+a.distanceTo(b)*.12;
+ const pts=new T.QuadraticBezierCurve3(a,mid,b).getPoints(40);const l=new T.Line(new T.BufferGeometry().setFromPoints(pts),new T.LineBasicMaterial({color:C.tirkiz,transparent:true,opacity:.9}));l.geometry.setDrawRange(0,0);sc.add(l);return l;});
 
-<!-- 8 -->
-<section class="s l" data-n="8">
-  <div class="bar"></div><div class="nad">BEOPS kao primer</div><h2>Mozak koji zna šta ne zna</h2>
-  <div class="card" style="position:absolute;left:84px;top:276px;width:792px;height:468px;padding:34px 42px">
-    <div class="nad" style="color:var(--sivo)">Tvrdnja</div>
-    <div id="tvrdnja" style="position:relative;display:inline-block;font-size:27px;color:var(--mastilo);margin-top:18px;transition:color .6s">„Vrednost PM10 je danas povišena.“<span id="crta" style="position:absolute;left:0;top:52%;height:3px;width:0;background:var(--crvena);transition:width .7s ease"></span></div>
-    <div style="margin-top:30px;height:52px"><button id="proveri" style="border:2px solid var(--tirkiz);background:none;color:var(--tirkiz);font:600 15px 'Segoe UI',sans-serif;letter-spacing:.1em;padding:12px 26px;border-radius:26px;cursor:pointer">PROVERI TVRDNJU</button><span id="odbijeno" style="display:none;background:var(--crvena);color:#fff;font-weight:600;font-size:14px;letter-spacing:.1em;padding:13px 28px;border-radius:26px">ODBIJENO</span></div>
-    <div id="razlog" style="opacity:0;transition:opacity .6s .5s">
-      <div style="font-size:23px;font-weight:600;margin-top:28px">Broj je izmeren za PM2.5, a ne za PM10.</div>
-      <div class="sub" style="margin-top:10px">Sistem je grešku uhvatio sam i javno zapisao razlog.</div>
-    </div>
-    <div class="hint" style="position:absolute;bottom:26px">Ilustracija tipa greške koju sistem odbija.</div>
-  </div>
-  <div style="position:absolute;left:930px;top:276px;width:586px;display:flex;flex-direction:column;gap:22px">
-    <div class="up t1" style="background:var(--noc);border-radius:17px;height:142px;padding:30px 40px;border-left:8px solid var(--amber)"><div style="color:#fff;font-size:23px;font-weight:600">Podatak koji nedostaje</div><div style="color:var(--amber);font-size:23px;margin-top:6px">nije nula.</div></div>
-    <div class="up t2" style="background:var(--noc);border-radius:17px;height:142px;padding:30px 40px;border-left:8px solid var(--amber)"><div style="color:#fff;font-size:23px;font-weight:600">Staro merenje</div><div style="color:var(--amber);font-size:23px;margin-top:6px">nije novo.</div></div>
-    <div class="up t3" style="background:var(--noc);border-radius:17px;height:142px;padding:30px 40px;border-left:8px solid var(--amber)"><div style="color:#fff;font-size:23px;font-weight:600">Granice podataka</div><div style="color:var(--amber);font-size:23px;margin-top:6px">su deo rezultata.</div></div>
-  </div>
-</section>
+/* ---------- mozak: mreža bez centra iznad grada ---------- */
+const BY=28,bn=[];for(let i=0;i<54;i++){const a=rnd()*6.28,r=Math.sqrt(rnd())*58;bn.push(new T.Vector3(Math.cos(a)*r,BY+(rnd()-.5)*7,8+Math.sin(a)*r*.8));}
+const brain=new T.Group();sc.add(brain);
+const bLinks=[];bn.forEach((a,i)=>bn.map((b,j)=>[a.distanceTo(b),j]).filter(([,j])=>j>i).sort((p,q)=>p[0]-q[0]).slice(0,3).forEach(([,j])=>bLinks.push([i,j])));
+const bl=[];bLinks.forEach(([i,j])=>bl.push(...bn[i].toArray(),...bn[j].toArray()));
+const blg=new T.BufferGeometry();blg.setAttribute('position',new T.Float32BufferAttribute(bl,3));
+const bLineMat=new T.LineBasicMaterial({color:C.amber,transparent:true,opacity:0});brain.add(new T.LineSegments(blg,bLineMat));
+const bNodeMat=new T.MeshBasicMaterial({color:C.amber,transparent:true,opacity:0});
+bn.forEach(p=>{const m=new T.Mesh(new T.SphereGeometry(.55,10,8),bNodeMat);m.position.copy(p);brain.add(m);});
+/* uzlazne niti: ostrva -> mozak */
+const up=[];isl.forEach(s=>{let best=bn[0];bn.forEach(b=>{if(b.distanceTo(s.pos)<best.distanceTo(s.pos))best=b;});up.push(...s.pos.toArray(),...best.toArray());});
+const upg=new T.BufferGeometry();upg.setAttribute('position',new T.Float32BufferAttribute(up,3));
+const upMat=new T.LineDashedMaterial({color:C.tirkiz,dashSize:1,gapSize:1,transparent:true,opacity:0});const upL=new T.LineSegments(upg,upMat);upL.computeLineDistances();sc.add(upL);
+const pulses=[];for(let k=0;k<26;k++){const m=new T.Mesh(new T.SphereGeometry(.42,8,6),new T.MeshBasicMaterial({color:0xfff1d6,transparent:true,opacity:0}));brain.add(m);pulses.push({m,l:bLinks[Math.floor(rnd()*bLinks.length)],t:rnd()});}
+/* četiri osobine: četiri istaknuta čvora */
+const four=[[ 'opaža',0],['pamti',0],['sumnja',0],['kaže šta ne zna',0]];
+{const picks=[...bn].map((p,i)=>[p,i]).sort((a,b)=>a[0].distanceTo(new T.Vector3(0,BY,8))-b[0].distanceTo(new T.Vector3(0,BY,8))).slice(0,14);
+ four.forEach((f,i)=>f[1]=picks[[1,4,8,12][i]][0]);}
+const fourMesh=four.map(([,p],i)=>{const m=new T.Mesh(new T.SphereGeometry(i===3?1.5:1.1,16,12),new T.MeshBasicMaterial({color:i===3?C.amber:C.tirkiz,transparent:true,opacity:0}));m.position.copy(p);sc.add(m);return m;});
 
-<!-- 9 -->
-<section class="s l" data-n="9">
-  <div class="bar"></div><div class="nad">Moguće budućnosti</div><h2>Kuda ideja može da raste</h2>
-  <div style="position:absolute;right:84px;top:88px;border:1.5px solid var(--amber);border-radius:26px;padding:10px 26px;font-weight:600;font-size:14px">ideje, ne postojeće funkcije</div>
-  <svg id="stablo" viewBox="0 0 1432 150" style="position:absolute;left:84px;top:250px;width:1432px;height:150px"></svg>
-  <div id="pet" style="position:absolute;left:84px;right:84px;top:400px;display:flex;gap:28px"></div>
-  <div class="hint" style="position:absolute;left:84px;top:800px">Klikni karticu za kratko objašnjenje.</div>
-</section>
+/* ---------- merna stanica i odbijena tvrdnja ---------- */
+const ST=new T.Vector3(13,0,12);const stn=new T.Group();stn.position.copy(ST);sc.add(stn);
+stn.add(new T.Mesh(new T.CylinderGeometry(.12,.12,5,8).translate(0,2.5,0),new T.MeshLambertMaterial({color:0xcfd8e6})));
+stn.add(new T.Mesh(new T.BoxGeometry(1.4,.9,.9).translate(0,5.2,0),new T.MeshLambertMaterial({color:0xcfd8e6})));
+const claim=new T.Mesh(new T.SphereGeometry(.45,16,12),new T.MeshBasicMaterial({color:C.crvena,transparent:true,opacity:0}));sc.add(claim);
+const xMat=new T.LineBasicMaterial({color:C.crvena,transparent:true,opacity:0});
+const xg=new T.BufferGeometry();xg.setAttribute('position',new T.Float32BufferAttribute([-1.3,-1.3,0,1.3,1.3,0,-1.3,1.3,0,1.3,-1.3,0],3));
+const xMark=new T.LineSegments(xg,xMat);sc.add(xMark);xMark.position.set(ST.x,8.6,ST.z);
+const shield=new T.Mesh(new T.RingGeometry(2.2,2.5,48).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:C.crvena,transparent:true,opacity:0,side:2}));shield.position.set(ST.x,7,ST.z);sc.add(shield);
 
-<!-- 10 -->
-<section class="s l" data-n="10">
-  <div class="bar"></div><div class="nad">Moguće budućnosti</div><h2>Uslovi da ideja bude dobra</h2>
-  <div style="position:absolute;left:84px;right:84px;top:280px;display:flex;gap:40px">
-    <div class="up t1" style="flex:1;border-top:10px solid var(--tirkiz);padding-top:18px"><div style="font-size:40px;font-weight:300;color:var(--linija)">01</div><div style="font-size:27px;font-weight:600;margin-top:8px">Otvorenost</div><div class="sub" style="margin-top:8px">Metoda je javna.</div></div>
-    <div class="up t2" style="flex:1;border-top:10px solid var(--tirkiz);padding-top:18px"><div style="font-size:40px;font-weight:300;color:var(--linija)">02</div><div style="font-size:27px;font-weight:600;margin-top:8px">Privatnost</div><div class="sub" style="margin-top:8px">Lični podaci ostaju zaštićeni.</div></div>
-    <div class="up t3" style="flex:1;border-top:10px solid var(--tirkiz);padding-top:18px"><div style="font-size:40px;font-weight:300;color:var(--linija)">03</div><div style="font-size:27px;font-weight:600;margin-top:8px">Proverljivost</div><div class="sub" style="margin-top:8px">Svaka tvrdnja ima izvor.</div></div>
-    <div class="up t4" style="flex:1;border-top:10px solid var(--amber);padding-top:18px"><div style="font-size:40px;font-weight:300;color:var(--linija)">04</div><div style="font-size:27px;font-weight:600;margin-top:8px">Čovek odlučuje</div><div class="sub" style="margin-top:8px">Sistem savetuje, ne upravlja.</div></div>
-  </div>
-  <div class="up t6" style="position:absolute;left:84px;right:84px;top:600px;height:156px;background:var(--noc);border-radius:17px;color:#fff;font-size:33px;font-weight:300;display:flex;align-items:center;padding-left:84px;border-left:0"><span style="width:8px;height:72px;background:var(--amber);margin-right:40px"></span>Pametan grad bez poverenja je samo nadzor.</div>
-</section>
+/* ---------- budućnost: krugovi kvarta/kampusa/zgrade + svetla drugih gradova ---------- */
+const fut=[];const ringAt=(x,z,r,col)=>{const m=new T.Mesh(new T.RingGeometry(r,r+.9,64).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:col,transparent:true,opacity:0,side:2}));m.position.set(x,.4,z);sc.add(m);fut.push(m);return m;};
+ringAt(24,34,14,C.tirkiz);ringAt(-38,22,11,C.tirkiz);ringAt(HERO.x,HERO.z,6,C.amber);
+const CITIES=[['Novi Sad',-150,-300],['Pančevo',150,-70],['Smederevo',170,170]];
+const cityL=CITIES.map(([n,x,z])=>{const m=new T.Mesh(new T.SphereGeometry(4,16,12),new T.MeshBasicMaterial({color:C.amber,transparent:true,opacity:0}));m.position.set(x,2,z);sc.add(m);fut.push(m);
+ const l=new T.Line(new T.BufferGeometry().setFromPoints(new T.QuadraticBezierCurve3(new T.Vector3(0,BY,8),new T.Vector3(x/2,BY+30,z/2),new T.Vector3(x,4,z)).getPoints(50)),new T.LineDashedMaterial({color:C.amber,dashSize:3,gapSize:3,transparent:true,opacity:0}));l.computeLineDistances();sc.add(l);fut.push(l);return m;});
+/* uslovi: četiri tačke na prstenu oko grada */
+const COND=[['otvorenost',0,-70],['privatnost',75,8],['proverljivost',0,86],['čovek odlučuje',-75,8]];
+const condRing=new T.Mesh(new T.RingGeometry(74,75.2,128).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:C.amber,transparent:true,opacity:0,side:2}));condRing.position.set(0,.3,8);sc.add(condRing);
+const condP=COND.map(([,x,z])=>{const m=new T.Mesh(new T.CylinderGeometry(1.2,1.2,12,16).translate(0,6,0),new T.MeshBasicMaterial({color:C.amber,transparent:true,opacity:0}));m.position.set(x,0,z);sc.add(m);return m;});
 
-<!-- 11 -->
-<section class="s d" data-n="11">
-  <div class="bar"></div><div class="nad">Zaključak</div>
-  <div class="up t1" style="font-size:52px;font-weight:300;line-height:1.15;margin-top:50px;width:1300px">Inteligentan grad nastaje kada podaci postanu zajednički i proverljivi.</div>
-  <div style="position:absolute;left:84px;right:84px;top:510px;display:flex;gap:52px">
-    <div class="up t3" style="flex:1;background:var(--noc2);border-radius:17px;padding:30px 36px;height:210px"><div class="nad" style="font-size:13px">Poziv struci</div><div style="font-size:21px;line-height:1.4;margin-top:14px">Zgrade su prvi neuroni grada. Hajde da razgovaramo o podacima koje vredi povezati.</div></div>
-    <div class="up t4" style="flex:1;background:var(--noc2);border-radius:17px;padding:30px 36px;height:210px"><div class="nad" style="font-size:13px">BEOPS je javan</div><a href="https://3esign.github.io/beops/v2/" target="_blank" rel="noopener" style="display:block;color:#fff;font-size:29px;font-weight:600;margin-top:16px;text-decoration:none">3esign.github.io/beops/v2</a><div class="sub" style="margin-top:10px">Otvorena opservatorija Beograda</div></div>
-  </div>
-  <div class="foot" style="bottom:46px;height:auto;padding-top:16px;align-items:flex-start">
-    <div><div style="color:#fff;font-weight:600;font-size:19px">Hvala.&nbsp; Prof. dr Darinka Golubović-Matić · Dr Semir Poturak</div><div style="margin-top:4px;font-size:14px">Univerzitet Union – Nikola Tesla, Beograd</div></div>
-    <span class="mark">Dizajn i priprema slajdova:&nbsp;<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="14" cy="14" r="4" fill="currentColor"/><circle cx="25" cy="6" r="3.5" fill="#E8A33D"/></svg><b style="color:#fff">SVEMIR</b></span>
-  </div>
-</section>
+/* ---------- oznake u prostoru ---------- */
+const lab=document.getElementById('lab');
+const L=[];const label=(txt,v,cls,show)=>{const e=document.createElement('div');e.className='lb '+(cls||'');e.textContent=txt;lab.appendChild(e);L.push({e,v,show});};
+label('Ušće Save i Dunava',new T.Vector3(-6,1,-3),'',s=>s>=2&&s<=3);
+label('Novi Beograd',new T.Vector3(-30,3,2),'',s=>s>=2&&s<=3);
+label('Stari grad',new T.Vector3(18,3,2),'',s=>s===2);
+label('Vračar',new T.Vector3(26,3,40),'',s=>s===3);
+label('Zemun',new T.Vector3(-58,3,-30),'',s=>s===2);
+label('Kalemegdan',new T.Vector3(6,1,-4),'',s=>s===7);
+label('zgrada',new T.Vector3(HERO.x,17,HERO.z),'a',s=>s===0||s===10);
+['energija','voda','vazduh','održavanje','bezbednost'].forEach((n,i)=>label(n,new T.Vector3(HERO.x-1.4+i*.7,15.9-i*2.6,HERO.z+2.3),'a',s=>s===1));
+isl.forEach(s=>label(s.n,s.pos.clone().setY(11),'t',x=>x===2));
+four.forEach(([n,p],i)=>label(n,p.clone().setY(p.y+2),i===3?'a':'t',s=>s===5));
+label('merna stanica',new T.Vector3(ST.x,6,ST.z+.5),'',s=>s===6);
+label('„PM10 je porastao“ ✗',new T.Vector3(ST.x,11,ST.z),'r',s=>s===7);
+label('izmereno: PM2.5',new T.Vector3(ST.x+.4,6.2,ST.z),'t',s=>s===7);
+label('kvart',new T.Vector3(24,2,20),'t',s=>s===8);label('kampus',new T.Vector3(-38,2,11),'t',s=>s===8);label('zgrada · BMS',new T.Vector3(HERO.x,18,HERO.z),'a',s=>s===8);
+CITIES.forEach(([n],i)=>label(n,cityL[i].position.clone().setY(9),'a',s=>s===8));
+COND.forEach(([n],i)=>label(n,condP[i].position.clone().setY(14),'a',s=>s===9));
+label('mozak grada',new T.Vector3(0,BY+9,8),'a',s=>s===4);
 
-</div></div>
-<div id="nav"><button id="prev" aria-label="Prethodni">‹</button><div id="dots"></div><button id="next" aria-label="Sledeći">›</button></div>
+/* ---------- stanje po slajdu (ciljne vrednosti, glatko se dostižu) ---------- */
+const want=s=>({nerv:+(s===1||s===10),isl:+(s>=2&&s<=7),twin:s>=3?1:0,brain:s>=4?(s===7?.35:1):0,up:+(s>=4&&s<=6),four:+(s===5),claim:+(s===7),fut:+(s===8),cond:+(s===9)});
+const cur=want(0);let slide=0,fly=null,tClaim=0;
+const ease=t=>1-Math.pow(1-t,3);
+function go(n,instant){n=Math.max(0,Math.min(N-1,n));if(n===slide&&!instant&&fly)return;slide=n;
+ const [p,t]=S[n].cam;const to={p:new T.Vector3(...p),t:new T.Vector3(...t)};
+ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ if(instant||reduce){cam.position.copy(to.p);look.copy(to.t);fly=null;}else fly={fp:cam.position.clone(),ft:look.clone(),to,t0:performance.now(),d:1100};
+ if(n===7)tClaim=performance.now();
+ if(instant)Object.assign(cur,want(n));
+ hud(n);dots();if(!SHOT)history.replaceState(null,'','#'+(n+1));}
+const look=new T.Vector3();
+const hudEl=document.getElementById('hud'),hc=document.getElementById('hc');
+function hud(n){const s=S[n];hudEl.classList.add('out');setTimeout(()=>{hudEl.className=n===0?'s1':'';
+ hc.innerHTML=`<div class="k">${s.k}</div><h1>${s.h}</h1><p>${s.p}</p>${s.tag?`<span class="tag">${s.tag}</span>`:''}`;},SHOT?0:260);}
+const dEl=document.getElementById('dots');for(let i=0;i<N;i++){const d=document.createElement('span');d.onclick=()=>go(i);dEl.appendChild(d);}
+function dots(){[...dEl.children].forEach((d,i)=>d.classList.toggle('on',i===slide));}
 
-<script>
-(function(){
-var NS="http://www.w3.org/2000/svg",C={noc:"#0E1B2E",noc2:"#16294A",amber:"#E8A33D",tirkiz:"#1F9E96",linija:"#D9D3C5",magla:"#A9B6CC",mastilo:"#14213A",crvena:"#C8553D",sivo:"#5E6B80"};
-var AUT="Prof. dr Darinka Golubović-Matić · Dr Semir Poturak";
-function el(p,t,a){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
-var S=[].slice.call(document.querySelectorAll(".s")),N=S.length,cur=0;
-// podnožje na slajdovima 2-10
-S.forEach(function(s,i){if(i===0||i===N-1)return;var f=document.createElement("div");f.className="foot";
-f.innerHTML='<span>'+AUT+'</span><span>'+(i+1)+' / '+N+'</span><span class="mark"><svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="14" cy="14" r="4" fill="currentColor"/><circle cx="25" cy="6" r="3.5" fill="#E8A33D"/></svg>SVEMIR</span>';s.appendChild(f)});
-// skaliranje pozornice
-function fit(){var k=Math.min(innerWidth/1600,(innerHeight-44)/900);document.getElementById("stage").style.transform="scale("+k+")"}
-addEventListener("resize",fit);fit();
-// navigacija
-var dots=document.getElementById("dots");
-S.forEach(function(_,i){var d=document.createElement("i");d.onclick=function(){go(i)};dots.appendChild(d)});
-var hooks={};
-function go(i){i=Math.max(0,Math.min(N-1,i));S[cur].classList.remove("on");cur=i;S[cur].classList.add("on");
-[].forEach.call(dots.children,function(d,j){d.classList.toggle("on",j===cur)});
-history.replaceState(null,"","#"+(cur+1));if(hooks[cur+1])hooks[cur+1]()}
-document.getElementById("prev").onclick=function(){go(cur-1)};
-document.getElementById("next").onclick=function(){go(cur+1)};
-addEventListener("keydown",function(e){if(["ArrowRight","PageDown"," "].indexOf(e.key)>=0){e.preventDefault();go(cur+1)}
-else if(["ArrowLeft","PageUp"].indexOf(e.key)>=0)go(cur-1);else if(e.key==="Home")go(0);else if(e.key==="End")go(N-1);
-else if(e.key==="f"||e.key==="F"){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}});
-var tx=null;addEventListener("touchstart",function(e){tx=e.touches[0].clientX},{passive:true});
-addEventListener("touchend",function(e){if(tx===null)return;var dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50)go(cur+(dx<0?1:-1));tx=null});
+addEventListener('keydown',e=>{if(['ArrowRight','PageDown',' ','Enter'].includes(e.key)){go(slide+1);e.preventDefault();}
+ else if(['ArrowLeft','PageUp','Backspace'].includes(e.key)){go(slide-1);e.preventDefault();}
+ else if(e.key==='Home')go(0);else if(e.key==='End')go(N-1);
+ else if(e.key==='f'||e.key==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();}});
+let wl=0;addEventListener('wheel',e=>{const now=performance.now();if(now-wl<900||Math.abs(e.deltaY)<20)return;wl=now;go(slide+(e.deltaY>0?1:-1));},{passive:true});
+let tx=null;addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
+addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50)go(slide+(dx<0?1:-1));tx=null;});
+R.domElement.addEventListener('click',e=>go(slide+(e.clientX>innerWidth/3?1:-1)));
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();R.setSize(innerWidth,innerHeight);});
 
-// 1: zgrada -> grad (zgrade rastu, prozori trepću)
-(function(){var g=document.getElementById("sky"),ws=[.34,.42,.3,.5,.36,.44,.3,.52,.38,.46,.32,.5,.4,.34,.48,.36,.5,.3,.44,.38,.5],hs=[.5,.75,.42,.95,.6,1.1,.5,.85,1.3,.62,.9,1.5,.7,1.05,.8,1.2,.58,.95,1.4,.66,1];
-var x=0;el(g,"rect",{x:0,y:180-115,width:60,height:115,fill:C.amber});
-for(var r=0;r<4;r++)for(var q=0;q<2;q++)el(g,"rect",{x:9+q*32,y:78+r*24,width:10,height:8,fill:C.noc});
-el(g,"path",{d:"M78 150 H160 M146 140 L160 150 L146 160",stroke:C.amber,"stroke-width":3,fill:"none"});
-x=178;ws.forEach(function(w,i){var h=hs[i]*0.8*96;var b=el(g,"rect",{x:x,y:180-h,width:w*120,height:h,fill:C.noc2});
-b.style.transformOrigin="center bottom";b.style.transformBox="fill-box";b.style.animation="rise .9s "+(0.4+i*0.06)+"s both ease-out";
-if(i%3===1){var l=el(g,"rect",{x:x+w*120/2-4,y:180-h+14,width:8,height:6,fill:C.amber});l.style.animation="blink "+(2+i%4)+"s "+i*0.3+"s infinite"}
-x+=w*120+6});el(g,"line",{x1:0,y1:179,x2:1432,y2:179,stroke:C.magla,"stroke-width":1})})();
-
-// 2: tokovi u upravljanje
-(function(){var g=document.getElementById("bms"),cx=600,cy=300,t=["Energija","Voda","Vazduh","Održavanje","Bezbednost"];
-t.forEach(function(n,i){var y=40+i*122;var ln=el(g,"path",{d:"M220 "+(y+39)+" C 380 "+(y+39)+", 420 "+cy+", "+(cx-150)+" "+cy,stroke:C.linija,"stroke-width":3,fill:"none"});
-var sig=el(g,"path",{d:ln.getAttribute("d"),stroke:C.tirkiz,"stroke-width":4,fill:"none","stroke-dasharray":"10 30"});sig.style.animation="dash 1.2s linear infinite";sig.style.opacity=.35;
-var box=el(g,"g",{});box.style.cursor="pointer";el(box,"rect",{x:0,y:y,width:220,height:78,rx:39,fill:"#fff",stroke:C.linija,"stroke-width":1.5});
-el(box,"circle",{cx:38,cy:y+39,r:10,fill:C.tirkiz});var tt=el(box,"text",{x:64,y:y+46,"font-size":21,fill:C.mastilo});tt.textContent=n;
-box.onmouseenter=function(){sig.style.opacity=1;sig.setAttribute("stroke",C.amber)};box.onmouseleave=function(){sig.style.opacity=.35;sig.setAttribute("stroke",C.tirkiz)}});
-el(g,"circle",{cx:cx,cy:cy,r:150,fill:C.noc});var o=el(g,"circle",{cx:cx,cy:cy,r:172,fill:"none",stroke:C.amber,"stroke-width":2.5,"stroke-dasharray":"12 10"});o.style.animation="dash 3s linear infinite";
-var a=el(g,"text",{x:cx,y:cy-4,"font-size":24,"font-weight":600,fill:"#fff","text-anchor":"middle"});a.textContent="Upravljanje";var b=el(g,"text",{x:cx,y:cy+28,"font-size":24,"font-weight":600,fill:"#fff","text-anchor":"middle"});b.textContent="zgradom"})();
-
-// 3: rasuti senzori, svaki u svom ritmu
-(function(){var g=document.getElementById("grad"),bw=[.9,.7,1,.75,.95,.7,.9],bh=[1.3,.85,1.6,1,1.4,.8,1.15],x=60,R=[1.1,3.7,2.3,5,1.7,2.9,4.2];
-bw.forEach(function(w,i){var W=w*144,H=bh[i]*144,c=i%3?C.tirkiz:C.amber,bx=x+W/2;
-el(g,"rect",{x:x,y:390-H,width:W,height:H,fill:i%2?"#2B3E5E":C.noc});el(g,"line",{x1:bx,y1:110,x2:bx,y2:390-H-8,stroke:C.linija,"stroke-width":1.5,"stroke-dasharray":"4 6"});
-el(g,"circle",{cx:bx,cy:60,r:12,fill:c});var p=el(g,"circle",{cx:bx,cy:60,r:0,fill:"none",stroke:c,"stroke-width":2.5});p.style.animation="pulse "+R[i]+"s "+(i*.4)+"s infinite ease-out";
-x+=W+104});el(g,"line",{x1:0,y1:390,x2:1432,y2:390,stroke:C.mastilo,"stroke-width":1.5})})();
-
-// 5: mreža bez centra, klik šalje talas
-(function(){var g=document.getElementById("mreza"),P=[[60,100],[250,30],[450,80],[580,225],[535,410],[365,530],[165,500],[20,350],[205,225],[390,260],[260,390]],
-V=[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,0],[0,8],[1,8],[8,9],[2,9],[3,9],[9,4],[9,10],[10,5],[10,6],[7,8],[8,10],[7,10],[1,9]],L=[],D=[];
-V.forEach(function(v){L.push(el(g,"line",{x1:P[v[0]][0],y1:P[v[0]][1],x2:P[v[1]][0],y2:P[v[1]][1],stroke:"#34507C","stroke-width":2.5}))});
-P.forEach(function(p,i){var c=i%3?C.tirkiz:C.amber;var o=el(g,"circle",{cx:p[0],cy:p[1],r:26,fill:C.noc,stroke:c,"stroke-width":3});el(g,"circle",{cx:p[0],cy:p[1],r:10,fill:c});D.push(o);o.onclick=function(){talas(i)}});
-function talas(s){var dist={},q=[s];dist[s]=0;while(q.length){var u=q.shift();V.forEach(function(v,k){var w=v[0]===u?v[1]:v[1]===u?v[0]:-1;if(w>=0&&dist[w]===undefined){dist[w]=dist[u]+1;q.push(w)}})}
-V.forEach(function(v,k){var d=Math.min(dist[v[0]],dist[v[1]]);setTimeout(function(){L[k].setAttribute("stroke",C.amber);setTimeout(function(){L[k].setAttribute("stroke","#34507C")},700)},d*260)});
-P.forEach(function(p,i){setTimeout(function(){var r=el(g,"circle",{cx:p[0],cy:p[1],r:0,fill:"none",stroke:C.amber,"stroke-width":2});r.style.animation="pulse 1s ease-out forwards";setTimeout(function(){r.remove()},1000)},dist[i]*260)})}
-hooks[5]=function(){setTimeout(function(){talas(8)},900)}})();
-
-// 6: četiri sposobnosti
-(function(){var d=document.getElementById("cetiri"),sp=[["Opaža","Prikuplja javne izvore, uz dozvolu.","oko"],["Pamti","Čuva kada je šta izmereno i odakle potiče.","slojevi"],["Sumnja","Proverava pre nego što zaključi.","?"],["Govori pošteno","Kaže i šta ne zna.","govor"]];
-sp.forEach(function(s,i){var c=i===3?C.amber:C.tirkiz,k=document.createElement("div");k.className="card up t"+(i+1);k.style.cssText="flex:1;height:470px;text-align:center;padding-top:50px;"+(i===3?"border:2.5px solid "+C.amber:"");
-var ic={oko:'<ellipse cx="50" cy="50" rx="24" ry="13" fill="none" stroke="'+c+'" stroke-width="3"/><circle cx="50" cy="50" r="7" fill="'+c+'"><animate attributeName="cx" values="44;56;44" dur="3s" repeatCount="indefinite"/></circle>',
-slojevi:[0,1,2].map(function(j){return '<rect x="30" y="'+(32+j*14)+'" width="40" height="8" rx="4" fill="'+c+'"><animate attributeName="opacity" values="1;.3;1" dur="2.4s" begin="'+(j*.4)+'s" repeatCount="indefinite"/></rect>'}).join(""),
-"?":'<text x="50" y="66" font-size="48" font-weight="600" text-anchor="middle" fill="'+c+'">?<animateTransform attributeName="transform" type="rotate" values="-8 50 50;8 50 50;-8 50 50" dur="2.6s" repeatCount="indefinite"/></text>',
-govor:'<rect x="28" y="33" width="44" height="28" rx="8" fill="'+c+'"/><rect x="36" y="58" width="9" height="11" fill="'+c+'"/>'+[0,1,2].map(function(j){return '<circle cx="'+(40+j*10)+'" cy="47" r="3" fill="#fff"><animate attributeName="opacity" values=".2;1;.2" dur="1.2s" begin="'+(j*.2)+'s" repeatCount="indefinite"/></circle>'}).join("")}[s[2]];
-k.innerHTML='<svg viewBox="0 0 100 100" width="130" height="130"><circle cx="50" cy="50" r="40" fill="none" stroke="'+c+'" stroke-width="2.5"/>'+ic+'</svg><div style="font-size:29px;font-weight:600;margin-top:30px">'+s[0]+'</div><div class="sub" style="margin:14px 34px 0;line-height:1.4">'+s[1]+'</div>';d.appendChild(k)})})();
-
-// 7: tok i tri uloge + brojač
-(function(){var g=document.getElementById("tok"),t=["Javni izvori","Provera","Javni prikaz"];
-t.forEach(function(n,i){var x=i*310;el(g,"rect",{x:x,y:0,width:250,height:96,rx:20,fill:i===1?C.amber:C.noc});var a=el(g,"text",{x:x+125,y:56,"font-size":22,"font-weight":600,"text-anchor":"middle",fill:i===1?C.noc:"#fff"});a.textContent=n;
-if(i<2){var p=el(g,"path",{d:"M"+(x+258)+" 48 H"+(x+302),stroke:C.mastilo,"stroke-width":3,"stroke-dasharray":"6 6"});p.style.animation="dash 1s linear infinite";el(g,"path",{d:"M"+(x+292)+" 38 L"+(x+304)+" 48 L"+(x+292)+" 58",stroke:C.mastilo,"stroke-width":3,fill:"none"})}});
-var h=el(g,"text",{x:0,y:178,"font-size":15,"font-weight":600,fill:C.tirkiz,"letter-spacing":"2"});h.textContent="TRI ULOGE, JEDAN TIM";
-[["Posmatrač","gleda podatke"],["Sumnjalo","traži grešku"],["Povezivač","spaja teme"]].forEach(function(u,i){var x=i*310,cy=262;el(g,"circle",{cx:x+48,cy:cy,r:46,fill:"none",stroke:C.tirkiz,"stroke-width":3});
-if(i===0){var e=el(g,"circle",{cx:x+48,cy:cy,r:15,fill:C.tirkiz});el(e,"animate",{attributeName:"r",values:"12;17;12",dur:"2s",repeatCount:"indefinite"})}
-else if(i===1){var q=el(g,"text",{x:x+48,y:cy+14,"font-size":38,"font-weight":600,"text-anchor":"middle",fill:C.tirkiz});q.textContent="?"}
-else{el(g,"line",{x1:x+30,y1:cy,x2:x+66,y2:cy,stroke:C.tirkiz,"stroke-width":3});el(g,"circle",{cx:x+30,cy:cy,r:9,fill:C.tirkiz});el(g,"circle",{cx:x+66,cy:cy,r:9,fill:C.tirkiz})}
-var a=el(g,"text",{x:x+110,y:cy-4,"font-size":22,"font-weight":600,fill:C.mastilo});a.textContent=u[0];var b=el(g,"text",{x:x+110,y:cy+24,"font-size":17,fill:C.sivo});b.textContent=u[1]});
-var z=el(g,"text",{x:0,y:420,"font-size":25,"font-weight":600,fill:C.mastilo});z.textContent="Nijedna tvrdnja ne izlazi bez provere.";
-var bar=document.getElementById("bar47"),cells=[];for(var i=0;i<47;i++)cells.push(el(bar,"rect",{x:i*8.1,y:6,width:6,height:28,rx:2,fill:"#34507C"}));
-hooks[7]=function(){var n=document.getElementById("broj"),k=0;cells.forEach(function(c){c.setAttribute("fill","#34507C")});
-var t=setInterval(function(){if(k>=47){clearInterval(t);return}var odb=(k*19/47|0)!==((k+1)*19/47|0);cells[k].setAttribute("fill",odb?C.amber:C.tirkiz);if(odb)n.textContent=((k+1)*19/47|0);k++},40)}})();
-
-// 8: proveri tvrdnju
-(function(){var b=document.getElementById("proveri");function reset(){document.getElementById("crta").style.width="0";document.getElementById("tvrdnja").style.color=C.mastilo;b.style.display="";document.getElementById("odbijeno").style.display="none";document.getElementById("razlog").style.opacity=0}
-b.onclick=function(){b.textContent="PROVERAVAM…";setTimeout(function(){document.getElementById("crta").style.width="100%";document.getElementById("tvrdnja").style.color=C.sivo;b.style.display="none";b.textContent="PROVERI TVRDNJU";var o=document.getElementById("odbijeno");o.style.display="inline-block";document.getElementById("razlog").style.opacity=1},700)};
-hooks[8]=reset})();
-
-// 9: pet pravaca
-(function(){var g=document.getElementById("stablo"),pet=document.getElementById("pet"),xs=[];for(var i=0;i<5;i++)xs.push(i*292+132);
-el(g,"rect",{x:566,y:0,width:300,height:60,rx:30,fill:C.noc});var t=el(g,"text",{x:716,y:38,"font-size":19,"font-weight":600,"text-anchor":"middle",fill:"#fff"});t.textContent="Mozak grada";
-xs.forEach(function(x,i){var p=el(g,"path",{d:"M716 60 V100 H"+x+" V150",stroke:i===1?C.amber:C.tirkiz,"stroke-width":2.5,fill:"none","stroke-dasharray":"900","stroke-dashoffset":"900"});p.dataset.k=i;p.classList.add("grana")});
-var B=[["Mozak kvarta ili kampusa","Isti princip na manjoj skali.","Jedan kvart ili kampus kao poligon: manje izvora, brža provera, jasni vlasnici podataka."],
-["Most ka zgradama","Zgrade dele proverene, anonimne pokazatelje.","Za FM: sistem upravljanja zgradom šalje zbirne pokazatelje, a grad vraća kontekst (vazduh, toplota, saobraćaj)."],
-["Pitanja građana","Odgovor uz izvor, vreme i granicu.","Građanin pita, a odgovor uvek kaže odakle je podatak, kada je izmeren i šta se ne zna."],
-["Mreža gradova","Gradovi razmenjuju metode, ne privatne podatke.","Novi Sad, Niš, Beograd… isti način provere, a svaki grad zadržava svoje podatke."],
-["Scenariji „šta ako“","Podrška planerima. Odlučuje čovek.","Šta ako se zatvori ulica ili ozeleni blok? Sistem pokazuje moguće posledice, a odluku donosi čovek."]];
-B.forEach(function(b,i){var k=document.createElement("div");k.className="card";var hl=i===1;k.style.cssText="flex:1;height:340px;padding:30px 28px;cursor:pointer;position:relative;overflow:hidden;"+(hl?"border:2.5px solid "+C.amber:"");
-k.innerHTML='<div style="width:30px;height:30px;border-radius:50%;background:'+(hl?C.amber:C.tirkiz)+'"></div><div style="font-size:24px;font-weight:600;margin-top:24px;line-height:1.2">'+b[0]+'</div><div class="sub" style="margin-top:14px;line-height:1.4;font-size:17px">'+b[1]+'</div>'+
-'<div class="vise" style="position:absolute;inset:0;background:'+C.noc+';color:#fff;padding:30px 28px;font-size:18px;line-height:1.45;opacity:0;transition:opacity .35s"><div style="color:'+C.amber+';font-weight:600;font-size:13px;letter-spacing:.12em;margin-bottom:14px">IDEJA</div>'+b[2]+'</div>';
-k.onclick=function(){var v=k.querySelector(".vise");v.style.opacity=v.style.opacity==="1"?"0":"1"};pet.appendChild(k)});
-hooks[9]=function(){[].forEach.call(g.querySelectorAll(".grana"),function(p,i){p.style.transition="none";p.setAttribute("stroke-dashoffset","900");p.getBoundingClientRect();p.style.transition="stroke-dashoffset 1s "+(0.2+i*0.12)+"s ease";p.setAttribute("stroke-dashoffset","0")});
-[].forEach.call(pet.querySelectorAll(".vise"),function(v){v.style.opacity="0"})}})();
-
-var h=parseInt(location.hash.slice(1),10);go(h>=1&&h<=N?h-1:0);
-})();
+/* ---------- petlja ---------- */
+const vtmp=new T.Vector3();
+function frame(now){
+ if(fly){const k=Math.min(1,(now-fly.t0)/fly.d),e=ease(k);
+  const lift=Math.sin(Math.PI*k)*Math.min(30,fly.fp.distanceTo(fly.to.p)*.18);
+  cam.position.lerpVectors(fly.fp,fly.to.p,e);cam.position.y+=lift;look.lerpVectors(fly.ft,fly.to.t,e);if(k>=1)fly=null;}
+ cam.lookAt(look);
+ const w=want(slide),a=(SHOT||Q.has("pdf"))?1:.06;for(const k in w)cur[k]+=(w[k]-cur[k])*a;
+ const t=now/1000;
+ nerv.forEach(n=>{n.ln.material.opacity=.85*cur.nerv;n.p.material.opacity=cur.nerv;n.p.position.set(n.x,.2+((t*.35+n.o)%1)*15.4,0);});
+ isl.forEach((s,i)=>{const o=cur.isl;s.ring.material.opacity=o*(.6+.3*Math.sin(t*2+i));s.beam.material.opacity=o*.35*(1-cur.twin*.6);s.pm.material.opacity=o;});
+ twinLines.forEach((l,i)=>l.geometry.setDrawRange(0,Math.round(41*Math.max(0,Math.min(1,cur.twin*1.6-i*.04)))));
+ twinLines.forEach(l=>l.material.opacity=.85*Math.min(1,cur.isl+cur.fut*0));
+ bLineMat.opacity=.42*cur.brain;bNodeMat.opacity=.9*cur.brain;upMat.opacity=.5*cur.up;
+ pulses.forEach(p=>{p.t=(p.t+.006)%1;const [i,j]=p.l;p.m.position.lerpVectors(bn[i],bn[j],p.t);p.m.material.opacity=cur.brain*(slide===7?.2:1);});
+ fourMesh.forEach((m,i)=>{m.material.opacity=cur.four;m.scale.setScalar(1+.18*Math.sin(t*3+i));});
+ /* odbijena tvrdnja: pada iz mozga, staje na štitu iznad stanice */
+ const ck=(SHOT||Q.has("pdf"))?1:Math.min(1,(now-tClaim)/2200);
+ claim.position.set(ST.x,BY-(BY-7.8)*ease(Math.min(1,ck*1.3)),ST.z);claim.material.opacity=cur.claim;
+ shield.material.opacity=cur.claim*(ck>.75?.9:.2);xMat.opacity=cur.claim*(ck>.8?1:0);xMark.lookAt(cam.position);
+ fut.forEach(m=>m.material.opacity=cur.fut*(m.isLine?.6:.85));
+ condRing.material.opacity=.7*cur.cond;condP.forEach(m=>m.material.opacity=.85*cur.cond);
+ R.render(sc,cam);
+ for(const l of L){const on=l.show(slide);vtmp.copy(l.v).project(cam);const vis=on&&vtmp.z<1&&Math.abs(vtmp.x)<1.05&&Math.abs(vtmp.y)<1.05;
+  l.e.classList.toggle('on',vis);if(vis){l.e.style.left=((vtmp.x+1)/2*innerWidth)+'px';l.e.style.top=((1-vtmp.y)/2*innerHeight)+'px';}}
+ requestAnimationFrame(frame);}
+const start=Q.has('s')?(+Q.get('s')-1):(+(location.hash.slice(1))||1)-1;
+go(start,true);requestAnimationFrame(frame);
+document.addEventListener('visibilitychange',()=>{});
 </script>
 </body>
 </html>
