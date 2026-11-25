@@ -1,9 +1,9 @@
 {
   "schema": "beops-v2-oslonci/v1",
-  "generated_at": "2026-11-25T17:06:28.304Z",
-  "as_of": "2026-11-25T16:53:39.734813Z",
+  "generated_at": "2026-11-25T17:16:30.693Z",
+  "as_of": "2026-11-25T17:12:42.549Z",
   "zakon": "pun tekst dokaza; ugovor misli nosi samo prozor teksta (280 znakova + …)",
-  "ukupno": 17,
+  "ukupno": 16,
   "oslonci": {
     "bridge:2026-11-25T16-41-37-279Z__codex_gpt-6_1-sol": [
       {
@@ -367,27 +367,139 @@
         "izvor": "state/kontekst-vazduh-dnevno.json#/monthly_climatology"
       }
     ],
-    "bridge:2026-11-23T11-41-41-139Z__claude_auto": [
+    "bridge:2026-11-25T17-12-18-976Z__urednik__claude_auto": [
+      {
+        "id": "puls:pm25",
+        "naslov": "PM25",
+        "tekst": "{\"mean\":38.5,\"median\":32.3,\"min\":19.2,\"max\":124.1,\"max_station\":\"Leštane\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+        "at": "2026-11-25T16:52:25.779892Z",
+        "izvor": "state/puls.json#/current_metrics/pm25"
+      },
       {
         "id": "puls:pm10",
         "naslov": "PM10",
-        "tekst": "{\"mean\":13.9,\"median\":13.7,\"min\":8.9,\"max\":19.4,\"max_station\":\"Banovo brdo\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-        "at": "2026-11-23T11:23:06.195221Z",
+        "tekst": "{\"mean\":60.1,\"median\":50.5,\"min\":25.7,\"max\":241.9,\"max_station\":\"Leštane\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+        "at": "2026-11-25T16:52:25.779892Z",
         "izvor": "state/puls.json#/current_metrics/pm10"
+      },
+      {
+        "id": "puls:no2",
+        "naslov": "NO2",
+        "tekst": "{\"mean\":53.3,\"median\":57.1,\"min\":27.4,\"max\":74.8,\"max_station\":\"Mostar\",\"unit\":\"µg/m³\",\"sensors_count\":32,\"network\":\"reference\"}",
+        "at": "2026-11-25T16:52:25.779892Z",
+        "izvor": "state/puls.json#/current_metrics/no2"
       },
       {
         "id": "puls:meteo",
         "naslov": "Vremenski uslovi",
-        "tekst": "{\"temperature\":6.7,\"humidity\":80.4,\"pressure\":1000,\"wind_speed\":7.4,\"wind_direction\":\"310.0\"}",
-        "at": "2026-11-23T11:23:06.195221Z",
+        "tekst": "{\"temperature\":7.4,\"humidity\":63.9,\"pressure\":1004.2,\"wind_speed\":3,\"wind_direction\":\"130.0\"}",
+        "at": "2026-11-25T16:52:25.779892Z",
         "izvor": "state/puls.json#/current_metrics/meteo"
       },
       {
         "id": "izvor:S04:pm10",
-        "naslov": "PM10 106 µg/m³ — 90579",
-        "tekst": "{\"naslov\":\"PM10 106 µg/m³ — 90579\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-23T11:19:30Z\",\"primljeno\":\"2026-11-23T11:22:29.233202Z\",\"napomena\":null}",
-        "at": "2026-11-23T11:19:30Z",
+        "naslov": "PM10 170 µg/m³ — 87688",
+        "tekst": "{\"naslov\":\"PM10 170 µg/m³ — 87688\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-25T16:44:57Z\",\"primljeno\":\"2026-11-25T16:47:27.654413Z\",\"napomena\":null}",
+        "at": "2026-11-25T16:44:57Z",
         "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+      },
+      {
+        "id": "izvor:S04:pm25",
+        "naslov": "PM2.5 154.25 µg/m³ — 87688",
+        "tekst": "{\"naslov\":\"PM2.5 154.25 µg/m³ — 87688\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-25T16:44:57Z\",\"primljeno\":\"2026-11-25T16:47:27.654413Z\",\"napomena\":null}",
+        "at": "2026-11-25T16:44:57Z",
+        "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+      },
+      {
+        "id": "izvor:S10:free_spaces",
+        "naslov": "Slobodnih parking mesta 140 — Garaža \"Baba Višnjina\"",
+        "tekst": "{\"naslov\":\"Slobodnih parking mesta 140 — Garaža \\\"Baba Višnjina\\\"\",\"stanje\":\"untimed\",\"vreme_merenja_ili_objave\":null,\"primljeno\":\"2026-11-25T16:42:25.699243Z\",\"napomena\":\"Čas merenja nije potvrđen; prijem ne određuje starost vrednosti.\"}",
+        "at": null,
+        "izvor": "Parking servis - displayed free spaces per lot"
+      },
+      {
+        "id": "izvor:054ce6be8fe1c347",
+        "naslov": "Sudarili se tramvaj i automobil kod Pravnog fakulteta u Beogradu! Vozilima pričinjena materijalna šteta",
+        "tekst": "{\"naslov\":\"Sudarili se tramvaj i automobil kod Pravnog fakulteta u Beogradu! Vozilima pričinjena materijalna šteta\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-11-25T16:18:19Z\",\"primljeno\":null,\"napomena\":null}",
+        "at": "2026-11-25T16:18:19Z",
+        "izvor": "news-sorter"
+      },
+      {
+        "id": "izvor:S146:pm10",
+        "naslov": "PM10 241.87 µg/m³ — Leštane",
+        "tekst": "{\"naslov\":\"PM10 241.87 µg/m³ — Leštane\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-11-25T17:00:00Z\",\"primljeno\":\"2026-11-25T16:47:26.032301Z\",\"napomena\":null}",
+        "at": "2026-11-25T17:00:00Z",
+        "izvor": "SEPA air quality HVD API - hourly preliminary means"
+      },
+      {
+        "id": "izvor:S146:pm25",
+        "naslov": "PM2.5 28.51 µg/m³ — Vračar",
+        "tekst": "{\"naslov\":\"PM2.5 28.51 µg/m³ — Vračar\",\"stanje\":\"estimated\",\"vreme_merenja_ili_objave\":\"2026-11-25T17:00:00Z\",\"primljeno\":\"2026-11-25T16:47:26.032301Z\",\"napomena\":null}",
+        "at": "2026-11-25T17:00:00Z",
+        "izvor": "SEPA air quality HVD API - hourly preliminary means"
+      },
+      {
+        "id": "izvor:0e2dc85e57449a0b",
+        "naslov": "Планирано искључење струје 2026-11-26 · Палилула · 09:00 - 12:00 · Насеље ОВЧА: МИХАЈА ЕМИНЕСКУА: 148-152В,160,151-173Б,177-187,191, НУШИЋЕВА: 127,135-137,143Б",
+        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-26 · Палилула · 09:00 - 12:00 · Насеље ОВЧА: МИХАЈА ЕМИНЕСКУА: 148-152В,160,151-173Б,177-187,191, НУШИЋЕВА: 127,135-137,143Б\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[\"127\",\"135\"],\"vreme_merenja_ili_objave\":\"2026-11-26\",\"primljeno\":null,\"napomena\":null}",
+        "at": "2026-11-26",
+        "izvor": "news-sorter"
+      },
+      {
+        "id": "izvor:193253d9457d69f6",
+        "naslov": "Планирано искључење струје 2026-11-26 · Раковица · 08:30 - 14:00 · ГОДОМИНСКА: 4,5, КАТАРИНЕ ХОЛЕЦЕВ: 2-4,8-16,1-5, КНЕЗА ВИШЕСЛАВА: бб,бб,бб,31-31Н,57, ЛУКЕ ВОЈВОДИЋА: бб,2-4И,1-39, МИЛЕ ДИМИЋ: 34-36",
+        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-26 · Раковица · 08:30 - 14:00 · ГОДОМИНСКА: 4,5, КАТАРИНЕ ХОЛЕЦЕВ: 2-4,8-16,1-5, КНЕЗА ВИШЕСЛАВА: бб,бб,бб,31-31Н,57, ЛУКЕ ВОЈВОДИЋА: бб,2-4И,1-39, МИЛЕ ДИМИЋ: 34-36\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[\"4\",\"5\"],\"vreme_merenja_ili_objave\":\"2026-11-26\",\"primljeno\":null,\"napomena\":null}",
+        "at": "2026-11-26",
+        "izvor": "news-sorter"
+      },
+      {
+        "id": "izvor:1998042e1c76d423",
+        "naslov": "Планирано искључење струје 2026-11-26 · Земун · 10:00 - 15:00 · ЦАРА ДУШАНА: 222-224,228-230А,254-264А,173-201, ФИЛИПА ВИШЊИЋА: 2, КАРЛОВАЧКА: 4-16,1-15, ПРЕГРЕВИЦА : 178В,191-193а, ПРИЗРЕНСКА: 22,26-",
+        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-26 · Земун · 10:00 - 15:00 · ЦАРА ДУШАНА: 222-224,228-230А,254-264А,173-201, ФИЛИПА ВИШЊИЋА: 2, КАРЛОВАЧКА: 4-16,1-15, ПРЕГРЕВИЦА : 178В,191-193а, ПРИЗРЕНСКА: 22,26-\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[\"22\",\"26\"],\"vreme_merenja_ili_objave\":\"2026-11-26\",\"primljeno\":null,\"napomena\":null}",
+        "at": "2026-11-26",
+        "izvor": "news-sorter"
+      },
+      {
+        "id": "izvor:1a6563787b75b82d",
+        "naslov": "Планирано искључење струје 2026-11-26 · Лазаревац · 09:00 - 14:00 · Аранђеловац, Насеље: Даросава ( засеок Школа ).",
+        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-26 · Лазаревац · 09:00 - 14:00 · Аранђеловац, Насеље: Даросава ( засеок Школа ).\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[],\"vreme_merenja_ili_objave\":\"2026-11-26\",\"primljeno\":null,\"napomena\":null}",
+        "at": "2026-11-26",
+        "izvor": "news-sorter"
+      },
+      {
+        "id": "izvor:24595661dce580b8",
+        "naslov": "Планирано искључење струје 2026-11-26 · Младеновац · 09:00 - 13:00 · Насеље БАЉЕВАЦ: КОВАЧЕВАЦ: , Насеље ГРАНИЦЕ: ЈОВАНА СУБОТИЋА: 4,1А-3,7,11-13, КОСМАЈСКИХ ПАРТИЗАНА: бб,,70,78-80,86-94,104,110,114-",
+        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-26 · Младеновац · 09:00 - 13:00 · Насеље БАЉЕВАЦ: КОВАЧЕВАЦ: , Насеље ГРАНИЦЕ: ЈОВАНА СУБОТИЋА: 4,1А-3,7,11-13, КОСМАЈСКИХ ПАРТИЗАНА: бб,,70,78-80,86-94,104,110,114-\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[\"4\",\"1\"],\"vreme_merenja_ili_objave\":\"2026-11-26\",\"primljeno\":null,\"napomena\":null}",
+        "at": "2026-11-26",
+        "izvor": "news-sorter"
+      },
+      {
+        "id": "izvor:2cf30f3f73497637",
+        "naslov": "Планирано искључење струје 2026-11-26 · Савски венац · 09:00 - 12:00 · БУЛЕВАР ОСЛОБОЂЕЊА: бб,18Б-20Ц, ДОБРОПОЉСКА: 2-14,1-3, ДР МИЛУТИНА ИВКОВИЋА: 2-2Е, ОБЛАКОВСКА: 2-2е, ПРИЛЕПСКА: 2-12,1-9, СУРДУЛИ",
+        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-26 · Савски венац · 09:00 - 12:00 · БУЛЕВАР ОСЛОБОЂЕЊА: бб,18Б-20Ц, ДОБРОПОЉСКА: 2-14,1-3, ДР МИЛУТИНА ИВКОВИЋА: 2-2Е, ОБЛАКОВСКА: 2-2е, ПРИЛЕПСКА: 2-12,1-9, СУРДУЛИ\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[],\"vreme_merenja_ili_objave\":\"2026-11-26\",\"primljeno\":null,\"napomena\":null}",
+        "at": "2026-11-26",
+        "izvor": "news-sorter"
+      },
+      {
+        "id": "izvor:3558e87bf44af928",
+        "naslov": "Планирано искључење струје 2026-11-26 · Лазаревац · 09:00 - 14:00 · Николе Вујачића 15-19, 32, 34, 34 А, 36, Дула Караклајића 45, Вељка Влаховића 4-16.",
+        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-26 · Лазаревац · 09:00 - 14:00 · Николе Вујачића 15-19, 32, 34, 34 А, 36, Дула Караклајића 45, Вељка Влаховића 4-16.\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[],\"vreme_merenja_ili_objave\":\"2026-11-26\",\"primljeno\":null,\"napomena\":null}",
+        "at": "2026-11-26",
+        "izvor": "news-sorter"
+      },
+      {
+        "id": "izvor:4b7e772f0f68cf55",
+        "naslov": "Планирано искључење струје 2026-11-26 · Сурчин · 09:00 - 11:30 · Насеље СУРЧИН: БРАЋЕ КОЛЕШАН: 6,3, ДУБРОВАЧКА: 1-21,25-55, ОБИЛИЋЕВ ВЕНАЦ: 2-4,8-18,22-22А,26-26А,30-36,1-1А, ОРАЧКА: 2-2А,6-30Б,40,48-",
+        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-26 · Сурчин · 09:00 - 11:30 · Насеље СУРЧИН: БРАЋЕ КОЛЕШАН: 6,3, ДУБРОВАЧКА: 1-21,25-55, ОБИЛИЋЕВ ВЕНАЦ: 2-4,8-18,22-22А,26-26А,30-36,1-1А, ОРАЧКА: 2-2А,6-30Б,40,48-\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[\"6\",\"3\"],\"vreme_merenja_ili_objave\":\"2026-11-26\",\"primljeno\":null,\"napomena\":null}",
+        "at": "2026-11-26",
+        "izvor": "news-sorter"
+      },
+      {
+        "id": "istorija:vazduh-mesec-11",
+        "naslov": "Uobičajeno za ovaj mesec (SEPA verifikovano, 2011–2024)",
+        "tekst": "{\"period\":[\"2011-01-01\",\"2024-12-31\"],\"mesec\":11,\"jedinica\":\"µg/m³, dnevni prosek\",\"stanice\":{\"mostar\":{\"s146_id\":\"10\",\"no2\":{\"p50\":40.6,\"p90\":71.3,\"dana\":385},\"pm10\":{\"p50\":31,\"p90\":74.5,\"dana\":270},\"pm25\":{\"p50\":25,\"p90\":47.2,\"dana\":180}},\"novi-beograd\":{\"s146_id\":\"9\",\"no2\":{\"p50\":28.9,\"p90\":52.3,\"dana\":355},\"pm10\":{\"p50\":30.1,\"p90\":59,\"dana\":277},\"pm25\":{\"p50\":22.7,\"p90\":46,\"dana\":179}},\"obrenovac-centar\":{\"s146_id\":\"16\",\"no2\":{\"p50\":31.2,\"p90\":46.4,\"dana\":270},\"pm10\":{\"p50\":30.1,\"p90\":100.8,\"dana\":239},\"pm25\":{\"p50\":26.4,\"p90\":67.9,\"dana\":150}},\"obrenovac-deponija-pepela\":{\"s146_id\":null,\"no2\":{\"p50\":17,\"p90\":32.3,\"dana\":60}},\"pancevo-sodara\":{\"s146_id\":\"6\",\"no2\":{\"p50\":20.2,\"p90\":33,\"dana\":180}},\"stari-grad\":{\"s146_id\":\"7\",\"no2\":{\"p50\":30.4,\"p90\":65.3,\"dana\":348},\"pm10\":{\"p50\":31.3,\"p90\":75.9,\"dana\":329},\"pm25\":{\"p50\":25.5,\"p90\":52.5,\"dana\":210}},\"vracar\":{\"s146_id\":\"11\",\"no2\":{\"p50\":30,\"p90\":59.7,\"dana\":390},\"pm10\":{\"p50\":35.2,\"p90\":81.2,\"dana\":299},\"pm25\":{\"p50\":29.6,\"p90\":50.1,\"dana\":150}},\"zeleno-brdo\":{\"s146_id\":\"12\",\"no2\":{\"p50\":21.6,\"p90\":42.1,\"dana\":349},\"pm10\":{\"p50\":34,\"p90\":91.4,\"dana\":210},\"pm25\":{\"p50\":26.9,\"p90\":49.7,\"dana\":90}}}}",
+        "at": "2024-12-31",
+        "izvor": "state/kontekst-vazduh-dnevno.json#/monthly_climatology"
       }
     ],
     "bridge:2026-11-25T03-41-58-539Z__urednik__claude_auto": [
@@ -467,113 +579,6 @@
         "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-26 · Савски венац · 09:00 - 12:00 · БУЛЕВАР ОСЛОБОЂЕЊА: бб,18Б-20Ц, ДОБРОПОЉСКА: 2-14,1-3, ДР МИЛУТИНА ИВКОВИЋА: 2-2Е, ОБЛАКОВСКА: 2-2е, ПРИЛЕПСКА: 2-12,1-9, СУРДУЛИ\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[],\"vreme_merenja_ili_objave\":\"2026-11-26\",\"primljeno\":null,\"napomena\":null}",
         "at": "2026-11-26",
         "izvor": "news-sorter"
-      }
-    ],
-    "bridge:2026-11-24T01-42-18-134Z__urednik__claude_auto": [
-      {
-        "id": "puls:pm25",
-        "naslov": "PM25",
-        "tekst": "{\"mean\":11.1,\"median\":10.8,\"min\":6.1,\"max\":18.5,\"max_station\":\"Obrenovac Centar\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-        "at": "2026-11-24T01:32:41.419897Z",
-        "izvor": "state/puls.json#/current_metrics/pm25"
-      },
-      {
-        "id": "puls:pm10",
-        "naslov": "PM10",
-        "tekst": "{\"mean\":12.1,\"median\":11.7,\"min\":6.7,\"max\":25,\"max_station\":\"Obrenovac Centar\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-        "at": "2026-11-24T01:32:41.419897Z",
-        "izvor": "state/puls.json#/current_metrics/pm10"
-      },
-      {
-        "id": "puls:no2",
-        "naslov": "NO2",
-        "tekst": "{\"mean\":12.7,\"median\":11.7,\"min\":6.7,\"max\":24.9,\"max_station\":\"Borča\",\"unit\":\"µg/m³\",\"sensors_count\":32,\"network\":\"reference\"}",
-        "at": "2026-11-24T01:32:41.419897Z",
-        "izvor": "state/puls.json#/current_metrics/no2"
-      },
-      {
-        "id": "puls:o3",
-        "naslov": "O3",
-        "tekst": "{\"mean\":34.5,\"median\":38,\"min\":5.2,\"max\":44.6,\"max_station\":\"Zeleno brdo\",\"unit\":\"µg/m³\",\"sensors_count\":27,\"network\":\"reference\"}",
-        "at": "2026-11-24T01:32:41.419897Z",
-        "izvor": "state/puls.json#/current_metrics/o3"
-      },
-      {
-        "id": "puls:meteo",
-        "naslov": "Vremenski uslovi",
-        "tekst": "{\"temperature\":2.6,\"humidity\":75.9,\"pressure\":1010,\"wind_speed\":4.1,\"wind_direction\":\"260.0\"}",
-        "at": "2026-11-24T01:32:41.419897Z",
-        "izvor": "state/puls.json#/current_metrics/meteo"
-      },
-      {
-        "id": "izvor:S04:pm10",
-        "naslov": "PM10 36.4 µg/m³ — 90579",
-        "tekst": "{\"naslov\":\"PM10 36.4 µg/m³ — 90579\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-24T01:30:06Z\",\"primljeno\":\"2026-11-24T01:32:26.235973Z\",\"napomena\":null}",
-        "at": "2026-11-24T01:30:06Z",
-        "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-      },
-      {
-        "id": "izvor:S01:temperature",
-        "naslov": "Temperatura 0.4 °C — Beograd",
-        "tekst": "{\"naslov\":\"Temperatura 0.4 °C — Beograd\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-24T01:20:00Z\",\"primljeno\":\"2026-11-24T01:32:38.589032Z\",\"napomena\":null}",
-        "at": "2026-11-24T01:20:00Z",
-        "izvor": "RHMZ automatic stations - Belgrade (Beograd, Košutnjak)"
-      },
-      {
-        "id": "izvor:1085721b53fda078",
-        "naslov": "Планирано искључење струје 2026-11-25 · Земун · 08:30 - 13:30 · Насеље АЛТИНА: ГОРДАНЕ КОСАНОВИЋ : 2-4А,10А-12А,1-3Д, ЈАСМИНЕ ЈОВАНОВИЋ : 2-8,1-5, ЈУГА ГРИЗЕЉА : 2-24А,28,3,17-19,23-33, ЉИЉАНЕ КРСТИЋ ",
-        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-25 · Земун · 08:30 - 13:30 · Насеље АЛТИНА: ГОРДАНЕ КОСАНОВИЋ : 2-4А,10А-12А,1-3Д, ЈАСМИНЕ ЈОВАНОВИЋ : 2-8,1-5, ЈУГА ГРИЗЕЉА : 2-24А,28,3,17-19,23-33, ЉИЉАНЕ КРСТИЋ \",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[],\"vreme_merenja_ili_objave\":\"2026-11-25\",\"primljeno\":null,\"napomena\":null}",
-        "at": "2026-11-25",
-        "izvor": "news-sorter"
-      },
-      {
-        "id": "izvor:1c32697f29782420",
-        "naslov": "Планирано искључење струје 2026-11-25 · Земун · 10:00 - 11:30 · Насеље БАТАЈНИЦА: ШИРОКИ ПУТ: бб",
-        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-25 · Земун · 10:00 - 11:30 · Насеље БАТАЈНИЦА: ШИРОКИ ПУТ: бб\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[],\"vreme_merenja_ili_objave\":\"2026-11-25\",\"primljeno\":null,\"napomena\":null}",
-        "at": "2026-11-25",
-        "izvor": "news-sorter"
-      },
-      {
-        "id": "izvor:1eaf5f4a95ef6381",
-        "naslov": "Планирано искључење струје 2026-11-25 · Чукарица · 09:00 - 11:00 · МИЛАНА РИСТАНОВИЋА: 2-6,9-15, Насеље ЖЕЛЕЗНИК: ЛОЛЕ РИБАРА: 126-126А,132-140,144,141-145, МАКИШКА: 2-16А,1-13, САВСКА: 2-2Д,1-3",
-        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-25 · Чукарица · 09:00 - 11:00 · МИЛАНА РИСТАНОВИЋА: 2-6,9-15, Насеље ЖЕЛЕЗНИК: ЛОЛЕ РИБАРА: 126-126А,132-140,144,141-145, МАКИШКА: 2-16А,1-13, САВСКА: 2-2Д,1-3\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[],\"vreme_merenja_ili_objave\":\"2026-11-25\",\"primljeno\":null,\"napomena\":null}",
-        "at": "2026-11-25",
-        "izvor": "news-sorter"
-      },
-      {
-        "id": "izvor:2e1bf9dc5edde622",
-        "naslov": "Планирано искључење струје 2026-11-25 · Палилула · 09:00 - 12:00 · Насеље ЈАБУЧКИ РИТ: ЈАБУЧКИ РИТ: 14,18,42-62А,9-19,41-61, Насеље ПАДИНСКА СКЕЛА: ЈАБУЧКИ РИТ: ББ,ББ,ББ,ББ,ББ,ББ,ББ,10,100-104,101-105",
-        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-25 · Палилула · 09:00 - 12:00 · Насеље ЈАБУЧКИ РИТ: ЈАБУЧКИ РИТ: 14,18,42-62А,9-19,41-61, Насеље ПАДИНСКА СКЕЛА: ЈАБУЧКИ РИТ: ББ,ББ,ББ,ББ,ББ,ББ,ББ,10,100-104,101-105\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[\"14\",\"18\",\"42\"],\"vreme_merenja_ili_objave\":\"2026-11-25\",\"primljeno\":null,\"napomena\":null}",
-        "at": "2026-11-25",
-        "izvor": "news-sorter"
-      },
-      {
-        "id": "izvor:439ccba92ab165c2",
-        "naslov": "Планирано искључење струје 2026-11-25 · Палилула · 08:30 - 14:00 · ЈАХОРИНСКА: 2-12,16-20,7, ЛЕСНОВСКА: 2-6,12-16А, ЛЕВСКОГА: 2-14,1-11, ПРИБОЈСКА: 23, ТИНА УЈЕВИЋА: 2-8,1-5,9-17, ВЛАДЕ ИЛИЋА: 3-5, ВО",
-        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-25 · Палилула · 08:30 - 14:00 · ЈАХОРИНСКА: 2-12,16-20,7, ЛЕСНОВСКА: 2-6,12-16А, ЛЕВСКОГА: 2-14,1-11, ПРИБОЈСКА: 23, ТИНА УЈЕВИЋА: 2-8,1-5,9-17, ВЛАДЕ ИЛИЋА: 3-5, ВО\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[],\"vreme_merenja_ili_objave\":\"2026-11-25\",\"primljeno\":null,\"napomena\":null}",
-        "at": "2026-11-25",
-        "izvor": "news-sorter"
-      },
-      {
-        "id": "izvor:70184c9ee60cf224",
-        "naslov": "Планирано искључење струје 2026-11-25 · Обреновац · 08:30 - 15:00 · Насеље КОНАТИЦЕ: БРОЧИШТЕ: ББ,10,102-102Ј,17А-19, ГОРЊИ КРАЈ: 127, Насеље ПОЉАНЕ: ЋОСИЋА КРАЈ: 148-148А,131-131,137,141А, ПАЈИЋА КРА",
-        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-25 · Обреновац · 08:30 - 15:00 · Насеље КОНАТИЦЕ: БРОЧИШТЕ: ББ,10,102-102Ј,17А-19, ГОРЊИ КРАЈ: 127, Насеље ПОЉАНЕ: ЋОСИЋА КРАЈ: 148-148А,131-131,137,141А, ПАЈИЋА КРА\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[],\"vreme_merenja_ili_objave\":\"2026-11-25\",\"primljeno\":null,\"napomena\":null}",
-        "at": "2026-11-25",
-        "izvor": "news-sorter"
-      },
-      {
-        "id": "izvor:83f4b66869ef551d",
-        "naslov": "Планирано искључење струје 2026-11-25 · Сурчин · 08:00 - 13:00 · Насеље ЈАКОВО: ВОЖДА КАРАЂОРЂА: 92-108",
-        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-25 · Сурчин · 08:00 - 13:00 · Насеље ЈАКОВО: ВОЖДА КАРАЂОРЂА: 92-108\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[],\"vreme_merenja_ili_objave\":\"2026-11-25\",\"primljeno\":null,\"napomena\":null}",
-        "at": "2026-11-25",
-        "izvor": "news-sorter"
-      },
-      {
-        "id": "istorija:vazduh-mesec-11",
-        "naslov": "Uobičajeno za ovaj mesec (SEPA verifikovano, 2011–2024)",
-        "tekst": "{\"period\":[\"2011-01-01\",\"2024-12-31\"],\"mesec\":11,\"jedinica\":\"µg/m³, dnevni prosek\",\"stanice\":{\"mostar\":{\"s146_id\":\"10\",\"no2\":{\"p50\":40.6,\"p90\":71.3,\"dana\":385},\"pm10\":{\"p50\":31,\"p90\":74.5,\"dana\":270},\"pm25\":{\"p50\":25,\"p90\":47.2,\"dana\":180}},\"novi-beograd\":{\"s146_id\":\"9\",\"no2\":{\"p50\":28.9,\"p90\":52.3,\"dana\":355},\"pm10\":{\"p50\":30.1,\"p90\":59,\"dana\":277},\"pm25\":{\"p50\":22.7,\"p90\":46,\"dana\":179}},\"obrenovac-centar\":{\"s146_id\":\"16\",\"no2\":{\"p50\":31.2,\"p90\":46.4,\"dana\":270},\"pm10\":{\"p50\":30.1,\"p90\":100.8,\"dana\":239},\"pm25\":{\"p50\":26.4,\"p90\":67.9,\"dana\":150}},\"obrenovac-deponija-pepela\":{\"s146_id\":null,\"no2\":{\"p50\":17,\"p90\":32.3,\"dana\":60}},\"pancevo-sodara\":{\"s146_id\":\"6\",\"no2\":{\"p50\":20.2,\"p90\":33,\"dana\":180}},\"stari-grad\":{\"s146_id\":\"7\",\"no2\":{\"p50\":30.4,\"p90\":65.3,\"dana\":348},\"pm10\":{\"p50\":31.3,\"p90\":75.9,\"dana\":329},\"pm25\":{\"p50\":25.5,\"p90\":52.5,\"dana\":210}},\"vracar\":{\"s146_id\":\"11\",\"no2\":{\"p50\":30,\"p90\":59.7,\"dana\":390},\"pm10\":{\"p50\":35.2,\"p90\":81.2,\"dana\":299},\"pm25\":{\"p50\":29.6,\"p90\":50.1,\"dana\":150}},\"zeleno-brdo\":{\"s146_id\":\"12\",\"no2\":{\"p50\":21.6,\"p90\":42.1,\"dana\":349},\"pm10\":{\"p50\":34,\"p90\":91.4,\"dana\":210},\"pm25\":{\"p50\":26.9,\"p90\":49.7,\"dana\":90}}}}",
-        "at": "2024-12-31",
-        "izvor": "state/kontekst-vazduh-dnevno.json#/monthly_climatology"
       }
     ],
     "bridge:2026-11-20T18-41-59-460Z__urednik__claude_auto": [
