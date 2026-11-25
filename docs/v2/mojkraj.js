@@ -172,6 +172,40 @@ function viewKraj(koren) {
 }
 VIEWS.kraj = viewKraj;
 
+/* Garaže za karticu parkinga. Ista garaža stiže iz dva izvora (istaknuto.json i mapa.json, S10) sa
+   različito pisanim nazivom (sa navodnicima i bez njih) i različitim očitavanjem. Ključ je naziv bez
+   navodnika; broj iz mape je merodavan (svežiji, nosi vreme prijema), istaknuto daje samo redosled
+   i broj za garažu koje u mapi nema. */
+function garazaNaziv(s) { return String(s || '').replace(/["„“”«»]/g, '').replace(/\s+/g, ' ').trim(); }
+function vodicGaraze(istaknuto, mapa) {
+  const garaze = [];
+  const poKljucu = new Map();
+  const upisi = (naziv, mesta, izMape) => {
+    const cist = garazaNaziv(naziv);
+    if (!cist || !Number.isFinite(mesta)) return;
+    const k = krajNorm(cist);
+    const g = poKljucu.get(k);
+    if (!g) {
+      const nova = { naziv: cist, mesta, izMape };
+      poKljucu.set(k, nova);
+      garaze.push(nova);
+    } else if (izMape && !g.izMape) {
+      g.mesta = mesta;
+      g.izMape = true;
+    }
+  };
+  for (const st of (istaknuto && istaknuto.top) || []) {
+    if (st.tema === 'mobilnost' && /Slobodnih parking mesta/i.test(st.naslov || '')) {
+      const m = st.naslov.match(/(\d+)\s*[—–-]\s*(.+)$/);
+      if (m) upisi(m[2], Number(m[1]), false);
+    }
+  }
+  for (const s of (mapa && Array.isArray(mapa.stations) ? mapa.stations : [])) {
+    if (s.sid === 'S10' && Array.isArray(s.r) && s.r[0]) upisi(s.n, s.r[0].v, true);
+  }
+  return garaze;
+}
+
 function vodicGrid() {
   const grid = el('div', 'vodic-grid');
   const P = STATE.puls || {};
@@ -205,27 +239,11 @@ function vodicGrid() {
   c1.appendChild(a1);
   grid.appendChild(c1);
 
-  /* Kartica 2: Slobodna mesta u garažama (iz istaknuto / mapa S10) */
+  /* Kartica 2: Slobodna mesta u garažama (vodicGaraze: mapa S10 je izvor broja) */
   const c2 = el('article', 'vodic-card accent-blue');
   c2.appendChild(el('span', 'eyebrow', '02 · ' + (LANG === 'sr' ? 'MOBILNOST I PARKING' : 'MOBILITY & PARKING')));
   c2.appendChild(el('h3', null, T().vodicParking));
-  const garaze = [];
-  for (const st of (STATE.istaknuto && STATE.istaknuto.top) || []) {
-    if (st.tema === 'mobilnost' && /Slobodnih parking mesta/i.test(st.naslov || '')) {
-      const m = st.naslov.match(/(\d+)\s*[—–-]\s*(.+)$/);
-      if (m) garaze.push({ naziv: m[2].replace(/"/g, ''), mesta: Number(m[1]) });
-    }
-  }
-  if (STATE.mapa && Array.isArray(STATE.mapa.stations)) {
-    for (const s of STATE.mapa.stations) {
-      if (s.sid === 'S10' && Array.isArray(s.r)) {
-        const r0 = s.r[0];
-        if (r0 && Number.isFinite(r0.v) && !garaze.some(g => g.naziv === s.n)) {
-          garaze.push({ naziv: s.n, mesta: r0.v });
-        }
-      }
-    }
-  }
+  const garaze = vodicGaraze(STATE.istaknuto, STATE.mapa);
   if (garaze.length) {
     const gList = el('div', 'garaze-list');
     for (const g of garaze.slice(0, 5)) {
