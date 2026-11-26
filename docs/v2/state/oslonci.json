@@ -1,10 +1,33 @@
 {
   "schema": "beops-v2-oslonci/v1",
-  "generated_at": "2026-11-26T05:36:27.949Z",
-  "as_of": "2026-11-26T05:25:25.042840Z",
+  "generated_at": "2026-11-26T05:46:28.197Z",
+  "as_of": "2026-11-26T05:41:55.338Z",
   "zakon": "pun tekst dokaza; ugovor misli nosi samo prozor teksta (280 znakova + …)",
   "ukupno": 18,
   "oslonci": {
+    "bridge:2026-11-26T05-41-38-731Z__claude_auto": [
+      {
+        "id": "puls:pm25",
+        "naslov": "PM25",
+        "tekst": "{\"mean\":10.4,\"median\":10.4,\"min\":7,\"max\":15.4,\"max_station\":\"Borča\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
+        "at": "2026-11-26T05:22:33.851717Z",
+        "izvor": "state/puls.json#/current_metrics/pm25"
+      },
+      {
+        "id": "puls:no2",
+        "naslov": "NO2",
+        "tekst": "{\"mean\":8.4,\"median\":7.4,\"min\":3.1,\"max\":24.4,\"max_station\":\"Borča\",\"unit\":\"µg/m³\",\"sensors_count\":32,\"network\":\"reference\"}",
+        "at": "2026-11-26T05:22:33.851717Z",
+        "izvor": "state/puls.json#/current_metrics/no2"
+      },
+      {
+        "id": "istorija:vazduh-mesec-11",
+        "naslov": "Uobičajeno za ovaj mesec (SEPA verifikovano, 2011–2024)",
+        "tekst": "{\"period\":[\"2011-01-01\",\"2024-12-31\"],\"mesec\":11,\"jedinica\":\"µg/m³, dnevni prosek\",\"stanice\":{\"mostar\":{\"s146_id\":\"10\",\"no2\":{\"p50\":40.6,\"p90\":71.3,\"dana\":385},\"pm10\":{\"p50\":31,\"p90\":74.5,\"dana\":270},\"pm25\":{\"p50\":25,\"p90\":47.2,\"dana\":180}},\"novi-beograd\":{\"s146_id\":\"9\",\"no2\":{\"p50\":28.9,\"p90\":52.3,\"dana\":355},\"pm10\":{\"p50\":30.1,\"p90\":59,\"dana\":277},\"pm25\":{\"p50\":22.7,\"p90\":46,\"dana\":179}},\"obrenovac-centar\":{\"s146_id\":\"16\",\"no2\":{\"p50\":31.2,\"p90\":46.4,\"dana\":270},\"pm10\":{\"p50\":30.1,\"p90\":100.8,\"dana\":239},\"pm25\":{\"p50\":26.4,\"p90\":67.9,\"dana\":150}},\"obrenovac-deponija-pepela\":{\"s146_id\":null,\"no2\":{\"p50\":17,\"p90\":32.3,\"dana\":60}},\"pancevo-sodara\":{\"s146_id\":\"6\",\"no2\":{\"p50\":20.2,\"p90\":33,\"dana\":180}},\"stari-grad\":{\"s146_id\":\"7\",\"no2\":{\"p50\":30.4,\"p90\":65.3,\"dana\":348},\"pm10\":{\"p50\":31.3,\"p90\":75.9,\"dana\":329},\"pm25\":{\"p50\":25.5,\"p90\":52.5,\"dana\":210}},\"vracar\":{\"s146_id\":\"11\",\"no2\":{\"p50\":30,\"p90\":59.7,\"dana\":390},\"pm10\":{\"p50\":35.2,\"p90\":81.2,\"dana\":299},\"pm25\":{\"p50\":29.6,\"p90\":50.1,\"dana\":150}},\"zeleno-brdo\":{\"s146_id\":\"12\",\"no2\":{\"p50\":21.6,\"p90\":42.1,\"dana\":349},\"pm10\":{\"p50\":34,\"p90\":91.4,\"dana\":210},\"pm25\":{\"p50\":26.9,\"p90\":49.7,\"dana\":90}}}}",
+        "at": "2024-12-31",
+        "izvor": "state/kontekst-vazduh-dnevno.json#/monthly_climatology"
+      }
+    ],
     "bridge:2026-11-26T05-11-39-004Z__antigravity_gemini-4-argon-medium": [
       {
         "id": "puls:pm25",
@@ -381,43 +404,6 @@
         "tekst": "{\"naslov\":\"Slobodnih parking mesta 206 — Garaža \\\"Baba Višnjina\\\"\",\"stanje\":\"untimed\",\"vreme_merenja_ili_objave\":null,\"primljeno\":\"2026-11-25T02:57:24.891670Z\",\"napomena\":\"Čas merenja nije potvrđen; prijem ne određuje starost vrednosti.\"}",
         "at": null,
         "izvor": "Parking servis - displayed free spaces per lot"
-      }
-    ],
-    "bridge:2026-11-25T01-41-59-747Z__claude_auto": [
-      {
-        "id": "puls:pm25",
-        "naslov": "PM25",
-        "tekst": "{\"mean\":63.1,\"median\":57.4,\"min\":11.3,\"max\":154.2,\"max_station\":\"Borča\",\"unit\":\"µg/m³\",\"sensors_count\":31,\"network\":\"reference\"}",
-        "at": "2026-11-25T01:27:45.990813Z",
-        "izvor": "state/puls.json#/current_metrics/pm25"
-      },
-      {
-        "id": "puls:meteo",
-        "naslov": "Vremenski uslovi",
-        "tekst": "{\"temperature\":2.7,\"humidity\":69.7,\"pressure\":1012.7,\"wind_speed\":2.6,\"wind_direction\":\"130.0\"}",
-        "at": "2026-11-25T01:27:45.990813Z",
-        "izvor": "state/puls.json#/current_metrics/meteo"
-      },
-      {
-        "id": "izvor:S01:temperature",
-        "naslov": "Temperatura -1.1 °C — Beograd",
-        "tekst": "{\"naslov\":\"Temperatura -1.1 °C — Beograd\",\"stanje\":\"observed\",\"vreme_merenja_ili_objave\":\"2026-11-25T01:20:00Z\",\"primljeno\":\"2026-11-25T01:27:42.942936Z\",\"napomena\":null}",
-        "at": "2026-11-25T01:20:00Z",
-        "izvor": "RHMZ automatic stations - Belgrade (Beograd, Košutnjak)"
-      },
-      {
-        "id": "izvor:2cf30f3f73497637",
-        "naslov": "Планирано искључење струје 2026-11-26 · Савски венац · 09:00 - 12:00 · БУЛЕВАР ОСЛОБОЂЕЊА: бб,18Б-20Ц, ДОБРОПОЉСКА: 2-14,1-3, ДР МИЛУТИНА ИВКОВИЋА: 2-2Е, ОБЛАКОВСКА: 2-2е, ПРИЛЕПСКА: 2-12,1-9, СУРДУЛИ",
-        "tekst": "{\"naslov\":\"Планирано искључење струје 2026-11-26 · Савски венац · 09:00 - 12:00 · БУЛЕВАР ОСЛОБОЂЕЊА: бб,18Б-20Ц, ДОБРОПОЉСКА: 2-14,1-3, ДР МИЛУТИНА ИВКОВИЋА: 2-2Е, ОБЛАКОВСКА: 2-2е, ПРИЛЕПСКА: 2-12,1-9, СУРДУЛИ\",\"stanje\":\"najava\",\"kucni_brojevi_iz_spiskova\":[],\"vreme_merenja_ili_objave\":\"2026-11-26\",\"primljeno\":null,\"napomena\":null}",
-        "at": "2026-11-26",
-        "izvor": "news-sorter"
-      },
-      {
-        "id": "istorija:vazduh-mesec-11",
-        "naslov": "Uobičajeno za ovaj mesec (SEPA verifikovano, 2011–2024)",
-        "tekst": "{\"period\":[\"2011-01-01\",\"2024-12-31\"],\"mesec\":11,\"jedinica\":\"µg/m³, dnevni prosek\",\"stanice\":{\"mostar\":{\"s146_id\":\"10\",\"no2\":{\"p50\":40.6,\"p90\":71.3,\"dana\":385},\"pm10\":{\"p50\":31,\"p90\":74.5,\"dana\":270},\"pm25\":{\"p50\":25,\"p90\":47.2,\"dana\":180}},\"novi-beograd\":{\"s146_id\":\"9\",\"no2\":{\"p50\":28.9,\"p90\":52.3,\"dana\":355},\"pm10\":{\"p50\":30.1,\"p90\":59,\"dana\":277},\"pm25\":{\"p50\":22.7,\"p90\":46,\"dana\":179}},\"obrenovac-centar\":{\"s146_id\":\"16\",\"no2\":{\"p50\":31.2,\"p90\":46.4,\"dana\":270},\"pm10\":{\"p50\":30.1,\"p90\":100.8,\"dana\":239},\"pm25\":{\"p50\":26.4,\"p90\":67.9,\"dana\":150}},\"obrenovac-deponija-pepela\":{\"s146_id\":null,\"no2\":{\"p50\":17,\"p90\":32.3,\"dana\":60}},\"pancevo-sodara\":{\"s146_id\":\"6\",\"no2\":{\"p50\":20.2,\"p90\":33,\"dana\":180}},\"stari-grad\":{\"s146_id\":\"7\",\"no2\":{\"p50\":30.4,\"p90\":65.3,\"dana\":348},\"pm10\":{\"p50\":31.3,\"p90\":75.9,\"dana\":329},\"pm25\":{\"p50\":25.5,\"p90\":52.5,\"dana\":210}},\"vracar\":{\"s146_id\":\"11\",\"no2\":{\"p50\":30,\"p90\":59.7,\"dana\":390},\"pm10\":{\"p50\":35.2,\"p90\":81.2,\"dana\":299},\"pm25\":{\"p50\":29.6,\"p90\":50.1,\"dana\":150}},\"zeleno-brdo\":{\"s146_id\":\"12\",\"no2\":{\"p50\":21.6,\"p90\":42.1,\"dana\":349},\"pm10\":{\"p50\":34,\"p90\":91.4,\"dana\":210},\"pm25\":{\"p50\":26.9,\"p90\":49.7,\"dana\":90}}}}",
-        "at": "2024-12-31",
-        "izvor": "state/kontekst-vazduh-dnevno.json#/monthly_climatology"
       }
     ],
     "bridge:2026-11-25T17-12-18-976Z__urednik__claude_auto": [
