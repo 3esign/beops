@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-27T06:36:26.586661+00:00",
-  "as_of": "2026-11-27T06:22:38.482927Z",
+  "generated_at": "2026-11-27T06:46:26.608265+00:00",
+  "as_of": "2026-11-27T06:37:36.206751Z",
   "city_status": {
     "aqi_us": 72,
     "aqi_us_category": "umeren",
@@ -67,20 +67,20 @@
       "network": "reference"
     },
     "meteo": {
-      "temperature": 5.9,
-      "humidity": 91.6,
-      "pressure": 1001.1,
-      "wind_speed": 2.6,
-      "wind_direction": "269.0"
+      "temperature": 6.1,
+      "humidity": 91.4,
+      "pressure": 1001.0,
+      "wind_speed": 1.0,
+      "wind_direction": "110.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 15.4,
+      "pm25_mean": 15.1,
       "pm25_median": 16.6,
-      "pm10_mean": 25.6,
+      "pm10_mean": 24.7,
       "sensors_count": 28,
       "high_humidity_flag": true,
-      "humidity_pct": 91.6,
+      "humidity_pct": 91.4,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
@@ -92,7 +92,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-27T06:22:38.482927Z"
+        "as_of": "2026-11-27T06:37:36.206751Z"
       }
     },
     {
@@ -102,7 +102,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-27T06:22:38.482927Z"
+        "as_of": "2026-11-27T06:37:36.206751Z"
       }
     },
     {
@@ -112,7 +112,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-27T06:22:38.482927Z"
+        "as_of": "2026-11-27T06:37:36.206751Z"
       }
     },
     {
@@ -122,47 +122,50 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-27T06:22:38.482927Z"
+        "as_of": "2026-11-27T06:37:36.206751Z"
       }
     },
     {
       "aktivnost": "ves_na_terasi",
       "odluka": "OPREZ",
-      "razlog_sr": "Vlaga je 92 % — veš se teško suši napolju.",
+      "razlog_sr": "Vlaga je 91 % — veš se teško suši napolju.",
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "PM2.5+vlaga",
-        "as_of": "2026-11-27T06:22:38.482927Z"
+        "as_of": "2026-11-27T06:37:36.206751Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261127062125-0",
-    "at": "2026-11-27T06:21:25.047813Z",
-    "speaker": "Posmatrač",
-    "speaker_role": "observer",
-    "text_sr": "Ne mogu nezavisno da proverim Connectorov prostorni kontrast: prijem podataka građanskih senzora svežiji je od SEPA-inog, ali ovde nisu data očitavanja građanskih senzora. Vidim nejednake promene maksimuma čestica, ali ne i da li su iste stanice dale prethodne maksimume. [F10][F2][F4][F8][F5][F9]",
-    "text_en": "I cannot independently test Connector's spatial contrast: citizen-sensor reception is fresher than SEPA's, but no citizen readings are supplied here [F10][F2][F4][F8]. I see unequal changes in the particulate maxima, but not whether the same stations supplied the earlier maxima [F5][F9].",
+    "id": "mind-20261127064524-0",
+    "at": "2026-11-27T06:45:24.752732Z",
+    "speaker": "Sumnjalo",
+    "speaker_role": "skeptic",
+    "text_sr": "Konektorova tvrdnja da Zeleno brdo drži oba maksimuma, a Vračar Dom zdravlja oba minimuma, tačna je za ovaj sat, ali NO2 remeti taj obrazac, jer mu je maksimum u Mostaru. Maksimum PM10 pao je sa 293 na 232 µg/m³, dok je PM2.5 blago porastao sa 42 na 44, pa maksimumi ne idu zajedno, a maksimum NO2 ostao je 29. Naš zapis ima 0 dana istorije, pa se ništa od ovoga ne može nazvati visokim ili uobičajenim. [F4][F8][F6][F5][F9][F7][F49]",
+    "text_en": "Connector's claim that Zeleno brdo holds both maxima and Vračar Dom zdravlja both minima is true for this hour [F4][F8], but NO2 breaks the pattern, since its maximum sits at Mostar [F6]. The PM10 maximum fell from 293 to 232 µg/m³ while PM2.5 edged from 42 to 44 [F5][F9], so the maxima do not move together, and the NO2 maximum stayed at 29 [F7]. Our record has 0 days of history [F49], so none of this can be called high or usual.",
     "hypotheses_sr": [
-      "Lokalizovana epizoda zagađenja česticama blizu Zelenog brda mogla bi da objasni neujednačene promene maksimuma čestica, ali izolovana anomalija instrumenta ostaje alternativno objašnjenje [F4][F5][F8][F9]."
+      "Pad maksimuma PM10 sa 293 na 232 [F5] može odražavati to da je raniji maksimum dala druga stanica, što činjenice ne pokazuju.",
+      "Maksimum PM2.5 od 44 na Zelenom brdu [F8] je očitavanje jedne stanice, a nema očitavanja građanskih senzora s kojima bi se proverilo [F10]."
     ],
     "questions_sr": [
-      "Da li susedni građanski senzori potvrđuju kontrast čestica oko Zelenog brda u odgovarajućem periodu merenja [F10][F4][F8]?"
+      "Koja je stanica držala maksimum PM10 od 293 [F5] u ranijem satu?",
+      "Slažu li se 49 građanskih instrumenata [F10] sa vrednošću 44 na Zelenom brdu [F8]?"
     ],
     "cites": [
-      "F10",
-      "F2",
       "F4",
+      "F49",
       "F5",
+      "F6",
+      "F7",
       "F8",
       "F9"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-27T06:21:25.047813Z",
+    "last_mind_step": "2026-11-27T06:45:24.752732Z",
     "active_sources_count": 37,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-27T06:22:38.482927Z"
+    "sensors_as_of": "2026-11-27T06:37:36.206751Z"
   }
 }
