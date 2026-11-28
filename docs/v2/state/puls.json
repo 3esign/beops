@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-puls/v1",
-  "generated_at": "2026-11-28T02:06:26.493970+00:00",
-  "as_of": "2026-11-28T01:52:26.074517Z",
+  "generated_at": "2026-11-28T02:16:26.547672+00:00",
+  "as_of": "2026-11-28T02:07:26.728465Z",
   "city_status": {
     "aqi_us": 71,
     "aqi_us_category": "umeren",
@@ -68,19 +68,19 @@
     },
     "meteo": {
       "temperature": 5.2,
-      "humidity": 91.5,
-      "pressure": 1008.6,
-      "wind_speed": 3.3,
+      "humidity": 91.3,
+      "pressure": 1008.8,
+      "wind_speed": 3.5,
       "wind_direction": "310.0"
     },
     "low_cost": {
       "network": "citizen low-cost (Sensor.Community)",
-      "pm25_mean": 15.8,
-      "pm25_median": 16.4,
-      "pm10_mean": 31.0,
+      "pm25_mean": 14.6,
+      "pm25_median": 14.4,
+      "pm10_mean": 25.4,
       "sensors_count": 28,
       "high_humidity_flag": true,
-      "humidity_pct": 91.5,
+      "humidity_pct": 91.3,
       "note_sr": "Vlažnost vazduha ≥ 75 %: niskobudžetni optički senzori bez sušača (SDS011/PMS) u magli i visokoj vlazi sistematski precenjuju čestice."
     }
   },
@@ -92,7 +92,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-28T01:52:26.074517Z"
+        "as_of": "2026-11-28T02:07:26.728465Z"
       }
     },
     {
@@ -102,7 +102,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-28T01:52:26.074517Z"
+        "as_of": "2026-11-28T02:07:26.728465Z"
       }
     },
     {
@@ -112,7 +112,7 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-28T01:52:26.074517Z"
+        "as_of": "2026-11-28T02:07:26.728465Z"
       }
     },
     {
@@ -122,43 +122,46 @@
       "dokaz": {
         "sid": "S146",
         "param": "PM2.5",
-        "as_of": "2026-11-28T01:52:26.074517Z"
+        "as_of": "2026-11-28T02:07:26.728465Z"
       }
     },
     {
       "aktivnost": "ves_na_terasi",
       "odluka": "OPREZ",
-      "razlog_sr": "Vlaga je 92 % — veš se teško suši napolju.",
+      "razlog_sr": "Vlaga je 91 % — veš se teško suši napolju.",
       "dokaz": {
         "sid": "S146+S01,S03,S04",
         "param": "PM2.5+vlaga",
-        "as_of": "2026-11-28T01:52:26.074517Z"
+        "as_of": "2026-11-28T02:07:26.728465Z"
       }
     }
   ],
   "superintelligence_monologue": {
-    "id": "mind-20261127231536-6",
-    "at": "2026-11-27T23:15:36.816957Z",
-    "speaker": "Povezivač",
-    "speaker_role": "connector",
-    "text_sr": "Proverio bih geografiju iza Skeptikovog opreza: oba minimuma čestica sada su u Obrenovcu Centar, nasuprot zajedničkom maksimumu u Rakovici. Građanski senzori javili su se pre 3 min, naspram SEPA-inih 53 min, pa njihove poslednje prijeme ne mogu da tretiram kao istovremen pogled na taj obrazac. [F4][F8][F10][F2]",
-    "text_en": "I would test the geography behind Skeptic’s caution: both particulate minima now sit at Obrenovac Centar, opposite their shared maximum at Rakovica [F4][F8]. Citizen sensors arrived 3 min ago against SEPA’s 53 min, so I cannot treat their latest receptions as a simultaneous view of that pattern [F10][F2].",
+    "id": "mind-20261128020925-0",
+    "at": "2026-11-28T02:09:25.588757Z",
+    "speaker": "Sumnjalo",
+    "speaker_role": "skeptic",
+    "text_sr": "Trenutni označeni sat ne podržava raniju geografiju Rakovica–Obrenovac: PM10 i PM2.5 obuhvataju raspon od 14 kod Vračar Dom zdravlja do 29 µg/m³ na Banovom brdu. Ni Ada petlja ne zadržava maksimum NO2; Borča sada ima 26 µg/m³, dok kašnjenje SEPA od 42 min naspram prijema građanskih senzora od 2 min sprečava istovremeno poređenje. [F4][F8][F6][F2][F10]",
+    "text_en": "The current labelled hour does not support the earlier Rakovica–Obrenovac geometry: PM10 and PM2.5 both span 14 at Vračar Dom zdravlja to 29 µg/m³ at Banovo brdo [F4][F8]. Nor does Ada petlja retain the NO2 maximum; Borča now has 26 µg/m³, while the 42 min SEPA lag against the citizen sensors’ 2 min reception prevents a simultaneous comparison [F6][F2][F10].",
     "hypotheses_sr": [
-      "Zajedničke krajnje tačke čestica možda odražavaju širi prostorni kontrast, a ne izolovane ekstreme stanica; vremenski usklađena građanska očitavanja mogla bi da provere tu mogućnost [F4][F8][F10][F2]."
+      "Zajednički ekstremi čestica možda odražavaju zajednički prostorni obrazac, ali samo ovaj označeni sat ne može to razlikovati od uslova specifičnih za stanice [F3][F4][F8]."
     ],
-    "questions_sr": [],
+    "questions_sr": [
+      "Da li nizovi po stanicama pokazuju da se Banovo brdo i Vračar Dom zdravlja kreću zajedno tokom poslednjih 6 h [F2]?"
+    ],
     "cites": [
       "F10",
       "F2",
       "F4",
+      "F6",
       "F8"
     ]
   },
   "organism": {
     "mind_state": "active",
-    "last_mind_step": "2026-11-27T23:15:36.816957Z",
+    "last_mind_step": "2026-11-28T02:09:25.588757Z",
     "active_sources_count": 37,
     "scheduler_ok": true,
-    "sensors_as_of": "2026-11-28T01:52:26.074517Z"
+    "sensors_as_of": "2026-11-28T02:07:26.728465Z"
   }
 }
