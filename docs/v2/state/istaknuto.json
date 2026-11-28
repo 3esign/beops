@@ -1,7 +1,7 @@
 {
   "schema": "beops-v2-istaknuto/v1",
-  "generated_at": "2026-11-28T00:42:34.967Z",
-  "as_of": "2026-11-28T00:32:40.134Z",
+  "generated_at": "2026-11-28T01:11:35.820Z",
+  "as_of": "2026-11-28T01:02:31.944Z",
   "formula": {
     "oblik": "0.15·gate + 0.25·svezina + 0.25·magnituda + 0.20·korak + 0.15·masa (nedostajuće komponente se izbacuju, težine se normališu)",
     "gate": {
@@ -40,10 +40,10 @@
     "vreme": {
       "trakе": "sada ≤30 min / skoro ≤3 h / danas ≤12 h / starije / bez vremena",
       "brojaci": {
-        "sada": 369,
-        "skoro": 77,
-        "danas": 498,
-        "starije": 430,
+        "sada": 372,
+        "skoro": 46,
+        "danas": 491,
+        "starije": 463,
         "bez_vremena": 27,
         "najava": null
       }
@@ -64,15 +64,15 @@
         "n": 76,
         "najjaca": {
           "id": "S04:temperature",
-          "score": 0.7018
+          "score": 0.7101
         }
       },
       "ostalo": {
         "ime": "Ostalo",
-        "n": 760,
+        "n": 759,
         "najjaca": {
           "id": "S04:pressure_at_sealevel",
-          "score": 0.6132
+          "score": 0.6243
         }
       },
       "vazduh": {
@@ -80,7 +80,7 @@
         "n": 294,
         "najjaca": {
           "id": "S04:pm10",
-          "score": 0.8044
+          "score": 0.741
         }
       },
       "mobilnost": {
@@ -95,8 +95,8 @@
         "ime": "Vode",
         "n": 11,
         "najjaca": {
-          "id": "4a3846cb7246fc0d",
-          "score": 0.4191
+          "id": "S52:water_level_change",
+          "score": 0.4172
         }
       },
       "van_grada": {
@@ -104,7 +104,7 @@
         "n": 53,
         "najjaca": {
           "id": "d8b001189f0b0ad7",
-          "score": 0.3824
+          "score": 0.3637
         }
       },
       "uprava": {
@@ -112,7 +112,7 @@
         "n": 24,
         "najjaca": {
           "id": "e29ccd429440f117",
-          "score": 0.5826
+          "score": 0.5627
         }
       },
       "ekonomija": {
@@ -120,7 +120,7 @@
         "n": 31,
         "najjaca": {
           "id": "2f6fde8d8944bbbb",
-          "score": 0.4828
+          "score": 0.4709
         }
       },
       "bezbednost": {
@@ -128,7 +128,7 @@
         "n": 24,
         "najjaca": {
           "id": "dfb8ae42de336fe5",
-          "score": 0.5949
+          "score": 0.5805
         }
       },
       "gradnja": {
@@ -136,7 +136,7 @@
         "n": 6,
         "najjaca": {
           "id": "ca826a85398f7e23",
-          "score": 0.4106
+          "score": 0.4044
         }
       },
       "dogadjaji": {
@@ -144,7 +144,7 @@
         "n": 25,
         "najjaca": {
           "id": "24dd93add5e38089",
-          "score": 0.5285
+          "score": 0.5161
         }
       },
       "zdravlje": {
@@ -152,57 +152,57 @@
         "n": 4,
         "najjaca": {
           "id": "f5c0661b149a979c",
-          "score": 0.418
+          "score": 0.4134
         }
       },
       "misli": {
         "ime": "Misli",
-        "n": 41,
+        "n": 40,
         "najjaca": {
           "id": "mind-20261127231536-3",
-          "score": 0.727
+          "score": 0.7221
         }
       }
     },
     "svezi_izvori_max": [
       {
         "id": "S224",
-        "starost_min": 985,
+        "starost_min": 1015,
         "status": "active"
       },
       {
         "id": "S220",
-        "starost_min": 245,
+        "starost_min": 275,
         "status": "active"
       },
       {
         "id": "S222",
-        "starost_min": 245,
+        "starost_min": 275,
         "status": "active"
       },
       {
         "id": "S221",
-        "starost_min": 30,
+        "starost_min": 60,
         "status": "active"
       },
       {
         "id": "S146",
-        "starost_min": 5,
+        "starost_min": 35,
         "status": "active"
       },
       {
-        "id": "S04",
-        "starost_min": 5,
+        "id": "S11",
+        "starost_min": 35,
         "status": "active"
       },
       {
-        "id": "S75",
-        "starost_min": 5,
+        "id": "S199",
+        "starost_min": 35,
         "status": "active"
       },
       {
-        "id": "S76",
-        "starost_min": 5,
+        "id": "S200",
+        "starost_min": 35,
         "status": "active"
       }
     ]
@@ -210,34 +210,10 @@
   "top": [
     {
       "vrsta": "merenje",
-      "id": "S04:pm10",
-      "naslov": "PM10 171.2 µg/m³ — 90579",
-      "t": "2026-11-28T00:25:32Z",
-      "rx": "2026-11-28T00:27:27.293125Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
-      "state": "observed",
-      "score": 0.8044,
-      "komponente": {
-        "gate": 1,
-        "svezina": 0.942,
-        "magnituda": 0.795,
-        "korak": 0.9,
-        "masa": 0.268
-      },
-      "zasto": "gate 1 (observed) · svezina 0.94 (Δ 7 min, τ=120 min) · magnituda 0.79 (171.2 protiv sat-opsega 6.4–247.1 u 0h) · korak 0.9 · masa 0.27 (hex 3810 stanovnika)",
-      "traka_vreme": "sada",
-      "traka_prostor": "centar",
-      "tema": "vazduh",
-      "tema_ime": "Vazduh",
-      "link": "mesto:S04",
-      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
-    },
-    {
-      "vrsta": "merenje",
       "id": "S10:free_spaces",
-      "naslov": "Slobodnih parking mesta 195 — Garaža \"Baba Višnjina\"",
-      "rx": "2026-11-28T00:32:35.045692Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "naslov": "Slobodnih parking mesta 197 — Garaža \"Baba Višnjina\"",
+      "rx": "2026-11-28T01:02:29.559631Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "untimed",
       "score": 0.7925,
       "komponente": {
@@ -247,7 +223,7 @@
         "korak": 1,
         "masa": 1
       },
-      "zasto": "gate 0.7 (untimed) · svezina 0.35 (Δ null min, τ=120 min) · magnituda 1.00 (195 slobodnih mesta) · korak 1 · masa 1.00 (hex 14242 stanovnika)",
+      "zasto": "gate 0.7 (untimed) · svezina 0.35 (Δ null min, τ=120 min) · magnituda 1.00 (197 slobodnih mesta) · korak 1 · masa 1.00 (hex 14242 stanovnika)",
       "traka_vreme": "bez_vremena",
       "traka_prostor": "centar",
       "tema": "mobilnost",
@@ -259,8 +235,8 @@
       "vrsta": "merenje",
       "id": "S10:free_spaces",
       "naslov": "Slobodnih parking mesta 30 — Parkiralište \"Viška\"",
-      "rx": "2026-11-28T00:32:35.045692Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "rx": "2026-11-28T01:02:29.559631Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "untimed",
       "score": 0.7925,
       "komponente": {
@@ -281,20 +257,44 @@
     {
       "vrsta": "merenje",
       "id": "S04:pm10",
-      "naslov": "PM10 31 µg/m³ — 97343",
-      "t": "2026-11-28T00:26:26Z",
-      "rx": "2026-11-28T00:27:27.293125Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "naslov": "PM10 26 µg/m³ — 97343",
+      "t": "2026-11-28T01:01:26Z",
+      "rx": "2026-11-28T01:02:28.416775Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "observed",
-      "score": 0.7486,
+      "score": 0.741,
       "komponente": {
         "gate": 1,
-        "svezina": 0.949,
-        "magnituda": 0.212,
+        "svezina": 0.991,
+        "magnituda": 0.14,
         "korak": 0.9,
         "masa": 0.854
       },
-      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 6 min, τ=120 min) · magnituda 0.21 (31 protiv sat-opsega 6.4–247.1 u 0h) · korak 0.9 · masa 0.85 (hex 12168 stanovnika)",
+      "zasto": "gate 1 (observed) · svezina 0.99 (Δ 1 min, τ=120 min) · magnituda 0.14 (26 ispod sat-proseka (6.4–798.1 u 1h)) · korak 0.9 · masa 0.85 (hex 12168 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "centar",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S04",
+      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+    },
+    {
+      "vrsta": "merenje",
+      "id": "S04:pm25",
+      "naslov": "PM2.5 17.67 µg/m³ — 47427",
+      "t": "2026-11-28T01:01:01Z",
+      "rx": "2026-11-28T01:02:28.416775Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
+      "state": "observed",
+      "score": 0.736,
+      "komponente": {
+        "gate": 1,
+        "svezina": 0.987,
+        "magnituda": 0.124,
+        "korak": 0.9,
+        "masa": 0.854
+      },
+      "zasto": "gate 1 (observed) · svezina 0.99 (Δ 2 min, τ=120 min) · magnituda 0.12 (17.67 ispod sat-proseka (6.1–94.8 u 1h)) · korak 0.9 · masa 0.85 (hex 12168 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "centar",
       "tema": "vazduh",
@@ -307,17 +307,17 @@
       "id": "mind-20261127231536-3",
       "naslov": "Proverio bih geografiju iza Skeptikovog opreza: oba minimuma čestica sada su u Obrenovcu Centar, nasuprot zajedničkom maksimumu u Rakovici. Građanski senzori javili su se pre 3 min, naspram SEPA-inih 53 min, pa njihove poslednje prijeme ne mogu da tretiram kao istovremen pogled na taj obrazac. [F4][F8][F10][F2]",
       "t": "2026-11-27T23:15:36.816957Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "accepted",
-      "score": 0.727,
+      "score": 0.7221,
       "komponente": {
         "gate": 0.9,
-        "svezina": 0.948,
+        "svezina": 0.928,
         "magnituda": 0.8,
         "korak": 0.4,
         "masa": 0.5
       },
-      "zasto": "gate 0.9 (prihvaćena) · svezina 0.95 (Δ 77 min, τ=1440 min) · magnituda 0.80 (4 citata) · korak 0.4 (Povezivač) · masa 0.5",
+      "zasto": "gate 0.9 (prihvaćena) · svezina 0.93 (Δ 107 min, τ=1440 min) · magnituda 0.80 (4 citata) · korak 0.4 (Povezivač) · masa 0.5",
       "traka_vreme": "skoro",
       "traka_prostor": "grad",
       "tema": "misli",
@@ -336,17 +336,17 @@
       "id": "mind-20261127225326-4",
       "naslov": "Odbacujem Connectorovu nepromenjenu podudarnost na Banovom brdu: najnoviji maksimumi čestica iznose po 37 µg/m³ u Rakovici, a oba maksimuma su se smanjila između označenih sati. Ne mogu da pretvorim maksimum NO2 od 29 µg/m³ u Borči u dokaz o kretanju oblaka zagađenja; ovi ekstremi ne prate transport. [F4][F5][F8][F9][F6][F7]",
       "t": "2026-11-27T22:53:26.192040Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "accepted",
-      "score": 0.7234,
+      "score": 0.7186,
       "komponente": {
         "gate": 0.9,
-        "svezina": 0.933,
+        "svezina": 0.914,
         "magnituda": 0.8,
         "korak": 0.4,
         "masa": 0.5
       },
-      "zasto": "gate 0.9 (prihvaćena) · svezina 0.93 (Δ 99 min, τ=1440 min) · magnituda 0.80 (6 citata) · korak 0.4 (Sumnjalo) · masa 0.5",
+      "zasto": "gate 0.9 (prihvaćena) · svezina 0.91 (Δ 129 min, τ=1440 min) · magnituda 0.80 (6 citata) · korak 0.4 (Sumnjalo) · masa 0.5",
       "traka_vreme": "skoro",
       "traka_prostor": "grad",
       "tema": "misli",
@@ -365,20 +365,20 @@
     {
       "vrsta": "merenje",
       "id": "S04:temperature",
-      "naslov": "Temperatura 20.63 °C — 101711",
-      "t": "2026-11-28T00:24:41Z",
-      "rx": "2026-11-28T00:27:27.293125Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "naslov": "Temperatura 20.65 °C — 101711",
+      "t": "2026-11-28T01:01:05Z",
+      "rx": "2026-11-28T01:02:28.416775Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "observed",
-      "score": 0.7018,
+      "score": 0.7101,
       "komponente": {
         "gate": 1,
-        "svezina": 0.936,
-        "magnituda": 0.933,
+        "svezina": 0.988,
+        "magnituda": 0.914,
         "korak": 0.4,
         "masa": 0.031
       },
-      "zasto": "gate 1 (observed) · svezina 0.94 (Δ 8 min, τ=120 min) · magnituda 0.93 (20.63 protiv sat-opsega -2.2–13.4 u 0h) · korak 0.4 · masa 0.03 (hex 439 stanovnika)",
+      "zasto": "gate 1 (observed) · svezina 0.99 (Δ 1 min, τ=120 min) · magnituda 0.91 (20.65 protiv sat-opsega -2.6–13.5 u 1h) · korak 0.4 · masa 0.03 (hex 439 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "spoljasnja",
       "tema": "meteo",
@@ -388,45 +388,45 @@
     },
     {
       "vrsta": "merenje",
-      "id": "S01:humidity",
-      "naslov": "Vlažnost 100 % — Beograd",
-      "t": "2026-11-28T00:20:00Z",
-      "rx": "2026-11-28T00:27:45.039577Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "id": "S04:humidity",
+      "naslov": "Vlažnost 100 % — 21153",
+      "t": "2026-11-28T01:01:30Z",
+      "rx": "2026-11-28T01:02:28.416775Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "observed",
-      "score": 0.6539,
+      "score": 0.6589,
       "komponente": {
         "gate": 1,
-        "svezina": 0.9,
-        "magnituda": 0.34,
+        "svezina": 0.991,
+        "magnituda": 0.338,
         "korak": 0.4,
-        "masa": 0.76
+        "masa": 0.643
       },
-      "zasto": "gate 1 (observed) · svezina 0.90 (Δ 13 min, τ=120 min) · magnituda 0.34 (100 protiv sat-opsega 45.6–100 u 0h) · korak 0.4 · masa 0.76 (hex 10826 stanovnika)",
+      "zasto": "gate 1 (observed) · svezina 0.99 (Δ 1 min, τ=120 min) · magnituda 0.34 (100 protiv sat-opsega 46.8–100 u 1h) · korak 0.4 · masa 0.64 (hex 9155 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "centar",
       "tema": "meteo",
       "tema_ime": "Meteo",
-      "link": "mesto:S01",
-      "izvor": "RHMZ automatic stations - Belgrade (Beograd, Košutnjak)"
+      "link": "mesto:S04",
+      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
     },
     {
       "vrsta": "merenje",
       "id": "S04:pressure_at_sealevel",
-      "naslov": "Pritisak (nivo mora) 102116.8 Pa — 21153",
-      "t": "2026-11-28T00:26:09Z",
-      "rx": "2026-11-28T00:27:27.293125Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "naslov": "Pritisak (nivo mora) 102136.9 Pa — 21153",
+      "t": "2026-11-28T01:01:30Z",
+      "rx": "2026-11-28T01:02:28.416775Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "observed",
-      "score": 0.6132,
+      "score": 0.6243,
       "komponente": {
         "gate": 1,
-        "svezina": 0.947,
+        "svezina": 0.991,
         "magnituda": 0.2,
         "korak": 0.4,
         "masa": 0.643
       },
-      "zasto": "gate 1 (observed) · svezina 0.95 (Δ 7 min, τ=120 min) · magnituda 0.20 (bez baze i bez pragova) · korak 0.4 · masa 0.64 (hex 9155 stanovnika)",
+      "zasto": "gate 1 (observed) · svezina 0.99 (Δ 1 min, τ=120 min) · magnituda 0.20 (bez baze i bez pragova) · korak 0.4 · masa 0.64 (hex 9155 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "centar",
       "tema": "ostalo",
@@ -436,44 +436,44 @@
     },
     {
       "vrsta": "merenje",
-      "id": "S146:nox",
-      "naslov": "nox 26.24 u — Vračar",
-      "t": "2026-11-28T01:00:00Z",
-      "rx": "2026-11-28T00:27:25.991885Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
-      "state": "estimated",
-      "score": 0.605,
+      "id": "S04:pressure_at_sealevel",
+      "naslov": "Pritisak (nivo mora) 102556.1 Pa — 98319",
+      "t": "2026-11-28T01:01:48Z",
+      "rx": "2026-11-28T01:02:28.416775Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
+      "state": "observed",
+      "score": 0.609,
       "komponente": {
-        "gate": 0.5,
-        "svezina": 1,
+        "gate": 1,
+        "svezina": 0.994,
         "magnituda": 0.2,
         "korak": 0.4,
-        "masa": 1
+        "masa": 0.537
       },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -27 min, τ=120 min) · magnituda 0.20 (bez baze i bez pragova) · korak 0.4 · masa 1.00 (hex 14242 stanovnika)",
+      "zasto": "gate 1 (observed) · svezina 0.99 (Δ 1 min, τ=120 min) · magnituda 0.20 (bez baze i bez pragova) · korak 0.4 · masa 0.54 (hex 7646 stanovnika)",
       "traka_vreme": "sada",
-      "traka_prostor": "centar",
+      "traka_prostor": "unutrasnja",
       "tema": "ostalo",
       "tema_ime": "Ostalo",
-      "link": "mesto:S146",
-      "izvor": "SEPA air quality HVD API - hourly preliminary means"
+      "link": "mesto:S04",
+      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
     },
     {
       "vrsta": "vest",
       "id": "dfb8ae42de336fe5",
       "naslov": "Bivši napadač Partizana besan: \"Ovo je bio pokolj\"",
       "t": "2026-11-27T20:54:00Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "estimated",
-      "score": 0.5949,
+      "score": 0.5805,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.545,
+        "svezina": 0.501,
         "magnituda": null,
         "korak": 0.8,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.54 (pre 219 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
+      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.50 (pre 249 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
       "traka_vreme": "danas",
       "traka_prostor": "grad",
       "tema": "bezbednost",
@@ -484,149 +484,149 @@
     },
     {
       "vrsta": "vest",
-      "id": "81361c98bda2e59b",
-      "naslov": "Četvorica Srba uhapšena u Beču; Evo šta je pronađeno u njihovom automobilu",
-      "t": "2026-11-27T20:42:00Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "id": "029027c8686b5dbe",
+      "naslov": "Policija i pravosuđe posle izbora: Ko danas upravlja institucijama?",
+      "t": "2026-11-27T19:07:27Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "estimated",
-      "score": 0.589,
+      "score": 0.5776,
       "komponente": {
-        "gate": 0.5,
-        "svezina": 0.527,
+        "gate": 0.7,
+        "svezina": 0.373,
         "magnituda": null,
         "korak": 0.8,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (estimated, čas nepotvrđen) · svezina 0.53 (pre 231 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
+      "zasto": "gate 0.7 (estimated, potvrđen čas) · svezina 0.37 (pre 355 min, τ=360 min) · korak 0.8 (bezbednost_incident) · masa 0.5",
       "traka_vreme": "danas",
       "traka_prostor": "grad",
       "tema": "bezbednost",
       "tema_ime": "Bezbednost",
-      "link": "vest:S198",
+      "link": "vest:S69",
       "izvor": "news-sorter",
-      "vreme_tekst": null
+      "vreme_tekst": "danas"
     }
   ],
   "korak_za_gradjanina": [
     {
       "vrsta": "merenje",
-      "id": "S146:pm25",
-      "naslov": "PM2.5 20.52 µg/m³ — Vračar",
-      "t": "2026-11-28T01:00:00Z",
-      "rx": "2026-11-28T00:27:25.991885Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
-      "state": "estimated",
-      "score": 0.691,
+      "id": "S04:pm10",
+      "naslov": "PM10 30.17 µg/m³ — 66175",
+      "t": "2026-11-28T01:01:59Z",
+      "rx": "2026-11-28T01:02:28.416775Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
+      "state": "observed",
+      "score": 0.666,
       "komponente": {
-        "gate": 0.5,
-        "svezina": 1,
-        "magnituda": 0.144,
+        "gate": 1,
+        "svezina": 0.995,
+        "magnituda": 0.203,
         "korak": 0.9,
-        "masa": 1
+        "masa": 0.242
       },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -27 min, τ=120 min) · magnituda 0.14 (20.52 ispod sat-proseka (6.1–94.8 u 1h)) · korak 0.9 · masa 1.00 (hex 14242 stanovnika)",
-      "traka_vreme": "sada",
-      "traka_prostor": "centar",
-      "tema": "vazduh",
-      "tema_ime": "Vazduh",
-      "link": "mesto:S146",
-      "izvor": "SEPA air quality HVD API - hourly preliminary means"
-    },
-    {
-      "vrsta": "merenje",
-      "id": "S146:pm10",
-      "naslov": "PM10 20.59 µg/m³ — Vračar",
-      "t": "2026-11-28T01:00:00Z",
-      "rx": "2026-11-28T00:27:25.991885Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
-      "state": "estimated",
-      "score": 0.6828,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 1,
-        "magnituda": 0.111,
-        "korak": 0.9,
-        "masa": 1
-      },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -27 min, τ=120 min) · magnituda 0.11 (20.59 ispod sat-proseka (6.4–798.1 u 1h)) · korak 0.9 · masa 1.00 (hex 14242 stanovnika)",
-      "traka_vreme": "sada",
-      "traka_prostor": "centar",
-      "tema": "vazduh",
-      "tema_ime": "Vazduh",
-      "link": "mesto:S146",
-      "izvor": "SEPA air quality HVD API - hourly preliminary means"
-    },
-    {
-      "vrsta": "merenje",
-      "id": "S146:pm25",
-      "naslov": "PM2.5 22.39 µg/m³ — Stari grad",
-      "t": "2026-11-28T01:00:00Z",
-      "rx": "2026-11-28T00:27:25.991885Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
-      "state": "estimated",
-      "score": 0.654,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 1,
-        "magnituda": 0.211,
-        "korak": 0.9,
-        "masa": 0.642
-      },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -27 min, τ=120 min) · magnituda 0.21 (22.39 protiv sat-opsega 6.1–94.8 u 1h) · korak 0.9 · masa 0.64 (hex 9137 stanovnika)",
-      "traka_vreme": "sada",
-      "traka_prostor": "centar",
-      "tema": "vazduh",
-      "tema_ime": "Vazduh",
-      "link": "mesto:S146",
-      "izvor": "SEPA air quality HVD API - hourly preliminary means"
-    },
-    {
-      "vrsta": "merenje",
-      "id": "S146:pm25",
-      "naslov": "PM2.5 16.65 µg/m³ — Vračar Dom zdravlja",
-      "t": "2026-11-28T01:00:00Z",
-      "rx": "2026-11-28T00:27:25.991885Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
-      "state": "estimated",
-      "score": 0.6381,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 1,
-        "magnituda": 0.117,
-        "korak": 0.9,
-        "masa": 0.693
-      },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -27 min, τ=120 min) · magnituda 0.12 (16.65 ispod sat-proseka (6.1–94.8 u 1h)) · korak 0.9 · masa 0.69 (hex 9866 stanovnika)",
-      "traka_vreme": "sada",
-      "traka_prostor": "centar",
-      "tema": "vazduh",
-      "tema_ime": "Vazduh",
-      "link": "mesto:S146",
-      "izvor": "SEPA air quality HVD API - hourly preliminary means"
-    },
-    {
-      "vrsta": "merenje",
-      "id": "S146:pm25",
-      "naslov": "PM2.5 23.06 µg/m³ — Mirijevo",
-      "t": "2026-11-28T01:00:00Z",
-      "rx": "2026-11-28T00:27:25.991885Z",
-      "as_of": "2026-11-28T00:32:40.134Z",
-      "state": "estimated",
-      "score": 0.6379,
-      "komponente": {
-        "gate": 0.5,
-        "svezina": 1,
-        "magnituda": 0.219,
-        "korak": 0.9,
-        "masa": 0.521
-      },
-      "zasto": "gate 0.5 (estimated) · svezina 1.00 (Δ -27 min, τ=120 min) · magnituda 0.22 (23.06 protiv sat-opsega 6.1–94.8 u 1h) · korak 0.9 · masa 0.52 (hex 7424 stanovnika)",
+      "zasto": "gate 1 (observed) · svezina 1.00 (Δ 1 min, τ=120 min) · magnituda 0.20 (30.17 protiv sat-opsega 6.4–798.1 u 1h) · korak 0.9 · masa 0.24 (hex 3451 stanovnika)",
       "traka_vreme": "sada",
       "traka_prostor": "unutrasnja",
       "tema": "vazduh",
       "tema_ime": "Vazduh",
-      "link": "mesto:S146",
-      "izvor": "SEPA air quality HVD API - hourly preliminary means"
+      "link": "mesto:S04",
+      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+    },
+    {
+      "vrsta": "merenje",
+      "id": "S04:pm25",
+      "naslov": "PM2.5 23.25 µg/m³ — 90803",
+      "t": "2026-11-28T01:01:58Z",
+      "rx": "2026-11-28T01:02:28.416775Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
+      "state": "observed",
+      "score": 0.6399,
+      "komponente": {
+        "gate": 1,
+        "svezina": 0.995,
+        "magnituda": 0.221,
+        "korak": 0.9,
+        "masa": 0.039
+      },
+      "zasto": "gate 1 (observed) · svezina 1.00 (Δ 1 min, τ=120 min) · magnituda 0.22 (23.25 protiv sat-opsega 6.1–94.8 u 1h) · korak 0.9 · masa 0.04 (hex 552 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "spoljasnja",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S04",
+      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+    },
+    {
+      "vrsta": "merenje",
+      "id": "S04:pm25",
+      "naslov": "PM2.5 11.43 µg/m³ — 66175",
+      "t": "2026-11-28T01:01:59Z",
+      "rx": "2026-11-28T01:02:28.416775Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
+      "state": "observed",
+      "score": 0.6352,
+      "komponente": {
+        "gate": 1,
+        "svezina": 0.995,
+        "magnituda": 0.08,
+        "korak": 0.9,
+        "masa": 0.242
+      },
+      "zasto": "gate 1 (observed) · svezina 1.00 (Δ 1 min, τ=120 min) · magnituda 0.08 (11.43 ispod sat-proseka (6.1–94.8 u 1h)) · korak 0.9 · masa 0.24 (hex 3451 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "unutrasnja",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S04",
+      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+    },
+    {
+      "vrsta": "merenje",
+      "id": "S04:pm10",
+      "naslov": "PM10 25.25 µg/m³ — 90803",
+      "t": "2026-11-28T01:01:58Z",
+      "rx": "2026-11-28T01:02:28.416775Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
+      "state": "observed",
+      "score": 0.6187,
+      "komponente": {
+        "gate": 1,
+        "svezina": 0.995,
+        "magnituda": 0.136,
+        "korak": 0.9,
+        "masa": 0.039
+      },
+      "zasto": "gate 1 (observed) · svezina 1.00 (Δ 1 min, τ=120 min) · magnituda 0.14 (25.25 ispod sat-proseka (6.4–798.1 u 1h)) · korak 0.9 · masa 0.04 (hex 552 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "spoljasnja",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S04",
+      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
+    },
+    {
+      "vrsta": "merenje",
+      "id": "S04:pm25",
+      "naslov": "PM2.5 23.92 µg/m³ — 98318",
+      "t": "2026-11-28T01:01:47Z",
+      "rx": "2026-11-28T01:02:28.416775Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
+      "state": "observed",
+      "score": 0.7161,
+      "komponente": {
+        "gate": 1,
+        "svezina": 0.994,
+        "magnituda": 0.228,
+        "korak": 0.9,
+        "masa": 0.537
+      },
+      "zasto": "gate 1 (observed) · svezina 0.99 (Δ 1 min, τ=120 min) · magnituda 0.23 (23.92 protiv sat-opsega 6.1–94.8 u 1h) · korak 0.9 · masa 0.54 (hex 7646 stanovnika)",
+      "traka_vreme": "sada",
+      "traka_prostor": "unutrasnja",
+      "tema": "vazduh",
+      "tema_ime": "Vazduh",
+      "link": "mesto:S04",
+      "izvor": "Sensor.Community citizen sensors within 25 km of Belgrade centre"
     }
   ],
   "najave": [
@@ -635,17 +635,17 @@
       "id": "2864964f3f22187b",
       "naslov": "Планирано искључење струје 2026-11-29 · Гроцка · 09:00 - 16:00 · Насеље БОЛЕЧ: МАРШАЛА ТИТА: 122-124,130,142, СМЕДЕРЕВСКИ ПУТ: ББ,,2-2Д,6,120-122В,128, Насеље ГРОЦКА: СМЕДЕРЕВСКИ ПУТ: 6Ц,1Р, Насеље ЛЕ",
       "t": "2026-11-29",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "najava",
-      "score": 0.46,
+      "score": 0.4606,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.02,
+        "svezina": 0.022,
         "magnituda": null,
         "korak": 0.95,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.02 (za 1407 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.02 (za 1377 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
       "traka_vreme": "najava",
       "traka_prostor": "grad",
       "tema": "mobilnost",
@@ -659,17 +659,17 @@
       "id": "af58b1f1061ca1bd",
       "naslov": "Планирано искључење струје 2026-11-29 · Палилула · 11:30 - 17:00 · Насеље ВРБОВСКИ: ВРБОВСКИ: бб",
       "t": "2026-11-29",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "najava",
-      "score": 0.46,
+      "score": 0.4606,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.02,
+        "svezina": 0.022,
         "magnituda": null,
         "korak": 0.95,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.02 (za 1407 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.02 (za 1377 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
       "traka_vreme": "najava",
       "traka_prostor": "grad",
       "tema": "mobilnost",
@@ -683,17 +683,17 @@
       "id": "ce518d65bb6dffd2",
       "naslov": "Планирано искључење струје 2026-11-29 · Палилула · 08:30 - 11:00 · Насеље ПАДИНСКА СКЕЛА: ПАДИНСКА СКЕЛА: ББ",
       "t": "2026-11-29",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "najava",
-      "score": 0.46,
+      "score": 0.4606,
       "komponente": {
         "gate": 0.5,
-        "svezina": 0.02,
+        "svezina": 0.022,
         "magnituda": null,
         "korak": 0.95,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.02 (za 1407 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.02 (za 1377 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
       "traka_vreme": "najava",
       "traka_prostor": "grad",
       "tema": "mobilnost",
@@ -707,7 +707,7 @@
       "id": "089a1f27d8fc9d53",
       "naslov": "Планирано искључење струје 2026-11-30 · Младеновац · 11:00 - 14:00 · Насеље АРАНЂЕЛОВАЦ: СТОЈНИК: ББ,162-180,184-194,198-208,280-288,292-320,332-334,354,394-442,446,450,163-189,193-205,281-287,291-303",
       "t": "2026-11-30",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "najava",
       "score": 0.4535,
       "komponente": {
@@ -717,7 +717,7 @@
         "korak": 0.95,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.00 (za 2847 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.00 (za 2817 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
       "traka_vreme": "najava",
       "traka_prostor": "grad",
       "tema": "mobilnost",
@@ -731,7 +731,7 @@
       "id": "14092c388e6aa156",
       "naslov": "Планирано искључење струје 2026-11-30 · Обреновац · 09:00 - 11:00 · Насеље ОБРЕНОВАЦ: МИЛОША ОБРЕНОВИЋА: 124",
       "t": "2026-11-30",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "najava",
       "score": 0.4535,
       "komponente": {
@@ -741,7 +741,7 @@
         "korak": 0.95,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.00 (za 2847 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.00 (za 2817 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
       "traka_vreme": "najava",
       "traka_prostor": "grad",
       "tema": "mobilnost",
@@ -755,7 +755,7 @@
       "id": "167cbfa34bd44e08",
       "naslov": "Планирано искључење струје 2026-11-30 · Палилула · 11:00 - 13:00 · СЛАНАЧКИ ПУТ: 95,101Д-101Р, Насеље ВИШЊИЦА: КАНАДСКА: 2-12,1-11",
       "t": "2026-11-30",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "najava",
       "score": 0.4535,
       "komponente": {
@@ -765,7 +765,7 @@
         "korak": 0.95,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.00 (za 2847 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.00 (za 2817 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
       "traka_vreme": "najava",
       "traka_prostor": "grad",
       "tema": "mobilnost",
@@ -779,7 +779,7 @@
       "id": "16ac5a051a2fc37c",
       "naslov": "Планирано искључење струје 2026-11-30 · Лазаревац · 09:00 - 14:00 · Насеље Стубица засеок Чесма.",
       "t": "2026-11-30",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "najava",
       "score": 0.4535,
       "komponente": {
@@ -789,7 +789,7 @@
         "korak": 0.95,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.00 (za 2847 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.00 (za 2817 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
       "traka_vreme": "najava",
       "traka_prostor": "grad",
       "tema": "mobilnost",
@@ -803,7 +803,7 @@
       "id": "2d02cebe58b520b4",
       "naslov": "Планирано искључење струје 2026-11-30 · Лазаревац · 09:00 - 12:00 · Насеље Степојевац засеок Цигани.",
       "t": "2026-11-30",
-      "as_of": "2026-11-28T00:32:40.134Z",
+      "as_of": "2026-11-28T01:02:31.944Z",
       "state": "najava",
       "score": 0.4535,
       "komponente": {
@@ -813,7 +813,7 @@
         "korak": 0.95,
         "masa": 0.5
       },
-      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.00 (za 2847 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
+      "zasto": "gate 0.5 (najava, plan, čas nepotvrđen) · svezina 0.00 (za 2817 min, τ=360 min) · korak 0.95 (iskljucenja) · masa 0.5",
       "traka_vreme": "najava",
       "traka_prostor": "grad",
       "tema": "mobilnost",
@@ -863,5 +863,5 @@
   "dedup_najave_uklonjeno": 6,
   "vesti_van_grada_po_sadrzaju": 0,
   "najave_prepravljene_po_naslovu": 0,
-  "ukupno": 1423
+  "ukupno": 1421
 }
